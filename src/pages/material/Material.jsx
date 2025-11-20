@@ -69,16 +69,16 @@ export default function Material({ activeTab }) {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white border-b border-gray-200 px-2 -mt-2">
-          <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
+        <div className="bg-white px-4 py-3 -mt-2">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => navigate(tab.path)}
-                className={`px-3 py-3 text-xs font-medium whitespace-nowrap transition-all ${
+                className={`px-4 py-2 text-xs font-semibold whitespace-nowrap rounded-lg transition-all ${
                   currentTab === tab.key
-                    ? 'text-orange-600 border-b-2 border-orange-600'
-                    : 'text-gray-600 hover:text-orange-500'
+                    ? 'bg-gray-800 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
                 }`}
               >
                 {tab.name}
