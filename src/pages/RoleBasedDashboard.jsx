@@ -11,8 +11,12 @@ const RoleBasedDashboard = () => {
     const userString = localStorage.getItem('user');
     const token = localStorage.getItem('token');
     
+    console.log('🔍 RoleBasedDashboard - Checking user...');
+    console.log('📦 User string from localStorage:', userString);
+    console.log('🔑 Token exists:', !!token);
+    
     if (!userString || !token) {
-      console.error('No user or token found, redirecting to login');
+      console.error('❌ No user or token found, redirecting to login');
       navigate('/login');
       return null;
     }
@@ -20,15 +24,21 @@ const RoleBasedDashboard = () => {
     const user = JSON.parse(userString);
     const role = user?.role;
     
-    console.log('User role:', role);
+    console.log('👤 Parsed user object:', user);
+    console.log('🎭 User role detected:', role);
+    console.log('📋 Full user data:', JSON.stringify(user, null, 2));
     
     if (role === 'admin' || role === 'supervisor') {
+      console.log('✅ Rendering AdminDashboard for role:', role);
       return <Dashboard />;
     }
     
     if (role === 'labour' || role === 'subcontractor' || role === 'staff') {
+      console.log('✅ Rendering LabourDashboard for role:', role);
       return <LabourDashboard />;
     }
+    
+    console.warn('⚠️ Unknown role:', role);
     
     return (
       <div className="min-h-screen flex items-center justify-center">

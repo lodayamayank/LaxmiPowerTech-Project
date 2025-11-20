@@ -33,10 +33,18 @@ const Login = () => {
       const data = res.data;
 
       console.log('💾 Saving to localStorage...');
+      console.log('👤 User data from backend:', data.user);
+      console.log('🎭 User role:', data.user.role);
+      
+      const userToSave = { ...data.user, _id: data.user.id || data.user._id };
+      console.log('📦 User object to save:', userToSave);
+      
       localStorage.setItem('token', data.token);
-      localStorage.setItem("user", JSON.stringify({ ...data.user, _id: data.user.id || data.user._id }));
+      localStorage.setItem("user", JSON.stringify(userToSave));
       localStorage.setItem('loginTime', Date.now());
+      
       console.log('✅ Saved to localStorage');
+      console.log('🔍 Verify saved user:', localStorage.getItem('user'));
 
       console.log('🚀 Navigating to /dashboard...');
       navigate('/dashboard');
