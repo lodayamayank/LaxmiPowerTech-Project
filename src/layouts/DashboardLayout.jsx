@@ -78,7 +78,7 @@ const DashboardLayout = ({ children, title }) => {
       label: "Material",
       icon: <MdInventory />,
       children: [
-        { label: "Upload Indent List", path: "/dashboard/material/admin", icon: <FaFileUpload /> },
+        { label: "Upload Indent List", path: "/dashboard/material/uploadindent", icon: <FaFileUpload /> },
         { label: "Intent (PO)", path: "/dashboard/material/intent", icon: <FaShoppingCart /> },
         { label: "Site Transfers", path: "/dashboard/material/site-transfers", icon: <FaTruck /> },
         { label: "Upcoming Deliveries", path: "/dashboard/material/upcoming-deliveries", icon: <FaClipboardCheck /> },
