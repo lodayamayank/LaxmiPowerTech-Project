@@ -143,14 +143,16 @@ export default function IntentForm() {
           setSites(fallbackSites);
         }
         
-        // Fetch materials
-        const materials = await materialAPI.getAll();
+        // Fetch materials from database
+        const materials = await materialAPI.getMaterials();
+        console.log('✅ Fetched materials:', materials?.length || 0);
         setAllMaterials(materials || []);
         
         // Extract unique categories
         const uniqueCategories = [...new Set(materials.map(item => item.category).filter(Boolean))]
           .sort((a, b) => a.localeCompare(b));
         setCategories(uniqueCategories);
+        console.log('✅ Unique categories:', uniqueCategories.length);
         
       } catch (err) {
         console.error('❌ Error fetching data:', err);
