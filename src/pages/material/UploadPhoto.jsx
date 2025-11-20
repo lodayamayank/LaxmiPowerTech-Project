@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaCamera, FaCheckCircle } from "react-icons/fa";
 import { Upload, X } from "lucide-react";
@@ -13,6 +13,28 @@ export default function UploadPhoto() {
   const [imagePreview, setImagePreview] = useState(null);
   const [uploading, setUploading] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  // Generate Intent ID on mount
+  useEffect(() => {
+    const generateIntentId = () => {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const dateStr = `${year}${month}${day}`;
+      
+      // Generate 4 random alphanumeric characters
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let randomStr = '';
+      for (let i = 0; i < 4; i++) {
+        randomStr += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      
+      return `PO-${dateStr}-${randomStr}`;
+    };
+    
+    setIndentId(generateIntentId());
+  }, []);
 
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
@@ -106,14 +128,14 @@ export default function UploadPhoto() {
         <div className="px-6 py-6 -mt-4">
           {/* Intent ID Input */}
           <div className="mb-6">
-            <label className="block text-gray-700 font-semibold mb-2">Intent ID</label>
+            <label className="block text-gray-700 font-semibold mb-2">Intent ID (Auto-generated)</label>
             <input
               type="text"
-              placeholder="Enter Intent ID (e.g., PO-2024-001)"
               value={indentId}
-              onChange={(e) => setIndentId(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+              readOnly
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-gray-50 text-gray-700 font-mono font-semibold cursor-not-allowed"
             />
+            <p className="text-xs text-gray-500 mt-1">This ID is automatically generated and cannot be edited</p>
           </div>
 
           {/* Upload Section */}
