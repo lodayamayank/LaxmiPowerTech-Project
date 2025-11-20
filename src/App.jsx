@@ -124,8 +124,7 @@ function App() {
         <Route path="/admindashboard" element={<AdminDashboard />} />
 
         {/* Material Management Routes - Following existing flat route pattern */}
-        <Route path="/dashboard/material/admin" element={<UploadIndent />} />
-        <Route path="/dashboard/material/upload-indent" element={<UploadIndent />} />
+        <Route path="/admindashboard/material/uploadindent" element={<UploadIndent />} />
         <Route path="/dashboard/material/site-transfers" element={<SiteTransfers />} />
         <Route path="/dashboard/material/upcoming-deliveries" element={<AdminUpcomingDeliveries />} />
         <Route path="/dashboard/material/intent" element={<AdminIntent />} />
