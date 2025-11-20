@@ -67,7 +67,7 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
       </div>
 
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-[300px] overflow-y-auto">
           {filteredOptions.length > 0 ? (
             <ul className="py-1">
               {filteredOptions.map((option, index) => (
@@ -143,13 +143,15 @@ export default function IntentForm() {
           setSites(fallbackSites);
         }
         
-        // Fetch materials from database
-        const materials = await materialAPI.getMaterials();
+        // Fetch materials from database using getAll() - ORIGINAL WORKING METHOD
+        const materials = await materialAPI.getAll();
         console.log('✅ Fetched materials:', materials?.length || 0);
         setAllMaterials(materials || []);
         
-        // Extract unique categories
-        const uniqueCategories = [...new Set(materials.map(item => item.category).filter(Boolean))]
+        // Extract unique categories - DUAL FORMAT SUPPORT
+        const uniqueCategories = [...new Set(materials.map(item => 
+          item.Category || item.category
+        ).filter(Boolean))]
           .sort((a, b) => a.localeCompare(b));
         setCategories(uniqueCategories);
         console.log('✅ Unique categories:', uniqueCategories.length);
@@ -163,22 +165,25 @@ export default function IntentForm() {
     fetchData();
   }, []);
 
-  // Get subcategories based on selected category
+  // Get subcategories based on selected category - DUAL FORMAT SUPPORT
   const getSubcategories = (category) => {
     return [...new Set(
       allMaterials
-        .filter(item => item.category === category)
-        .map(item => item.subCategory)
+        .filter(item => (item.Category || item.category) === category)
+        .map(item => item['Sub category'] || item.subCategory)
         .filter(Boolean)
     )].sort((a, b) => a.localeCompare(b));
   };
 
-  // Get sub-subcategories
+  // Get sub-subcategories - DUAL FORMAT SUPPORT
   const getSubSubcategories = (category, subCategory) => {
     return [...new Set(
       allMaterials
-        .filter(item => item.category === category && item.subCategory === subCategory)
-        .map(item => item.subCategory1)
+        .filter(item => 
+          (item.Category || item.category) === category && 
+          (item['Sub category'] || item.subCategory) === subCategory
+        )
+        .map(item => item['Sub category 1'] || item.subCategory1)
         .filter(Boolean)
     )].sort((a, b) => a.localeCompare(b));
   };

@@ -105,8 +105,10 @@ const uploadToServer = async (file, parsedData) => {
             <label className="font-medium text-gray-700">Select Category:</label>
             <select
               className="border rounded p-2 focus:ring-2 focus:ring-orange-400"
+              style={{ maxHeight: '200px' }}
               value={selectedSheet}
               onChange={(e) => setSelectedSheet(e.target.value)}
+              size="1"
             >
               {Object.keys(excelData).map(sheet => (
                 <option key={sheet}>{sheet}</option>
