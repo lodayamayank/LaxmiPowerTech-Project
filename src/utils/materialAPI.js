@@ -103,6 +103,43 @@ export const purchaseOrderAPI = {
   }
 };
 
+// Indent API (Intent with Photo Upload)
+export const indentAPI = {
+  uploadPhoto: async (formData) => {
+    const response = await axios.post('/indents/upload-photo', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  },
+
+  getAll: async (page = 1, limit = 10, search = '') => {
+    const response = await axios.get('/indents', {
+      params: { page, limit, search }
+    });
+    return response.data;
+  },
+
+  getById: async (id) => {
+    const response = await axios.get(`/indents/${id}`);
+    return response.data;
+  },
+
+  update: async (id, data) => {
+    const response = await axios.put(`/indents/${id}`, data);
+    return response.data;
+  },
+
+  updateStatus: async (id, status, adminRemarks = '') => {
+    const response = await axios.put(`/indents/${id}/status`, { status, adminRemarks });
+    return response.data;
+  },
+
+  delete: async (id) => {
+    const response = await axios.delete(`/indents/${id}`);
+    return response.data;
+  }
+};
+
 // Upcoming Delivery API
 export const upcomingDeliveryAPI = {
   getAll: async (page = 1, limit = 10, search = '') => {
@@ -142,5 +179,6 @@ export default {
   materialCatalog: materialCatalogAPI,
   siteTransfer: siteTransferAPI,
   purchaseOrder: purchaseOrderAPI,
-  upcomingDelivery: upcomingDeliveryAPI
+  upcomingDelivery: upcomingDeliveryAPI,
+  indent: indentAPI
 };

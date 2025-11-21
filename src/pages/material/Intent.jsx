@@ -1,38 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { purchaseOrderAPI } from '../../utils/materialAPI';
-import { Plus } from 'lucide-react';
+import { indentAPI } from '../../utils/materialAPI';
+import { Plus, Image as ImageIcon } from 'lucide-react';
 import { FaArrowLeft } from 'react-icons/fa';
 import AddIntentPopup from './AddIntentPopup';
+import axios from '../../utils/axios';
 
 export default function Intent({ isTabView = false }) {
   const navigate = useNavigate();
-  const [purchaseOrders, setPurchaseOrders] = useState([]);
+  const [indents, setIndents] = useState([]); // Changed from purchaseOrders
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showPopup, setShowPopup] = useState(false);
 
-  // Fetch purchase orders from backend
+  // Fetch indents (uploaded photos with PO IDs) from backend
   useEffect(() => {
-    fetchPurchaseOrders();
+    fetchIndents();
   }, [currentPage]);
 
   // Auto-refresh when window gains focus
   useEffect(() => {
     const handleFocus = () => {
-      fetchPurchaseOrders();
+      fetchIndents();
     };
     
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, [currentPage]);
 
-  // Periodic polling every 30 seconds (optimized from 2s)
+  // Periodic polling every 30 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchPurchaseOrders();
-    }, 30000); // 30 seconds - balanced performance
+      fetchIndents();
+    }, 30000);
     
     return () => clearInterval(interval);
   }, [currentPage]);
@@ -40,17 +41,17 @@ export default function Intent({ isTabView = false }) {
   // Listen for intent creation and status update events
   useEffect(() => {
     const handleIntentCreated = () => {
-      fetchPurchaseOrders();
+      fetchIndents();
     };
     
     const handleDeliveryRefresh = () => {
-      fetchPurchaseOrders();
+      fetchIndents();
     };
     
     const handleStorageChange = (e) => {
       if (e.key === 'intentRefresh' || e.key === 'upcomingDeliveryRefresh') {
         console.log(`✅ ${e.key} - refreshing Intent list`);
-        fetchPurchaseOrders();
+        fetchIndents();
       }
     };
     
@@ -65,17 +66,17 @@ export default function Intent({ isTabView = false }) {
     };
   }, [currentPage]);
 
-  const fetchPurchaseOrders = async () => {
+  const fetchIndents = async () => {
     try {
       setLoading(true);
-      const response = await purchaseOrderAPI.getAll(currentPage, 10);
+      const response = await indentAPI.getAll(currentPage, 10);
       if (response.success) {
-        console.log(`📊 Fetched ${response.data?.length || 0} purchase orders`);
-        setPurchaseOrders(response.data || []);
+        console.log(`📊 Fetched ${response.data?.length || 0} indents with photos`);
+        setIndents(response.data || []);
         setTotalPages(response.pagination?.totalPages || 1);
       }
     } catch (err) {
-      console.error('Error fetching purchase orders:', err);
+      console.error('Error fetching indents:', err);
     } finally {
       setLoading(false);
     }
@@ -125,51 +126,75 @@ export default function Intent({ isTabView = false }) {
         <div className="flex justify-center items-center py-10">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
         </div>
-      ) : purchaseOrders.length === 0 ? (
+      ) : indents.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
             <Plus size={32} className="text-orange-500" />
           </div>
           <p className="text-gray-700 font-semibold text-base mb-1">No Intent Requests</p>
-          <p className="text-gray-500 text-sm">Click the + button to create your first intent</p>
+          <p className="text-gray-500 text-sm">Click the + button to upload your first intent</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {purchaseOrders.map((po) => (
+          {indents.map((indent) => (
             <div
-              key={po._id}
-              onClick={() => navigate(`/material/intent/${po._id}`)}
+              key={indent._id}
+              onClick={() => {
+                if (indent.imageUrl) {
+                  window.open(`${axios.defaults.baseURL}${indent.imageUrl}`, '_blank');
+                }
+              }}
               className="bg-gradient-to-r from-gray-50 to-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
             >
-              {/* Header */}
+              {/* Header with Image Thumbnail */}
               <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="font-bold text-gray-900 text-base">
-                    {po.purchaseOrderId}
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {formatDate(po.requestDate)}
-                  </p>
+                <div className="flex items-center gap-3">
+                  {indent.imageUrl && (
+                    <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-orange-200 flex-shrink-0">
+                      <img 
+                        src={`${axios.defaults.baseURL}${indent.imageUrl}`}
+                        alt="Intent"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = '<div class="w-full h-full bg-orange-100 flex items-center justify-center"><svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>';
+                        }}
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-base">
+                      {indent.indentId || 'N/A'}
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formatDate(indent.createdAt)}
+                    </p>
+                  </div>
                 </div>
-                <span className={`text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm ${getStatusColor(po.status)}`}>
-                  {getStatusText(po.status)}
+                <span className={`text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm ${getStatusColor(indent.status)}`}>
+                  {getStatusText(indent.status)}
                 </span>
               </div>
 
               {/* Details */}
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-medium">Delivery Site</span>
-                  <span className="font-semibold text-gray-900">{po.deliverySite}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-medium">Materials</span>
-                  <span className="font-semibold text-orange-600">{po.materials?.length || 0} items</span>
+                  <span className="text-gray-600 font-medium">PO ID</span>
+                  <span className="font-semibold text-gray-900">{indent.indentId}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 font-medium">Requested By</span>
-                  <span className="font-semibold text-gray-900">{po.requestedBy}</span>
+                  <span className="font-semibold text-gray-900">{indent.requestedBy?.name || 'N/A'}</span>
                 </div>
+                {indent.imageUrl && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 font-medium">Image</span>
+                    <span className="font-semibold text-orange-600 flex items-center gap-1">
+                      <ImageIcon size={14} />
+                      Click to view
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -279,7 +304,7 @@ export default function Intent({ isTabView = false }) {
           onClose={() => setShowPopup(false)}
           onUploadClick={() => {
             setShowPopup(false);
-            navigate('/material/intent/new');
+            navigate('/material/upload-photo');
           }}
         />
       )}
