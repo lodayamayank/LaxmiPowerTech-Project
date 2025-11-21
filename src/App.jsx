@@ -1,50 +1,64 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login';
-import RoleBasedDashboard from './pages/RoleBasedDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import PrivateRoute from './components/PrivateRoute';
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { syncOfflineAttendance } from './utils/syncAttendance';
-import MyAttendance from './pages/MyAttendance';
-import AdminMyTeam from './pages/AdminMyTeam';
-import CreateProject from './pages/CreateProject';
-import AdminAttendance from './pages/AdminAttendance';
-import AttendancePage from './pages/AttendancePage';
-import AdminVendors from './pages/AdminVendors';
-import PunchInScreen from './pages/PunchInScreen';
-import SelfieCaptureScreen from './pages/SelfieCaptureScreen';
-import AdminBranches from './pages/AdminBranches';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import ProfileScreen from './pages/ProfileScreen';
-import AdminLiveAttendance from './pages/AdminLiveAttendance';
 import useNotifier from './hooks/useNotifier';
-import StaffAttendanceDashboard from './pages/StaffAttendanceDashboard';
-import SubcontractorAttendanceDashboard from './pages/SubcontractorAttendanceDashboard';
-import LabourAttendanceDashboard from './pages/LabourAttendanceDashboard';
-import NotesDashboard from './pages/NotesDashboard';
-import Leaves from './pages/Leaves';
-import AdminLeaves from './pages/AdminLeaves';
-import InstallPWA from './components/InstallPWA';
-import MyReimbursements from './pages/MyReimbursements';
-import CreateReimbursement from './pages/CreateReimbursement';
-import AdminReimbursements from './pages/AdminReimbursements';
 
-// Material Management Pages
-import Material from './pages/material/Material';
-import MaterialTransferForm from './pages/material/MaterialTransferForm';
-import IntentForm from './pages/material/IntentForm';
-import MaterialCardDetails from './pages/material/MaterialCardDetails';
-import IntentCardDetails from './pages/material/IntentCardDetails';
-import UpcomingDeliveries from './pages/material/UpcomingDeliveries';
-import DeliveryDetails from './pages/material/DeliveryDetails';
-import DeliveryChecklist from './pages/material/DeliveryChecklist';
-import UploadIndent from './components/material/UploadIndent';
-import SiteTransfers from './pages/material/SiteTransfers';
-import AdminUpcomingDeliveries from './pages/material/AdminUpcomingDeliveries';
-import AdminIntent from './pages/material/AdminIntent';
-import UploadPhoto from './pages/material/UploadPhoto';
-import Intent from './pages/material/Intent';
+// Eager load only critical components
+import PrivateRoute from './components/PrivateRoute';
+import InstallPWA from './components/InstallPWA';
+
+// Lazy load all pages for code-splitting
+const Login = lazy(() => import('./pages/Login'));
+const RoleBasedDashboard = lazy(() => import('./pages/RoleBasedDashboard'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const MyAttendance = lazy(() => import('./pages/MyAttendance'));
+const AdminMyTeam = lazy(() => import('./pages/AdminMyTeam'));
+const CreateProject = lazy(() => import('./pages/CreateProject'));
+const AdminAttendance = lazy(() => import('./pages/AdminAttendance'));
+const AttendancePage = lazy(() => import('./pages/AttendancePage'));
+const AdminVendors = lazy(() => import('./pages/AdminVendors'));
+const PunchInScreen = lazy(() => import('./pages/PunchInScreen'));
+const SelfieCaptureScreen = lazy(() => import('./pages/SelfieCaptureScreen'));
+const AdminBranches = lazy(() => import('./pages/AdminBranches'));
+const ProfileScreen = lazy(() => import('./pages/ProfileScreen'));
+const AdminLiveAttendance = lazy(() => import('./pages/AdminLiveAttendance'));
+const StaffAttendanceDashboard = lazy(() => import('./pages/StaffAttendanceDashboard'));
+const SubcontractorAttendanceDashboard = lazy(() => import('./pages/SubcontractorAttendanceDashboard'));
+const LabourAttendanceDashboard = lazy(() => import('./pages/LabourAttendanceDashboard'));
+const NotesDashboard = lazy(() => import('./pages/NotesDashboard'));
+const Leaves = lazy(() => import('./pages/Leaves'));
+const AdminLeaves = lazy(() => import('./pages/AdminLeaves'));
+const MyReimbursements = lazy(() => import('./pages/MyReimbursements'));
+const CreateReimbursement = lazy(() => import('./pages/CreateReimbursement'));
+const AdminReimbursements = lazy(() => import('./pages/AdminReimbursements'));
+
+// Material Management Pages - Lazy loaded
+const Material = lazy(() => import('./pages/material/Material'));
+const MaterialTransferForm = lazy(() => import('./pages/material/MaterialTransferForm'));
+const IntentForm = lazy(() => import('./pages/material/IntentForm'));
+const MaterialCardDetails = lazy(() => import('./pages/material/MaterialCardDetails'));
+const IntentCardDetails = lazy(() => import('./pages/material/IntentCardDetails'));
+const UpcomingDeliveries = lazy(() => import('./pages/material/UpcomingDeliveries'));
+const DeliveryDetails = lazy(() => import('./pages/material/DeliveryDetails'));
+const DeliveryChecklist = lazy(() => import('./pages/material/DeliveryChecklist'));
+const UploadIndent = lazy(() => import('./components/material/UploadIndent'));
+const SiteTransfers = lazy(() => import('./pages/material/SiteTransfers'));
+const AdminUpcomingDeliveries = lazy(() => import('./pages/material/AdminUpcomingDeliveries'));
+const AdminIntent = lazy(() => import('./pages/material/AdminIntent'));
+const UploadPhoto = lazy(() => import('./pages/material/UploadPhoto'));
+const Intent = lazy(() => import('./pages/material/Intent'));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+      <p className="text-gray-600">Loading...</p>
+    </div>
+  </div>
+);
 
 function App() {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -65,7 +79,8 @@ function App() {
     <>
       <ToastContainer newestOnTop theme="colored" autoClose={3000} />
       <InstallPWA />
-      <Routes>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/my-attendance" element={<MyAttendance />} />
@@ -148,7 +163,8 @@ function App() {
         <Route path="/dashboard/material/delivery-checklist/:id" element={<DeliveryChecklist />} />
         <Route path="/dashboard/material/upload-photo" element={<UploadPhoto />} />
 
-      </Routes>
+        </Routes>
+      </Suspense>
     </>
   );
 }
