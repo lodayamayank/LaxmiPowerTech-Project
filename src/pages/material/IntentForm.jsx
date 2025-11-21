@@ -101,9 +101,11 @@ export default function IntentForm() {
   // Get logged-in user from localStorage
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const userName = user?.name || '';
+  const userId = user?._id || user?.id || '';
   
   const [formData, setFormData] = useState({
-    requestedBy: userName,
+    requestedBy: userId, // Use user ID for backend filtering
+    requestedByName: userName, // Keep name for display
     deliverySite: '',
     materials: [],
     remarks: '',
@@ -261,7 +263,7 @@ export default function IntentForm() {
     e.preventDefault();
     
     // Validation
-    if (!formData.requestedBy || !formData.deliverySite) {
+    if (!userId || !formData.deliverySite) {
       alert('Please fill in all required fields');
       return;
     }
@@ -284,7 +286,7 @@ export default function IntentForm() {
       
       // Prepare form data for multipart upload
       const submitData = new FormData();
-      submitData.append('requestedBy', formData.requestedBy);
+      submitData.append('requestedBy', userId); // Send user ID
       submitData.append('deliverySite', formData.deliverySite);
       submitData.append('remarks', formData.remarks || '');
       
@@ -364,7 +366,7 @@ export default function IntentForm() {
                 </label>
                 <input
                   type="text"
-                  value={formData.requestedBy}
+                  value={userName}
                   className="w-full bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none cursor-not-allowed font-medium"
                   placeholder="Enter your name"
                   required
