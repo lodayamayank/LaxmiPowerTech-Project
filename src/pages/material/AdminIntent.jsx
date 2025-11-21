@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
-import { purchaseOrderAPI, materialCatalogAPI as materialAPI } from "../../utils/materialAPI";
-import { Eye, Trash2, X, Edit2, Save, Plus } from "lucide-react";
+import { indentAPI, materialCatalogAPI as materialAPI } from "../../utils/materialAPI";
+import { Eye, Trash2, X, Edit2, Save, Plus, Image as ImageIcon } from "lucide-react";
 import MaterialLineItem from "./MaterialLineItem";
 import DashboardLayout from "../../layouts/DashboardLayout";
+import axios from "../../utils/axios";
 
 export default function AdminIntent() {
-  const [purchaseOrders, setPurchaseOrders] = useState([]);
+  const [indents, setIndents] = useState([]); // Changed from purchaseOrders
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedPO, setSelectedPO] = useState(null);
+  const [selectedIndent, setSelectedIndent] = useState(null); // Changed from selectedPO
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({});
@@ -23,7 +24,7 @@ export default function AdminIntent() {
   const [editingMaterialId, setEditingMaterialId] = useState(null);
 
   useEffect(() => {
-    fetchPurchaseOrders();
+    fetchIndents(); // Changed from fetchPurchaseOrders
     fetchMaterialsAndSites();
   }, [currentPage, search]);
 
@@ -50,12 +51,12 @@ export default function AdminIntent() {
   // Listen for intent creation events from client side
   useEffect(() => {
     const handleIntentCreated = () => {
-      fetchPurchaseOrders();
+      fetchIndents();
     };
 
     const handleStorageChange = (e) => {
       if (e.key === 'intentRefresh') {
-        fetchPurchaseOrders();
+        fetchIndents();
         localStorage.removeItem('intentRefresh');
       }
     };
@@ -72,7 +73,7 @@ export default function AdminIntent() {
   // Auto-refresh when window gains focus
   useEffect(() => {
     const handleFocus = () => {
-      fetchPurchaseOrders();
+      fetchIndents();
     };
     
     window.addEventListener('focus', handleFocus);
@@ -82,28 +83,30 @@ export default function AdminIntent() {
   // Periodic polling every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchPurchaseOrders();
+      fetchIndents();
     }, 5000);
     
     return () => clearInterval(interval);
   }, [currentPage, search]);
 
-  const fetchPurchaseOrders = async () => {
+  const fetchIndents = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await purchaseOrderAPI.getAll(currentPage, 20, search);
+      const response = await indentAPI.getAll(currentPage, 20, search);
       if (response.success) {
         const sortedData = (response.data || []).sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
-        setPurchaseOrders(sortedData);
+        console.log(`📊 Admin: Fetched ${sortedData.length} indents`);
+        setIndents(sortedData);
         setTotalPages(response.pagination?.totalPages || 1);
       } else {
-        setError('Failed to fetch purchase orders');
+        setError('Failed to fetch indents');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load purchase orders. Please try again.');
+      console.error('❌ Admin: Error fetching indents:', err);
+      setError(err.response?.data?.message || 'Failed to load indents. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -111,43 +114,49 @@ export default function AdminIntent() {
 
   const handleViewDetails = async (id) => {
     try {
-      const response = await purchaseOrderAPI.getById(id);
-      if (response.success) {
-        setSelectedPO(response.data);
+      const indent = indents.find(i => i._id === id);
+      if (indent) {
+        setSelectedIndent(indent);
         setShowDetailsModal(true);
       }
     } catch (err) {
-      setError('Failed to fetch PO details');
+      setError('Failed to fetch indent details');
     }
   };
 
-  const handleDelete = async (id, poId) => {
-    if (!window.confirm(`Are you sure you want to delete Purchase Order ${poId}?`)) {
+  const handleViewImage = (imageUrl) => {
+    if (imageUrl) {
+      window.open(`${axios.defaults.baseURL}${imageUrl}`, '_blank');
+    }
+  };
+
+  const handleDelete = async (id, indentId) => {
+    if (!window.confirm(`Are you sure you want to delete Intent ${indentId}?`)) {
       return;
     }
 
     try {
       setDeleting(true);
-      const response = await purchaseOrderAPI.delete(id);
+      const response = await indentAPI.delete(id);
       
       if (response.success) {
         // Update state immediately without full refresh
-        setPurchaseOrders(prev => prev.filter(po => po._id !== id));
+        setIndents(prev => prev.filter(indent => indent._id !== id));
         
         // Close modal if it's open
-        if (selectedPO?._id === id) {
+        if (selectedIndent?._id === id) {
           setShowDetailsModal(false);
-          setSelectedPO(null);
+          setSelectedIndent(null);
         }
         
         // Notify client side
         window.dispatchEvent(new Event('intentCreated'));
         localStorage.setItem('intentRefresh', Date.now().toString());
         
-        showToast('Purchase order deleted successfully', 'success');
+        showToast('Intent deleted successfully', 'success');
       }
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to delete purchase order', 'error');
+      showToast(err.response?.data?.message || 'Failed to delete intent', 'error');
     } finally {
       setDeleting(false);
     }
@@ -155,33 +164,16 @@ export default function AdminIntent() {
 
   const closeModal = () => {
     setShowDetailsModal(false);
-    setSelectedPO(null);
+    setSelectedIndent(null);
     setEditing(false);
     setFormData({});
   };
 
   const handleEdit = () => {
-    // Convert materials to editable format
-    const editableMaterials = selectedPO.materials.map((m, idx) => {
-      // Parse itemName to extract category parts if needed
-      const parts = m.itemName?.split(' - ') || [];
-      return {
-        id: Date.now() + idx,
-        category: m.category || parts[0] || '',
-        subCategory: m.subCategory || parts[1] || '',
-        subCategory1: m.subCategory1 || parts[2] || '',
-        quantity: m.quantity || '',
-        uom: m.uom || 'Nos',
-        remarks: m.remarks || ''
-      };
-    });
-    
+    // For indents, we only allow status editing
     setFormData({
-      status: selectedPO.status,
-      remarks: selectedPO.remarks || '',
-      requestedBy: selectedPO.requestedBy,
-      deliverySite: selectedPO.deliverySite,
-      materials: editableMaterials
+      status: selectedIndent.status,
+      adminRemarks: selectedIndent.adminRemarks || ''
     });
     setEditing(true);
   };
@@ -214,19 +206,17 @@ export default function AdminIntent() {
         materials: materialsData
       };
       
-      const response = await purchaseOrderAPI.update(selectedPO._id, updateData);
+      const response = await indentAPI.updateStatus(selectedIndent._id, formData.status, formData.adminRemarks);
       
       if (response.success) {
         // Update the modal data immediately
-        const updatedResponse = await purchaseOrderAPI.getById(selectedPO._id);
-        if (updatedResponse.success) {
-          setSelectedPO(updatedResponse.data);
-          
-          // Update the list state immediately
-          setPurchaseOrders(prev => 
-            prev.map(po => po._id === selectedPO._id ? updatedResponse.data : po)
-          );
-        }
+        const updatedIndent = { ...selectedIndent, status: formData.status, adminRemarks: formData.adminRemarks };
+        setSelectedIndent(updatedIndent);
+        
+        // Update the list state immediately
+        setIndents(prev => 
+          prev.map(indent => indent._id === selectedIndent._id ? updatedIndent : indent)
+        );
         
         setEditing(false);
         
@@ -234,11 +224,11 @@ export default function AdminIntent() {
         window.dispatchEvent(new Event('intentCreated'));
         localStorage.setItem('intentRefresh', Date.now().toString());
         
-        showToast('Purchase order updated successfully', 'success');
+        showToast('Intent status updated successfully', 'success');
       }
     } catch (err) {
-      console.error('Error updating purchase order:', err);
-      showToast(err.response?.data?.message || 'Failed to update purchase order', 'error');
+      console.error('Error updating intent:', err);
+      showToast(err.response?.data?.message || 'Failed to update intent', 'error');
     } finally {
       setSaving(false);
     }
@@ -353,7 +343,7 @@ export default function AdminIntent() {
             <span className="text-red-700">{error}</span>
           </div>
           <button
-            onClick={fetchPurchaseOrders}
+            onClick={fetchIndents}
             className="mt-2 text-sm text-red-600 hover:text-red-700 underline"
           >
             Try Again
@@ -364,68 +354,91 @@ export default function AdminIntent() {
       {loading ? (
         <div className="flex flex-col justify-center items-center py-20">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mb-4"></div>
-          <p className="text-gray-600 text-sm">Loading purchase orders...</p>
+          <p className="text-gray-600 text-sm">Loading indents...</p>
         </div>
       ) : (
         <div className="bg-white shadow rounded-lg p-4 overflow-x-auto">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-700">
-              Purchase Orders Table ({purchaseOrders.length} records)
+              Purchase Orders Table ({indents.length} records)
             </h2>
             <input
               type="text"
-              placeholder="Search by PO ID, site, or person..."
+              placeholder="Search by PO ID..."
               className="border border-gray-300 rounded p-2 w-80 focus:ring-2 focus:ring-orange-400 text-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          {purchaseOrders.length > 0 ? (
+          {indents.length > 0 ? (
             <>
               <table className="min-w-full border text-sm">
                 <thead className="bg-orange-100">
                   <tr>
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">PO-ID</th>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">Delivery Site</th>
+                    <th className="border px-4 py-2 text-left font-medium text-gray-700">Image</th>
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">Requested By</th>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">Materials</th>
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">Status</th>
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">Date</th>
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {purchaseOrders.map((po) => (
-                    <tr key={po._id} className="hover:bg-gray-50">
+                  {indents.map((indent) => (
+                    <tr key={indent._id} className="hover:bg-gray-50">
                       <td className="border px-4 py-2 font-medium text-gray-900">
-                        {po.purchaseOrderId}
-                      </td>
-                      <td className="border px-4 py-2">{po.deliverySite}</td>
-                      <td className="border px-4 py-2">{po.requestedBy}</td>
-                      <td className="border px-4 py-2">
-                        <span className="text-gray-600">
-                          {po.materials?.length || 0} items
-                        </span>
+                        {indent.indentId || 'N/A'}
                       </td>
                       <td className="border px-4 py-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(po.status)}`}>
-                          {po.status?.charAt(0).toUpperCase() + po.status?.slice(1)}
+                        {indent.imageUrl ? (
+                          <div className="flex items-center gap-2">
+                            <img 
+                              src={`${axios.defaults.baseURL}${indent.imageUrl}`}
+                              alt="Intent"
+                              className="w-12 h-12 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80"
+                              onClick={() => handleViewImage(indent.imageUrl)}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                            <div className="w-12 h-12 bg-orange-100 rounded border border-orange-200 items-center justify-center hidden">
+                              <ImageIcon size={20} className="text-orange-500" />
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-xs">No image</span>
+                        )}
+                      </td>
+                      <td className="border px-4 py-2">{indent.requestedBy?.name || 'N/A'}</td>
+                      <td className="border px-4 py-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(indent.status)}`}>
+                          {indent.status?.charAt(0).toUpperCase() + indent.status?.slice(1)}
                         </span>
                       </td>
                       <td className="border px-4 py-2 text-gray-600">
-                        {formatDate(po.requestDate)}
+                        {formatDate(indent.createdAt)}
                       </td>
                       <td className="border px-4 py-2">
                         <div className="flex gap-2">
+                          {indent.imageUrl && (
+                            <button
+                              onClick={() => handleViewImage(indent.imageUrl)}
+                              className="p-1 hover:bg-blue-50 rounded text-blue-600"
+                              title="View Image"
+                            >
+                              <Eye size={18} />
+                            </button>
+                          )}
                           <button
-                            onClick={() => handleViewDetails(po._id)}
-                            className="p-1 hover:bg-blue-50 rounded text-blue-600"
-                            title="View Details"
+                            onClick={() => handleViewDetails(indent._id)}
+                            className="p-1 hover:bg-green-50 rounded text-green-600"
+                            title="Edit"
                           >
-                            <Eye size={18} />
+                            <Edit2 size={18} />
                           </button>
                           <button
-                            onClick={() => handleDelete(po._id, po.purchaseOrderId)}
+                            onClick={() => handleDelete(indent._id, indent.indentId)}
                             className="p-1 hover:bg-red-50 rounded text-red-600"
                             title="Delete"
                             disabled={deleting}
@@ -467,7 +480,7 @@ export default function AdminIntent() {
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-500 text-sm">
-                {search ? 'No purchase orders found matching your search' : 'No purchase orders found'}
+                {search ? 'No indents found matching your search' : 'No indents found'}
               </p>
             </div>
           )}
@@ -475,7 +488,7 @@ export default function AdminIntent() {
       )}
 
       {/* Details Modal */}
-      {showDetailsModal && selectedPO && (
+      {showDetailsModal && selectedIndent && (
         <div 
           className="fixed inset-0 flex items-center justify-center z-50 p-4"
           style={{
