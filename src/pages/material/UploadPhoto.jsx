@@ -9,10 +9,14 @@ export default function UploadPhoto() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [indentId, setIndentId] = useState("");
+  const [project, setProject] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [uploading, setUploading] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  // Site names for project dropdown
+  const sites = ['Site A', 'Site B', 'Site C', 'Site D', 'Site E'].sort();
 
   // Generate Intent ID on mount
   useEffect(() => {
@@ -69,6 +73,10 @@ export default function UploadPhoto() {
       toast.error('Please enter Intent ID');
       return;
     }
+    if (!project) {
+      toast.error('Please select a project');
+      return;
+    }
     if (!selectedImage) {
       toast.error('Please select an image to upload');
       return;
@@ -78,6 +86,7 @@ export default function UploadPhoto() {
       setUploading(true);
       const formData = new FormData();
       formData.append('indentId', indentId);
+      formData.append('project', project);
       formData.append('image', selectedImage);
       formData.append('uploadedBy', user._id || user.id);
 
@@ -96,6 +105,9 @@ export default function UploadPhoto() {
         // Trigger refresh event for Intent list
         window.dispatchEvent(new Event('intentCreated'));
         localStorage.setItem('intentRefresh', Date.now().toString());
+        
+        // Trigger refresh for Upcoming Deliveries
+        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
         
         // Navigate back to Intent page after short delay
         setTimeout(() => {
@@ -145,6 +157,21 @@ export default function UploadPhoto() {
               className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-gray-50 text-gray-700 font-mono font-semibold cursor-not-allowed"
             />
             <p className="text-xs text-gray-500 mt-1">This ID is automatically generated and cannot be edited</p>
+          </div>
+
+          {/* Project Dropdown */}
+          <div className="mb-6">
+            <label className="block text-gray-700 font-semibold mb-2">Project <span className="text-red-500">*</span></label>
+            <select
+              value={project}
+              onChange={(e) => setProject(e.target.value)}
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            >
+              <option value="">Select Project</option>
+              {sites.map(site => (
+                <option key={site} value={site}>{site}</option>
+              ))}
+            </select>
           </div>
 
           {/* Upload Section */}

@@ -21,6 +21,29 @@ export default function AdminUpcomingDeliveries() {
     fetchDeliveries();
   }, [currentPage, search]);
 
+  // Listen for Intent creation events
+  useEffect(() => {
+    const handleIntentCreated = () => {
+      console.log('🔔 Intent created - refreshing Admin Upcoming Deliveries');
+      fetchDeliveries();
+    };
+
+    const handleStorageChange = (e) => {
+      if (e.key === 'intentRefresh' || e.key === 'upcomingDeliveryRefresh') {
+        fetchDeliveries();
+        localStorage.removeItem(e.key);
+      }
+    };
+
+    window.addEventListener('intentCreated', handleIntentCreated);
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('intentCreated', handleIntentCreated);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
   // Auto-refresh when window gains focus
   useEffect(() => {
     const handleFocus = () => {
@@ -32,12 +55,12 @@ export default function AdminUpcomingDeliveries() {
     return () => window.removeEventListener('focus', handleFocus);
   }, [currentPage, search]);
 
-  // Periodic polling every 5 seconds
+  // Periodic polling every 60 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       console.log('🔄 Auto-refresh - fetching latest Admin Upcoming Deliveries data');
       fetchDeliveries();
-    }, 5000); // 5 seconds for faster sync
+    }, 60000); // 60 seconds
     
     return () => clearInterval(interval);
   }, [currentPage, search]);

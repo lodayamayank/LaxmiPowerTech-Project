@@ -80,11 +80,11 @@ export default function AdminIntent() {
     return () => window.removeEventListener('focus', handleFocus);
   }, [currentPage, search]);
 
-  // Periodic polling every 5 seconds
+  // Periodic polling every 60 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       fetchIndents();
-    }, 5000);
+    }, 60000); // 60 seconds
     
     return () => clearInterval(interval);
   }, [currentPage, search]);
@@ -481,21 +481,19 @@ export default function AdminIntent() {
                       </td>
                       <td className="border px-4 py-2">
                         <div className="flex gap-2">
-                          {indent.imageUrl && (
-                            <button
-                              onClick={() => handleViewImage(indent.imageUrl)}
-                              className="p-1 hover:bg-blue-50 rounded text-blue-600"
-                              title="View Image"
-                            >
-                              <Eye size={18} />
-                            </button>
-                          )}
                           <button
                             onClick={() => handleViewDetails(indent._id)}
-                            className="p-1 hover:bg-green-50 rounded text-green-600"
+                            className="p-1 hover:bg-blue-50 rounded text-blue-600"
                             title="View Details"
                           >
                             <Eye size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleViewDetails(indent._id)}
+                            className="p-1 hover:bg-green-50 rounded text-green-600"
+                            title="Edit"
+                          >
+                            <Edit2 size={18} />
                           </button>
                           <button
                             onClick={() => handleDelete(indent._id, indent.indentId || indent.purchaseOrderId, indent.type)}

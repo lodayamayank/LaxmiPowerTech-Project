@@ -313,6 +313,9 @@ export default function IntentForm() {
         window.dispatchEvent(new Event('intentCreated'));
         localStorage.setItem('intentRefresh', Date.now().toString());
         
+        // Trigger refresh for Upcoming Deliveries
+        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        
         alert('Intent (PO) created successfully!');
         
         // Redirect to Indent tab
