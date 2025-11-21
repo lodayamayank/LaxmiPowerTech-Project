@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { upcomingDeliveryAPI } from "../../utils/materialAPI";
 import { ArrowLeft, AlertCircle, CheckCircle } from "lucide-react";
+import { FaArrowLeft } from 'react-icons/fa';
 
 export default function DeliveryChecklist() {
     const { id } = useParams();
@@ -207,60 +208,83 @@ export default function DeliveryChecklist() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-24">
-            {/* Header */}
-            <div className="bg-white border-b sticky top-0 z-10">
-                <div className="p-4">
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
+            {/* Container with consistent mobile width */}
+            <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
+                {/* Header with Gradient */}
+                <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
                     <button
+                        className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
                         onClick={() => navigate(-1)}
-                        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-3"
                     >
-                        <ArrowLeft size={20} />
-                        <span className="text-sm">Back</span>
+                        <FaArrowLeft size={16} />
+                        <span className="text-sm font-medium">Back</span>
                     </button>
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <h1 className="text-lg font-semibold text-gray-900">{delivery.st_id}</h1>
-                            <p className="text-sm text-gray-500">{delivery.transfer_number}</p>
-                            <p className="text-xs text-gray-400 mt-1">
-                                {formatDate(delivery.date)} • {delivery.from} → {delivery.to}
-                            </p>
+
+                    <div className="text-center pt-8">
+                        <h1 className="text-white text-2xl font-bold mb-2">Delivery Checklist</h1>
+                        <p className="text-white/80 text-sm">{delivery.transfer_number}</p>
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="px-6 py-6 -mt-4 pb-24">
+                    {/* Info Card */}
+                    <div className="bg-white rounded-lg border p-4 space-y-3 mb-4">
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="text-xs text-gray-600">ST-ID</label>
+                                <p className="font-medium text-gray-900">{delivery.st_id}</p>
+                            </div>
+                            <div>
+                                <label className="text-xs text-gray-600">Status</label>
+                                <span className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusBadge(delivery.status)}`}>
+                                    {delivery.status}
+                                </span>
+                            </div>
+                            <div>
+                                <label className="text-xs text-gray-600">From</label>
+                                <p className="font-medium text-gray-900">{delivery.from}</p>
+                            </div>
+                            <div>
+                                <label className="text-xs text-gray-600">To</label>
+                                <p className="font-medium text-gray-900">{delivery.to}</p>
+                            </div>
+                            <div className="col-span-2">
+                                <label className="text-xs text-gray-600">Date</label>
+                                <p className="font-medium text-gray-900">{formatDate(delivery.date)}</p>
+                            </div>
                         </div>
-                        <span className={getStatusBadge(delivery.status)}>
-                            {delivery.status}
-                        </span>
                     </div>
-                </div>
-            </div>
 
-            {/* All Transferred Banner */}
-            {allTransferred && (
-                <div className="mx-4 mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
-                    <CheckCircle className="text-green-600" size={20} />
-                    <span className="text-sm text-green-700 font-medium">All items transferred</span>
-                </div>
-            )}
+                    {/* All Transferred Banner */}
+                    {allTransferred && (
+                        <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 mb-4">
+                            <CheckCircle className="text-green-600" size={20} />
+                            <span className="text-sm text-green-700 font-medium">All items transferred</span>
+                        </div>
+                    )}
 
-            {/* Summary */}
-            <div className="mx-4 mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex justify-between items-center text-sm">
-                    <div>
-                        <span className="text-gray-600">Total Submitted:</span>
-                        <span className="ml-2 font-semibold text-gray-900">{totalSubmitted}</span>
+                    {/* Summary */}
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+                        <div className="grid grid-cols-3 gap-2 text-sm">
+                            <div className="text-center">
+                                <span className="block text-xs text-gray-600">Submitted</span>
+                                <span className="block font-semibold text-gray-900">{totalSubmitted}</span>
+                            </div>
+                            <div className="text-center">
+                                <span className="block text-xs text-gray-600">Received</span>
+                                <span className="block font-semibold text-green-600">{totalReceived}</span>
+                            </div>
+                            <div className="text-center">
+                                <span className="block text-xs text-gray-600">Missing</span>
+                                <span className="block font-semibold text-orange-600">{missing}</span>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <span className="text-gray-600">Total Received:</span>
-                        <span className="ml-2 font-semibold text-green-600">{totalReceived}</span>
-                    </div>
-                    <div>
-                        <span className="text-gray-600">Missing:</span>
-                        <span className="ml-2 font-semibold text-orange-600">{missing}</span>
-                    </div>
-                </div>
-            </div>
 
-            {/* Items List */}
-            <div className="p-4 space-y-3">
+                    {/* Items List */}
+                    <div className="space-y-3">
                 {items.map((item, index) => (
                     <div key={item.itemId || item._id} className="bg-white rounded-lg border p-3">
                         <div className="space-y-2">
@@ -314,12 +338,13 @@ export default function DeliveryChecklist() {
                             )}
                         </div>
                     </div>
-                ))}
-            </div>
+                    ))}
+                    </div>
+                </div>
 
-            {/* Fixed Bottom Button */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4">
-                <div className="max-w-[390px] mx-auto">
+                {/* Fixed Bottom Button */}
+                <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-50">
+                    <div className="max-w-md mx-auto">
                     <button
                         onClick={handleSubmit}
                         disabled={submitting || Object.keys(validationErrors).length > 0}

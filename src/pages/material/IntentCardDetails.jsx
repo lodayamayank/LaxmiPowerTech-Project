@@ -408,7 +408,7 @@ export default function IntentCardDetails() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-gray-600">PO-ID</label>
-              <p className="font-medium">{itemType === 'indent' ? indent.indentId : purchaseOrder.purchaseOrderId}</p>
+              <p className="font-medium text-gray-900">{itemType === 'indent' ? indent.indentId : purchaseOrder.purchaseOrderId}</p>
             </div>
             
             <div>
@@ -436,7 +436,7 @@ export default function IntentCardDetails() {
                       ))}
                     </select>
                   ) : (
-                    <p className="font-medium">{purchaseOrder.deliverySite}</p>
+                    <p className="font-medium text-gray-900">{purchaseOrder.deliverySite}</p>
                   )}
                 </div>
 
@@ -450,7 +450,7 @@ export default function IntentCardDetails() {
                       className="w-full px-3 py-2 border rounded-lg text-sm"
                     />
                   ) : (
-                    <p className="font-medium">{purchaseOrder.requestedBy}</p>
+                    <p className="font-medium text-gray-900">{purchaseOrder.requestedBy}</p>
                   )}
                 </div>
               </>
@@ -460,18 +460,18 @@ export default function IntentCardDetails() {
               <>
                 <div>
                   <label className="text-xs text-gray-600">Project</label>
-                  <p className="font-medium">{indent.project || 'N/A'}</p>
+                  <p className="font-medium text-gray-900">{indent.project || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-xs text-gray-600">Branch</label>
-                  <p className="font-medium">{indent.branch || 'N/A'}</p>
+                  <p className="font-medium text-gray-900">{indent.branch || 'N/A'}</p>
                 </div>
               </>
             )}
 
             <div className="col-span-2">
               <label className="text-xs text-gray-600">Request Date</label>
-              <p className="font-medium">
+              <p className="font-medium text-gray-900">
                 {new Date(currentItem.createdAt || currentItem.requestDate).toLocaleDateString('en-IN', {
                   year: 'numeric',
                   month: 'long',

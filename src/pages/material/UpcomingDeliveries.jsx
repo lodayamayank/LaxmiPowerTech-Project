@@ -131,11 +131,18 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                     <select
                         value={typeFilter}
                         onChange={(e) => setTypeFilter(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900 font-medium"
+                        style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23f97316' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                            backgroundPosition: 'right 1rem center',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundSize: '1.25em 1.25em',
+                            paddingRight: '2.5rem'
+                        }}
                     >
-                        <option value="ALL">All Deliveries</option>
-                        <option value="ST">Site Transfers (ST)</option>
-                        <option value="PO">Purchase Orders (PO)</option>
+                        <option value="ALL" className="text-gray-900 bg-white">All Deliveries</option>
+                        <option value="ST" className="text-gray-900 bg-white">Site Transfers (ST)</option>
+                        <option value="PO" className="text-gray-900 bg-white">Purchase Orders (PO)</option>
                     </select>
                 </div>
                 
@@ -146,7 +153,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                         placeholder="Search by ST-ID or Transfer Number..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900"
                     />
                     <Search size={18} className="absolute left-3 top-3 text-gray-400" />
                 </div>
