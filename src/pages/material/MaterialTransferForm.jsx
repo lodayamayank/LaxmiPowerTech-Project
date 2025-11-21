@@ -2,14 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, X } from 'lucide-react';
 import MaterialLineItem from './MaterialLineItem';
 import { siteTransferAPI, materialCatalogAPI as materialAPI } from '../../utils/materialAPI';
+import axios from '../../utils/axios';
 
 export default function MaterialTransferForm({ onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  
+  // ✅ AUTO-FILL LOGGED-IN USER - SAME AS INTENT FORM
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const userName = user?.name || '';
+  
   const [formData, setFormData] = useState({
     fromSite: '',
     toSite: '',
-    requestedBy: '',
+    requestedBy: userName, // ✅ Auto-filled
     materials: [],
     remarks: '',
     attachments: []
@@ -29,33 +35,42 @@ export default function MaterialTransferForm({ onClose, onSuccess }) {
   const [categorySearch, setCategorySearch] = useState('');
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
-  // Fetch materials and sites from backend
+  // ✅ FETCH MATERIALS AND SITES FROM BACKEND - EXACTLY LIKE INTENT FORM
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // Hardcoded sites list (sorted alphabetically) - always available
-        const sitesList = [
-          'Site A',
-          'Site B',
-          'Site C',
-          'Site D',
-          'Site E'
-        ].sort((a, b) => a.localeCompare(b));
-        setSites(sitesList);
+        // ✅ FETCH SITES FROM BACKEND API - SAME AS INTENT FORM
+        try {
+          const branchesResponse = await axios.get('/branches');
+          const branches = branchesResponse.data || [];
+          const sitesList = branches.map(branch => branch.name).sort((a, b) => a.localeCompare(b));
+          setSites(sitesList);
+          console.log('✅ MaterialTransferForm: Fetched', sitesList.length, 'sites from backend');
+        } catch (err) {
+          console.error('❌ MaterialTransferForm: Error fetching sites:', err);
+          // Fallback to hardcoded list if API fails
+          const fallbackSites = ['Neelkanth Mongolia', 'Panorama', 'test'].sort((a, b) => a.localeCompare(b));
+          setSites(fallbackSites);
+          console.log('⚠️ MaterialTransferForm: Using fallback sites');
+        }
         
-        // Fetch materials
+        // ✅ FETCH MATERIALS - DUAL FORMAT SUPPORT
         const materials = await materialAPI.getAll();
+        console.log('✅ MaterialTransferForm: Fetched', materials?.length || 0, 'materials');
         setAllMaterials(materials || []);
         
-        // Extract unique categories and sort alphabetically
-        const uniqueCategories = [...new Set(materials.map(item => item.category).filter(Boolean))]
+        // ✅ EXTRACT CATEGORIES - DUAL FORMAT (Category/category)
+        const uniqueCategories = [...new Set(materials.map(item => 
+          item.Category || item.category
+        ).filter(Boolean))]
           .sort((a, b) => a.localeCompare(b));
         setCategories(uniqueCategories);
+        console.log('✅ MaterialTransferForm: Unique categories:', uniqueCategories.length);
         
       } catch (err) {
-        // Don't show toast on initial load error
+        console.error('❌ MaterialTransferForm: Error fetching data:', err);
       } finally {
         setLoading(false);
       }
@@ -63,22 +78,25 @@ export default function MaterialTransferForm({ onClose, onSuccess }) {
     fetchData();
   }, []);
 
-  // Get subcategories based on selected category (sorted alphabetically)
+  // ✅ GET SUBCATEGORIES - DUAL FORMAT SUPPORT
   const getSubcategories = (category) => {
     return [...new Set(
       allMaterials
-        .filter(item => item.category === category)
-        .map(item => item.subCategory)
+        .filter(item => (item.Category || item.category) === category)
+        .map(item => item['Sub category'] || item.subCategory)
         .filter(Boolean)
     )].sort((a, b) => a.localeCompare(b));
   };
 
-  // Get sub-subcategories based on category and subcategory (sorted alphabetically)
+  // ✅ GET SUB-SUBCATEGORIES - DUAL FORMAT SUPPORT
   const getSubSubcategories = (category, subCategory) => {
     return [...new Set(
       allMaterials
-        .filter(item => item.category === category && item.subCategory === subCategory)
-        .map(item => item.subCategory1)
+        .filter(item => 
+          (item.Category || item.category) === category && 
+          (item['Sub category'] || item.subCategory) === subCategory
+        )
+        .map(item => item['Sub category 1'] || item.subCategory1)
         .filter(Boolean)
     )].sort((a, b) => a.localeCompare(b));
   };
@@ -320,7 +338,7 @@ export default function MaterialTransferForm({ onClose, onSuccess }) {
               </select>
             </div>
 
-            {/* Transfers To */}
+            {/* ✅ TRANSFERS TO - FILTERED TO EXCLUDE FROM SITE */}
             <div className="mb-3">
               <label className="text-gray-700 text-xs mb-1.5 block">
                 Transfers To <span className="text-red-500">*</span>
@@ -338,34 +356,28 @@ export default function MaterialTransferForm({ onClose, onSuccess }) {
                 disabled={submitting}
               >
                 <option value="">Select Site</option>
-                {sites.map((site, index) => (
-                  <option key={index} value={site}>
-                    {site}
-                  </option>
-                ))}
+                {sites
+                  .filter(site => site !== formData.fromSite) // ✅ Exclude selected From Site
+                  .map((site, index) => (
+                    <option key={index} value={site}>
+                      {site}
+                    </option>
+                  ))}
               </select>
             </div>
 
-            {/* Checked By */}
+            {/* ✅ CHECKED BY - AUTO-FILLED WITH LOGGED-IN USER (UNEDITABLE) */}
             <div className="mb-4">
               <label className="text-gray-700 text-xs mb-1.5 block">
                 Checked By <span className="text-red-500">*</span>
               </label>
-              <select
+              <input
+                type="text"
                 value={formData.requestedBy}
-                onChange={(e) => setFormData({ ...formData, requestedBy: e.target.value })}
-                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-gray-400 appearance-none"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-                  backgroundPosition: 'right 0.5rem center',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundSize: '1.5em 1.5em'
-                }}
-                disabled={submitting}
-              >
-                <option value="">Select Team Member</option>
-                <option value="Team Member 1">Team Member 1</option>
-              </select>
+                disabled
+                className="w-full bg-gray-100 border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 cursor-not-allowed"
+                placeholder="Auto-filled from login"
+              />
             </div>
 
             {/* Material Details Section */}
