@@ -143,6 +143,7 @@ function App() {
         <Route path="/material/intent" element={<Material activeTab="intent" />} />
         <Route path="/material/intent/new" element={<IntentForm />} />
         <Route path="/material/intent/:id" element={<IntentCardDetails />} />
+        <Route path="/material/intent-details/:id" element={<IntentCardDetails />} />
         <Route path="/material/upload-photo" element={<UploadPhoto />} />
         <Route path="/material/transfer" element={<Material activeTab="transfer" />} />
         <Route path="/material/deliveries" element={<Material activeTab="deliveries" />} />

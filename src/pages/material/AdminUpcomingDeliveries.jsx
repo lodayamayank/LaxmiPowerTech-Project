@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { upcomingDeliveryAPI } from "../../utils/materialAPI";
+import { upcomingDeliveryAPI, indentAPI } from "../../utils/materialAPI";
 import { Eye, Trash2, X, Edit2, Save } from "lucide-react";
 import DashboardLayout from "../../layouts/DashboardLayout";
+import axios from "../../utils/axios";
 
 export default function AdminUpcomingDeliveries() {
   const [deliveries, setDeliveries] = useState([]);
@@ -16,6 +17,7 @@ export default function AdminUpcomingDeliveries() {
   const [formData, setFormData] = useState({});
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [relatedIndent, setRelatedIndent] = useState(null);
 
   useEffect(() => {
     fetchDeliveries();
@@ -93,6 +95,22 @@ export default function AdminUpcomingDeliveries() {
       if (response.success) {
         setSelectedDelivery(response.data);
         setShowDetailsModal(true);
+        
+        // If it's a PO type, try to fetch the related Indent for image
+        if (response.data.type === 'PO') {
+          try {
+            // The st_id in UpcomingDelivery is the Indent _id
+            const indentResponse = await indentAPI.getById(response.data.st_id);
+            if (indentResponse) {
+              setRelatedIndent(indentResponse);
+            }
+          } catch (indentErr) {
+            console.log('No related indent found or error fetching:', indentErr);
+            setRelatedIndent(null);
+          }
+        } else {
+          setRelatedIndent(null);
+        }
       }
     } catch (err) {
       alert("Failed to load delivery details");
@@ -134,6 +152,7 @@ export default function AdminUpcomingDeliveries() {
   const closeModal = () => {
     setShowDetailsModal(false);
     setSelectedDelivery(null);
+    setRelatedIndent(null);
     setEditing(false);
     setFormData({});
   };
@@ -451,7 +470,30 @@ export default function AdminUpcomingDeliveries() {
                   <label className="text-sm font-medium text-gray-600">Created By</label>
                   <p className="text-gray-900">{selectedDelivery.createdBy}</p>
                 </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Type</label>
+                  <p className="text-gray-900">{selectedDelivery.type || 'ST'}</p>
+                </div>
               </div>
+
+              {/* Image Display (for PO type with related Indent) */}
+              {selectedDelivery.type === 'PO' && relatedIndent && relatedIndent.imageUrl && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Uploaded Image</h3>
+                  <div className="border rounded-lg overflow-hidden inline-block">
+                    <img
+                      src={`${axios.defaults.baseURL.replace('/api', '')}${relatedIndent.imageUrl}`}
+                      alt="Intent"
+                      className="max-w-full h-auto max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => window.open(`${axios.defaults.baseURL.replace('/api', '')}${relatedIndent.imageUrl}`, '_blank')}
+                      onError={(e) => {
+                        console.error('Image load error:', relatedIndent.imageUrl);
+                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f0f0f0" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999"%3EImage not found%3C/text%3E%3C/svg%3E';
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Items Table */}
               <div>

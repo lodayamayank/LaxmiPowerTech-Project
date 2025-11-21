@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit2, Save, X, Trash2, Upload } from 'lucide-react';
 import { FaArrowLeft } from 'react-icons/fa';
-import { purchaseOrderAPI, materialCatalogAPI as materialAPI } from '../../utils/materialAPI';
+import { purchaseOrderAPI, indentAPI, materialCatalogAPI as materialAPI } from '../../utils/materialAPI';
+import axios from '../../utils/axios';
 import MaterialLineItem from './MaterialLineItem';
 
 export default function IntentCardDetails() {
@@ -10,6 +11,8 @@ export default function IntentCardDetails() {
   const navigate = useNavigate();
   
   const [purchaseOrder, setPurchaseOrder] = useState(null);
+  const [indent, setIndent] = useState(null);
+  const [itemType, setItemType] = useState(null); // 'indent' or 'purchaseOrder'
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [deletingAttachment, setDeletingAttachment] = useState(null);
@@ -56,9 +59,13 @@ export default function IntentCardDetails() {
   const fetchPODetails = async () => {
     try {
       setLoading(true);
-      const response = await purchaseOrderAPI.getById(id);
-      if (response.success) {
-        setPurchaseOrder(response.data);
+      
+      // Try fetching as PurchaseOrder first
+      try {
+        const poResponse = await purchaseOrderAPI.getById(id);
+        if (poResponse.success) {
+          setPurchaseOrder(poResponse.data);
+          setItemType('purchaseOrder');
         // Convert materials to editable format
         const editableMaterials = response.data.materials.map((m, idx) => {
           // Parse itemName to extract category, subCategory, subCategory1
@@ -82,10 +89,36 @@ export default function IntentCardDetails() {
           remarks: response.data.remarks || '',
           materials: editableMaterials
         });
+          setLoading(false);
+          return;
+        }
+      } catch (poErr) {
+        console.log('Not a PurchaseOrder, trying Indent...');
       }
+      
+      // If not PurchaseOrder, try fetching as Indent
+      try {
+        const indentResponse = await indentAPI.getById(id);
+        if (indentResponse) {
+          setIndent(indentResponse);
+          setItemType('indent');
+          setFormData({
+            status: indentResponse.status,
+            adminRemarks: indentResponse.adminRemarks || ''
+          });
+          setLoading(false);
+          return;
+        }
+      } catch (indentErr) {
+        console.log('Not an Indent either');
+      }
+      
+      // If neither worked, show error
+      showToast('Failed to load intent details', 'error');
+      navigate('/material/intent');
     } catch (err) {
-      // Error fetching PO details
-      showToast('Failed to load purchase order details', 'error');
+      console.error('Error fetching details:', err);
+      showToast('Failed to load intent details', 'error');
       navigate('/material/intent');
     } finally {
       setLoading(false);
@@ -308,7 +341,7 @@ export default function IntentCardDetails() {
     );
   }
 
-  if (!purchaseOrder) {
+  if (!purchaseOrder && !indent) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center">
         <div className="text-center px-6">
@@ -327,6 +360,8 @@ export default function IntentCardDetails() {
       </div>
     );
   }
+
+  const currentItem = itemType === 'indent' ? indent : purchaseOrder;
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -359,7 +394,7 @@ export default function IntentCardDetails() {
 
           <div className="text-center pt-8">
             <h1 className="text-white text-2xl font-bold mb-2">Intent Details</h1>
-            <p className="text-white/80 text-sm">{purchaseOrder.purchaseOrderId}</p>
+            <p className="text-white/80 text-sm">{itemType === 'indent' ? indent.indentId : purchaseOrder.purchaseOrderId}</p>
           </div>
         </div>
 
@@ -373,54 +408,71 @@ export default function IntentCardDetails() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-gray-600">PO-ID</label>
-              <p className="font-medium">{purchaseOrder.purchaseOrderId}</p>
+              <p className="font-medium">{itemType === 'indent' ? indent.indentId : purchaseOrder.purchaseOrderId}</p>
             </div>
             
             <div>
               <label className="text-xs text-gray-600">Status</label>
               <p>
-                <span className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(purchaseOrder.status)}`}>
-                  {purchaseOrder.status}
+                <span className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(currentItem.status)}`}>
+                  {currentItem.status}
                 </span>
               </p>
             </div>
 
-            <div>
-              <label className="text-xs text-gray-600">Delivery Site</label>
-              {editing ? (
-                <select
-                  value={formData.deliverySite}
-                  onChange={(e) => setFormData({ ...formData, deliverySite: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                >
-                  <option value="">Select Site</option>
-                  {sites.map(site => (
-                    <option key={site} value={site}>{site}</option>
-                  ))}
-                </select>
-              ) : (
-                <p className="font-medium">{purchaseOrder.deliverySite}</p>
-              )}
-            </div>
+            {itemType === 'purchaseOrder' && (
+              <>
+                <div>
+                  <label className="text-xs text-gray-600">Delivery Site</label>
+                  {editing ? (
+                    <select
+                      value={formData.deliverySite}
+                      onChange={(e) => setFormData({ ...formData, deliverySite: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                    >
+                      <option value="">Select Site</option>
+                      {sites.map(site => (
+                        <option key={site} value={site}>{site}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="font-medium">{purchaseOrder.deliverySite}</p>
+                  )}
+                </div>
 
-            <div>
-              <label className="text-xs text-gray-600">Requested By</label>
-              {editing ? (
-                <input
-                  type="text"
-                  value={formData.requestedBy}
-                  onChange={(e) => setFormData({ ...formData, requestedBy: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                />
-              ) : (
-                <p className="font-medium">{purchaseOrder.requestedBy}</p>
-              )}
-            </div>
+                <div>
+                  <label className="text-xs text-gray-600">Requested By</label>
+                  {editing ? (
+                    <input
+                      type="text"
+                      value={formData.requestedBy}
+                      onChange={(e) => setFormData({ ...formData, requestedBy: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                    />
+                  ) : (
+                    <p className="font-medium">{purchaseOrder.requestedBy}</p>
+                  )}
+                </div>
+              </>
+            )}
+
+            {itemType === 'indent' && (
+              <>
+                <div>
+                  <label className="text-xs text-gray-600">Project</label>
+                  <p className="font-medium">{indent.project || 'N/A'}</p>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Branch</label>
+                  <p className="font-medium">{indent.branch || 'N/A'}</p>
+                </div>
+              </>
+            )}
 
             <div className="col-span-2">
               <label className="text-xs text-gray-600">Request Date</label>
               <p className="font-medium">
-                {new Date(purchaseOrder.requestDate).toLocaleDateString('en-IN', {
+                {new Date(currentItem.createdAt || currentItem.requestDate).toLocaleDateString('en-IN', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
@@ -431,24 +483,44 @@ export default function IntentCardDetails() {
             </div>
           </div>
 
-          {/* Remarks */}
+          {/* Remarks / Admin Remarks */}
           <div>
-            <label className="text-xs text-gray-600">Remarks</label>
+            <label className="text-xs text-gray-600">{itemType === 'indent' ? 'Admin Remarks' : 'Remarks'}</label>
             {editing ? (
               <textarea
-                value={formData.remarks}
-                onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+                value={itemType === 'indent' ? formData.adminRemarks : formData.remarks}
+                onChange={(e) => setFormData({ ...formData, [itemType === 'indent' ? 'adminRemarks' : 'remarks']: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg text-sm"
                 rows="2"
                 placeholder="Add remarks..."
               />
             ) : (
-              <p className="text-sm text-gray-700">{purchaseOrder.remarks || '-'}</p>
+              <p className="text-sm text-gray-700">{itemType === 'indent' ? (indent.adminRemarks || '-') : (purchaseOrder.remarks || '-')}</p>
             )}
           </div>
         </div>
 
-        {/* Materials Card */}
+        {/* Image Card (for Indent type) */}
+        {itemType === 'indent' && indent.imageUrl && (
+          <div className="bg-white rounded-lg border p-4">
+            <h2 className="font-semibold text-gray-900 mb-3">Uploaded Image</h2>
+            <div className="border rounded-lg overflow-hidden">
+              <img
+                src={`${axios.defaults.baseURL.replace('/api', '')}${indent.imageUrl}`}
+                alt="Intent"
+                className="w-full h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => window.open(`${axios.defaults.baseURL.replace('/api', '')}${indent.imageUrl}`, '_blank')}
+                onError={(e) => {
+                  console.error('Image load error:', indent.imageUrl);
+                  e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f0f0f0" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999"%3EImage not found%3C/text%3E%3C/svg%3E';
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Materials Card (only for PurchaseOrder type) */}
+        {itemType === 'purchaseOrder' && (
         <div className="bg-white rounded-lg border p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-gray-900">Materials</h2>
@@ -493,8 +565,10 @@ export default function IntentCardDetails() {
             )}
           </div>
         </div>
+        )}
 
-        {/* Attachments Card */}
+        {/* Attachments Card (only for PurchaseOrder type) */}
+        {itemType === 'purchaseOrder' && (
         <div className="bg-white rounded-lg border p-4">
           <h2 className="font-semibold text-gray-900 mb-3">Attachments</h2>
           
@@ -559,6 +633,7 @@ export default function IntentCardDetails() {
             </label>
           )}
         </div>
+        )}
           </div>
         </div>
 

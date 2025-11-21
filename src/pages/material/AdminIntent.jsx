@@ -641,11 +641,14 @@ export default function AdminIntent() {
                   <label className="text-sm font-medium text-gray-600 mb-2 block">Uploaded Image</label>
                   <div className="border rounded-lg overflow-hidden inline-block">
                     <img
-                      src={`${axios.defaults.baseURL}${selectedIndent.imageUrl}`}
+                      src={`${axios.defaults.baseURL.replace('/api', '')}${selectedIndent.imageUrl}`}
                       alt="Intent"
-                      className="max-w-full h-auto max-h-96 object-contain"
-                      onClick={() => handleViewImage(selectedIndent.imageUrl)}
-                      style={{ cursor: 'pointer' }}
+                      className="max-w-full h-auto max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => window.open(`${axios.defaults.baseURL.replace('/api', '')}${selectedIndent.imageUrl}`, '_blank')}
+                      onError={(e) => {
+                        console.error('Image load error:', selectedIndent.imageUrl);
+                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f0f0f0" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999"%3EImage not found%3C/text%3E%3C/svg%3E';
+                      }}
                     />
                   </div>
                 </div>

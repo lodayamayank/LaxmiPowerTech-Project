@@ -140,9 +140,8 @@ export default function Intent({ isTabView = false }) {
             <div
               key={indent._id}
               onClick={() => {
-                if (indent.imageUrl) {
-                  window.open(`${axios.defaults.baseURL}${indent.imageUrl}`, '_blank');
-                }
+                // Navigate to intent detail page
+                navigate(`/material/intent-details/${indent._id}`);
               }}
               className="bg-gradient-to-r from-gray-50 to-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
             >
@@ -191,7 +190,7 @@ export default function Intent({ isTabView = false }) {
                     <span className="text-gray-600 font-medium">Image</span>
                     <span className="font-semibold text-orange-600 flex items-center gap-1">
                       <ImageIcon size={14} />
-                      Click to view
+                      Available
                     </span>
                   </div>
                 )}
