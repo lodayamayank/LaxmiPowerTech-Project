@@ -59,13 +59,23 @@ export default function MaterialTransferForm({ onClose, onSuccess }) {
         // ✅ FETCH MATERIALS - DUAL FORMAT SUPPORT
         const materials = await materialAPI.getAll();
         console.log('✅ MaterialTransferForm: Fetched', materials?.length || 0, 'materials');
+        
+        // Debug: Log first material to verify data structure
+        if (materials && materials.length > 0) {
+          console.log('📊 MaterialTransferForm sample:', {
+            category: materials[0].category,
+            subCategory: materials[0].subCategory,
+            subCategory1: materials[0].subCategory1
+          });
+        }
+        
         setAllMaterials(materials || []);
         
         // ✅ EXTRACT CATEGORIES - backend now returns formatted data
         const uniqueCategories = [...new Set(materials.map(item => item.category).filter(Boolean))]
           .sort((a, b) => a.localeCompare(b));
         setCategories(uniqueCategories);
-        console.log('✅ MaterialTransferForm: Unique categories:', uniqueCategories.length);
+        console.log('✅ MaterialTransferForm: Unique categories:', uniqueCategories.length, uniqueCategories.slice(0, 3));
         
       } catch (err) {
         console.error('❌ MaterialTransferForm: Error fetching data:', err);

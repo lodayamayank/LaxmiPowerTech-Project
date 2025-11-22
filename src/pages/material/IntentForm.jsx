@@ -148,13 +148,24 @@ export default function IntentForm() {
         // Fetch materials from database using getAll() - ORIGINAL WORKING METHOD
         const materials = await materialAPI.getAll();
         console.log('✅ Fetched materials:', materials?.length || 0);
+        
+        // Debug: Log first material to verify data structure
+        if (materials && materials.length > 0) {
+          console.log('📊 Sample material data:', {
+            category: materials[0].category,
+            subCategory: materials[0].subCategory,
+            subCategory1: materials[0].subCategory1,
+            hasRaw: !!materials[0].raw
+          });
+        }
+        
         setAllMaterials(materials || []);
         
         // Extract unique categories - backend now returns formatted data
         const uniqueCategories = [...new Set(materials.map(item => item.category).filter(Boolean))]
           .sort((a, b) => a.localeCompare(b));
         setCategories(uniqueCategories);
-        console.log('✅ Unique categories:', uniqueCategories.length);
+        console.log('✅ Unique categories:', uniqueCategories.length, uniqueCategories.slice(0, 3));
         
       } catch (err) {
         console.error('❌ Error fetching data:', err);
@@ -167,12 +178,21 @@ export default function IntentForm() {
 
   // Get subcategories based on selected category
   const getSubcategories = (category) => {
-    return [...new Set(
-      allMaterials
-        .filter(item => item.category === category)
+    const filtered = allMaterials.filter(item => item.category === category);
+    const subcategories = [...new Set(
+      filtered
         .map(item => item.subCategory)
         .filter(Boolean)
     )].sort((a, b) => a.localeCompare(b));
+    
+    console.log(`🔍 getSubcategories for "${category}":`, {
+      totalMaterials: allMaterials.length,
+      matchingCategory: filtered.length,
+      uniqueSubcategories: subcategories.length,
+      subcategories: subcategories.slice(0, 3)
+    });
+    
+    return subcategories;
   };
 
   // Get sub-subcategories
