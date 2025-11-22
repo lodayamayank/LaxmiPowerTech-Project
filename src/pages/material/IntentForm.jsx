@@ -150,10 +150,14 @@ export default function IntentForm() {
         console.log('✅ Fetched materials:', materials?.length || 0);
         setAllMaterials(materials || []);
         
-        // Extract unique categories - DUAL FORMAT SUPPORT
-        const uniqueCategories = [...new Set(materials.map(item => 
-          item.Category || item.category
-        ).filter(Boolean))]
+        // Extract unique categories - READ FROM RAW OBJECT
+        const uniqueCategories = [...new Set(materials.map(item => {
+          // Try raw object first, then fallback to main fields
+          if (item.raw && item.raw['Category']) {
+            return item.raw['Category'];
+          }
+          return item.Category || item.category;
+        }).filter(Boolean))]
           .sort((a, b) => a.localeCompare(b));
         setCategories(uniqueCategories);
         console.log('✅ Unique categories:', uniqueCategories.length);
@@ -167,25 +171,45 @@ export default function IntentForm() {
     fetchData();
   }, []);
 
-  // Get subcategories based on selected category - DUAL FORMAT SUPPORT
+  // Get subcategories based on selected category - READ FROM RAW OBJECT
   const getSubcategories = (category) => {
     return [...new Set(
       allMaterials
-        .filter(item => (item.Category || item.category) === category)
-        .map(item => item['Sub category'] || item.subCategory)
+        .filter(item => {
+          // Try raw object first, then fallback to main fields
+          if (item.raw && item.raw['Category']) {
+            return item.raw['Category'] === category;
+          }
+          return (item.Category || item.category) === category;
+        })
+        .map(item => {
+          // Try raw object first, then fallback to main fields
+          if (item.raw && item.raw['Sub category']) {
+            return item.raw['Sub category'];
+          }
+          return item['Sub category'] || item.subCategory;
+        })
         .filter(Boolean)
     )].sort((a, b) => a.localeCompare(b));
   };
 
-  // Get sub-subcategories - DUAL FORMAT SUPPORT
+  // Get sub-subcategories - READ FROM RAW OBJECT
   const getSubSubcategories = (category, subCategory) => {
     return [...new Set(
       allMaterials
-        .filter(item => 
-          (item.Category || item.category) === category && 
-          (item['Sub category'] || item.subCategory) === subCategory
-        )
-        .map(item => item['Sub category 1'] || item.subCategory1)
+        .filter(item => {
+          // Try raw object first, then fallback to main fields
+          const itemCategory = item.raw && item.raw['Category'] ? item.raw['Category'] : (item.Category || item.category);
+          const itemSubCategory = item.raw && item.raw['Sub category'] ? item.raw['Sub category'] : (item['Sub category'] || item.subCategory);
+          return itemCategory === category && itemSubCategory === subCategory;
+        })
+        .map(item => {
+          // Try raw object first, then fallback to main fields
+          if (item.raw && item.raw['Sub category 1']) {
+            return item.raw['Sub category 1'];
+          }
+          return item['Sub category 1'] || item.subCategory1;
+        })
         .filter(Boolean)
     )].sort((a, b) => a.localeCompare(b));
   };
