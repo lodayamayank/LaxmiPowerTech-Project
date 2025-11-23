@@ -61,14 +61,8 @@ export default function MaterialTransferForm({ onClose, onSuccess }) {
         console.log('✅ MaterialTransferForm: Fetched', materials?.length || 0, 'materials');
         setAllMaterials(materials || []);
         
-        // ✅ EXTRACT CATEGORIES - READ FROM RAW OBJECT
-        const uniqueCategories = [...new Set(materials.map(item => {
-          // Try raw object first, then fallback to main fields
-          if (item.raw && item.raw['Category']) {
-            return item.raw['Category'];
-          }
-          return item.Category || item.category;
-        }).filter(Boolean))]
+        // ✅ EXTRACT CATEGORIES - backend returns formatted data
+        const uniqueCategories = [...new Set(materials.map(item => item.category).filter(Boolean))]
           .sort((a, b) => a.localeCompare(b));
         setCategories(uniqueCategories);
         console.log('✅ MaterialTransferForm: Unique categories:', uniqueCategories.length);
@@ -82,45 +76,36 @@ export default function MaterialTransferForm({ onClose, onSuccess }) {
     fetchData();
   }, []);
 
-  // ✅ GET SUBCATEGORIES - READ FROM RAW OBJECT
+  // ✅ GET SUBCATEGORIES - MATCHES DEMONSTRATED PROJECT
   const getSubcategories = (category) => {
     return [...new Set(
       allMaterials
-        .filter(item => {
-          // Try raw object first, then fallback to main fields
-          if (item.raw && item.raw['Category']) {
-            return item.raw['Category'] === category;
-          }
-          return (item.Category || item.category) === category;
-        })
-        .map(item => {
-          // Try raw object first, then fallback to main fields
-          if (item.raw && item.raw['Sub category']) {
-            return item.raw['Sub category'];
-          }
-          return item['Sub category'] || item.subCategory;
-        })
+        .filter(item => item.category === category)
+        .map(item => item.subCategory)
         .filter(Boolean)
     )].sort((a, b) => a.localeCompare(b));
   };
 
-  // ✅ GET SUB-SUBCATEGORIES - READ FROM RAW OBJECT
+  // ✅ GET SUB-SUBCATEGORIES - MATCHES DEMONSTRATED PROJECT
   const getSubSubcategories = (category, subCategory) => {
     return [...new Set(
       allMaterials
-        .filter(item => {
-          // Try raw object first, then fallback to main fields
-          const itemCategory = item.raw && item.raw['Category'] ? item.raw['Category'] : (item.Category || item.category);
-          const itemSubCategory = item.raw && item.raw['Sub category'] ? item.raw['Sub category'] : (item['Sub category'] || item.subCategory);
-          return itemCategory === category && itemSubCategory === subCategory;
-        })
-        .map(item => {
-          // Try raw object first, then fallback to main fields
-          if (item.raw && item.raw['Sub category 1']) {
-            return item.raw['Sub category 1'];
-          }
-          return item['Sub category 1'] || item.subCategory1;
-        })
+        .filter(item => item.category === category && item.subCategory === subCategory)
+        .map(item => item.subCategory1)
+        .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
+  };
+
+  // Get sub-sub-subcategories (SubCategory2) - NEW
+  const getSubSubSubcategories = (category, subCategory, subCategory1) => {
+    return [...new Set(
+      allMaterials
+        .filter(item => 
+          item.category === category && 
+          item.subCategory === subCategory && 
+          item.subCategory1 === subCategory1
+        )
+        .map(item => item.subCategory2)
         .filter(Boolean)
     )].sort((a, b) => a.localeCompare(b));
   };
@@ -136,6 +121,7 @@ export default function MaterialTransferForm({ onClose, onSuccess }) {
           category: '',
           subCategory: '',
           subCategory1: '',
+          subCategory2: '',
           quantity: ''
         }
       ]
@@ -160,8 +146,12 @@ export default function MaterialTransferForm({ onClose, onSuccess }) {
           if (field === 'category') {
             updated.subCategory = '';
             updated.subCategory1 = '';
+            updated.subCategory2 = '';
           } else if (field === 'subCategory') {
             updated.subCategory1 = '';
+            updated.subCategory2 = '';
+          } else if (field === 'subCategory1') {
+            updated.subCategory2 = '';
           }
           return updated;
         }
@@ -238,9 +228,12 @@ export default function MaterialTransferForm({ onClose, onSuccess }) {
       
       // Add materials as JSON string
       const materialsData = formData.materials.map(m => ({
-        itemName: `${m.category} - ${m.subCategory} - ${m.subCategory1}`,
+        itemName: `${m.category}${m.subCategory ? ' - ' + m.subCategory : ''}${m.subCategory1 ? ' - ' + m.subCategory1 : ''}${m.subCategory2 ? ' - ' + m.subCategory2 : ''}`,
+        category: m.category || '',
+        subCategory: m.subCategory || '',
+        subCategory1: m.subCategory1 || '',
+        subCategory2: m.subCategory2 || '',
         quantity: parseInt(m.quantity),
-        uom: 'Units',
         remarks: formData.remarks
       }));
       formDataToSend.append('materials', JSON.stringify(materialsData));
@@ -426,6 +419,7 @@ export default function MaterialTransferForm({ onClose, onSuccess }) {
                   categories={categories}
                   getSubcategories={getSubcategories}
                   getSubSubcategories={getSubSubcategories}
+                  getSubSubSubcategories={getSubSubSubcategories}
                   onUpdate={(field, value) => updateMaterialRow(material.id, field, value)}
                   onRemove={() => removeMaterialRow(material.id)}
                   onEdit={() => setEditingMaterialId(material.id)}

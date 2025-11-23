@@ -205,6 +205,20 @@ export default function IntentForm() {
     )].sort((a, b) => a.localeCompare(b));
   };
 
+  // Get sub-sub-subcategories (SubCategory2) - NEW
+  const getSubSubSubcategories = (category, subCategory, subCategory1) => {
+    return [...new Set(
+      allMaterials
+        .filter(item => 
+          item.category === category && 
+          item.subCategory === subCategory && 
+          item.subCategory1 === subCategory1
+        )
+        .map(item => item.subCategory2)
+        .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
+  };
+
   const addMaterialRow = () => {
     const newMaterialId = Date.now();
     setFormData(prev => ({
@@ -216,8 +230,8 @@ export default function IntentForm() {
           category: '',
           subCategory: '',
           subCategory1: '',
+          subCategory2: '',
           quantity: '',
-          uom: 'Nos',
           remarks: ''
         }
       ]
@@ -242,8 +256,12 @@ export default function IntentForm() {
           if (field === 'category') {
             updated.subCategory = '';
             updated.subCategory1 = '';
+            updated.subCategory2 = '';
           } else if (field === 'subCategory') {
             updated.subCategory1 = '';
+            updated.subCategory2 = '';
+          } else if (field === 'subCategory1') {
+            updated.subCategory2 = '';
           }
           return updated;
         }
@@ -307,12 +325,12 @@ export default function IntentForm() {
       
       // Prepare materials data
       const materialsData = formData.materials.map(m => ({
-        itemName: `${m.category}${m.subCategory ? ' - ' + m.subCategory : ''}${m.subCategory1 ? ' - ' + m.subCategory1 : ''}`,
-        category: m.category,
+        itemName: `${m.category}${m.subCategory ? ' - ' + m.subCategory : ''}${m.subCategory1 ? ' - ' + m.subCategory1 : ''}${m.subCategory2 ? ' - ' + m.subCategory2 : ''}`,
+        category: m.category || '',
         subCategory: m.subCategory || '',
         subCategory1: m.subCategory1 || '',
+        subCategory2: m.subCategory2 || '',
         quantity: parseInt(m.quantity),
-        uom: m.uom || 'Nos',
         remarks: m.remarks || ''
       }));
       
@@ -449,7 +467,7 @@ export default function IntentForm() {
               ) : (
                 <div className="space-y-3">
                   {formData.materials.map((material, index) => {
-                    const isComplete = material.category && material.subCategory && material.subCategory1 && material.quantity;
+                    const isComplete = material.category && material.subCategory && material.subCategory1 && material.subCategory2 && material.quantity;
                     const isEditing = editingMaterialId === material.id;
 
                     // Collapsed view when complete and not editing
@@ -473,8 +491,12 @@ export default function IntentForm() {
                                   <p className="text-gray-900 font-medium truncate">{material.subCategory1}</p>
                                 </div>
                                 <div>
+                                  <span className="text-gray-500">Sub Category 2:</span>
+                                  <p className="text-gray-900 font-medium truncate">{material.subCategory2}</p>
+                                </div>
+                                <div>
                                   <span className="text-gray-500">Quantity:</span>
-                                  <p className="text-gray-900 font-medium">{material.quantity} {material.uom}</p>
+                                  <p className="text-gray-900 font-medium">{material.quantity}</p>
                                 </div>
                               </div>
                             </div>
@@ -544,7 +566,7 @@ export default function IntentForm() {
                           </div>
                         </div>
 
-                        {/* Row 2: Sub Category 1 and Quantity */}
+                        {/* Row 2: Sub Category 1 and Sub Category 2 */}
                         <div className="grid grid-cols-2 gap-3 mb-3">
                           <div>
                             <label className="text-gray-700 text-xs mb-1.5 block">
@@ -561,6 +583,22 @@ export default function IntentForm() {
 
                           <div>
                             <label className="text-gray-700 text-xs mb-1.5 block">
+                              Sub Category 2 <span className="text-red-500">*</span>
+                            </label>
+                            <SearchableDropdown
+                              value={material.subCategory2}
+                              onChange={(value) => updateMaterial(material.id, 'subCategory2', value)}
+                              options={material.subCategory1 ? getSubSubSubcategories(material.category, material.subCategory, material.subCategory1) : []}
+                              placeholder="Select or type"
+                              disabled={!material.subCategory1 || submitting}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Row 3: Quantity and Remarks */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-gray-700 text-xs mb-1.5 block">
                               Quantity <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -573,33 +611,6 @@ export default function IntentForm() {
                               required
                               disabled={submitting}
                             />
-                          </div>
-                        </div>
-
-                        {/* Row 3: UOM and Remarks */}
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-gray-700 text-xs mb-1.5 block">
-                              UOM
-                            </label>
-                            <select
-                              value={material.uom}
-                              onChange={(e) => updateMaterial(material.id, 'uom', e.target.value)}
-                              className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-gray-400 appearance-none"
-                              style={{
-                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-                                backgroundPosition: 'right 0.5rem center',
-                                backgroundRepeat: 'no-repeat',
-                                backgroundSize: '1.5em 1.5em'
-                              }}
-                              disabled={submitting}
-                            >
-                              <option value="Nos">Nos</option>
-                              <option value="Kg">Kg</option>
-                              <option value="Ltr">Ltr</option>
-                              <option value="Mtr">Mtr</option>
-                              <option value="Sqft">Sqft</option>
-                            </select>
                           </div>
 
                           <div>

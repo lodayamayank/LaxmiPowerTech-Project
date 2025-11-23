@@ -96,13 +96,14 @@ export default function MaterialLineItem({
   categories,
   getSubcategories,
   getSubSubcategories,
+  getSubSubSubcategories,
   onUpdate,
   onRemove,
   onEdit,
   onDoneEditing,
   loading = false
 }) {
-  const isComplete = material.category && material.subCategory && material.subCategory1 && material.quantity;
+  const isComplete = material.category && material.subCategory && material.subCategory1 && material.subCategory2 && material.quantity;
 
   // Collapsed Card View
   if (!isEditing && isComplete) {
@@ -123,6 +124,10 @@ export default function MaterialLineItem({
               <div>
                 <span className="text-gray-500">Sub Category 1:</span>
                 <p className="text-gray-900 font-medium truncate">{material.subCategory1}</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Sub Category 2:</span>
+                <p className="text-gray-900 font-medium truncate">{material.subCategory2}</p>
               </div>
               <div>
                 <span className="text-gray-500">Quantity:</span>
@@ -187,8 +192,8 @@ export default function MaterialLineItem({
         </div>
       </div>
 
-      {/* Row 2: Sub Category 1 and Quantity */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Row 2: Sub Category 1 and Sub Category 2 */}
+      <div className="grid grid-cols-2 gap-3 mb-3">
         <div>
           <label className="text-gray-700 text-xs mb-1.5 block">Sub Category 1</label>
           <SearchableDropdown
@@ -200,6 +205,20 @@ export default function MaterialLineItem({
           />
         </div>
 
+        <div>
+          <label className="text-gray-700 text-xs mb-1.5 block">Sub Category 2</label>
+          <SearchableDropdown
+            value={material.subCategory2}
+            onChange={(value) => onUpdate('subCategory2', value)}
+            options={material.subCategory1 ? getSubSubSubcategories(material.category, material.subCategory, material.subCategory1) : []}
+            placeholder="Select or type sub-category..."
+            disabled={!material.subCategory1 || loading}
+          />
+        </div>
+      </div>
+
+      {/* Row 3: Quantity */}
+      <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-gray-700 text-xs mb-1.5 block">Quantity</label>
           <input
