@@ -324,6 +324,19 @@ export default function AdminIntent() {
     )].sort((a, b) => a.localeCompare(b));
   };
 
+  const getSubCategory2 = (category, subCategory, subCategory1) => {
+    return [...new Set(
+      allMaterials
+        .filter(item => 
+          item.category === category && 
+          item.subCategory === subCategory && 
+          item.subCategory1 === subCategory1
+        )
+        .map(item => item.subCategory2)
+        .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
+  };
+
   const addMaterialRow = () => {
     const newMaterialId = Date.now();
     setFormData(prev => ({
