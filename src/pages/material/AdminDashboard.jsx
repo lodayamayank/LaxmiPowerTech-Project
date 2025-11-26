@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Sidebar from "../../components/material/Sidebar";
 import UploadIndent from "../../components/material/UploadIndent";
-import SiteTransfers from "./SiteTransfers";
+import AdminSiteTransfer from "./AdminSiteTransfer";
 import AdminUpcomingDeliveries from "./AdminUpcomingDeliveries";
 import AdminIntent from "./AdminIntent";
 
@@ -13,7 +13,7 @@ export default function AdminDashboard() {
       <Sidebar setActiveSection={setActiveSection} />
       <div className="flex-1 overflow-auto">
         {activeSection === "uploadIndent" && <UploadIndent />}
-        {activeSection === "siteTransfers" && <SiteTransfers />}
+        {activeSection === "siteTransfers" && <AdminSiteTransfer />}
         {activeSection === "upcomingDeliveries" && <AdminUpcomingDeliveries />}
         {activeSection === "intent" && <AdminIntent />}
       </div>

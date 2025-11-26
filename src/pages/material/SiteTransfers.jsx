@@ -1,21 +1,16 @@
-import { useState, useEffect } from "react";
-import { siteTransferAPI } from "../../utils/materialAPI";
-import { Eye, Trash2, X, Edit2, Save } from "lucide-react";
-import DashboardLayout from "../../layouts/DashboardLayout";
+/**
+ * @deprecated This file is deprecated. Use AdminSiteTransfer.jsx instead.
+ * This file now redirects to AdminSiteTransfer to avoid code duplication.
+ * 
+ * Admin Side: AdminSiteTransfer.jsx (Table view with edit/delete)
+ * Client Side: MaterialTransfer.jsx (Mobile card view)
+ */
+
+import AdminSiteTransfer from './AdminSiteTransfer';
 
 export default function SiteTransfers() {
-  const [transfers, setTransfers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [selectedTransfer, setSelectedTransfer] = useState(null);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [deletingAttachment, setDeletingAttachment] = useState(null);
-  const [formData, setFormData] = useState({});
-  const [saving, setSaving] = useState(false);
+  // Redirect to the new AdminSiteTransfer component
+  return <AdminSiteTransfer />;
 
   useEffect(() => {
     fetchTransfers();

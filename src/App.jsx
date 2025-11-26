@@ -44,7 +44,7 @@ const UpcomingDeliveries = lazy(() => import('./pages/material/UpcomingDeliverie
 const DeliveryDetails = lazy(() => import('./pages/material/DeliveryDetails'));
 const DeliveryChecklist = lazy(() => import('./pages/material/DeliveryChecklist'));
 const UploadIndent = lazy(() => import('./components/material/UploadIndent'));
-const SiteTransfers = lazy(() => import('./pages/material/SiteTransfers'));
+const AdminSiteTransfer = lazy(() => import('./pages/material/AdminSiteTransfer'));
 const AdminUpcomingDeliveries = lazy(() => import('./pages/material/AdminUpcomingDeliveries'));
 const AdminIntent = lazy(() => import('./pages/material/AdminIntent'));
 const UploadPhoto = lazy(() => import('./pages/material/UploadPhoto'));
@@ -152,7 +152,7 @@ function App() {
         {/* Material Management Routes - Following existing flat route pattern */}
         <Route path="/dashboard/material/uploadindent" element={<UploadIndent />} />
         <Route path="/dashboard/material/upload-indent" element={<UploadIndent />} />
-        <Route path="/dashboard/material/site-transfers" element={<SiteTransfers />} />
+        <Route path="/dashboard/material/site-transfers" element={<AdminSiteTransfer />} />
         <Route path="/dashboard/material/upcoming-deliveries" element={<AdminUpcomingDeliveries />} />
         <Route path="/dashboard/material/intent" element={<AdminIntent />} />
         <Route path="/dashboard/material/grn" element={<Material activeTab="grn" />} />
