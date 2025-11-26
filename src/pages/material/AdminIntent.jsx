@@ -198,14 +198,19 @@ export default function AdminIntent() {
   };
 
   const handleEdit = () => {
+    // Defensive: Ensure materials is always an array
+    const materialsArray = Array.isArray(selectedIndent?.materials) 
+      ? selectedIndent.materials 
+      : [];
+    
     // Allow full editing for all intent types
     setFormData({
-      status: selectedIndent.status,
-      remarks: selectedIndent.remarks || '',
-      requestedBy: selectedIndent.requestedBy || '',
-      deliverySite: selectedIndent.deliverySite || '',
-      materials: (selectedIndent.materials || []).map((m, idx) => ({
-        id: m._id || Date.now() + idx,
+      status: selectedIndent?.status || 'pending',
+      remarks: selectedIndent?.remarks || '',
+      requestedBy: selectedIndent?.requestedBy || '',
+      deliverySite: selectedIndent?.deliverySite || '',
+      materials: materialsArray.map((m, idx) => ({
+        id: m._id || `material-${Date.now()}-${idx}`,
         category: m.category || '',
         subCategory: m.subCategory || '',
         subCategory1: m.subCategory1 || '',
@@ -227,8 +232,9 @@ export default function AdminIntent() {
     try {
       setSaving(true);
       
-      // Prepare materials data with all subcategories
-      const materialsData = formData.materials?.map(m => ({
+      // Prepare materials data with all subcategories - defensive check
+      const materialsArray = Array.isArray(formData.materials) ? formData.materials : [];
+      const materialsData = materialsArray.map(m => ({
         itemName: `${m.category}${m.subCategory ? ' - ' + m.subCategory : ''}${m.subCategory1 ? ' - ' + m.subCategory1 : ''}${m.subCategory2 ? ' - ' + m.subCategory2 : ''}`,
         category: m.category,
         subCategory: m.subCategory || '',
@@ -305,32 +311,41 @@ export default function AdminIntent() {
     });
   };
 
-  // Helper functions for materials
+  // Helper functions for materials - with defensive checks
   const getSubcategories = (category) => {
+    if (!category || !Array.isArray(allMaterials) || allMaterials.length === 0) {
+      return [];
+    }
     return [...new Set(
       allMaterials
-        .filter(item => item.category === category)
+        .filter(item => item?.category === category)
         .map(item => item.subCategory)
         .filter(Boolean)
     )].sort((a, b) => a.localeCompare(b));
   };
 
   const getSubSubcategories = (category, subCategory) => {
+    if (!category || !subCategory || !Array.isArray(allMaterials) || allMaterials.length === 0) {
+      return [];
+    }
     return [...new Set(
       allMaterials
-        .filter(item => item.category === category && item.subCategory === subCategory)
+        .filter(item => item?.category === category && item?.subCategory === subCategory)
         .map(item => item.subCategory1)
         .filter(Boolean)
     )].sort((a, b) => a.localeCompare(b));
   };
 
   const getSubCategory2 = (category, subCategory, subCategory1) => {
+    if (!category || !subCategory || !subCategory1 || !Array.isArray(allMaterials) || allMaterials.length === 0) {
+      return [];
+    }
     return [...new Set(
       allMaterials
         .filter(item => 
-          item.category === category && 
-          item.subCategory === subCategory && 
-          item.subCategory1 === subCategory1
+          item?.category === category && 
+          item?.subCategory === subCategory && 
+          item?.subCategory1 === subCategory1
         )
         .map(item => item.subCategory2)
         .filter(Boolean)
@@ -338,11 +353,11 @@ export default function AdminIntent() {
   };
 
   const addMaterialRow = () => {
-    const newMaterialId = Date.now();
+    const newMaterialId = `material-${Date.now()}`;
     setFormData(prev => ({
       ...prev,
       materials: [
-        ...prev.materials,
+        ...(Array.isArray(prev.materials) ? prev.materials : []),
         {
           id: newMaterialId,
           category: '',
@@ -673,7 +688,7 @@ export default function AdminIntent() {
                 
                 {editing ? (
                   <div className="space-y-2">
-                    {formData.materials && formData.materials.length > 0 ? (
+                    {Array.isArray(formData.materials) && formData.materials.length > 0 ? (
                       formData.materials.map((material, idx) => (
                         <MaterialLineItem
                           key={material.id}
