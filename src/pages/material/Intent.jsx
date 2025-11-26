@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { indentAPI } from '../../utils/materialAPI';
+import { indentAPI, purchaseOrderAPI } from '../../utils/materialAPI';
 import { Plus, Image as ImageIcon } from 'lucide-react';
 import { FaArrowLeft } from 'react-icons/fa';
 import AddIntentPopup from './AddIntentPopup';
@@ -69,14 +69,44 @@ export default function Intent({ isTabView = false }) {
   const fetchIndents = async () => {
     try {
       setLoading(true);
-      const response = await indentAPI.getAll(currentPage, 10);
-      if (response.success) {
-        console.log(`📊 Fetched ${response.data?.length || 0} indents with photos`);
-        setIndents(response.data || []);
-        setTotalPages(response.pagination?.totalPages || 1);
-      }
+      
+      // ✅ CRITICAL FIX: Fetch BOTH Indents (photo) AND Purchase Orders (manual form)
+      // This matches AdminIntent.jsx logic exactly
+      const [indentsResponse, purchaseOrdersResponse] = await Promise.all([
+        indentAPI.getAll(1, 100).catch(err => ({ success: false, data: [] })),
+        purchaseOrderAPI.getAll(1, 100).catch(err => ({ success: false, data: [] }))
+      ]);
+      
+      // Combine both types of data
+      const indentsData = (indentsResponse.data || []).map(item => ({
+        ...item,
+        type: 'indent',
+        displayId: item.indentId,
+        hasImage: !!item.imageUrl
+      }));
+      
+      const purchaseOrdersData = (purchaseOrdersResponse.data || []).map(item => ({
+        ...item,
+        type: 'purchaseOrder',
+        displayId: item.purchaseOrderId,
+        hasImage: false
+      }));
+      
+      // Merge and sort by creation date (newest first)
+      const combinedData = [...indentsData, ...purchaseOrdersData]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      
+      console.log(`✅ Fetched ${indentsData.length} indents + ${purchaseOrdersData.length} purchase orders = ${combinedData.length} total Intent PO records`);
+      setIndents(combinedData);
+      
+      // Calculate pagination based on combined data
+      const itemsPerPage = 10;
+      const totalItems = combinedData.length;
+      setTotalPages(Math.ceil(totalItems / itemsPerPage) || 1);
+      
     } catch (err) {
-      console.error('Error fetching indents:', err);
+      console.error('Error fetching Intent PO data:', err);
+      setIndents([]);
     } finally {
       setLoading(false);
     }
@@ -148,7 +178,7 @@ export default function Intent({ isTabView = false }) {
               {/* Header with Image Thumbnail */}
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
-                  {indent.imageUrl && (
+                  {indent.hasImage && indent.imageUrl ? (
                     <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-orange-200 flex-shrink-0">
                       <img 
                         src={`${axios.defaults.baseURL}${indent.imageUrl}`}
@@ -160,13 +190,22 @@ export default function Intent({ isTabView = false }) {
                         }}
                       />
                     </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 border-2 border-blue-300 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
                   )}
                   <div>
                     <h3 className="font-bold text-gray-900 text-base">
-                      {indent.indentId || 'N/A'}
+                      {indent.displayId || indent.indentId || indent.purchaseOrderId || 'N/A'}
                     </h3>
                     <p className="text-xs text-gray-500 mt-1">
                       {formatDate(indent.createdAt)}
+                    </p>
+                    <p className="text-xs text-blue-600 font-medium mt-0.5">
+                      {indent.type === 'indent' ? '📷 Photo Upload' : '📝 Manual Entry'}
                     </p>
                   </div>
                 </div>
@@ -179,19 +218,22 @@ export default function Intent({ isTabView = false }) {
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 font-medium">PO ID</span>
-                  <span className="font-semibold text-gray-900">{indent.indentId}</span>
+                  <span className="font-semibold text-gray-900">{indent.displayId || indent.indentId || indent.purchaseOrderId}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 font-medium">Requested By</span>
-                  <span className="font-semibold text-gray-900">{indent.requestedBy?.name || 'N/A'}</span>
+                  <span className="font-semibold text-gray-900">{indent.requestedBy?.name || indent.requestedBy || 'N/A'}</span>
                 </div>
-                {indent.imageUrl && (
+                {indent.deliverySite && (
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600 font-medium">Image</span>
-                    <span className="font-semibold text-orange-600 flex items-center gap-1">
-                      <ImageIcon size={14} />
-                      Available
-                    </span>
+                    <span className="text-gray-600 font-medium">Delivery Site</span>
+                    <span className="font-semibold text-gray-900">{indent.deliverySite}</span>
+                  </div>
+                )}
+                {indent.materials && indent.materials.length > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 font-medium">Materials</span>
+                    <span className="font-semibold text-blue-600">{indent.materials.length} items</span>
                   </div>
                 )}
               </div>

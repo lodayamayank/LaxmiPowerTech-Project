@@ -15,29 +15,39 @@ export default function UpcomingDeliveries({ isTabView = false }) {
         fetchDeliveries();
     }, []);
 
-    // Listen for Intent creation/update events
+    // Listen for Intent, Site Transfer, and Delivery update events
     useEffect(() => {
         const handleIntentChange = () => {
+            console.log('🔄 Client Upcoming Deliveries: Intent update detected');
+            fetchDeliveries();
+        };
+
+        const handleSiteTransferChange = () => {
+            console.log('🔄 Client Upcoming Deliveries: Site Transfer update detected');
             fetchDeliveries();
         };
 
         const handleDeliveryRefresh = () => {
+            console.log('🔄 Client Upcoming Deliveries: Delivery refresh triggered');
             fetchDeliveries();
         };
 
         const handleStorageChange = (e) => {
-            if (e.key === 'intentRefresh' || e.key === 'upcomingDeliveryRefresh') {
+            if (e.key === 'intentRefresh' || e.key === 'upcomingDeliveryRefresh' || e.key === 'siteTransferRefresh') {
+                console.log(`✅ Client Upcoming Deliveries: ${e.key} detected`);
                 fetchDeliveries();
                 localStorage.removeItem(e.key);
             }
         };
 
         window.addEventListener('intentCreated', handleIntentChange);
+        window.addEventListener('siteTransferCreated', handleSiteTransferChange);
         window.addEventListener('upcomingDeliveryRefresh', handleDeliveryRefresh);
         window.addEventListener('storage', handleStorageChange);
 
         return () => {
             window.removeEventListener('intentCreated', handleIntentChange);
+            window.removeEventListener('siteTransferCreated', handleSiteTransferChange);
             window.removeEventListener('upcomingDeliveryRefresh', handleDeliveryRefresh);
             window.removeEventListener('storage', handleStorageChange);
         };

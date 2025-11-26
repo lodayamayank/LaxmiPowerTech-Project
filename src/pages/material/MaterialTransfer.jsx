@@ -35,29 +35,39 @@ export default function MaterialTransfer({ isTabView = false }) {
     return () => clearInterval(interval);
   }, [currentPage]);
 
-  // Listen for delivery update events (INSTANT SYNC)
+  // Listen for delivery, site transfer, and intent update events (INSTANT SYNC)
   useEffect(() => {
     const handleDeliveryUpdate = () => {
+      console.log('🔄 Client Material Transfer: Delivery update detected');
+      fetchTransfers();
+    };
+    
+    const handleSiteTransferCreated = () => {
+      console.log('🔄 Client Material Transfer: Site Transfer created');
       fetchTransfers();
     };
     
     const handleUpcomingDeliveryRefresh = () => {
+      console.log('🔄 Client Material Transfer: Upcoming Delivery refresh');
       fetchTransfers();
     };
     
     const handleStorageChange = (e) => {
-      if (e.key === 'deliveryRefresh' || e.key === 'upcomingDeliveryRefresh') {
+      if (e.key === 'deliveryRefresh' || e.key === 'upcomingDeliveryRefresh' || e.key === 'siteTransferRefresh') {
         console.log(`⚡ INSTANT SYNC - ${e.key} detected!`);
         fetchTransfers();
+        localStorage.removeItem(e.key);
       }
     };
     
     window.addEventListener('deliveryUpdated', handleDeliveryUpdate);
+    window.addEventListener('siteTransferCreated', handleSiteTransferCreated);
     window.addEventListener('upcomingDeliveryRefresh', handleUpcomingDeliveryRefresh);
     window.addEventListener('storage', handleStorageChange);
     
     return () => {
       window.removeEventListener('deliveryUpdated', handleDeliveryUpdate);
+      window.removeEventListener('siteTransferCreated', handleSiteTransferCreated);
       window.removeEventListener('upcomingDeliveryRefresh', handleUpcomingDeliveryRefresh);
       window.removeEventListener('storage', handleStorageChange);
     };
