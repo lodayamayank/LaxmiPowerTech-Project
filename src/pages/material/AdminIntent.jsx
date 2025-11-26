@@ -198,30 +198,23 @@ export default function AdminIntent() {
   };
 
   const handleEdit = () => {
-    if (selectedIndent.type === 'purchaseOrder') {
-      // For PurchaseOrders, allow full editing
-      setFormData({
-        status: selectedIndent.status,
-        remarks: selectedIndent.remarks || '',
-        requestedBy: selectedIndent.requestedBy,
-        deliverySite: selectedIndent.deliverySite,
-        materials: (selectedIndent.materials || []).map((m, idx) => ({
-          id: m._id || Date.now() + idx,
-          category: m.category || '',
-          subCategory: m.subCategory || '',
-          subCategory1: m.subCategory1 || '',
-          quantity: m.quantity || '',
-          uom: m.uom || 'Nos',
-          remarks: m.remarks || ''
-        }))
-      });
-    } else {
-      // For Indents, only allow status and admin remarks editing
-      setFormData({
-        status: selectedIndent.status,
-        adminRemarks: selectedIndent.adminRemarks || ''
-      });
-    }
+    // Allow full editing for all intent types
+    setFormData({
+      status: selectedIndent.status,
+      remarks: selectedIndent.remarks || '',
+      requestedBy: selectedIndent.requestedBy || '',
+      deliverySite: selectedIndent.deliverySite || '',
+      materials: (selectedIndent.materials || []).map((m, idx) => ({
+        id: m._id || Date.now() + idx,
+        category: m.category || '',
+        subCategory: m.subCategory || '',
+        subCategory1: m.subCategory1 || '',
+        subCategory2: m.subCategory2 || '',
+        quantity: m.quantity || '',
+        uom: m.uom || 'Nos',
+        remarks: m.remarks || ''
+      }))
+    });
     setEditing(true);
   };
 
@@ -234,49 +227,45 @@ export default function AdminIntent() {
     try {
       setSaving(true);
       
-      let response;
+      // Prepare materials data with all subcategories
+      const materialsData = formData.materials?.map(m => ({
+        itemName: `${m.category}${m.subCategory ? ' - ' + m.subCategory : ''}${m.subCategory1 ? ' - ' + m.subCategory1 : ''}${m.subCategory2 ? ' - ' + m.subCategory2 : ''}`,
+        category: m.category,
+        subCategory: m.subCategory || '',
+        subCategory1: m.subCategory1 || '',
+        subCategory2: m.subCategory2 || '',
+        quantity: parseInt(m.quantity),
+        uom: m.uom || 'Nos',
+        remarks: m.remarks || ''
+      })) || selectedIndent.materials;
       
-      // Handle based on type
-      if (selectedIndent.type === 'purchaseOrder') {
-        // For PurchaseOrder: update full data including materials
-        const materialsData = formData.materials?.map(m => ({
-          itemName: `${m.category}${m.subCategory ? ' - ' + m.subCategory : ''}${m.subCategory1 ? ' - ' + m.subCategory1 : ''}`,
-          category: m.category,
-          subCategory: m.subCategory || '',
-          subCategory1: m.subCategory1 || '',
-          quantity: parseInt(m.quantity),
-          uom: m.uom || 'Nos',
-          remarks: m.remarks || ''
-        })) || selectedIndent.materials;
-        
-        const updateData = {
-          status: formData.status,
-          remarks: formData.remarks || formData.adminRemarks,
-          requestedBy: formData.requestedBy || selectedIndent.requestedBy,
-          deliverySite: formData.deliverySite || selectedIndent.deliverySite,
-          materials: materialsData
-        };
-        
-        response = await purchaseOrderAPI.update(selectedIndent._id, updateData);
-      } else {
-        // For Indent: only update status and admin remarks
-        response = await indentAPI.updateStatus(selectedIndent._id, formData.status, formData.adminRemarks);
-      }
+      const updateData = {
+        status: formData.status,
+        remarks: formData.remarks,
+        requestedBy: formData.requestedBy,
+        deliverySite: formData.deliverySite,
+        materials: materialsData
+      };
+      
+      // Use appropriate API based on type
+      const response = selectedIndent.type === 'purchaseOrder'
+        ? await purchaseOrderAPI.update(selectedIndent._id, updateData)
+        : await indentAPI.update(selectedIndent._id, updateData);
       
       if (response.success) {
-        // Update the modal data immediately
-        const updatedIndent = { 
-          ...selectedIndent, 
-          status: formData.status, 
-          adminRemarks: formData.adminRemarks || formData.remarks,
-          remarks: formData.remarks
-        };
-        setSelectedIndent(updatedIndent);
+        // Fetch fresh data from server (like demonstrated project)
+        const updatedResponse = selectedIndent.type === 'purchaseOrder'
+          ? await purchaseOrderAPI.getById(selectedIndent._id)
+          : await indentAPI.getById(selectedIndent._id);
         
-        // Update the list state immediately
-        setIndents(prev => 
-          prev.map(item => item._id === selectedIndent._id ? updatedIndent : item)
-        );
+        if (updatedResponse.success) {
+          setSelectedIndent(updatedResponse.data);
+          
+          // Update the list state immediately
+          setIndents(prev => 
+            prev.map(item => item._id === selectedIndent._id ? updatedResponse.data : item)
+          );
+        }
         
         setEditing(false);
         
@@ -284,7 +273,7 @@ export default function AdminIntent() {
         window.dispatchEvent(new Event('intentCreated'));
         localStorage.setItem('intentRefresh', Date.now().toString());
         
-        showToast(`${selectedIndent.type === 'purchaseOrder' ? 'Purchase Order' : 'Intent'} updated successfully`, 'success');
+        showToast('Intent updated successfully', 'success');
       }
     } catch (err) {
       console.error('Error updating:', err);
@@ -578,7 +567,7 @@ export default function AdminIntent() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-600">PO-ID</label>
-                  <p className="text-gray-900 font-medium">{selectedIndent.indentId}</p>
+                  <p className="text-gray-900 font-medium">{selectedIndent.purchaseOrderId || selectedIndent.indentId}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Status</label>
@@ -602,81 +591,104 @@ export default function AdminIntent() {
                   )}
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Project</label>
-                  <p className="text-gray-900">{selectedIndent.project || 'N/A'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Branch</label>
-                  <p className="text-gray-900">{selectedIndent.branch || 'N/A'}</p>
+                  <label className="text-sm font-medium text-gray-600">Delivery Site</label>
+                  {editing ? (
+                    <input
+                      type="text"
+                      value={formData.deliverySite}
+                      onChange={(e) => setFormData({ ...formData, deliverySite: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg mt-1"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{selectedIndent.deliverySite || 'N/A'}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Requested By</label>
-                  <p className="text-gray-900">{selectedIndent.requestedBy?.name || 'N/A'}</p>
+                  {editing ? (
+                    <input
+                      type="text"
+                      value={formData.requestedBy}
+                      onChange={(e) => setFormData({ ...formData, requestedBy: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg mt-1"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{selectedIndent.requestedBy || 'N/A'}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Request Date</label>
-                  <p className="text-gray-900">{formatDate(selectedIndent.createdAt)}</p>
+                  <p className="text-gray-900">{formatDate(selectedIndent.requestDate || selectedIndent.createdAt)}</p>
                 </div>
               </div>
 
-              {/* Admin Remarks */}
+              {/* Remarks */}
               <div>
-                <label className="text-sm font-medium text-gray-600">Admin Remarks</label>
+                <label className="text-sm font-medium text-gray-600">Remarks</label>
                 {editing ? (
                   <textarea
-                    value={formData.adminRemarks}
-                    onChange={(e) => setFormData({ ...formData, adminRemarks: e.target.value })}
+                    value={formData.remarks}
+                    onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg mt-1"
                     rows="3"
-                    placeholder="Add admin remarks..."
+                    placeholder="Add remarks..."
                   />
                 ) : (
-                  <p className="text-gray-900 mt-1">{selectedIndent.adminRemarks || '-'}</p>
+                  <p className="text-gray-900 mt-1">{selectedIndent.remarks || '-'}</p>
                 )}
               </div>
 
-              {/* Image */}
-              {selectedIndent.imageUrl && (
+              {/* Materials */}
+              {selectedIndent.materials && selectedIndent.materials.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-600 mb-2 block">Uploaded Image</label>
-                  <div className="border rounded-lg overflow-hidden inline-block">
-                    <img
-                      src={`${axios.defaults.baseURL.replace('/api', '')}${selectedIndent.imageUrl}`}
-                      alt="Intent"
-                      className="max-w-full h-auto max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                      onClick={() => window.open(`${axios.defaults.baseURL.replace('/api', '')}${selectedIndent.imageUrl}`, '_blank')}
-                      onError={(e) => {
-                        console.error('Image load error:', selectedIndent.imageUrl);
-                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f0f0f0" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999"%3EImage not found%3C/text%3E%3C/svg%3E';
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Items (if any) */}
-              {selectedIndent.items && selectedIndent.items.length > 0 && (
-                <div>
-                  <label className="text-sm font-medium text-gray-600 mb-2 block">Items</label>
+                  <label className="text-sm font-medium text-gray-600 mb-2 block">Materials</label>
                   <div className="border rounded-lg overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Item Name</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Item</th>
                           <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Quantity</th>
                           <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">UOM</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Remarks</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {selectedIndent.items.map((item, index) => (
+                        {selectedIndent.materials.map((material, index) => (
                           <tr key={index}>
-                            <td className="px-4 py-2 text-sm text-gray-900">{item.itemName || 'N/A'}</td>
-                            <td className="px-4 py-2 text-sm text-gray-900">{item.quantity || 0}</td>
-                            <td className="px-4 py-2 text-sm text-gray-900">{item.uom || 'Nos'}</td>
+                            <td className="px-4 py-2 text-sm text-gray-900">{material.itemName}</td>
+                            <td className="px-4 py-2 text-sm text-gray-900">{material.quantity}</td>
+                            <td className="px-4 py-2 text-sm text-gray-900">{material.uom || 'Nos'}</td>
+                            <td className="px-4 py-2 text-sm text-gray-500">{material.remarks || '-'}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Attachments */}
+              {selectedIndent.attachments && selectedIndent.attachments.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-gray-600 mb-2 block">Attachments</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {selectedIndent.attachments.map((attachment, index) => {
+                      const baseURL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5002';
+                      const imageUrl = attachment.startsWith('http') ? attachment : `${baseURL}${attachment}`;
+                      return (
+                        <img
+                          key={index}
+                          src={imageUrl}
+                          alt={`Attachment ${index + 1}`}
+                          className="w-full h-32 object-cover rounded border cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => window.open(imageUrl, '_blank')}
+                          onError={(e) => {
+                            console.error('Image load error:', attachment);
+                            e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f0f0f0" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999"%3EImage not found%3C/text%3E%3C/svg%3E';
+                          }}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               )}
