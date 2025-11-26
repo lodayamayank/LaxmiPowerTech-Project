@@ -18,6 +18,7 @@ export default function AdminIntent() {
   const [formData, setFormData] = useState({});
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deletingAttachment, setDeletingAttachment] = useState(null);
   const [categories, setCategories] = useState([]);
   const [allMaterials, setAllMaterials] = useState([]);
   const [sites, setSites] = useState([]);
