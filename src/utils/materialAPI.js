@@ -192,6 +192,11 @@ export const upcomingDeliveryAPI = {
   deleteAll: async () => {
     const response = await axios.delete('/material/upcoming-deliveries/all');
     return response.data;
+  },
+  // ✅ Migration endpoint to sync existing Intent POs
+  migrateSync: async () => {
+    const response = await axios.post('/material/upcoming-deliveries/migrate-sync');
+    return response.data;
   }
 };
 
