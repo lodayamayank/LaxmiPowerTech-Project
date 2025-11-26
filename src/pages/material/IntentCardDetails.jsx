@@ -560,13 +560,10 @@ export default function IntentCardDetails() {
             <h2 className="font-semibold text-gray-900 mb-3">Uploaded Image</h2>
             <div className="border rounded-lg overflow-hidden">
               <img
-                src={indent.imageUrl.startsWith('http') ? indent.imageUrl : `${axios.defaults.baseURL.replace('/api', '')}${indent.imageUrl}`}
+                src={indent.imageUrl}
                 alt="Intent"
                 className="w-full h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => {
-                  const imageUrl = indent.imageUrl.startsWith('http') ? indent.imageUrl : `${axios.defaults.baseURL.replace('/api', '')}${indent.imageUrl}`;
-                  window.open(imageUrl, '_blank');
-                }}
+                onClick={() => window.open(indent.imageUrl, '_blank')}
                 onError={(e) => {
                   console.error('Image load error:', indent.imageUrl);
                   e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f0f0f0" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999"%3EImage not found%3C/text%3E%3C/svg%3E';
@@ -635,33 +632,29 @@ export default function IntentCardDetails() {
           {/* Existing Attachments */}
           {purchaseOrder.attachments && purchaseOrder.attachments.length > 0 ? (
             <div className="grid grid-cols-3 gap-2 mb-3">
-              {purchaseOrder.attachments.map((attachment, index) => {
-                // ✅ Use production backend URL, NOT localhost
-                const imageUrl = attachment.startsWith('http') ? attachment : `${axios.defaults.baseURL.replace('/api', '')}${attachment}`;
-                return (
-                  <div key={index} className="relative group">
-                    <img
-                      src={imageUrl}
-                      alt={`Attachment ${index + 1}`}
-                      className="w-full h-24 object-cover rounded border cursor-pointer"
-                      onClick={() => window.open(imageUrl, '_blank')}
-                      onError={(e) => {
-                        console.error('Image load error:', attachment);
-                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f0f0f0" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999"%3EImage not found%3C/text%3E%3C/svg%3E';
-                      }}
-                    />
-                    {editing && (
-                      <button
-                        onClick={() => handleDeleteAttachment(index)}
-                        disabled={deletingAttachment === index}
-                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X size={14} />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
+              {purchaseOrder.attachments.map((attachment, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={attachment}
+                    alt={`Attachment ${index + 1}`}
+                    className="w-full h-24 object-cover rounded border cursor-pointer"
+                    onClick={() => window.open(attachment, '_blank')}
+                    onError={(e) => {
+                      console.error('Image load error:', attachment);
+                      e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f0f0f0" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999"%3EImage not found%3C/text%3E%3C/svg%3E';
+                    }}
+                  />
+                  {editing && (
+                    <button
+                      onClick={() => handleDeleteAttachment(index)}
+                      disabled={deletingAttachment === index}
+                      className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
           ) : (
             <p className="text-sm text-gray-500 mb-3">No attachments</p>
