@@ -588,35 +588,87 @@ export default function IntentCardDetails() {
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {formData.materials && formData.materials.length > 0 ? (
-              formData.materials.map((material, idx) => (
-                <MaterialLineItem
-                  key={material.id}
-                  material={material}
-                  index={idx}
-                  isEditing={editing && editingMaterialId === material.id}
-                  onEdit={() => setEditingMaterialId(material.id)}
-                  onDoneEditing={() => setEditingMaterialId(null)}
-                  onRemove={() => removeMaterialRow(material.id)}
-                  onUpdate={(fieldName, value) => {
-                    // Handle cascading resets for dependent fields
-                    if (fieldName === 'category') {
-                      updateMaterial(material.id, { category: value, subCategory: '', subCategory1: '', subCategory2: '' });
-                    } else if (fieldName === 'subCategory') {
-                      updateMaterial(material.id, { subCategory: value, subCategory1: '', subCategory2: '' });
-                    } else if (fieldName === 'subCategory1') {
-                      updateMaterial(material.id, { subCategory1: value, subCategory2: '' });
-                    } else {
-                      updateMaterial(material.id, { [fieldName]: value });
-                    }
-                  }}
-                  categories={categories}
-                  getSubcategories={getSubcategories}
-                  getSubSubcategories={getSubSubcategories}
-                  getSubSubSubcategories={getSubSubSubcategories}
-                />
-              ))
+              editing ? (
+                // Edit mode - use MaterialLineItem
+                formData.materials.map((material, idx) => (
+                  <MaterialLineItem
+                    key={material.id}
+                    material={material}
+                    index={idx}
+                    isEditing={editing && editingMaterialId === material.id}
+                    onEdit={() => setEditingMaterialId(material.id)}
+                    onDoneEditing={() => setEditingMaterialId(null)}
+                    onRemove={() => removeMaterialRow(material.id)}
+                    onUpdate={(fieldName, value) => {
+                      // Handle cascading resets for dependent fields
+                      if (fieldName === 'category') {
+                        updateMaterial(material.id, { category: value, subCategory: '', subCategory1: '', subCategory2: '' });
+                      } else if (fieldName === 'subCategory') {
+                        updateMaterial(material.id, { subCategory: value, subCategory1: '', subCategory2: '' });
+                      } else if (fieldName === 'subCategory1') {
+                        updateMaterial(material.id, { subCategory1: value, subCategory2: '' });
+                      } else {
+                        updateMaterial(material.id, { [fieldName]: value });
+                      }
+                    }}
+                    categories={categories}
+                    getSubcategories={getSubcategories}
+                    getSubSubcategories={getSubSubcategories}
+                    getSubSubSubcategories={getSubSubSubcategories}
+                  />
+                ))
+              ) : (
+                // Read-only mode - detailed display matching snapshot
+                formData.materials.map((material, idx) => (
+                  <div key={material.id} className="bg-white rounded-lg border border-gray-200 p-4">
+                    <div className="mb-3">
+                      <h3 className="text-sm font-semibold text-gray-900">Material #{idx + 1}</h3>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {/* Row 1: Category and Sub Category */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs text-gray-500 block mb-1">Category</label>
+                          <p className="text-sm font-medium text-gray-900">{material.category || '-'}</p>
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 block mb-1">Sub Category</label>
+                          <p className="text-sm font-medium text-gray-900">{material.subCategory || '-'}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Row 2: Sub Category 1 and Sub Category 2 */}
+                      {(material.subCategory1 || material.subCategory2) && (
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs text-gray-500 block mb-1">Sub Category 1</label>
+                            <p className="text-sm font-medium text-gray-900">{material.subCategory1 || '-'}</p>
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-500 block mb-1">Sub Category 2</label>
+                            <p className="text-sm font-medium text-gray-900">{material.subCategory2 || '-'}</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Row 3: Quantity and Remarks */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs text-gray-500 block mb-1">Quantity</label>
+                          <p className="text-sm font-medium text-gray-900">{material.quantity || '-'}</p>
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 block mb-1">Remarks</label>
+                          <p className="text-sm text-gray-700">{material.remarks || '-'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )
             ) : (
               <p className="text-sm text-gray-500 text-center py-4">No materials added</p>
             )}

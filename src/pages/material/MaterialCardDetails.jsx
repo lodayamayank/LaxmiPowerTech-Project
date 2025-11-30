@@ -742,47 +742,66 @@ export default function MaterialCardDetails() {
             </div>
           </div>
 
-          {/* Materials Section - Matching Intent Details */}
+          {/* Materials Section - Detailed Display Matching Snapshot */}
           <div className="mb-4">
             <h3 className="text-sm font-semibold text-gray-800 mb-3">Materials</h3>
             <div className="space-y-3">
-              {transfer.materials?.map((material, index) => (
-                <div key={index} className="bg-white rounded-lg border p-3">
-                  <div className="space-y-2">
-                    {/* Material Info */}
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="text-xs text-gray-500 mb-1">Material #{index + 1}</div>
-                        <div className="text-sm font-medium text-gray-900">{material.itemName}</div>
-                      </div>
+              {transfer.materials?.map((material, index) => {
+                // Parse itemName to extract subcategories
+                const parts = material.itemName?.split(' - ') || [];
+                const category = parts[0] || '';
+                const subCategory = parts[1] || '';
+                const subCategory1 = parts[2] || '';
+                const subCategory2 = parts[3] || '';
+                
+                return (
+                  <div key={index} className="bg-white rounded-lg border border-gray-200 p-4">
+                    <div className="mb-3">
+                      <h3 className="text-sm font-semibold text-gray-900">Material #{index + 1}</h3>
                     </div>
-
-                    {/* Quantity and UOM */}
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <label className="text-xs text-gray-500 block mb-1">Quantity</label>
-                        <div className="px-3 py-2 bg-gray-100 rounded text-sm font-medium text-gray-700">
-                          {material.quantity}
+                    
+                    <div className="space-y-3">
+                      {/* Row 1: Category and Sub Category */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs text-gray-500 block mb-1">Category</label>
+                          <p className="text-sm font-medium text-gray-900">{category || '-'}</p>
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 block mb-1">Sub Category</label>
+                          <p className="text-sm font-medium text-gray-900">{subCategory || '-'}</p>
                         </div>
                       </div>
-                      <div className="flex-1">
-                        <label className="text-xs text-gray-500 block mb-1">UOM</label>
-                        <div className="px-3 py-2 bg-gray-100 rounded text-sm font-medium text-gray-700">
-                          {material.uom}
+                      
+                      {/* Row 2: Sub Category 1 and Sub Category 2 */}
+                      {(subCategory1 || subCategory2) && (
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs text-gray-500 block mb-1">Sub Category 1</label>
+                            <p className="text-sm font-medium text-gray-900">{subCategory1 || '-'}</p>
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-500 block mb-1">Sub Category 2</label>
+                            <p className="text-sm font-medium text-gray-900">{subCategory2 || '-'}</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Row 3: Quantity and Remarks */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs text-gray-500 block mb-1">Quantity</label>
+                          <p className="text-sm font-medium text-gray-900">{material.quantity || '-'}</p>
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 block mb-1">Remarks</label>
+                          <p className="text-sm text-gray-700">{material.remarks || '-'}</p>
                         </div>
                       </div>
                     </div>
-
-                    {/* Remarks */}
-                    {material.remarks && (
-                      <div>
-                        <label className="text-xs text-gray-500 block mb-1">Remarks</label>
-                        <p className="text-sm text-gray-700">{material.remarks}</p>
-                      </div>
-                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
