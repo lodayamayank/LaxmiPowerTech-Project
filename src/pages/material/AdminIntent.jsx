@@ -716,8 +716,10 @@ export default function AdminIntent() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Requested By</p>
-                    {/* ❌ Always read-only - cannot be edited in view mode */}
-                    <p className="font-medium text-gray-900">{selectedIndent.requestedBy || 'N/A'}</p>
+                    {/* ❌ ALWAYS READ-ONLY - Cannot be edited in any mode */}
+                    <div className="mt-1 px-3 py-2 bg-gray-100 border border-gray-200 rounded text-gray-700 font-medium">
+                      {selectedIndent.requestedBy || 'N/A'}
+                    </div>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Request Date</p>
