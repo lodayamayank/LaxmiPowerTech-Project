@@ -569,7 +569,7 @@ export default function IntentForm() {
                         <div className="grid grid-cols-2 gap-3 mb-3">
                           <div>
                             <label className="text-gray-700 text-xs mb-1.5 block">
-                              Sub Category 1 <span className="text-red-500">*</span>
+                              Sub Category 1
                             </label>
                             <SearchableDropdown
                               value={material.subCategory1}
@@ -582,7 +582,7 @@ export default function IntentForm() {
 
                           <div>
                             <label className="text-gray-700 text-xs mb-1.5 block">
-                              Sub Category 2 <span className="text-red-500">*</span>
+                              Sub Category 2
                             </label>
                             <SearchableDropdown
                               value={material.subCategory2}

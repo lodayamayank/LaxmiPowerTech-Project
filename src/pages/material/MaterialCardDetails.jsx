@@ -437,7 +437,7 @@ export default function MaterialCardDetails() {
   if (editing) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      <div className="max-w-md mx-auto bg-white min-h-screen shadow-xl">
+      <div className="max-w-md mx-auto bg-white shadow-xl">
         {/* Header - Matching Intent PO */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <button
@@ -455,7 +455,7 @@ export default function MaterialCardDetails() {
         </div>
 
         {/* Main Content */}
-        <div className="px-6 py-6 -mt-4">
+        <div className="px-6 py-6 -mt-4 pb-24">
           <div className="space-y-4">
 
           {/* Basic Information Section - Matching Intent PO Layout */}
@@ -649,8 +649,6 @@ export default function MaterialCardDetails() {
               </div>
             </div>
 
-            {/* Spacer for fixed buttons */}
-            <div className="h-4"></div>
           </div>
           
           {/* Fixed Bottom Buttons */}
@@ -692,7 +690,7 @@ export default function MaterialCardDetails() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
       {/* Container with consistent mobile width - EXACTLY like Intent Details */}
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
+      <div className="max-w-md mx-auto bg-white shadow-xl">
         {/* Header with Gradient - EXACTLY matching Intent PO */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <button

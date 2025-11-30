@@ -435,7 +435,7 @@ export default function IntentCardDetails() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
       {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
+      <div className="max-w-md mx-auto bg-white shadow-xl">
         {/* Header with Gradient */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <button
@@ -453,7 +453,7 @@ export default function IntentCardDetails() {
         </div>
 
         {/* Main Content */}
-        <div className="px-6 py-6 -mt-4">
+        <div className="px-6 py-6 -mt-4 pb-24">
           <div className="space-y-4">
         {/* Basic Info Card */}
         <div className="bg-white rounded-lg border p-4 space-y-3">
