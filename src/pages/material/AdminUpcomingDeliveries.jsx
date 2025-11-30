@@ -671,8 +671,13 @@ export default function AdminUpcomingDeliveries() {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {(editing ? formData.items : selectedDelivery.items).map((item, index) => {
-                          const isFullyReceived = item.received_quantity >= item.st_quantity;
-                          const isPartiallyReceived = item.received_quantity > 0 && item.received_quantity < item.st_quantity;
+                          // If status is Transferred but received_quantity is 0, use st_quantity
+                          const displayReceivedQty = (selectedDelivery.status === 'Transferred' && (!item.received_quantity || item.received_quantity === 0)) 
+                            ? item.st_quantity 
+                            : item.received_quantity;
+                          
+                          const isFullyReceived = displayReceivedQty >= item.st_quantity;
+                          const isPartiallyReceived = displayReceivedQty > 0 && displayReceivedQty < item.st_quantity;
                           
                           return (
                             <tr key={item._id || index} className="hover:bg-orange-50 transition-colors">
@@ -700,7 +705,7 @@ export default function AdminUpcomingDeliveries() {
                                     isPartiallyReceived ? 'bg-yellow-100 text-yellow-800' : 
                                     'bg-gray-100 text-gray-800'
                                   }`}>
-                                    {item.received_quantity}
+                                    {displayReceivedQty}
                                   </span>
                                 )}
                               </td>
