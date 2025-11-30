@@ -640,65 +640,98 @@ export default function AdminUpcomingDeliveries() {
                 </div>
               )}
 
-              {/* Items Table */}
+              {/* Items Table - Modern Design */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">Items</h3>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full border text-sm">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="border px-3 py-2 text-left">Category</th>
-                        <th className="border px-3 py-2 text-left">Sub Category</th>
-                        <th className="border px-3 py-2 text-left">Sub Category 1</th>
-                        <th className="border px-3 py-2 text-right">ST Qty</th>
-                        <th className="border px-3 py-2 text-right">Received Qty</th>
-                        <th className="border px-3 py-2 text-center">Received</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(editing ? formData.items : selectedDelivery.items).map((item, index) => (
-                        <tr key={item._id || index} className="hover:bg-gray-50">
-                          <td className="border px-3 py-2">{item.category}</td>
-                          <td className="border px-3 py-2">{item.sub_category}</td>
-                          <td className="border px-3 py-2">{item.sub_category1}</td>
-                          <td className="border px-3 py-2 text-right font-medium">{item.st_quantity}</td>
-                          <td className="border px-3 py-2 text-right">
-                            {editing ? (
-                              <input
-                                type="number"
-                                min="0"
-                                max={item.st_quantity}
-                                value={item.received_quantity}
-                                onChange={(e) => updateItem(index, 'received_quantity', e.target.value)}
-                                className="w-20 border-2 border-orange-300 rounded-lg px-3 py-2 text-right focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 font-medium"
-                              />
-                            ) : (
-                              <span className="font-medium text-gray-900">{item.received_quantity}</span>
-                            )}
-                          </td>
-                          <td className="border px-3 py-2 text-center">
-                            {editing ? (
-                              <input
-                                type="checkbox"
-                                checked={item.is_received}
-                                onChange={(e) => {
-                                  const isChecked = e.target.checked;
-                                  // Auto-fill: if checked, set received_quantity to st_quantity
-                                  if (isChecked) {
-                                    updateItem(index, 'received_quantity', item.st_quantity);
-                                  }
-                                  updateItem(index, 'is_received', isChecked);
-                                }}
-                                className="w-5 h-5 accent-orange-500 cursor-pointer"
-                              />
-                            ) : (
-                              <span className={`inline-block w-4 h-4 rounded ${item.is_received ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                            )}
-                          </td>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Materials</h3>
+                <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr className="bg-gradient-to-r from-orange-500 to-orange-600">
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Category</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Sub Category</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Sub Category 1</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider">Requested</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider">Received</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">Status</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {(editing ? formData.items : selectedDelivery.items).map((item, index) => {
+                          const isFullyReceived = item.received_quantity >= item.st_quantity;
+                          const isPartiallyReceived = item.received_quantity > 0 && item.received_quantity < item.st_quantity;
+                          
+                          return (
+                            <tr key={item._id || index} className="hover:bg-orange-50 transition-colors">
+                              <td className="px-4 py-3 text-sm text-gray-900 font-medium">{item.category || '—'}</td>
+                              <td className="px-4 py-3 text-sm text-gray-700">{item.sub_category || '—'}</td>
+                              <td className="px-4 py-3 text-sm text-gray-700">{item.sub_category1 || '—'}</td>
+                              <td className="px-4 py-3 text-sm text-right">
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                                  {item.st_quantity}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-right">
+                                {editing ? (
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max={item.st_quantity}
+                                    value={item.received_quantity}
+                                    onChange={(e) => updateItem(index, 'received_quantity', e.target.value)}
+                                    className="w-24 border-2 border-orange-300 rounded-lg px-3 py-2 text-right focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 font-semibold bg-white shadow-sm"
+                                  />
+                                ) : (
+                                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                    isFullyReceived ? 'bg-green-100 text-green-800' : 
+                                    isPartiallyReceived ? 'bg-yellow-100 text-yellow-800' : 
+                                    'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {item.received_quantity}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                {editing ? (
+                                  <div className="flex items-center justify-center">
+                                    <input
+                                      type="checkbox"
+                                      checked={item.is_received}
+                                      onChange={(e) => {
+                                        const isChecked = e.target.checked;
+                                        // Auto-fill: if checked, set received_quantity to st_quantity
+                                        if (isChecked) {
+                                          updateItem(index, 'received_quantity', item.st_quantity);
+                                        }
+                                        updateItem(index, 'is_received', isChecked);
+                                      }}
+                                      className="w-5 h-5 accent-orange-500 cursor-pointer rounded border-2 border-gray-300 focus:ring-2 focus:ring-orange-500"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-center">
+                                    {isFullyReceived ? (
+                                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                        ✓ Complete
+                                      </span>
+                                    ) : isPartiallyReceived ? (
+                                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                                        ⚠ Partial
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
+                                        ○ Pending
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
