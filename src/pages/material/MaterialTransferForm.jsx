@@ -289,12 +289,12 @@ export default function MaterialTransferForm() {
       return false;
     }
     
-    // Validate all materials are complete
+    // Validate all materials have required fields (subCategory1 and subCategory2 are optional)
     const incompleteMaterials = formData.materials.filter(
-      m => !m.category || !m.subCategory || !m.subCategory1 || !m.quantity
+      m => !m.category || !m.subCategory || !m.quantity
     );
     if (incompleteMaterials.length > 0) {
-      showToast('Please complete all material details', 'error');
+      showToast('Please complete required material fields (Category, Sub Category, Quantity)', 'error');
       return false;
     }
     
@@ -327,6 +327,15 @@ export default function MaterialTransferForm() {
         remarks: formData.remarks
       }));
       formDataToSend.append('materials', JSON.stringify(materialsData));
+      
+      // Debug logging
+      console.log('✅ Creating Site Transfer with data:', {
+        fromSite: formData.fromSite,
+        toSite: formData.toSite,
+        requestedBy: formData.requestedBy,
+        materials: materialsData,
+        attachmentsCount: attachments.length
+      });
       
       // ✅ Cloudinary: Add file attachments
       attachments.forEach((file) => {
@@ -361,7 +370,14 @@ export default function MaterialTransferForm() {
       }
     } catch (err) {
       console.error('Submit error:', err);
-      const errorMessage = err.message || 'Failed to create site transfer';
+      console.error('Error response:', err.response);
+      
+      // Extract detailed error message
+      const errorMessage = err.response?.data?.message 
+        || err.response?.data?.error 
+        || err.message 
+        || 'Failed to create site transfer';
+      
       showToast(errorMessage, 'error');
     } finally {
       setSubmitting(false);
@@ -392,7 +408,7 @@ export default function MaterialTransferForm() {
         {/* Main Content */}
         <div className="px-6 py-6 -mt-4">
           {/* Form Content */}
-          <div className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Transfer Information Section */}
             <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-5 border border-gray-100 shadow-sm">
               <h3 className="text-orange-600 font-bold text-sm mb-4">Transfer Information</h3>
@@ -497,7 +513,7 @@ export default function MaterialTransferForm() {
               ) : (
                 <div className="space-y-3">
                   {formData.materials.map((material, index) => {
-                    const isComplete = material.category && material.subCategory && material.subCategory1 && material.subCategory2 && material.quantity;
+                    const isComplete = material.category && material.subCategory && material.quantity;
                     const isEditing = editingMaterialId === material.id;
 
                     // Collapsed view when complete and not editing
@@ -756,7 +772,7 @@ export default function MaterialTransferForm() {
                 )}
               </button>
             </div>
-          </div>
+          </form>
         </div>
 
         {/* Footer */}
