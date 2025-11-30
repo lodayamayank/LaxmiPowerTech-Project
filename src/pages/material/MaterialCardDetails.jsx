@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit2, Save, X, Trash2, Upload } from 'lucide-react';
-import { siteTransferAPI, materialCatalogAPI as materialAPI } from '../../utils/materialAPI';
+import { siteTransferAPI, materialCatalogAPI as materialAPI, branchesAPI } from '../../utils/materialAPI';
 import MaterialLineItem from './MaterialLineItem';
 
 export default function MaterialCardDetails() {
@@ -29,15 +29,11 @@ export default function MaterialCardDetails() {
 
   const fetchMaterialsAndSites = async () => {
     try {
-      // Hardcoded sites list (sorted alphabetically)
-      const sitesList = [
-        'Site A',
-        'Site B',
-        'Site C',
-        'Site D',
-        'Site E'
-      ].sort((a, b) => a.localeCompare(b));
+      // ✅ FETCH SITES FROM BACKEND - NO HARDCODED VALUES
+      const branches = await branchesAPI.getAll();
+      const sitesList = branches.map(branch => branch.name).sort((a, b) => a.localeCompare(b));
       setSites(sitesList);
+      console.log('✅ MaterialCardDetails: Fetched', sitesList.length, 'sites from backend');
       
       // Fetch materials - MATCHES DEMONSTRATED PROJECT
       const materials = await materialAPI.getMaterials();
@@ -389,24 +385,35 @@ export default function MaterialCardDetails() {
     setNewAttachments(updatedAttachments);
   };
 
+  // ✅ LOADING SCREEN - MATCHING INTENT PO STYLE (WHITE/LIGHT BACKGROUND)
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-700 font-medium text-sm">Loading Transfer Details...</p>
+        </div>
       </div>
     );
   }
 
+  // ✅ ERROR SCREEN - MATCHING INTENT PO STYLE
   if (!transfer) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen px-4">
-        <p className="text-gray-600 mb-4">Transfer not found</p>
-        <button
-          onClick={() => navigate('/dashboard/material/site-transfers')}
-          className="px-4 py-2 bg-orange-500 text-white rounded-lg"
-        >
-          Back to Transfers
-        </button>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex flex-col items-center justify-center px-4">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 text-center max-w-md">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+            <X size={32} className="text-red-600" />
+          </div>
+          <h2 className="text-lg font-bold text-gray-900 mb-2">Transfer Not Found</h2>
+          <p className="text-gray-600 mb-6 text-sm">The material transfer you're looking for doesn't exist or has been deleted.</p>
+          <button
+            onClick={() => navigate('/dashboard/material/site-transfers')}
+            className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
+          >
+            Back to Transfers
+          </button>
+        </div>
       </div>
     );
   }
@@ -505,21 +512,14 @@ export default function MaterialCardDetails() {
                 <label className="text-gray-700 text-xs mb-1.5 block">
                   Requested By <span className="text-red-500">*</span>
                 </label>
-                <select
+                <input
+                  type="text"
                   value={formData.requestedBy}
                   onChange={(e) => setFormData({ ...formData, requestedBy: e.target.value })}
-                  className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-gray-400 appearance-none"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-                    backgroundPosition: 'right 0.5rem center',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundSize: '1.5em 1.5em'
-                  }}
+                  placeholder="Enter name"
+                  className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-400"
                   disabled={submitting}
-                >
-                  <option value="">Select Team Member</option>
-                  <option value="Team Member 1">Team Member 1</option>
-                </select>
+                />
               </div>
 
               {/* Status */}
