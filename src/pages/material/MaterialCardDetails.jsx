@@ -438,70 +438,54 @@ export default function MaterialCardDetails() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
       <div className="max-w-md mx-auto bg-white min-h-screen shadow-xl">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 pb-16 relative">
-          <div className="flex items-center justify-between px-6 pt-6">
-            <button
-              onClick={() => navigate(-1)}
-              className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-            >
-              <ArrowLeft size={24} />
-            </button>
-          </div>
+        {/* Header - Matching Intent PO */}
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
+          <button
+            className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft size={16} />
+            <span className="text-sm font-medium">Back</span>
+          </button>
 
           <div className="text-center pt-8">
-            <h1 className="text-white text-2xl font-bold mb-2">Intent Details</h1>
+            <h1 className="text-white text-2xl font-bold mb-2">Transfer Details</h1>
             <p className="text-white/80 text-sm">{transfer.siteTransferId}</p>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="px-6 py-6 -mt-4 pb-32">
+        <div className="px-6 py-6 -mt-4">
+          <div className="space-y-4">
 
-          {/* Basic Information Section */}
-          <div className="bg-white rounded-lg border p-4 mb-4">
-            <h3 className="text-sm font-semibold text-gray-800 mb-4">Basic Information</h3>
+          {/* Basic Information Section - Matching Intent PO Layout */}
+          <div className="bg-white rounded-lg border p-4 space-y-3">
+            <h2 className="font-semibold text-gray-900">Basic Information</h2>
 
+            <div className="grid grid-cols-2 gap-3">
               {/* ST-ID - Read Only */}
-              <div className="mb-3">
-                <label className="text-xs text-gray-600 block mb-1.5">ST-ID</label>
-                <input
-                  type="text"
-                  value={transfer.siteTransferId}
-                  disabled
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-500 cursor-not-allowed"
-                />
+              <div>
+                <label className="text-xs text-gray-600">ST-ID</label>
+                <p className="font-medium text-gray-900">{transfer.siteTransferId}</p>
+              </div>
+
+              {/* Status - Read Only */}
+              <div>
+                <label className="text-xs text-gray-600">Status</label>
+                <p>
+                  <span className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(transfer.status)}`}>
+                    {transfer.status?.charAt(0).toUpperCase() + transfer.status?.slice(1)}
+                  </span>
+                </p>
               </div>
 
               {/* Delivery Site (From Site) */}
-              <div className="mb-3">
-                <label className="text-xs text-gray-600 block mb-1.5">
-                  Delivery Site <span className="text-red-500">*</span>
-                </label>
+              <div>
+                <label className="text-xs text-gray-600">Delivery Site</label>
                 <select
                   value={formData.fromSite}
                   onChange={(e) => setFormData({ ...formData, fromSite: e.target.value })}
-                  className="w-full bg-gray-800 text-white border-0 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  disabled={submitting}
-                >
-                  <option value="">Select Site</option>
-                  {sites.map((site, index) => (
-                    <option key={index} value={site}>
-                      {site}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* To Site */}
-              <div className="mb-3">
-                <label className="text-xs text-gray-600 block mb-1.5">
-                  To Site <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={formData.toSite}
-                  onChange={(e) => setFormData({ ...formData, toSite: e.target.value })}
-                  className="w-full bg-gray-800 text-white border-0 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 bg-gray-800 text-white border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                   disabled={submitting}
                 >
                   <option value="">Select Site</option>
@@ -514,40 +498,36 @@ export default function MaterialCardDetails() {
               </div>
 
               {/* Requested By - READ ONLY */}
-              <div className="mb-3">
-                <label className="text-xs text-gray-600 block mb-1.5">Requested By</label>
+              <div>
+                <label className="text-xs text-gray-600">Requested By</label>
                 <input
                   type="text"
                   value={formData.requestedBy}
                   disabled
-                  className="w-full bg-gray-800 text-white border-0 rounded-lg px-3 py-2.5 text-sm cursor-not-allowed opacity-75"
+                  className="w-full px-3 py-2 bg-gray-800 text-white border-0 rounded-lg text-sm cursor-not-allowed opacity-75"
                 />
               </div>
 
-              {/* Request Date - Read Only */}
-              <div className="mb-3">
-                <label className="text-xs text-gray-600 block mb-1.5">Request Date</label>
-                <input
-                  type="text"
-                  value={formatDate(transfer.createdAt)}
-                  disabled
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-500 cursor-not-allowed"
-                />
-              </div>
-
-              {/* Remarks */}
-              <div className="mb-0">
-                <label className="text-xs text-gray-600 block mb-1.5">Remarks</label>
-                <textarea
-                  value={formData.remarks || ''}
-                  onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-                  placeholder="Add remarks..."
-                  rows={3}
-                  className="w-full bg-gray-800 text-white border-0 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-500"
-                  disabled={submitting}
-                />
+              {/* Request Date - Read Only - Full Width */}
+              <div className="col-span-2">
+                <label className="text-xs text-gray-600">Request Date</label>
+                <p className="font-medium text-gray-900">{formatDate(transfer.createdAt)}</p>
               </div>
             </div>
+
+            {/* Remarks - Full Width */}
+            <div>
+              <label className="text-xs text-gray-600">Remarks</label>
+              <textarea
+                value={formData.remarks || ''}
+                onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+                placeholder="Add remarks..."
+                rows={2}
+                className="w-full px-3 py-2 bg-gray-800 text-white border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-400"
+                disabled={submitting}
+              />
+            </div>
+          </div>
 
             {/* Materials Section */}
             <div className="bg-white rounded-lg border p-4 mb-4">
