@@ -19,7 +19,7 @@ import { FiPackage } from "react-icons/fi";
 import { BiUserCheck } from "react-icons/bi";
 import { FaFileUpload, FaTruck, FaClipboardCheck, FaShoppingCart } from "react-icons/fa";
 import { MdInventory } from "react-icons/md";
-import { NavLink, useNavigate, Outlet } from "react-router-dom";
+import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
 import avatar from "../assets/avatar.png";
 import { useState, useEffect } from 'react';
@@ -27,7 +27,8 @@ import { useState, useEffect } from 'react';
 const DashboardLayout = ({ children, title }) => {
   const today = new Date().toLocaleDateString("en-GB");
   const navigate = useNavigate();
-  const [attendanceOpen, setAttendanceOpen] = useState(true);
+  const location = useLocation();
+  const [attendanceOpen, setAttendanceOpen] = useState(false); // ✅ Changed to false - don't open by default
   const [materialOpen, setMaterialOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -42,6 +43,27 @@ const DashboardLayout = ({ children, title }) => {
       }
     }
   }, []);
+
+  // ✅ Auto-open parent menu based on current route
+  useEffect(() => {
+    const path = location.pathname;
+    
+    // Check if current route is under Attendance
+    if (path.includes('/attendance/') || path.includes('/live-attendance')) {
+      setAttendanceOpen(true);
+      setMaterialOpen(false);
+    }
+    // Check if current route is under Material
+    else if (path.includes('/material/')) {
+      setMaterialOpen(true);
+      setAttendanceOpen(false);
+    }
+    // For other routes, close both
+    else {
+      setAttendanceOpen(false);
+      setMaterialOpen(false);
+    }
+  }, [location.pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -159,8 +181,15 @@ const DashboardLayout = ({ children, title }) => {
                         : "text-white bg-white/20 hover:bg-white/20"
                       }`}
                     onClick={() => {
-                      if (isAttendance) setAttendanceOpen((prev) => !prev);
-                      if (isMaterial) setMaterialOpen((prev) => !prev);
+                      // ✅ Toggle clicked menu and close the other
+                      if (isAttendance) {
+                        setAttendanceOpen((prev) => !prev);
+                        setMaterialOpen(false); // Close Material when opening Attendance
+                      }
+                      if (isMaterial) {
+                        setMaterialOpen((prev) => !prev);
+                        setAttendanceOpen(false); // Close Attendance when opening Material
+                      }
                     }}
                   >
                     <span className="flex items-center gap-3">
