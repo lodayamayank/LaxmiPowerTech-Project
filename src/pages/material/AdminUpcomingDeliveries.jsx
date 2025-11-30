@@ -239,6 +239,9 @@ export default function AdminUpcomingDeliveries() {
         is_received: item.is_received
       }));
       
+      console.log('📤 Sending item updates:', itemUpdates);
+      console.log('📊 Calculated Status:', calculatedStatus);
+      
       const response = await upcomingDeliveryAPI.updateItems(selectedDelivery._id, itemUpdates);
       if (response.success) {
         // Refresh modal data
@@ -711,10 +714,11 @@ export default function AdminUpcomingDeliveries() {
                                         const isChecked = e.target.checked;
                                         // Update both fields at once
                                         const updatedItems = [...formData.items];
+                                        const currentItem = updatedItems[index];
                                         updatedItems[index] = {
-                                          ...updatedItems[index],
+                                          ...currentItem,
                                           is_received: isChecked,
-                                          received_quantity: isChecked ? item.st_quantity : updatedItems[index].received_quantity
+                                          received_quantity: isChecked ? currentItem.st_quantity : currentItem.received_quantity
                                         };
                                         setFormData({ ...formData, items: updatedItems });
                                       }}
