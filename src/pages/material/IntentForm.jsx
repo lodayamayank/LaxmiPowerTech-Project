@@ -104,8 +104,7 @@ export default function IntentForm() {
   const userId = user?._id || user?.id || '';
   
   const [formData, setFormData] = useState({
-    requestedBy: userId, // Use user ID for backend filtering
-    requestedByName: userName, // Keep name for display
+    requestedBy: userName, // ✅ Use user NAME (not ID) - matches Site Transfer
     deliverySite: '',
     materials: [],
     remarks: '',
@@ -296,7 +295,7 @@ export default function IntentForm() {
     e.preventDefault();
     
     // Validation
-    if (!userId || !formData.deliverySite) {
+    if (!userName || !formData.deliverySite) {
       alert('Please fill in all required fields');
       return;
     }
@@ -319,7 +318,7 @@ export default function IntentForm() {
       
       // Prepare form data for multipart upload
       const submitData = new FormData();
-      submitData.append('requestedBy', userId); // Send user ID
+      submitData.append('requestedBy', userName); // ✅ Send user NAME (not ID) - matches Site Transfer
       submitData.append('deliverySite', formData.deliverySite);
       submitData.append('remarks', formData.remarks || '');
       
