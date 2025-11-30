@@ -356,6 +356,28 @@ export default function MaterialCardDetails() {
         .filter(Boolean)
     )].sort((a, b) => a.localeCompare(b));
   };
+
+  // Get sub-sub-subcategories (SubCategory2) - FIX for "n is not a function" error
+  const getSubSubSubcategories = (category, subCategory, subCategory1) => {
+    return [...new Set(
+      allMaterials
+        .filter(item => {
+          // Try raw object first, then fallback to main fields
+          const itemCategory = item.raw && item.raw['Category'] ? item.raw['Category'] : (item.Category || item.category);
+          const itemSubCategory = item.raw && item.raw['Sub category'] ? item.raw['Sub category'] : (item['Sub category'] || item.subCategory);
+          const itemSubCategory1 = item.raw && item.raw['Sub category 1'] ? item.raw['Sub category 1'] : (item['Sub category 1'] || item.subCategory1);
+          return itemCategory === category && itemSubCategory === subCategory && itemSubCategory1 === subCategory1;
+        })
+        .map(item => {
+          // Try raw object first, then fallback to main fields
+          if (item.raw && item.raw['Sub category 2']) {
+            return item.raw['Sub category 2'];
+          }
+          return item['Sub category 2'] || item.subCategory2;
+        })
+        .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
+  };
   
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -546,6 +568,7 @@ export default function MaterialCardDetails() {
                     categories={categories}
                     getSubcategories={getSubcategories}
                     getSubSubcategories={getSubSubcategories}
+                    getSubSubSubcategories={getSubSubSubcategories}
                     onUpdate={(field, value) => updateMaterialRow(material.id, field, value)}
                     onRemove={() => removeMaterialRow(material.id)}
                     onEdit={() => setEditingMaterialId(material.id)}
