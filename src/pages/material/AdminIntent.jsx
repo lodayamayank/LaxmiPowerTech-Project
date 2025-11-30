@@ -716,16 +716,8 @@ export default function AdminIntent() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Requested By</p>
-                    {editing ? (
-                      <input
-                        type="text"
-                        value={formData.requestedBy}
-                        onChange={(e) => setFormData({ ...formData, requestedBy: e.target.value })}
-                        className="mt-1 w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white text-gray-900"
-                      />
-                    ) : (
-                      <p className="font-medium text-gray-900">{selectedIndent.requestedBy || 'N/A'}</p>
-                    )}
+                    {/* ❌ Always read-only - cannot be edited in view mode */}
+                    <p className="font-medium text-gray-900">{selectedIndent.requestedBy || 'N/A'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Request Date</p>

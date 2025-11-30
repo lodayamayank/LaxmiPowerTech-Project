@@ -82,7 +82,7 @@ const DashboardLayout = ({ children, title }) => {
         { label: "Intent (PO)", path: "/dashboard/material/intent", icon: <FaShoppingCart /> },
         { label: "Site Transfers", path: "/dashboard/material/site-transfers", icon: <FaTruck /> },
         { label: "Upcoming Deliveries", path: "/dashboard/material/upcoming-deliveries", icon: <FaClipboardCheck /> },
-        { label: "GRN", path: "/dashboard/material/grn", icon: <FaClipboardList /> },
+        { label: "GRN", path: "/dashboard/material/grn", icon: <FaClipboardList />, disabled: true },
       ],
     },
     {
