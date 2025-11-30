@@ -820,7 +820,11 @@ export default function MaterialCardDetails() {
                   const isImage = attachment.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
                   
                   return (
-                    <div key={index} className="relative border border-gray-300 rounded-lg overflow-hidden bg-white">
+                    <div 
+                      key={index} 
+                      className="relative border border-gray-300 rounded-lg overflow-hidden bg-white cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => window.open(fileURL, '_blank')}
+                    >
                       {isImage ? (
                         <img 
                           src={fileURL} 
@@ -835,20 +839,6 @@ export default function MaterialCardDetails() {
                           <span className="text-4xl">📎</span>
                         </div>
                       )}
-                      
-                      {/* Delete Button */}
-                      <button
-                        onClick={() => handleDeleteAttachment(index)}
-                        disabled={deletingAttachment === index}
-                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                        title="Delete attachment"
-                      >
-                        {deletingAttachment === index ? (
-                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                        ) : (
-                          <Trash2 size={12} />
-                        )}
-                      </button>
                       
                       {/* File Name */}
                       <div className="p-2 bg-white border-t border-gray-200">
