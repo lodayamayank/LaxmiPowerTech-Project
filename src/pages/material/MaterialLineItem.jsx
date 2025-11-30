@@ -232,15 +232,16 @@ export default function MaterialLineItem({
         </div>
       </div>
 
-      {/* Collapse Button (only show if material is complete) */}
-      {isComplete && (
+      {/* Done Editing Button */}
+      <div className="flex justify-center pt-3">
         <button
           onClick={onDoneEditing}
-          className="mt-3 w-full text-xs text-orange-500 font-medium hover:text-orange-600 transition-colors"
+          className="text-orange-600 hover:text-orange-700 font-medium text-sm flex items-center gap-1 transition-colors"
         >
-          ✓ Done editing
+          <span>✓</span>
+          <span>Done editing</span>
         </button>
-      )}
+      </div>
     </div>
   );
 }

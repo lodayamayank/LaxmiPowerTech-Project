@@ -756,6 +756,17 @@ export default function IntentCardDetails() {
                               className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-400"
                             />
                           </div>
+                          
+                          {/* Done Editing Button */}
+                          <div className="flex justify-center pt-2">
+                            <button
+                              onClick={() => setEditingMaterialId(null)}
+                              className="text-orange-600 hover:text-orange-700 font-medium text-sm flex items-center gap-1 transition-colors"
+                            >
+                              <span>✓</span>
+                              <span>Done editing</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
