@@ -889,15 +889,19 @@ export default function IntentCardDetails() {
           {/* Existing Attachments */}
           {purchaseOrder.attachments && purchaseOrder.attachments.length > 0 ? (
             <div className="grid grid-cols-3 gap-2 mb-3">
-              {purchaseOrder.attachments.map((attachment, index) => (
+              {purchaseOrder.attachments.map((attachment, index) => {
+                // Handle both old string format and new Cloudinary object format
+                const imageUrl = typeof attachment === 'string' ? attachment : attachment.url;
+                
+                return (
                 <div key={index} className="relative group">
                   <img
-                    src={attachment}
+                    src={imageUrl}
                     alt={`Attachment ${index + 1}`}
                     className="w-full h-24 object-cover rounded border cursor-pointer"
-                    onClick={() => window.open(attachment, '_blank')}
+                    onClick={() => window.open(imageUrl, '_blank')}
                     onError={(e) => {
-                      console.error('Image load error:', attachment);
+                      console.error('Image load error:', imageUrl);
                       e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f0f0f0" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999"%3EImage not found%3C/text%3E%3C/svg%3E';
                     }}
                   />
@@ -911,7 +915,8 @@ export default function IntentCardDetails() {
                     </button>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <p className="text-sm text-gray-500 mb-3">No attachments</p>

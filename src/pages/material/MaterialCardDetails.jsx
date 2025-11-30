@@ -570,10 +570,12 @@ export default function MaterialCardDetails() {
               {transfer.attachments && transfer.attachments.length > 0 && (
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   {transfer.attachments.map((attachment, index) => {
+                    // Handle both old string format and new Cloudinary object format
+                    const attachmentUrl = typeof attachment === 'string' ? attachment : attachment.url;
                     const baseURL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5002';
-                    const fileURL = attachment.startsWith('http') ? attachment : `${baseURL}/${attachment}`;
-                    const fileName = attachment.split('/').pop();
-                    const isImage = attachment.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
+                    const fileURL = attachmentUrl.startsWith('http') ? attachmentUrl : `${baseURL}/${attachmentUrl}`;
+                    const fileName = attachmentUrl.split('/').pop();
+                    const isImage = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
                     
                     return (
                       <div key={index} className="relative border border-gray-300 rounded-lg overflow-hidden bg-white">
@@ -814,10 +816,12 @@ export default function MaterialCardDetails() {
               
               <div className="grid grid-cols-2 gap-3">
                 {transfer.attachments.map((attachment, index) => {
+                  // Handle both old string format and new Cloudinary object format
+                  const attachmentUrl = typeof attachment === 'string' ? attachment : attachment.url;
                   const baseURL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5002';
-                  const fileURL = attachment.startsWith('http') ? attachment : `${baseURL}/${attachment}`;
-                  const fileName = attachment.split('/').pop();
-                  const isImage = attachment.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
+                  const fileURL = attachmentUrl.startsWith('http') ? attachmentUrl : `${baseURL}/${attachmentUrl}`;
+                  const fileName = attachmentUrl.split('/').pop();
+                  const isImage = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
                   
                   return (
                     <div 
