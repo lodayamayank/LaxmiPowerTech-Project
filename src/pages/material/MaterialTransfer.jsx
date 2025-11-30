@@ -147,17 +147,9 @@ export default function MaterialTransfer({ isTabView = false }) {
     }
   };
 
-  const openForm = () => {
-    setShowForm(true);
-  };
-
-  const closeForm = () => {
-    setShowForm(false);
-  };
-
-  const handleFormSuccess = (newTransfer) => {
-    // Refresh the transfers list
-    fetchTransfers();
+  // Navigate to new transfer form page (like Intent PO)
+  const handleCreateTransfer = () => {
+    navigate('/material/transfer/new');
   };
 
   const formatDate = (dateString) => {
@@ -328,21 +320,11 @@ export default function MaterialTransfer({ isTabView = false }) {
 
       {/* Floating Add Button */}
       <button
-        onClick={openForm}
-        className={`fixed bottom-6 left-1/2 -translate-x-1/2 text-white text-2xl font-bold rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-orange-600 transition-transform transform hover:scale-110 ${
-          showForm ? "rotate-45 bg-gray-400" : "bg-orange-500"
-        }`}
+        onClick={handleCreateTransfer}
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-orange-500 text-white text-2xl font-bold rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-orange-600 transition-transform transform hover:scale-110"
       >
         +
       </button>
-
-      {/* Material Transfer Form */}
-      {showForm && (
-        <MaterialTransferForm 
-          onClose={closeForm} 
-          onSuccess={handleFormSuccess}
-        />
-      )}
     </>
   );
 }
