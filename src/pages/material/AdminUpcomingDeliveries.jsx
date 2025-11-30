@@ -261,9 +261,9 @@ export default function AdminUpcomingDeliveries() {
         localStorage.setItem('intentRefresh', Date.now().toString());
         localStorage.setItem('siteTransferRefresh', Date.now().toString());
         localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
-        console.log('✅ Upcoming Delivery updated - syncing back to Intent PO and Site Transfer');
+        console.log(`✅ Upcoming Delivery updated - Status: ${calculatedStatus} - syncing back to Intent PO and Site Transfer`);
         
-        showToast("Upcoming delivery updated and synced to Intent PO/Site Transfer!", 'success');
+        showToast(`Delivery updated! Status: ${calculatedStatus}`, 'success');
       }
     } catch (err) {
       console.error("Error updating delivery:", err);
@@ -709,11 +709,14 @@ export default function AdminUpcomingDeliveries() {
                                       checked={item.is_received}
                                       onChange={(e) => {
                                         const isChecked = e.target.checked;
-                                        // Auto-fill: if checked, set received_quantity to st_quantity
-                                        if (isChecked) {
-                                          updateItem(index, 'received_quantity', item.st_quantity);
-                                        }
-                                        updateItem(index, 'is_received', isChecked);
+                                        // Update both fields at once
+                                        const updatedItems = [...formData.items];
+                                        updatedItems[index] = {
+                                          ...updatedItems[index],
+                                          is_received: isChecked,
+                                          received_quantity: isChecked ? item.st_quantity : updatedItems[index].received_quantity
+                                        };
+                                        setFormData({ ...formData, items: updatedItems });
                                       }}
                                       className="w-5 h-5 accent-orange-500 cursor-pointer rounded border-2 border-gray-300 focus:ring-2 focus:ring-orange-500"
                                     />
