@@ -118,34 +118,49 @@ export default function AdminUpcomingDeliveries() {
         setSelectedDelivery(response.data);
         setShowDetailsModal(true);
         
-        // ✅ CRITICAL FIX: If it's a PO type, fetch the related PurchaseOrder or Indent
-        if (response.data.type === 'PO') {
+        // Fetch related Intent PO data (if type is PO)
+        if (response.data.type === 'PO' && response.data.st_id) {
           try {
-            // st_id can be either a PurchaseOrder ID (PO20251126-xxx) or Indent MongoDB _id
+            console.log(' Attempting to fetch related PO/Indent for st_id:', response.data.st_id);
             const stId = response.data.st_id;
             
-            // Try PurchaseOrder first (if st_id starts with 'PO')
+            // FIX: If st_id starts with 'PO', it's a PurchaseOrder ID - fetch from PurchaseOrder API
             if (stId.startsWith('PO')) {
               try {
-                const poResponse = await purchaseOrderAPI.getById(stId);
-                if (poResponse.success) {
-                  setRelatedIndent(poResponse.data);
-                  console.log('✅ Fetched related PurchaseOrder:', stId);
-                  return;
+                // Search by purchaseOrderId, not MongoDB _id
+                const poList = await purchaseOrderAPI.getAll(1, 100, stId);
+                if (poList.success && poList.data && poList.data.length > 0) {
+                  const matchedPO = poList.data.find(po => po.purchaseOrderId === stId);
+                  if (matchedPO) {
+                    setRelatedIndent(matchedPO);
+                    console.log(' Fetched related PurchaseOrder:', stId);
+                    return;
+                  }
                 }
               } catch (poErr) {
-                console.log('Not a PurchaseOrder, trying Indent...');
+                console.log(' Error fetching PurchaseOrder:', poErr.message);
               }
+            } 
+            // FIX: If st_id looks like a MongoDB ObjectId (24 hex chars), try Indent API
+            else if (stId.match(/^[0-9a-fA-F]{24}$/)) {
+              try {
+                const indentResponse = await indentAPI.getById(stId);
+                if (indentResponse.success) {
+                  setRelatedIndent(indentResponse.data);
+                  console.log(' Fetched related Indent:', stId);
+                  return;
+                }
+              } catch (indentErr) {
+                console.log(' Error fetching Indent:', indentErr.message);
+              }
+            } else {
+              console.log(' st_id format not recognized:', stId);
             }
             
-            // Try Indent (MongoDB _id)
-            const indentResponse = await indentAPI.getById(stId);
-            if (indentResponse.success) {
-              setRelatedIndent(indentResponse.data);
-              console.log('✅ Fetched related Indent:', stId);
-            }
-          } catch (indentErr) {
-            console.log('No related PO/Indent found or error fetching:', indentErr);
+            // If we reach here, nothing was found
+            setRelatedIndent(null);
+          } catch (err) {
+            console.log(' Error in fetch logic:', err);
             setRelatedIndent(null);
           }
         } else {
