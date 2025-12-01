@@ -166,12 +166,40 @@ export default function AdminSiteTransfer() {
   // ==================== EDIT FUNCTIONALITY ====================
   const handleEdit = () => {
     setEditing(true);
+    
+    // Convert materials to editable format with categories - Same as AdminIntent
+    const editableMaterials = (selectedTransfer.materials || []).map((m, idx) => {
+      // Parse itemName to extract categories
+      const parts = m.itemName?.split(' - ') || [];
+      
+      console.log('Parsing material:', { 
+        itemName: m.itemName, 
+        parts, 
+        category: m.category,
+        hasCategory: !!m.category 
+      });
+      
+      return {
+        id: m.id || `material-${Date.now()}-${idx}`,
+        category: m.category || parts[0] || '',
+        subCategory: m.subCategory || parts[1] || '',
+        subCategory1: m.subCategory1 || parts[2] || '',
+        subCategory2: m.subCategory2 || parts[3] || '',
+        quantity: m.quantity || '',
+        uom: m.uom || 'Nos',
+        remarks: m.remarks || '',
+        itemName: m.itemName
+      };
+    });
+    
+    console.log('Editable materials:', editableMaterials);
+    
     setFormData({
       fromSite: selectedTransfer.fromSite,
       toSite: selectedTransfer.toSite,
       requestedBy: selectedTransfer.requestedBy,
       status: selectedTransfer.status,
-      materials: selectedTransfer.materials.map(m => ({ ...m }))
+      materials: editableMaterials
     });
   };
 
@@ -198,7 +226,27 @@ export default function AdminSiteTransfer() {
 
     try {
       setSaving(true);
-      const response = await siteTransferAPI.update(selectedTransfer._id, formData);
+      
+      // Format materials for API - rebuild itemName from categories
+      const formattedMaterials = formData.materials.map(m => ({
+        itemName: m.itemName || `${m.category}${m.subCategory ? ' - ' + m.subCategory : ''}${m.subCategory1 ? ' - ' + m.subCategory1 : ''}${m.subCategory2 ? ' - ' + m.subCategory2 : ''}`,
+        category: m.category || '',
+        subCategory: m.subCategory || '',
+        subCategory1: m.subCategory1 || '',
+        subCategory2: m.subCategory2 || '',
+        quantity: parseInt(m.quantity) || 0,
+        uom: m.uom || 'Nos',
+        remarks: m.remarks || ''
+      }));
+      
+      const updateData = {
+        ...formData,
+        materials: formattedMaterials
+      };
+      
+      console.log('Sending update with formatted materials:', updateData);
+      
+      const response = await siteTransferAPI.update(selectedTransfer._id, updateData);
       
       if (response.success) {
         // Refresh modal data
