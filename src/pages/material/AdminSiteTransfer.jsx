@@ -806,10 +806,12 @@ export default function AdminSiteTransfer() {
                     </h3>
                     <div className="grid grid-cols-1 gap-4">
                       {selectedTransfer.attachments.map((attachment, index) => {
+                        // Handle both Cloudinary object format { url, publicId } and legacy string format
+                        const attachmentURL = typeof attachment === 'object' ? attachment.url : attachment;
                         const baseURL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5002';
-                        const fileURL = attachment.startsWith('http') ? attachment : `${baseURL}/${attachment}`;
-                        const fileName = attachment.split('/').pop();
-                        const isImage = attachment.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
+                        const fileURL = attachmentURL.startsWith('http') ? attachmentURL : `${baseURL}/${attachmentURL}`;
+                        const fileName = attachmentURL.split('/').pop();
+                        const isImage = attachmentURL.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
                         
                         return (
                           <div key={index} className="border rounded-lg overflow-hidden bg-white">
