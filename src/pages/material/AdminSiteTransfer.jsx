@@ -28,11 +28,17 @@ export default function AdminSiteTransfer() {
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
   const [sites, setSites] = useState([]);
+  
+  // Material catalog states - Same as AdminIntent
+  const [categories, setCategories] = useState([]);
+  const [allMaterials, setAllMaterials] = useState([]);
+  const [editingMaterialId, setEditingMaterialId] = useState(null);
 
   // ==================== DATA FETCHING ====================
   useEffect(() => {
     fetchTransfers();
     fetchSites();
+    fetchMaterialsAndCategories();
   }, [currentPage]);
   
   // ✅ Fetch sites for filter dropdown
