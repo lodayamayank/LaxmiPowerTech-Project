@@ -169,6 +169,18 @@ export default function AdminIntent() {
         return;
       }
       
+      // Ensure vendors are loaded before opening modal
+      if (!vendors || vendors.length === 0) {
+        try {
+          const vendorsList = await vendorsAPI.getAll();
+          setVendors(vendorsList || []);
+          console.log('✅ Fetched vendors for modal:', vendorsList?.length || 0, 'vendors');
+        } catch (vendorErr) {
+          console.warn('⚠️ Could not fetch vendors, continuing with empty list:', vendorErr);
+          setVendors([]);
+        }
+      }
+      
       // Determine if this is a PurchaseOrder or Indent based on type field
       const isPurchaseOrder = indent.type === 'purchaseOrder' || indent.purchaseOrderId;
       
@@ -993,9 +1005,10 @@ export default function AdminIntent() {
                                   value={material.vendor?._id || material.vendor || ''}
                                   onChange={(e) => handleVendorChange(index, e.target.value)}
                                   className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white text-gray-900"
+                                  disabled={!vendors || vendors.length === 0}
                                 >
                                   <option value="">Select Vendor</option>
-                                  {vendors.map(vendor => (
+                                  {vendors && Array.isArray(vendors) && vendors.map(vendor => (
                                     <option key={vendor._id} value={vendor._id}>
                                       {vendor.companyName}
                                     </option>
