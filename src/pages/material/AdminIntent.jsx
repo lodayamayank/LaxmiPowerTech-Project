@@ -400,8 +400,24 @@ export default function AdminIntent() {
       let response;
       
       if (isApproving) {
-        // If approving, call approval endpoint which groups by vendor
-        console.log('✅ Status changed to approved - calling approval endpoint');
+        // ✅ FIX: First save vendor assignments, THEN approve
+        console.log('✅ Status changed to approved - saving vendors first, then approving');
+        
+        // Step 1: Save vendor assignments (without changing status)
+        const saveData = { ...updateData };
+        delete saveData.status;  // Remove status from update to keep it 'pending'
+        
+        console.log('💾 Step 1: Saving vendor assignments:', saveData);
+        const saveResponse = isPurchaseOrder
+          ? await purchaseOrderAPI.update(selectedIndent._id, saveData)
+          : await indentAPI.update(selectedIndent._id, saveData);
+        
+        if (!saveResponse.success) {
+          throw new Error('Failed to save vendor assignments');
+        }
+        
+        // Step 2: Call approval endpoint (which will create deliveries)
+        console.log('✅ Step 2: Calling approval endpoint');
         response = isPurchaseOrder
           ? await purchaseOrderAPI.approve(selectedIndent._id)
           : await indentAPI.approve(selectedIndent._id);
