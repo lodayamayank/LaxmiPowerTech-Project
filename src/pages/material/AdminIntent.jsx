@@ -472,8 +472,18 @@ export default function AdminIntent() {
         showToast('Intent updated successfully and synced to Upcoming Deliveries', 'success');
       }
     } catch (err) {
-      console.error('Error updating:', err);
-      showToast(err.response?.data?.message || 'Failed to update', 'error');
+      console.error('❌ Error updating:', err);
+      console.error('❌ Error response:', err.response?.data);
+      
+      // Show specific error message from backend
+      const errorMessage = err.response?.data?.message || 'Failed to update';
+      const errorDetails = err.response?.data?.materialsWithoutVendor || err.response?.data?.itemsWithoutVendor;
+      
+      if (errorDetails && errorDetails.length > 0) {
+        showToast(`${errorMessage}\n\nMaterials: ${errorDetails.join(', ')}`, 'error');
+      } else {
+        showToast(errorMessage, 'error');
+      }
     } finally {
       setSaving(false);
     }
