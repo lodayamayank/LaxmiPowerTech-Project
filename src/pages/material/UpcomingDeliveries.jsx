@@ -120,6 +120,11 @@ export default function UpcomingDeliveries({ isTabView = false }) {
 
     // ✅ Enhanced filter deliveries by search term, type, site, status, and date range
     const filteredDeliveries = deliveries.filter((delivery) => {
+        // ✅ CRITICAL: Hide transferred deliveries (they should only appear in GRN)
+        if (delivery.status?.toLowerCase() === 'transferred') {
+            return false;
+        }
+        
         // Type filter
         if (typeFilter !== "ALL" && delivery.type !== typeFilter) {
             return false;

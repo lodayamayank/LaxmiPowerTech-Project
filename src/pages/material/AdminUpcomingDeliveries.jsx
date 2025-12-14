@@ -65,6 +65,9 @@ export default function AdminUpcomingDeliveries() {
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
         
+        // ✅ CRITICAL: Filter out transferred deliveries (they should only appear in GRN)
+        sortedData = sortedData.filter(item => item.status?.toLowerCase() !== 'transferred');
+        
         // ✅ Apply filters client-side
         if (filterSite) {
           sortedData = sortedData.filter(item => 

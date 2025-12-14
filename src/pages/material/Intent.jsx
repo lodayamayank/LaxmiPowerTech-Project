@@ -121,6 +121,9 @@ export default function Intent({ isTabView = false }) {
       let combinedData = [...indentsData, ...purchaseOrdersData]
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       
+      // ✅ CRITICAL: Filter out approved intents (they should only appear in Upcoming Deliveries)
+      combinedData = combinedData.filter(item => item.status !== 'approved');
+      
       // ✅ Apply filters client-side
       if (filterSite) {
         combinedData = combinedData.filter(item => 
