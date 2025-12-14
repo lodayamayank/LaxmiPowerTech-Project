@@ -735,7 +735,10 @@ export default function AdminUpcomingDeliveries() {
                           
                           return (
                             <tr key={item._id || index} className="hover:bg-orange-50 transition-colors">
-                              <td className="px-4 py-3 text-sm text-gray-900 font-medium">{item.category || '—'}</td>
+                              <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                                {/* ✅ For PO items, show full name; for ST items, show category */}
+                                {item.name || item.category || '—'}
+                              </td>
                               <td className="px-4 py-3 text-sm text-gray-700">{item.sub_category || '—'}</td>
                               <td className="px-4 py-3 text-sm text-gray-700">{item.sub_category1 || '—'}</td>
                               <td className="px-4 py-3 text-sm text-right">
