@@ -304,7 +304,8 @@ export default function AdminIntent() {
         subCategory2: m.subCategory2 || '',
         quantity: m.quantity || '',
         uom: m.uom || 'Nos',
-        remarks: m.remarks || ''
+        remarks: m.remarks || '',
+        vendor: m.vendor?._id || m.vendor || '' // Preserve vendor selection
       }))
     });
     setEditing(true);
@@ -329,7 +330,8 @@ export default function AdminIntent() {
         subCategory2: m.subCategory2 || '',
         quantity: parseInt(m.quantity),
         uom: m.uom || 'Nos',
-        remarks: m.remarks || ''
+        remarks: m.remarks || '',
+        vendor: m.vendor || null // Include vendor selection
       })) || selectedIndent.materials;
       
       const updateData = {
@@ -477,79 +479,6 @@ export default function AdminIntent() {
         m.id === id ? { ...m, ...updates } : m
       )
     }));
-  };
-
-  // Handle vendor change for a specific material
-  const handleVendorChange = async (materialIndex, vendorId) => {
-    try {
-      // Update local state immediately for better UX
-      const updatedMaterials = [...selectedIndent.materials];
-      updatedMaterials[materialIndex] = {
-        ...updatedMaterials[materialIndex],
-        vendor: vendorId
-      };
-      
-      setSelectedIndent(prev => ({
-        ...prev,
-        materials: updatedMaterials
-      }));
-      
-      // Prepare materials data for backend
-      const materialsData = updatedMaterials.map(m => ({
-        itemName: m.itemName,
-        category: m.category,
-        subCategory: m.subCategory || '',
-        subCategory1: m.subCategory1 || '',
-        subCategory2: m.subCategory2 || '',
-        quantity: parseInt(m.quantity),
-        uom: m.uom || 'Nos',
-        remarks: m.remarks || '',
-        vendor: m.vendor?._id || m.vendor || null
-      }));
-      
-      const updateData = {
-        materials: materialsData
-      };
-      
-      // Save to backend
-      const response = selectedIndent.type === 'purchaseOrder'
-        ? await purchaseOrderAPI.update(selectedIndent._id, updateData)
-        : await indentAPI.update(selectedIndent._id, updateData);
-      
-      if (response.success) {
-        // Fetch fresh data to get populated vendor details
-        const updatedResponse = selectedIndent.type === 'purchaseOrder'
-          ? await purchaseOrderAPI.getById(selectedIndent._id)
-          : await indentAPI.getById(selectedIndent._id);
-        
-        if (updatedResponse.success) {
-          setSelectedIndent(updatedResponse.data);
-          
-          // Update the list state
-          setIndents(prev => 
-            prev.map(item => item._id === selectedIndent._id ? updatedResponse.data : item)
-          );
-        }
-        
-        showToast('Vendor updated successfully', 'success');
-      }
-    } catch (err) {
-      console.error('Error updating vendor:', err);
-      showToast(err.response?.data?.message || 'Failed to update vendor', 'error');
-      
-      // Revert local state on error
-      try {
-        const response = selectedIndent.type === 'purchaseOrder'
-          ? await purchaseOrderAPI.getById(selectedIndent._id)
-          : await indentAPI.getById(selectedIndent._id);
-        
-        if (response.success) {
-          setSelectedIndent(response.data);
-        }
-      } catch (revertErr) {
-        console.error('Error reverting state:', revertErr);
-      }
-    }
   };
 
   // Toast notification helper
@@ -976,6 +905,53 @@ export default function AdminIntent() {
                     ) : (
                       <p className="text-sm text-gray-500 text-center py-4">No materials added</p>
                     )}
+                    
+                    {/* Vendor Selection Table in Edit Mode */}
+                    {Array.isArray(formData.materials) && formData.materials.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Assign Vendors to Materials</h4>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full border text-sm">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="border px-3 py-2 text-left font-medium text-gray-700">#</th>
+                                <th className="border px-3 py-2 text-left font-medium text-gray-700">Material</th>
+                                <th className="border px-3 py-2 text-left font-medium text-gray-700">Quantity</th>
+                                <th className="border px-3 py-2 text-left font-medium text-gray-700">Vendor</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {formData.materials.map((material, index) => (
+                                <tr key={material.id} className="hover:bg-gray-50">
+                                  <td className="border px-3 py-2 text-gray-600">{index + 1}</td>
+                                  <td className="border px-3 py-2">
+                                    {material.category}{material.subCategory ? ` - ${material.subCategory}` : ''}
+                                    {material.subCategory1 ? ` - ${material.subCategory1}` : ''}
+                                    {material.subCategory2 ? ` - ${material.subCategory2}` : ''}
+                                  </td>
+                                  <td className="border px-3 py-2">{material.quantity || '-'} {material.uom || 'Nos'}</td>
+                                  <td className="border px-3 py-2">
+                                    <select
+                                      value={material.vendor || ''}
+                                      onChange={(e) => updateMaterial(material.id, { vendor: e.target.value })}
+                                      className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white"
+                                      disabled={!vendors || vendors.length === 0}
+                                    >
+                                      <option value="">Select Vendor</option>
+                                      {vendors && Array.isArray(vendors) && vendors.map(vendor => (
+                                        <option key={vendor._id} value={vendor._id}>
+                                          {vendor.companyName}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   selectedIndent.materials && selectedIndent.materials.length > 0 ? (
@@ -998,20 +974,8 @@ export default function AdminIntent() {
                               <td className="border px-3 py-2 font-medium">{material.itemName || '-'}</td>
                               <td className="border px-3 py-2">{material.quantity || '-'}</td>
                               <td className="border px-3 py-2">{material.uom || '-'}</td>
-                              <td className="border px-3 py-2">
-                                <select
-                                  value={material.vendor?._id || material.vendor || ''}
-                                  onChange={(e) => handleVendorChange(index, e.target.value)}
-                                  className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white text-gray-900"
-                                  disabled={!vendors || vendors.length === 0}
-                                >
-                                  <option value="">Select Vendor</option>
-                                  {vendors && Array.isArray(vendors) && vendors.map(vendor => (
-                                    <option key={vendor._id} value={vendor._id}>
-                                      {vendor.companyName}
-                                    </option>
-                                  ))}
-                                </select>
+                              <td className="border px-3 py-2 text-gray-600">
+                                {material.vendor?.companyName || 'N/A'}
                               </td>
                               <td className="border px-3 py-2 text-gray-600">{material.remarks || '-'}</td>
                             </tr>
