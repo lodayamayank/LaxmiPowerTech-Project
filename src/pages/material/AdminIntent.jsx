@@ -344,34 +344,59 @@ export default function AdminIntent() {
       
       // Prepare materials data with all subcategories - defensive check
       const materialsArray = Array.isArray(formData.materials) ? formData.materials : [];
-      const materialsData = materialsArray.map(m => ({
-        itemName: `${m.category}${m.subCategory ? ' - ' + m.subCategory : ''}${m.subCategory1 ? ' - ' + m.subCategory1 : ''}${m.subCategory2 ? ' - ' + m.subCategory2 : ''}`,
-        category: m.category,
-        subCategory: m.subCategory || '',
-        subCategory1: m.subCategory1 || '',
-        subCategory2: m.subCategory2 || '',
-        quantity: parseInt(m.quantity),
-        uom: m.uom || 'Nos',
-        remarks: m.remarks || '',
-        vendor: m.vendor || null // Include vendor selection
-      })) || selectedIndent.materials;
       
-      const updateData = {
-        status: formData.status,
-        remarks: formData.remarks,
-        requestedBy: formData.requestedBy,
-        deliverySite: formData.deliverySite,
-        materials: materialsData
-      };
+      // ✅ CRITICAL: Determine type FIRST - used throughout function
+      const isPurchaseOrder = selectedIndent.type === 'purchaseOrder';
+      
+      // ✅ Create correct payload based on type
+      let updateData;
+      
+      if (isPurchaseOrder) {
+        // For Purchase Orders: use 'materials' with full structure
+        const materialsData = materialsArray.map(m => ({
+          itemName: `${m.category}${m.subCategory ? ' - ' + m.subCategory : ''}${m.subCategory1 ? ' - ' + m.subCategory1 : ''}${m.subCategory2 ? ' - ' + m.subCategory2 : ''}`,
+          category: m.category,
+          subCategory: m.subCategory || '',
+          subCategory1: m.subCategory1 || '',
+          subCategory2: m.subCategory2 || '',
+          quantity: parseInt(m.quantity),
+          uom: m.uom || 'Nos',
+          remarks: m.remarks || '',
+          vendor: m.vendor || null
+        }));
+        
+        updateData = {
+          status: formData.status,
+          remarks: formData.remarks,
+          requestedBy: formData.requestedBy,
+          deliverySite: formData.deliverySite,
+          materials: materialsData
+        };
+      } else {
+        // For Indents: use 'items' with simpler structure
+        const itemsData = materialsArray.map(m => ({
+          name: `${m.category}${m.subCategory ? ' - ' + m.subCategory : ''}${m.subCategory1 ? ' - ' + m.subCategory1 : ''}${m.subCategory2 ? ' - ' + m.subCategory2 : ''}`,
+          quantity: parseInt(m.quantity),
+          unit: m.uom || 'Nos',
+          remarks: m.remarks || '',
+          vendor: m.vendor || null
+        }));
+        
+        updateData = {
+          status: formData.status,
+          adminRemarks: formData.remarks,
+          items: itemsData
+        };
+      }
       
       // Use appropriate API based on type
-      const response = selectedIndent.type === 'purchaseOrder'
+      const response = isPurchaseOrder
         ? await purchaseOrderAPI.update(selectedIndent._id, updateData)
         : await indentAPI.update(selectedIndent._id, updateData);
       
       if (response.success) {
         // Fetch fresh data from server (like demonstrated project)
-        const updatedResponse = selectedIndent.type === 'purchaseOrder'
+        const updatedResponse = isPurchaseOrder
           ? await purchaseOrderAPI.getById(selectedIndent._id)
           : await indentAPI.getById(selectedIndent._id);
         
