@@ -47,6 +47,7 @@ const UploadIndent = lazy(() => import('./components/material/UploadIndent'));
 const AdminSiteTransfer = lazy(() => import('./pages/material/AdminSiteTransfer'));
 const AdminUpcomingDeliveries = lazy(() => import('./pages/material/AdminUpcomingDeliveries'));
 const AdminIntent = lazy(() => import('./pages/material/AdminIntent'));
+const AdminGRN = lazy(() => import('./pages/material/AdminGRN'));
 const UploadPhoto = lazy(() => import('./pages/material/UploadPhoto'));
 const Intent = lazy(() => import('./pages/material/Intent'));
 
@@ -157,7 +158,7 @@ function App() {
         <Route path="/dashboard/material/site-transfers" element={<AdminSiteTransfer />} />
         <Route path="/dashboard/material/upcoming-deliveries" element={<AdminUpcomingDeliveries />} />
         <Route path="/dashboard/material/intent" element={<AdminIntent />} />
-        <Route path="/dashboard/material/grn" element={<Material activeTab="grn" />} />
+        <Route path="/dashboard/material/grn" element={<AdminGRN />} />
         <Route path="/dashboard/material/transfer/new" element={<MaterialTransferForm />} />
         <Route path="/dashboard/material/intent/new" element={<IntentForm />} />
         <Route path="/dashboard/material/transfer/:id" element={<MaterialCardDetails />} />
