@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { upcomingDeliveryAPI, branchesAPI } from "../../utils/materialAPI";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, Package, Plus } from "lucide-react";
+import { FaArrowLeft } from 'react-icons/fa';
 
 export default function UpcomingDeliveries({ isTabView = false }) {
     const navigate = useNavigate();
@@ -18,6 +19,8 @@ export default function UpcomingDeliveries({ isTabView = false }) {
     const [filterDateFrom, setFilterDateFrom] = useState('');
     const [filterDateTo, setFilterDateTo] = useState('');
     const [sites, setSites] = useState([]);
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     useEffect(() => {
         fetchDeliveries();
@@ -114,10 +117,6 @@ export default function UpcomingDeliveries({ isTabView = false }) {
         }
     };
 
-    const handleClick = (delivery) => {
-        navigate(`/dashboard/material/delivery-checklist/${delivery._id}`);
-    };
-
     // ✅ Enhanced filter deliveries by search term, type, site, status, and date range
     const filteredDeliveries = deliveries.filter((delivery) => {
         // ✅ CRITICAL: Hide transferred deliveries (they should only appear in GRN)
@@ -193,8 +192,28 @@ export default function UpcomingDeliveries({ isTabView = false }) {
         });
     };
 
-    return (
-        <div className={isTabView ? "px-6 py-6" : "p-3"}>
+    const handleClick = (delivery) => {
+        navigate(`/dashboard/material/deliveries/${delivery._id}`);
+    };
+
+    const getStatusText = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'transferred':
+                return 'Transferred';
+            case 'partial':
+                return 'Partial';
+            case 'pending':
+                return 'Pending';
+            case 'cancelled':
+                return 'Cancelled';
+            default:
+                return status;
+        }
+    };
+
+    // Render content only (for tab view)
+    const renderContent = () => (
+        <div className="px-6 py-6">
             {/* Filter and Search */}
             <div className="mb-4 space-y-3">
                 {/* ✅ Additional Filters Toggle Button */}
@@ -335,57 +354,122 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                     </button>
                 </div>
             ) : filteredDeliveries.length === 0 ? (
-                <div className="text-center py-12">
+                <div className="text-center py-16">
+                    <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                        <Package size={32} className="text-blue-500" />
+                    </div>
+                    <p className="text-gray-700 font-semibold text-base mb-1">No Upcoming Deliveries</p>
                     <p className="text-gray-500 text-sm">
-                        {search ? "No deliveries found matching your search" : "No upcoming deliveries"}
+                        {search ? "No deliveries found matching your search" : "Approved deliveries will appear here"}
                     </p>
                 </div>
             ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                     {filteredDeliveries.map((delivery) => (
                         <div
                             key={delivery._id}
                             onClick={() => handleClick(delivery)}
-                            className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer p-4"
+                            className="bg-gradient-to-r from-gray-50 to-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
                         >
-                            <div className="flex items-start justify-between mb-3">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <div className="text-sm font-bold text-gray-900">
+                            {/* Header */}
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-16 h-16 rounded-lg bg-gradient-to-br border-2 flex items-center justify-center flex-shrink-0 ${
+                                        delivery.type === 'PO' 
+                                            ? 'from-blue-100 to-blue-200 border-blue-300' 
+                                            : 'from-purple-100 to-purple-200 border-purple-300'
+                                    }`}>
+                                        <Package size={28} className={delivery.type === 'PO' ? 'text-blue-600' : 'text-purple-600'} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900 text-base">
                                             {delivery.transfer_number || delivery.st_id}
-                                        </div>
-                                        <div className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusBadge(delivery.status)}`}>
-                                            {delivery.status}
-                                        </div>
-                                    </div>
-                                    <div className="text-xs text-gray-500">
-                                        {formatDate(delivery.date)}
+                                        </h3>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            {formatDate(delivery.date || delivery.createdAt)}
+                                        </p>
+                                        <p className={`text-xs font-medium mt-0.5 ${
+                                            delivery.type === 'PO' ? 'text-blue-600' : 'text-purple-600'
+                                        }`}>
+                                            {delivery.type === 'PO' ? '📋 Purchase Order' : '🚚 Site Transfer'}
+                                        </p>
                                     </div>
                                 </div>
+                                <span className={`text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm ${getStatusBadge(delivery.status)}`}>
+                                    {getStatusText(delivery.status)}
+                                </span>
                             </div>
-                            
-                            <div className="grid grid-cols-2 gap-3 text-xs">
-                                <div>
-                                    <div className="text-gray-500 font-medium mb-0.5">From</div>
-                                    <div className="text-gray-900 font-semibold truncate">{delivery.from || 'N/A'}</div>
+
+                            {/* Details */}
+                            <div className="space-y-2.5 text-sm">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 font-medium">Delivery ID</span>
+                                    <span className="font-semibold text-gray-900">{delivery.transfer_number || delivery.st_id}</span>
                                 </div>
-                                <div>
-                                    <div className="text-gray-500 font-medium mb-0.5">To</div>
-                                    <div className="text-gray-900 font-semibold truncate">{delivery.to || 'N/A'}</div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 font-medium">From</span>
+                                    <span className="font-semibold text-gray-900">{delivery.from || 'N/A'}</span>
                                 </div>
-                                <div>
-                                    <div className="text-gray-500 font-medium mb-0.5">Requested By</div>
-                                    <div className="text-gray-900 font-semibold truncate">{delivery.requested_by || delivery.createdBy || 'N/A'}</div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 font-medium">To</span>
+                                    <span className="font-semibold text-gray-900">{delivery.to || 'N/A'}</span>
                                 </div>
-                                <div>
-                                    <div className="text-gray-500 font-medium mb-0.5">Items</div>
-                                    <div className="text-gray-900 font-semibold">{delivery.items?.length || 0} items</div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 font-medium">Requested By</span>
+                                    <span className="font-semibold text-gray-900">{delivery.requested_by || delivery.createdBy || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 font-medium">Materials</span>
+                                    <span className="font-semibold text-blue-600">{delivery.items?.length || 0} items</span>
                                 </div>
                             </div>
                         </div>
                     ))}
                 </div>
             )}
+        </div>
+    );
+
+    // If in tab view mode, return content only
+    if (isTabView) {
+        return renderContent();
+    }
+
+    // Standalone mode with full page layout
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
+            {/* Container with consistent mobile width */}
+            <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
+                {/* Header with Gradient */}
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
+                    <button
+                        className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
+                        onClick={() => navigate(-1)}
+                    >
+                        <FaArrowLeft size={16} />
+                        <span className="text-sm font-medium">Back</span>
+                    </button>
+
+                    <div className="text-center pt-8">
+                        <h1 className="text-white text-2xl font-bold mb-2">Upcoming Deliveries</h1>
+                        <p className="text-white/80 text-sm">{user?.name || 'User'}</p>
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="px-6 py-6 -mt-4">
+                    {renderContent().props.children}
+                </div>
+
+                {/* Footer */}
+                <div className="px-6 pb-6 pt-2">
+                    <div className="text-center">
+                        <p className="text-xs text-gray-400">
+                            Powered by Laxmi Power Tech
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
