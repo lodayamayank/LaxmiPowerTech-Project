@@ -282,9 +282,11 @@ export default function DeliveryChecklist() {
                     {/* Info Card - Fixed Colors */}
                     <div className="bg-white rounded-xl shadow-md border-2 border-gray-200 p-4 space-y-3 mb-4">
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
-                                <label className="text-xs font-semibold text-gray-600 block mb-1">ST-ID</label>
-                                <p className="font-bold text-gray-900">{delivery.st_id}</p>
+                            <div className="col-span-2 bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
+                                <label className="text-xs font-semibold text-gray-600 block mb-1">
+                                    {delivery.type === 'PO' ? 'PO ID' : 'ST-ID'}
+                                </label>
+                                <p className="font-bold text-gray-900 text-sm">{delivery.transfer_number || delivery.st_id}</p>
                             </div>
                             <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
                                 <label className="text-xs font-semibold text-gray-600 block mb-1">Status</label>
@@ -293,16 +295,24 @@ export default function DeliveryChecklist() {
                                 </span>
                             </div>
                             <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
+                                <label className="text-xs font-semibold text-gray-600 block mb-1">Type</label>
+                                <p className="font-bold text-gray-900">{delivery.type || 'ST'}</p>
+                            </div>
+                            <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
                                 <label className="text-xs font-semibold text-gray-600 block mb-1">From</label>
-                                <p className="font-bold text-gray-900">{delivery.from}</p>
+                                <p className="font-bold text-gray-900 text-xs">{delivery.from || 'N/A'}</p>
                             </div>
                             <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
                                 <label className="text-xs font-semibold text-gray-600 block mb-1">To</label>
-                                <p className="font-bold text-gray-900">{delivery.to}</p>
+                                <p className="font-bold text-gray-900 text-xs">{delivery.to || 'N/A'}</p>
                             </div>
-                            <div className="col-span-2 bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
+                            <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
+                                <label className="text-xs font-semibold text-gray-600 block mb-1">Requested By</label>
+                                <p className="font-bold text-gray-900 text-xs">{delivery.requested_by || delivery.createdBy || 'N/A'}</p>
+                            </div>
+                            <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
                                 <label className="text-xs font-semibold text-gray-600 block mb-1">Date</label>
-                                <p className="font-bold text-gray-900">{formatDate(delivery.date)}</p>
+                                <p className="font-bold text-gray-900 text-xs">{formatDate(delivery.date)}</p>
                             </div>
                         </div>
                     </div>

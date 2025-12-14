@@ -341,22 +341,40 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                         <div
                             key={delivery._id}
                             onClick={() => handleClick(delivery)}
-                            className="p-3 bg-white rounded-lg border cursor-pointer hover:shadow-md transition-shadow"
+                            className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer p-4"
                         >
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-start justify-between mb-3">
                                 <div className="flex-1">
-                                    <div className="text-sm font-semibold text-gray-900">{delivery.st_id}</div>
-                                    <div className="text-xs text-gray-500 mt-0.5">
-                                        {delivery.transfer_number}
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <div className="text-sm font-bold text-gray-900">
+                                            {delivery.transfer_number || delivery.st_id}
+                                        </div>
+                                        <div className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusBadge(delivery.status)}`}>
+                                            {delivery.status}
+                                        </div>
                                     </div>
-                                    <div className="text-xs text-gray-400 mt-1">
-                                        {formatDate(delivery.date)} • {delivery.from} → {delivery.to}
+                                    <div className="text-xs text-gray-500">
+                                        {formatDate(delivery.date)}
                                     </div>
                                 </div>
-                                <div
-                                    className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusBadge(delivery.status)}`}
-                                >
-                                    {delivery.status}
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-3 text-xs">
+                                <div>
+                                    <div className="text-gray-500 font-medium mb-0.5">From</div>
+                                    <div className="text-gray-900 font-semibold truncate">{delivery.from || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div className="text-gray-500 font-medium mb-0.5">To</div>
+                                    <div className="text-gray-900 font-semibold truncate">{delivery.to || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div className="text-gray-500 font-medium mb-0.5">Requested By</div>
+                                    <div className="text-gray-900 font-semibold truncate">{delivery.requested_by || delivery.createdBy || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div className="text-gray-500 font-medium mb-0.5">Items</div>
+                                    <div className="text-gray-900 font-semibold">{delivery.items?.length || 0} items</div>
                                 </div>
                             </div>
                         </div>
