@@ -34,9 +34,17 @@ export default function DeliveryDetails() {
 
     const handleCheckbox = (id, checked) => {
         setMaterials((prev) =>
-            prev.map((m) =>
-                m.id === id ? { ...m, receivedQty: checked ? m.poQty : 0 } : m
-            )
+            prev.map((m) => {
+                if ((m.itemId || m._id) === id) {
+                    const requestedQty = m.quantity || m.st_quantity || 0;
+                    return {
+                        ...m,
+                        received_quantity: checked ? requestedQty : 0,
+                        is_received: checked
+                    };
+                }
+                return m;
+            })
         );
     };
 
@@ -59,17 +67,40 @@ export default function DeliveryDetails() {
         setImagePreview(prev => prev.filter((_, i) => i !== index));
     };
 
-    const handleSubmit = () => {
-        // send updated materials and images back
-        navigate(-1, {
-            state: {
-                updated: true,
-                type,
-                id: item.id,
-                materials,
-                deliveryImages, // Include images in submission
-            },
-        });
+    const handleSubmit = async () => {
+        try {
+            // Import the API
+            const { upcomingDeliveryAPI } = await import('../../utils/materialAPI');
+            
+            // Format items for backend
+            const formattedItems = materials.map(m => ({
+                itemId: m.itemId || m._id,
+                received_quantity: m.received_quantity || 0,
+                is_received: m.is_received || false
+            }));
+            
+            console.log('📤 Submitting delivery update:', {
+                deliveryId: item.id,
+                items: formattedItems
+            });
+            
+            // Update items on backend
+            const response = await upcomingDeliveryAPI.updateItems(item.id, formattedItems);
+            
+            if (response.success) {
+                console.log('✅ Delivery updated successfully:', response.data);
+                // Navigate back with refresh flag
+                navigate('/dashboard/material', {
+                    state: { refreshDeliveries: true }
+                });
+            } else {
+                console.error('❌ Failed to update delivery:', response.message);
+                alert('Failed to update delivery: ' + response.message);
+            }
+        } catch (error) {
+            console.error('❌ Error updating delivery:', error);
+            alert('Error updating delivery. Please try again.');
+        }
     };
 
     return (
@@ -100,20 +131,27 @@ export default function DeliveryDetails() {
                             <h2 className="font-semibold text-gray-900 mb-3">Materials</h2>
                             
                             <div className="space-y-3">
-                                {materials.map((m) => (
+                                {materials.map((m) => {
+                                    const itemId = m.itemId || m._id;
+                                    const itemName = m.name || m.itemName || 'Unknown';
+                                    const requestedQty = m.quantity || m.st_quantity || 0;
+                                    const receivedQty = m.received_quantity || 0;
+                                    const isReceived = m.is_received || false;
+                                    
+                                    return (
                                     <div
-                                        key={m.id}
+                                        key={itemId}
                                         className="bg-white rounded-lg border border-gray-200 p-4"
                                     >
                                         <div className="flex items-start justify-between mb-3">
                                             <div className="flex-1">
-                                                <p className="text-sm font-medium text-gray-900">{m.name}</p>
+                                                <p className="text-sm font-medium text-gray-900">{itemName}</p>
                                             </div>
                                             {isEditMode && (
                                                 <input
                                                     type="checkbox"
-                                                    checked={m.receivedQty >= m.poQty}
-                                                    onChange={(e) => handleCheckbox(m.id, e.target.checked)}
+                                                    checked={isReceived && receivedQty >= requestedQty}
+                                                    onChange={(e) => handleCheckbox(itemId, e.target.checked)}
                                                     className="w-5 h-5 accent-orange-500 cursor-pointer"
                                                 />
                                             )}
@@ -121,16 +159,17 @@ export default function DeliveryDetails() {
                                         
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="text-xs text-gray-500 block mb-1">P.O Qty</label>
-                                                <p className="text-sm font-medium text-orange-600">{m.poQty}</p>
+                                                <label className="text-xs text-gray-500 block mb-1">Requested</label>
+                                                <p className="text-sm font-medium text-orange-600">{requestedQty}</p>
                                             </div>
                                             <div>
                                                 <label className="text-xs text-gray-500 block mb-1">Received</label>
-                                                <p className="text-sm font-medium text-gray-900">{m.receivedQty}</p>
+                                                <p className="text-sm font-medium text-gray-900">{receivedQty}</p>
                                             </div>
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
 

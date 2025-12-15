@@ -193,7 +193,21 @@ export default function UpcomingDeliveries({ isTabView = false }) {
     };
 
     const handleClick = (delivery) => {
-        navigate(`/dashboard/material/deliveries/${delivery._id}`);
+        // Navigate with delivery data in state
+        navigate(`/dashboard/material/deliveries/${delivery._id}`, {
+            state: {
+                item: {
+                    id: delivery._id,
+                    materials: delivery.items || [],
+                    from: delivery.from,
+                    to: delivery.to,
+                    date: delivery.date,
+                    status: delivery.status,
+                    transfer_number: delivery.transfer_number || delivery.st_id
+                },
+                type: delivery.type
+            }
+        });
     };
 
     const getStatusText = (status) => {
