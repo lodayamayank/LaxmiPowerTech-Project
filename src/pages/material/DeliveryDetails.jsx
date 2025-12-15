@@ -16,7 +16,8 @@ export default function DeliveryDetails() {
     useEffect(() => {
         if (!item || !type) {
             console.warn('⚠️ DeliveryDetails: Missing item or type, redirecting...');
-            navigate('/dashboard/material');
+            // Navigate back to previous page
+            navigate(-1);
         }
     }, [item, type, navigate]);
 
@@ -89,10 +90,15 @@ export default function DeliveryDetails() {
             
             if (response.success) {
                 console.log('✅ Delivery updated successfully:', response.data);
-                // Navigate back with refresh flag
-                navigate('/dashboard/material', {
-                    state: { refreshDeliveries: true }
-                });
+                
+                // Check if status is now Transferred - should go to GRN
+                const updatedStatus = response.data?.status || 'Pending';
+                if (updatedStatus === 'Transferred') {
+                    console.log('🎯 Status is Transferred, delivery moved to GRN');
+                }
+                
+                // Navigate back to Upcoming Deliveries list
+                navigate(-1);
             } else {
                 console.error('❌ Failed to update delivery:', response.message);
                 alert('Failed to update delivery: ' + response.message);
@@ -126,9 +132,51 @@ export default function DeliveryDetails() {
                 {/* Main Content */}
                 <div className="px-6 py-6 -mt-4 pb-24">
                     <div className="space-y-4">
+                        {/* Delivery Information Card */}
+                        <div className="bg-white rounded-lg border p-4">
+                            <h2 className="font-semibold text-gray-900 mb-3">Delivery Information</h2>
+                            <div className="space-y-2.5 text-sm">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 font-medium">Delivery ID</span>
+                                    <span className="font-semibold text-gray-900">{item.transfer_number || item.id}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 font-medium">Type</span>
+                                    <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
+                                        type === 'PO' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                                    }`}>
+                                        {type === 'PO' ? '📋 Purchase Order' : '🚚 Site Transfer'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 font-medium">From</span>
+                                    <span className="font-semibold text-gray-900">{item.from || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 font-medium">To</span>
+                                    <span className="font-semibold text-gray-900">{item.to || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 font-medium">Date</span>
+                                    <span className="font-semibold text-gray-900">{new Date(item.date).toLocaleDateString('en-IN')}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 font-medium">Status</span>
+                                    <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
+                                        item.status === 'Transferred' ? 'bg-green-100 text-green-700' :
+                                        item.status === 'Partial' ? 'bg-yellow-100 text-yellow-700' :
+                                        item.status === 'Pending' ? 'bg-orange-100 text-orange-700' :
+                                        'bg-gray-100 text-gray-700'
+                                    }`}>
+                                        {item.status || 'Pending'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Materials Card */}
                         <div className="bg-white rounded-lg border p-4">
-                            <h2 className="font-semibold text-gray-900 mb-3">Materials</h2>
+                            <h2 className="font-semibold text-gray-900 mb-3">Materials ({materials.length})</h2>
                             
                             <div className="space-y-3">
                                 {materials.map((m) => {
