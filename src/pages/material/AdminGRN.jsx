@@ -22,32 +22,11 @@ export default function AdminGRN() {
   useEffect(() => {
     fetchGRNRecords();
     fetchSites();
-  }, [currentPage]);
+  }, [currentPage, search, filterSite, filterDateFrom, filterDateTo]);
 
-  // Auto-refresh when window gains focus
-  useEffect(() => {
-    const handleFocus = () => {
-      fetchGRNRecords();
-    };
-    
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [currentPage]);
-
-  // Listen for delivery updates
-  useEffect(() => {
-    const handleDeliveryUpdate = () => {
-      fetchGRNRecords();
-    };
-    
-    window.addEventListener('deliveryUpdated', handleDeliveryUpdate);
-    window.addEventListener('upcomingDeliveryRefresh', handleDeliveryUpdate);
-    
-    return () => {
-      window.removeEventListener('deliveryUpdated', handleDeliveryUpdate);
-      window.removeEventListener('upcomingDeliveryRefresh', handleDeliveryUpdate);
-    };
-  }, [currentPage]);
+  // ❌ DISABLED: Auto-refresh removed per client request
+  // No event listeners, no auto-polling, no auto-refresh
+  // Data loads only on initial mount and manual filter changes
 
   const fetchSites = async () => {
     try {
@@ -63,7 +42,7 @@ export default function AdminGRN() {
   const fetchGRNRecords = async () => {
     try {
       setLoading(true);
-      const response = await upcomingDeliveryAPI.getAll(1, 100, search);
+      const response = await upcomingDeliveryAPI.getAll(1, 100, '');
       
       if (response.success) {
         // Filter only transferred deliveries (GRN = Goods Receipt Note = completed deliveries)
@@ -71,7 +50,19 @@ export default function AdminGRN() {
           d.status?.toLowerCase() === 'transferred'
         );
 
-        // Apply client-side filters
+        // Apply search filter
+        if (search) {
+          const searchLower = search.toLowerCase();
+          filteredData = filteredData.filter(item => 
+            item.transfer_number?.toLowerCase().includes(searchLower) ||
+            item.st_id?.toLowerCase().includes(searchLower) ||
+            item.from?.toLowerCase().includes(searchLower) ||
+            item.to?.toLowerCase().includes(searchLower) ||
+            item.createdBy?.toLowerCase().includes(searchLower)
+          );
+        }
+
+        // Apply site filter
         if (filterSite) {
           filteredData = filteredData.filter(item => 
             item.from?.toLowerCase().includes(filterSite.toLowerCase()) ||
@@ -79,27 +70,23 @@ export default function AdminGRN() {
           );
         }
 
-        if (filterStatus) {
-          filteredData = filteredData.filter(item => 
-            item.status?.toLowerCase() === filterStatus.toLowerCase()
-          );
-        }
-
+        // Apply date from filter (Intent Request Date)
         if (filterDateFrom) {
           const fromDate = new Date(filterDateFrom);
           fromDate.setHours(0, 0, 0, 0);
           filteredData = filteredData.filter(item => {
-            const itemDate = new Date(item.date || item.createdAt);
+            const itemDate = new Date(item.createdAt);
             itemDate.setHours(0, 0, 0, 0);
             return itemDate >= fromDate;
           });
         }
 
+        // Apply date to filter (Intent Request Date)
         if (filterDateTo) {
           const toDate = new Date(filterDateTo);
           toDate.setHours(23, 59, 59, 999);
           filteredData = filteredData.filter(item => {
-            const itemDate = new Date(item.date || item.createdAt);
+            const itemDate = new Date(item.createdAt);
             return itemDate <= toDate;
           });
         }
