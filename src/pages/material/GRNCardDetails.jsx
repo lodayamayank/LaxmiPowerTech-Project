@@ -10,6 +10,8 @@ export default function GRNCardDetails() {
   
   const [delivery, setDelivery] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   useEffect(() => {
     fetchGRNDetails();
@@ -276,31 +278,66 @@ export default function GRNCardDetails() {
               </div>
             </div>
 
-            {/* Attachments Card */}
+            {/* Challan Attachments Card */}
             {delivery.attachments && delivery.attachments.length > 0 && (
               <div className="bg-white rounded-lg border p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <FileText size={18} className="text-orange-600" />
-                  <h2 className="font-semibold text-gray-900">Attachments</h2>
+                  <h2 className="font-semibold text-gray-900">Challan ({delivery.attachments.length})</h2>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {delivery.attachments.map((attachment, index) => {
                     const attachmentUrl = typeof attachment === 'string' ? attachment : attachment.url;
                     const fileName = attachmentUrl.split('/').pop();
+                    const isImage = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(attachmentUrl);
                     
                     return (
-                      <a
-                        key={index}
-                        href={attachmentUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        <FileText size={20} className="text-orange-500 flex-shrink-0" />
-                        <span className="text-sm text-gray-700 truncate flex-1">{fileName}</span>
-                        <span className="text-xs text-gray-500 flex-shrink-0">View</span>
-                      </a>
+                      <div key={index} className="border rounded-lg overflow-hidden bg-white shadow-sm">
+                        {/* Image Thumbnail - Clickable */}
+                        {isImage ? (
+                          <div 
+                            className="relative bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => {
+                              setSelectedImage(attachmentUrl);
+                              setShowImageModal(true);
+                            }}
+                          >
+                            <img 
+                              src={attachmentUrl} 
+                              alt={`Challan ${index + 1}`}
+                              className="w-full h-48 object-contain"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-20 transition-all">
+                              <div className="bg-white rounded-full p-2 opacity-0 hover:opacity-100 transition-opacity">
+                                <FileText size={24} className="text-orange-600" />
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center h-48 bg-gray-100">
+                            <FileText size={48} className="text-gray-400" />
+                          </div>
+                        )}
+                        
+                        {/* File Info */}
+                        <div className="p-3 bg-white border-t">
+                          <div className="flex items-center gap-2 mb-2">
+                            <FileText size={16} className="text-orange-500 flex-shrink-0" />
+                            <span className="text-sm text-gray-700 truncate flex-1">{fileName}</span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setSelectedImage(attachmentUrl);
+                              setShowImageModal(true);
+                            }}
+                            className="w-full px-3 py-2 bg-orange-500 text-white text-xs font-medium rounded hover:bg-orange-600 transition-colors flex items-center justify-center gap-1"
+                          >
+                            <FileText size={14} />
+                            View Full Size
+                          </button>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
@@ -331,6 +368,47 @@ export default function GRNCardDetails() {
           </div>
         </div>
       </div>
+
+      {/* Full-Size Image Modal */}
+      {showImageModal && selectedImage && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[9999] p-4"
+          onClick={() => setShowImageModal(false)}
+        >
+          <div className="relative max-w-4xl w-full">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowImageModal(false)}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+            >
+              <X size={32} />
+            </button>
+            
+            {/* Full-Size Image */}
+            <img 
+              src={selectedImage} 
+              alt="Challan Full Size"
+              className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+            
+            {/* Download Button */}
+            <div className="mt-4 flex justify-center">
+              <a
+                href={selectedImage}
+                download
+                className="px-6 py-3 bg-orange-500 text-white font-medium rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download Image
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

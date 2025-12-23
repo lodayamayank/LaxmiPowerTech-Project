@@ -412,29 +412,69 @@ export default function AdminGRN() {
                 </div>
               </div>
 
-              {/* Attachments */}
+              {/* Attachments (Challan) */}
               {selectedDelivery.attachments && selectedDelivery.attachments.length > 0 && (
                 <div>
                   <h4 className="text-md font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <FileText size={18} />
-                    Attachments
+                    Attachments ({selectedDelivery.attachments.length})
                   </h4>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-3">
                     {selectedDelivery.attachments.map((attachment, index) => {
                       const attachmentUrl = typeof attachment === 'string' ? attachment : attachment.url;
                       const fileName = attachmentUrl.split('/').pop();
+                      const isImage = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(attachmentUrl);
                       
                       return (
-                        <a
-                          key={index}
-                          href={attachmentUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          <FileText size={16} className="text-orange-500" />
-                          <span className="text-sm text-gray-700 truncate">{fileName}</span>
-                        </a>
+                        <div key={index} className="border rounded-lg overflow-hidden bg-white shadow-sm">
+                          {/* Image Preview */}
+                          {isImage ? (
+                            <div className="relative bg-gray-100">
+                              <img 
+                                src={attachmentUrl} 
+                                alt={`Challan ${index + 1}`}
+                                className="w-full h-48 object-contain"
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center h-48 bg-gray-100">
+                              <FileText size={48} className="text-gray-400" />
+                            </div>
+                          )}
+                          
+                          {/* File Info & Actions */}
+                          <div className="p-3 bg-white border-t">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <FileText size={16} className="text-orange-500 flex-shrink-0" />
+                                <span className="text-sm text-gray-700 truncate">{fileName}</span>
+                              </div>
+                            </div>
+                            
+                            {/* Action Buttons */}
+                            <div className="flex gap-2">
+                              <a
+                                href={attachmentUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-500 text-white text-xs font-medium rounded hover:bg-blue-600 transition-colors"
+                              >
+                                <Eye size={14} />
+                                View
+                              </a>
+                              <a
+                                href={attachmentUrl}
+                                download
+                                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Download
+                              </a>
+                            </div>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
