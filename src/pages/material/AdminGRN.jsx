@@ -46,6 +46,8 @@ export default function AdminGRN() {
     siteSummary: [],
     materialSummary: []
   });
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchGRNRecords();
@@ -246,6 +248,37 @@ export default function AdminGRN() {
     }
 
     setFilteredDeliveries(filtered);
+  };
+
+  // ✅ Delete All GRN Data (Admin Only)
+  const handleDeleteAllGRN = async () => {
+    try {
+      setIsDeleting(true);
+      console.log('🗑️ Deleting all GRN data...');
+      
+      const response = await upcomingDeliveryAPI.deleteAll();
+      
+      if (response.success) {
+        console.log('✅ All GRN data deleted successfully');
+        alert('✅ All GRN data has been deleted successfully!');
+        
+        // Refresh the data
+        setDeliveries([]);
+        setFilteredDeliveries([]);
+        setShowDeleteConfirmModal(false);
+        
+        // Fetch fresh data
+        fetchGRNRecords();
+      } else {
+        console.error('❌ Failed to delete GRN data:', response.message);
+        alert('❌ Failed to delete GRN data: ' + response.message);
+      }
+    } catch (error) {
+      console.error('❌ Error deleting GRN data:', error);
+      alert('❌ Error deleting GRN data. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const fetchSites = async () => {
@@ -710,13 +743,23 @@ export default function AdminGRN() {
             <h1 className="text-2xl font-semibold text-gray-800">GRN (Goods Receipt Note)</h1>
             <p className="text-sm text-gray-500">View all completed deliveries</p>
           </div>
-          <button
-            onClick={() => setShowAnalytics(!showAnalytics)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-md"
-          >
-            <TrendingUp size={18} />
-            {showAnalytics ? 'Hide Analytics' : 'Show Analytics'}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowAnalytics(!showAnalytics)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-md"
+            >
+              <TrendingUp size={18} />
+              {showAnalytics ? 'Hide Analytics' : 'Show Analytics'}
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirmModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm shadow-md"
+              title="Delete all GRN data (Admin only)"
+            >
+              <Trash2 size={18} />
+              Delete All GRN
+            </button>
+          </div>
         </div>
 
         {/* Analytics Dashboard */}
@@ -769,10 +812,13 @@ export default function AdminGRN() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Invoice-wise Summary */}
               <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
-                <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <h3 className="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
                   <Receipt size={20} className="text-purple-600" />
                   Invoice-wise Summary
                 </h3>
+                <p className="text-xs text-gray-600 mb-3 bg-purple-50 p-2 rounded border border-purple-200">
+                  💡 <strong>Note:</strong> Multiple GRNs can belong to one invoice. This shows total amount, GRN count, and materials for each invoice number.
+                </p>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {analytics.invoiceSummary.slice(0, 10).map((invoice, idx) => (
                     <div key={idx} className="bg-purple-50 rounded-lg p-3 border border-purple-200">
@@ -794,10 +840,13 @@ export default function AdminGRN() {
 
               {/* Site-wise Summary */}
               <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
-                <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <h3 className="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
                   <MapPin size={20} className="text-orange-600" />
                   Site-wise Summary
                 </h3>
+                <p className="text-xs text-gray-600 mb-3 bg-orange-50 p-2 rounded border border-orange-200">
+                  💡 <strong>Note:</strong> Shows total materials delivered to each site, total GRN entries, total amount spent, and invoice count per site.
+                </p>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {analytics.siteSummary.slice(0, 10).map((site, idx) => (
                     <div key={idx} className="bg-orange-50 rounded-lg p-3 border border-orange-200">
@@ -820,10 +869,13 @@ export default function AdminGRN() {
 
               {/* Material-wise Summary */}
               <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
-                <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <h3 className="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
                   <Package size={20} className="text-green-600" />
                   Material-wise Summary
                 </h3>
+                <p className="text-xs text-gray-600 mb-3 bg-green-50 p-2 rounded border border-green-200">
+                  💡 <strong>Note:</strong> Shows total quantity delivered, total cost spent, and GRN count for each material type across all sites.
+                </p>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {analytics.materialSummary.slice(0, 10).map((material, idx) => (
                     <div key={idx} className="bg-green-50 rounded-lg p-3 border border-green-200">
@@ -1464,6 +1516,81 @@ export default function AdminGRN() {
                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full">
+            {/* Header */}
+            <div className="bg-red-600 text-white px-6 py-4 rounded-t-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                  <Trash2 size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Delete All GRN Data</h2>
+                  <p className="text-sm opacity-90">Permanent Action</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <div className="mb-4 p-4 bg-red-50 border-2 border-red-200 rounded-lg">
+                <p className="text-red-800 font-semibold mb-2">⚠️ Warning: This action is irreversible!</p>
+                <p className="text-sm text-red-700">
+                  You are about to delete <strong>ALL GRN data</strong> from the system. This includes:
+                </p>
+                <ul className="text-sm text-red-700 mt-2 ml-4 space-y-1">
+                  <li>• All GRN records</li>
+                  <li>• All billing information</li>
+                  <li>• All material delivery records</li>
+                  <li>• All associated attachments</li>
+                </ul>
+              </div>
+
+              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  <strong>Note:</strong> This will affect both Admin and Client panels. The data cannot be recovered once deleted.
+                </p>
+              </div>
+
+              <p className="text-gray-700 font-medium mb-2">Are you absolutely sure you want to proceed?</p>
+              <p className="text-sm text-gray-600">
+                This action is only available to administrators and should be used with extreme caution.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="px-6 py-4 bg-gray-50 rounded-b-lg flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirmModal(false)}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAllGRN}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={18} />
+                    Yes, Delete All
+                  </>
+                )}
               </button>
             </div>
           </div>
