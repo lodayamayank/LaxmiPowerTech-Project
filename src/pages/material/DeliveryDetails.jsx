@@ -11,6 +11,7 @@ export default function DeliveryDetails() {
     const [deliveryImages, setDeliveryImages] = useState([]);
     const [imagePreview, setImagePreview] = useState([]);
     const [isEditMode, setIsEditMode] = useState(false);
+    const [validationError, setValidationError] = useState('');
 
     // ✅ Fix: Move navigate to useEffect to avoid render-phase navigation
     useEffect(() => {
@@ -69,6 +70,17 @@ export default function DeliveryDetails() {
     };
 
     const handleSubmit = async () => {
+        // ✅ Validation: Check if delivery proof is uploaded
+        if (deliveryImages.length === 0) {
+            setValidationError('⚠️ Delivery Proof (Challan) is required. Please upload at least one image.');
+            // Scroll to error message
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+        
+        // Clear any previous validation errors
+        setValidationError('');
+        
         try {
             // Import the API
             const { upcomingDeliveryAPI } = await import('../../utils/materialAPI');
@@ -132,6 +144,23 @@ export default function DeliveryDetails() {
                 {/* Main Content */}
                 <div className="px-6 py-6 -mt-4 pb-24">
                     <div className="space-y-4">
+                        {/* Validation Error Message */}
+                        {validationError && (
+                            <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 flex items-start gap-3 animate-shake">
+                                <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-white font-bold text-sm">!</span>
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-red-700 text-sm font-medium">{validationError}</p>
+                                </div>
+                                <button
+                                    onClick={() => setValidationError('')}
+                                    className="text-red-400 hover:text-red-600 transition-colors"
+                                >
+                                    <X size={18} />
+                                </button>
+                            </div>
+                        )}
                         {/* Delivery Information Card */}
                         <div className="bg-white rounded-lg border p-4">
                             <h2 className="font-semibold text-gray-900 mb-3">Delivery Information</h2>
@@ -223,8 +252,11 @@ export default function DeliveryDetails() {
 
                         {/* Delivery Proof Upload - Only in Edit Mode */}
                         {isEditMode && (
-                        <div className="bg-white rounded-lg border p-4">
-                            <h2 className="font-semibold text-gray-900 mb-3">Delivery Proof (Optional)</h2>
+                        <div className="bg-white rounded-lg border-2 border-orange-200 p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                                <h2 className="font-semibold text-gray-900">Delivery Proof - Challan Upload</h2>
+                                <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">* REQUIRED</span>
+                            </div>
                             
                             {/* Image Preview */}
                             {imagePreview.length > 0 && (
@@ -251,9 +283,9 @@ export default function DeliveryDetails() {
                             )}
                             
                             {/* Upload Button */}
-                            <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-orange-500 hover:bg-orange-50 transition-colors">
-                                <Upload size={20} className="text-gray-500" />
-                                <span className="text-sm text-gray-600 font-medium">Upload Delivery Proof (Challan, etc.)</span>
+                            <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-orange-300 rounded-lg cursor-pointer hover:border-orange-500 hover:bg-orange-50 transition-colors bg-orange-50/30">
+                                <Upload size={20} className="text-orange-600" />
+                                <span className="text-sm text-gray-900 font-semibold">Upload Delivery Proof (Challan, etc.) *</span>
                                 <input
                                     type="file"
                                     multiple
@@ -262,7 +294,7 @@ export default function DeliveryDetails() {
                                     className="hidden"
                                 />
                             </label>
-                            <p className="text-xs text-gray-500 mt-2">Upload images of delivery challan or proof</p>
+                            <p className="text-xs text-red-600 font-medium mt-2">* Required: Upload images of delivery challan or proof</p>
                         </div>
                         )}
                     </div>
@@ -296,6 +328,7 @@ export default function DeliveryDetails() {
                                         setMaterials(item?.materials || []);
                                         setDeliveryImages([]);
                                         setImagePreview([]);
+                                        setValidationError('');
                                     }}
                                     className="flex-1 bg-gray-200 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-300 transition-colors"
                                 >
