@@ -17,6 +17,7 @@ export default function AdminGRN() {
     price: 0,
     billDate: '',
     discount: 0,
+    discountType: 'flat',  // 'flat' or 'percentage'
     amount: 0
   });
   const [isSaving, setIsSaving] = useState(false);
@@ -110,17 +111,29 @@ export default function AdminGRN() {
     }
   };
 
+  // Helper function to extract base PO ID (remove -01, -02 suffix)
+  const extractBasePOId = (poId) => {
+    if (!poId) return '';
+    // Remove trailing -01, -02, etc. from PO ID
+    // Example: PO20251223-LNBNE-01 -> PO20251223-LNBNE
+    return poId.replace(/-\d+$/, '');
+  };
+
   const handleViewDetails = (delivery) => {
     setSelectedDelivery(delivery);
     setShowDetailsModal(true);
     setIsEditMode(false);
     
+    // Auto-generate invoice number from base PO ID
+    const autoInvoiceNumber = extractBasePOId(delivery.transfer_number || delivery.st_id);
+    
     // Initialize billing data
     setBillingData({
-      invoiceNumber: delivery.billing?.invoiceNumber || '',
+      invoiceNumber: delivery.billing?.invoiceNumber || autoInvoiceNumber,
       price: delivery.billing?.price || 0,
       billDate: delivery.billing?.billDate ? new Date(delivery.billing.billDate).toISOString().split('T')[0] : '',
       discount: delivery.billing?.discount || 0,
+      discountType: delivery.billing?.discountType || 'flat',
       amount: delivery.billing?.amount || 0
     });
   };
@@ -132,11 +145,13 @@ export default function AdminGRN() {
   const handleCancelEdit = () => {
     setIsEditMode(false);
     // Reset billing data to original values
+    const autoInvoiceNumber = extractBasePOId(selectedDelivery.transfer_number || selectedDelivery.st_id);
     setBillingData({
-      invoiceNumber: selectedDelivery.billing?.invoiceNumber || '',
+      invoiceNumber: selectedDelivery.billing?.invoiceNumber || autoInvoiceNumber,
       price: selectedDelivery.billing?.price || 0,
       billDate: selectedDelivery.billing?.billDate ? new Date(selectedDelivery.billing.billDate).toISOString().split('T')[0] : '',
       discount: selectedDelivery.billing?.discount || 0,
+      discountType: selectedDelivery.billing?.discountType || 'flat',
       amount: selectedDelivery.billing?.amount || 0
     });
   };
@@ -144,11 +159,22 @@ export default function AdminGRN() {
   const handleBillingChange = (field, value) => {
     const updatedData = { ...billingData, [field]: value };
     
-    // Auto-calculate amount when price or discount changes
-    if (field === 'price' || field === 'discount') {
-      const price = parseFloat(field === 'price' ? value : updatedData.price) || 0;
-      const discount = parseFloat(field === 'discount' ? value : updatedData.discount) || 0;
-      updatedData.amount = price - discount;
+    // Auto-calculate amount when price, discount, or discountType changes
+    if (field === 'price' || field === 'discount' || field === 'discountType') {
+      const price = parseFloat(updatedData.price) || 0;
+      const discount = parseFloat(updatedData.discount) || 0;
+      const type = updatedData.discountType;
+      
+      if (type === 'percentage') {
+        // Percentage discount: amount = price - (price * discount / 100)
+        updatedData.amount = price - (price * discount / 100);
+      } else {
+        // Flat discount: amount = price - discount
+        updatedData.amount = price - discount;
+      }
+      
+      // Ensure amount is not negative
+      updatedData.amount = Math.max(0, updatedData.amount);
     }
     
     setBillingData(updatedData);
@@ -304,6 +330,11 @@ export default function AdminGRN() {
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">From</th>
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">To</th>
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">Requested By</th>
+                    <th className="border px-4 py-2 text-left font-medium text-gray-700 bg-orange-50">Invoice Number</th>
+                    <th className="border px-4 py-2 text-left font-medium text-gray-700 bg-orange-50">Price (₹)</th>
+                    <th className="border px-4 py-2 text-left font-medium text-gray-700 bg-orange-50">Bill Date</th>
+                    <th className="border px-4 py-2 text-left font-medium text-gray-700 bg-orange-50">Discount</th>
+                    <th className="border px-4 py-2 text-left font-medium text-gray-700 bg-orange-50">Amount (₹)</th>
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">Status</th>
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">Date</th>
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">Actions</th>
@@ -330,6 +361,32 @@ export default function AdminGRN() {
                       <td className="border px-4 py-2">{delivery.from || 'N/A'}</td>
                       <td className="border px-4 py-2">{delivery.to || 'N/A'}</td>
                       <td className="border px-4 py-2">{delivery.createdBy || 'N/A'}</td>
+                      
+                      {/* Billing Columns */}
+                      <td className="border px-4 py-2 bg-orange-50 font-medium text-gray-900">
+                        {delivery.billing?.invoiceNumber || '-'}
+                      </td>
+                      <td className="border px-4 py-2 bg-orange-50 font-semibold text-gray-900">
+                        {delivery.billing?.price ? `₹${delivery.billing.price.toFixed(2)}` : '-'}
+                      </td>
+                      <td className="border px-4 py-2 bg-orange-50 text-gray-700">
+                        {delivery.billing?.billDate 
+                          ? new Date(delivery.billing.billDate).toLocaleDateString('en-IN', { 
+                              year: 'numeric', 
+                              month: 'short', 
+                              day: 'numeric' 
+                            })
+                          : '-'}
+                      </td>
+                      <td className="border px-4 py-2 bg-orange-50 text-gray-900">
+                        {delivery.billing?.discount 
+                          ? `${delivery.billing.discount}${delivery.billing.discountType === 'percentage' ? '%' : '₹'}`
+                          : '-'}
+                      </td>
+                      <td className="border px-4 py-2 bg-orange-50 font-bold text-green-700">
+                        {delivery.billing?.amount ? `₹${delivery.billing.amount.toFixed(2)}` : '-'}
+                      </td>
+                      
                       <td className="border px-4 py-2">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(delivery.status)}`}>
                           {delivery.status?.charAt(0).toUpperCase() + delivery.status?.slice(1)}
@@ -455,20 +512,15 @@ export default function AdminGRN() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Invoice Number */}
+                  {/* Invoice Number (Read-only, Auto-generated) */}
                   <div>
-                    <label className="text-sm font-medium text-gray-600 block mb-1">Invoice Number</label>
-                    {isEditMode ? (
-                      <input
-                        type="text"
-                        value={billingData.invoiceNumber}
-                        onChange={(e) => handleBillingChange('invoiceNumber', e.target.value)}
-                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                        placeholder="Enter invoice number"
-                      />
-                    ) : (
-                      <p className="text-gray-900 font-medium">{billingData.invoiceNumber || 'Not set'}</p>
-                    )}
+                    <label className="text-sm font-medium text-gray-600 block mb-1 flex items-center gap-2">
+                      Invoice Number
+                      <span className="text-xs text-orange-600 font-normal">(Auto-generated)</span>
+                    </label>
+                    <div className="w-full border-2 border-orange-200 bg-orange-50 rounded px-3 py-2 text-sm">
+                      <p className="text-gray-900 font-semibold">{billingData.invoiceNumber || 'Not set'}</p>
+                    </div>
                   </div>
 
                   {/* Bill Date */}
@@ -506,21 +558,55 @@ export default function AdminGRN() {
                     )}
                   </div>
 
-                  {/* Discount */}
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 block mb-1">Discount (₹)</label>
+                  {/* Discount with Type Selector */}
+                  <div className="col-span-2">
+                    <label className="text-sm font-medium text-gray-600 block mb-1">Discount</label>
                     {isEditMode ? (
-                      <input
-                        type="number"
-                        value={billingData.discount}
-                        onChange={(e) => handleBillingChange('discount', e.target.value)}
-                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                        placeholder="0.00"
-                        step="0.01"
-                        min="0"
-                      />
+                      <div className="flex gap-2">
+                        {/* Discount Type Toggle */}
+                        <div className="flex border border-gray-300 rounded overflow-hidden">
+                          <button
+                            type="button"
+                            onClick={() => handleBillingChange('discountType', 'flat')}
+                            className={`px-4 py-2 text-sm font-medium transition-colors ${
+                              billingData.discountType === 'flat'
+                                ? 'bg-orange-500 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            ₹ Flat
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleBillingChange('discountType', 'percentage')}
+                            className={`px-4 py-2 text-sm font-medium transition-colors border-l ${
+                              billingData.discountType === 'percentage'
+                                ? 'bg-orange-500 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            % Percentage
+                          </button>
+                        </div>
+                        
+                        {/* Discount Value Input */}
+                        <input
+                          type="number"
+                          value={billingData.discount}
+                          onChange={(e) => handleBillingChange('discount', e.target.value)}
+                          className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          placeholder={billingData.discountType === 'percentage' ? '0-100' : '0.00'}
+                          step={billingData.discountType === 'percentage' ? '1' : '0.01'}
+                          min="0"
+                          max={billingData.discountType === 'percentage' ? '100' : undefined}
+                        />
+                      </div>
                     ) : (
-                      <p className="text-gray-900 font-medium">₹{billingData.discount.toFixed(2)}</p>
+                      <p className="text-gray-900 font-medium">
+                        {billingData.discount > 0 
+                          ? `${billingData.discount}${billingData.discountType === 'percentage' ? '%' : '₹'}`
+                          : 'No discount'}
+                      </p>
                     )}
                   </div>
 
@@ -532,7 +618,11 @@ export default function AdminGRN() {
                     </label>
                     <div className="bg-green-50 border-2 border-green-200 rounded px-4 py-3">
                       <p className="text-2xl font-bold text-green-700">₹{billingData.amount.toFixed(2)}</p>
-                      <p className="text-xs text-gray-600 mt-1">Price - Discount = Amount</p>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {billingData.discountType === 'percentage'
+                          ? `Price - (Price × ${billingData.discount}%) = Amount`
+                          : `Price - ₹${billingData.discount} = Amount`}
+                      </p>
                     </div>
                   </div>
                 </div>
