@@ -21,6 +21,11 @@ export default function UpcomingDeliveries({ isTabView = false }) {
     const [sites, setSites] = useState([]);
 
     const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userAssignedBranches = user?.assignedBranches || [];
+    
+    // Debug: Log user's assigned branches
+    console.log('👤 Upcoming Deliveries - User:', user?.name);
+    console.log('🏢 Upcoming Deliveries - Assigned Branches:', userAssignedBranches);
 
     useEffect(() => {
         fetchDeliveries();
@@ -31,11 +36,34 @@ export default function UpcomingDeliveries({ isTabView = false }) {
     const fetchSites = async () => {
         try {
             const branches = await branchesAPI.getAll();
-            const sitesList = branches.map(branch => branch.name).sort();
+            
+            // ✅ CRITICAL: Filter sites based on user's assigned branches
+            let filteredBranches = branches;
+            if (userAssignedBranches && userAssignedBranches.length > 0) {
+                const assignedBranchIds = userAssignedBranches.map(b => b._id || b);
+                console.log('🔍 Upcoming Deliveries - Assigned Branch IDs:', assignedBranchIds);
+                
+                filteredBranches = branches.filter(branch => 
+                    assignedBranchIds.includes(branch._id)
+                );
+                console.log('✅ Upcoming Deliveries - Filtered to assigned sites:', filteredBranches.length, 'of', branches.length);
+            } else {
+                console.log('⚠️ Upcoming Deliveries - No assigned branches, showing all sites');
+            }
+            
+            const sitesList = filteredBranches.map(branch => branch.name).sort();
             setSites(sitesList);
+            console.log('✅ Upcoming Deliveries - Site filter options:', sitesList);
         } catch (err) {
             console.error('Error fetching sites:', err);
-            setSites([]);
+            // If user has assigned branches, use only those
+            if (userAssignedBranches && userAssignedBranches.length > 0) {
+                const assignedSites = userAssignedBranches.map(b => b.name).filter(Boolean).sort();
+                setSites(assignedSites);
+                console.log('⚠️ Upcoming Deliveries - Using assigned sites from user object:', assignedSites);
+            } else {
+                setSites([]);
+            }
         }
     };
 
@@ -122,6 +150,18 @@ export default function UpcomingDeliveries({ isTabView = false }) {
         // ✅ CRITICAL: Hide transferred deliveries (they should only appear in GRN)
         if (delivery.status?.toLowerCase() === 'transferred') {
             return false;
+        }
+        
+        // ✅ CRITICAL: Filter by user's assigned branches
+        if (userAssignedBranches && userAssignedBranches.length > 0) {
+            const assignedSiteNames = userAssignedBranches.map(b => b.name).filter(Boolean);
+            const fromSite = delivery.from;
+            const toSite = delivery.to;
+            // Show delivery if either 'from' or 'to' matches user's assigned sites
+            const isAllowed = assignedSiteNames.includes(fromSite) || assignedSiteNames.includes(toSite);
+            if (!isAllowed) {
+                return false;
+            }
         }
         
         // Type filter
