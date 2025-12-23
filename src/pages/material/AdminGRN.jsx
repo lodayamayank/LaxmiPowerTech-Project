@@ -14,11 +14,11 @@ export default function AdminGRN() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [billingData, setBillingData] = useState({
     invoiceNumber: '',
-    price: 0,
     billDate: '',
-    discount: 0,
-    discountType: 'flat',  // 'flat' or 'percentage'
-    amount: 0
+    materialBilling: [],  // Array of material-wise billing
+    totalPrice: 0,
+    totalDiscount: 0,
+    finalAmount: 0
   });
   const [isSaving, setIsSaving] = useState(false);
   
@@ -127,14 +127,31 @@ export default function AdminGRN() {
     // Auto-generate invoice number from base PO ID
     const autoInvoiceNumber = extractBasePOId(delivery.transfer_number || delivery.st_id);
     
+    // Initialize material-wise billing from delivery items
+    const materialBilling = delivery.items?.map((item, index) => {
+      // Check if billing data exists for this material
+      const existingBilling = delivery.billing?.materialBilling?.find(
+        mb => mb.materialId === item._id || mb.materialName === item.category
+      );
+      
+      return {
+        materialId: item._id || `material-${index}`,
+        materialName: item.category || 'Unknown Material',
+        price: existingBilling?.price || 0,
+        discount: existingBilling?.discount || 0,
+        discountType: existingBilling?.discountType || 'flat',
+        totalAmount: existingBilling?.totalAmount || 0
+      };
+    }) || [];
+    
     // Initialize billing data
     setBillingData({
       invoiceNumber: delivery.billing?.invoiceNumber || autoInvoiceNumber,
-      price: delivery.billing?.price || 0,
       billDate: delivery.billing?.billDate ? new Date(delivery.billing.billDate).toISOString().split('T')[0] : '',
-      discount: delivery.billing?.discount || 0,
-      discountType: delivery.billing?.discountType || 'flat',
-      amount: delivery.billing?.amount || 0
+      materialBilling: materialBilling,
+      totalPrice: delivery.billing?.totalPrice || 0,
+      totalDiscount: delivery.billing?.totalDiscount || 0,
+      finalAmount: delivery.billing?.finalAmount || 0
     });
   };
 
@@ -144,40 +161,65 @@ export default function AdminGRN() {
 
   const handleCancelEdit = () => {
     setIsEditMode(false);
-    // Reset billing data to original values
-    const autoInvoiceNumber = extractBasePOId(selectedDelivery.transfer_number || selectedDelivery.st_id);
-    setBillingData({
-      invoiceNumber: selectedDelivery.billing?.invoiceNumber || autoInvoiceNumber,
-      price: selectedDelivery.billing?.price || 0,
-      billDate: selectedDelivery.billing?.billDate ? new Date(selectedDelivery.billing.billDate).toISOString().split('T')[0] : '',
-      discount: selectedDelivery.billing?.discount || 0,
-      discountType: selectedDelivery.billing?.discountType || 'flat',
-      amount: selectedDelivery.billing?.amount || 0
-    });
+    // Reset to original delivery data
+    handleViewDetails(selectedDelivery);
   };
 
-  const handleBillingChange = (field, value) => {
-    const updatedData = { ...billingData, [field]: value };
+  // Calculate totals from material billing
+  const calculateTotals = (materialBilling) => {
+    let totalPrice = 0;
+    let totalDiscountAmount = 0;
     
-    // Auto-calculate amount when price, discount, or discountType changes
-    if (field === 'price' || field === 'discount' || field === 'discountType') {
-      const price = parseFloat(updatedData.price) || 0;
-      const discount = parseFloat(updatedData.discount) || 0;
-      const type = updatedData.discountType;
+    materialBilling.forEach(material => {
+      const price = parseFloat(material.price) || 0;
+      const discount = parseFloat(material.discount) || 0;
+      const discountType = material.discountType || 'flat';
       
-      if (type === 'percentage') {
-        // Percentage discount: amount = price - (price * discount / 100)
-        updatedData.amount = price - (price * discount / 100);
+      totalPrice += price;
+      
+      if (discountType === 'percentage') {
+        totalDiscountAmount += (price * discount / 100);
       } else {
-        // Flat discount: amount = price - discount
-        updatedData.amount = price - discount;
+        totalDiscountAmount += discount;
       }
-      
-      // Ensure amount is not negative
-      updatedData.amount = Math.max(0, updatedData.amount);
-    }
+    });
     
-    setBillingData(updatedData);
+    return {
+      totalPrice,
+      totalDiscount: totalDiscountAmount,
+      finalAmount: totalPrice - totalDiscountAmount
+    };
+  };
+
+  const handleMaterialBillingChange = (materialId, field, value) => {
+    const updatedMaterialBilling = billingData.materialBilling.map(material => {
+      if (material.materialId === materialId) {
+        const updatedMaterial = { ...material, [field]: value };
+        
+        // Recalculate total amount for this material
+        const price = parseFloat(updatedMaterial.price) || 0;
+        const discount = parseFloat(updatedMaterial.discount) || 0;
+        const discountType = updatedMaterial.discountType;
+        
+        if (discountType === 'percentage') {
+          updatedMaterial.totalAmount = Math.max(0, price - (price * discount / 100));
+        } else {
+          updatedMaterial.totalAmount = Math.max(0, price - discount);
+        }
+        
+        return updatedMaterial;
+      }
+      return material;
+    });
+    
+    // Recalculate totals
+    const totals = calculateTotals(updatedMaterialBilling);
+    
+    setBillingData({
+      ...billingData,
+      materialBilling: updatedMaterialBilling,
+      ...totals
+    });
   };
 
   const handleSaveBilling = async () => {
@@ -367,7 +409,7 @@ export default function AdminGRN() {
                         {delivery.billing?.invoiceNumber || '-'}
                       </td>
                       <td className="border px-4 py-2 bg-orange-50 font-semibold text-gray-900">
-                        {delivery.billing?.price ? `₹${delivery.billing.price.toFixed(2)}` : '-'}
+                        {delivery.billing?.totalPrice ? `₹${delivery.billing.totalPrice.toFixed(2)}` : '-'}
                       </td>
                       <td className="border px-4 py-2 bg-orange-50 text-gray-700">
                         {delivery.billing?.billDate 
@@ -379,12 +421,12 @@ export default function AdminGRN() {
                           : '-'}
                       </td>
                       <td className="border px-4 py-2 bg-orange-50 text-gray-900">
-                        {delivery.billing?.discount 
-                          ? `${delivery.billing.discount}${delivery.billing.discountType === 'percentage' ? '%' : '₹'}`
+                        {delivery.billing?.totalDiscount 
+                          ? `₹${delivery.billing.totalDiscount.toFixed(2)}`
                           : '-'}
                       </td>
                       <td className="border px-4 py-2 bg-orange-50 font-bold text-green-700">
-                        {delivery.billing?.amount ? `₹${delivery.billing.amount.toFixed(2)}` : '-'}
+                        {delivery.billing?.finalAmount ? `₹${delivery.billing.finalAmount.toFixed(2)}` : '-'}
                       </td>
                       
                       <td className="border px-4 py-2">
@@ -474,27 +516,27 @@ export default function AdminGRN() {
                 </div>
               </div>
 
-              {/* Billing Information Section */}
-              <div className="border rounded-lg p-4 bg-gradient-to-r from-orange-50 to-white">
+              {/* Billing Summary Section */}
+              <div className="border-2 border-orange-300 rounded-lg p-5 bg-gradient-to-r from-orange-50 via-orange-100 to-orange-50">
                 <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-md font-semibold text-gray-900 flex items-center gap-2">
-                    <Receipt size={18} className="text-orange-600" />
-                    Billing Information
+                  <h4 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <Receipt size={20} className="text-orange-600" />
+                    Billing Details
                   </h4>
                   {!isEditMode ? (
                     <button
                       onClick={handleEditClick}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-orange-500 text-white text-sm font-medium rounded hover:bg-orange-600 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white text-sm font-semibold rounded-lg hover:bg-orange-600 transition-colors shadow-md"
                     >
                       <Edit2 size={16} />
-                      Edit
+                      Edit Billing
                     </button>
                   ) : (
                     <div className="flex gap-2">
                       <button
                         onClick={handleCancelEdit}
                         disabled={isSaving}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-200 text-gray-700 text-sm font-medium rounded hover:bg-gray-300 transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
                       >
                         <XCircle size={16} />
                         Cancel
@@ -502,129 +544,135 @@ export default function AdminGRN() {
                       <button
                         onClick={handleSaveBilling}
                         disabled={isSaving}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-green-500 text-white text-sm font-medium rounded hover:bg-green-600 transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white text-sm font-semibold rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 shadow-md"
                       >
                         <Save size={16} />
-                        {isSaving ? 'Saving...' : 'Save'}
+                        {isSaving ? 'Saving...' : 'Save Billing'}
                       </button>
                     </div>
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Invoice Number (Read-only, Auto-generated) */}
+                {/* Invoice Number and Bill Date */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-600 block mb-1 flex items-center gap-2">
-                      Invoice Number
-                      <span className="text-xs text-orange-600 font-normal">(Auto-generated)</span>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">
+                      Invoice Number <span className="text-xs text-orange-600">(Auto-generated)</span>
                     </label>
-                    <div className="w-full border-2 border-orange-200 bg-orange-50 rounded px-3 py-2 text-sm">
-                      <p className="text-gray-900 font-semibold">{billingData.invoiceNumber || 'Not set'}</p>
+                    <div className="bg-white border-2 border-orange-300 rounded px-3 py-2">
+                      <p className="text-gray-900 font-bold">{billingData.invoiceNumber || 'Not set'}</p>
                     </div>
                   </div>
-
-                  {/* Bill Date */}
                   <div>
-                    <label className="text-sm font-medium text-gray-600 block mb-1">Bill Date</label>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Bill Date</label>
                     {isEditMode ? (
                       <input
                         type="date"
                         value={billingData.billDate}
-                        onChange={(e) => handleBillingChange('billDate', e.target.value)}
-                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        onChange={(e) => setBillingData({ ...billingData, billDate: e.target.value })}
+                        className="w-full border-2 border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       />
                     ) : (
-                      <p className="text-gray-900 font-medium">
-                        {billingData.billDate ? new Date(billingData.billDate).toLocaleDateString('en-IN') : 'Not set'}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Price */}
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 block mb-1">Price (₹)</label>
-                    {isEditMode ? (
-                      <input
-                        type="number"
-                        value={billingData.price}
-                        onChange={(e) => handleBillingChange('price', e.target.value)}
-                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                        placeholder="0.00"
-                        step="0.01"
-                        min="0"
-                      />
-                    ) : (
-                      <p className="text-gray-900 font-medium">₹{billingData.price.toFixed(2)}</p>
-                    )}
-                  </div>
-
-                  {/* Discount with Type Selector */}
-                  <div className="col-span-2">
-                    <label className="text-sm font-medium text-gray-600 block mb-1">Discount</label>
-                    {isEditMode ? (
-                      <div className="flex gap-2">
-                        {/* Discount Type Toggle */}
-                        <div className="flex border border-gray-300 rounded overflow-hidden">
-                          <button
-                            type="button"
-                            onClick={() => handleBillingChange('discountType', 'flat')}
-                            className={`px-4 py-2 text-sm font-medium transition-colors ${
-                              billingData.discountType === 'flat'
-                                ? 'bg-orange-500 text-white'
-                                : 'bg-white text-gray-700 hover:bg-gray-50'
-                            }`}
-                          >
-                            ₹ Flat
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleBillingChange('discountType', 'percentage')}
-                            className={`px-4 py-2 text-sm font-medium transition-colors border-l ${
-                              billingData.discountType === 'percentage'
-                                ? 'bg-orange-500 text-white'
-                                : 'bg-white text-gray-700 hover:bg-gray-50'
-                            }`}
-                          >
-                            % Percentage
-                          </button>
-                        </div>
-                        
-                        {/* Discount Value Input */}
-                        <input
-                          type="number"
-                          value={billingData.discount}
-                          onChange={(e) => handleBillingChange('discount', e.target.value)}
-                          className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                          placeholder={billingData.discountType === 'percentage' ? '0-100' : '0.00'}
-                          step={billingData.discountType === 'percentage' ? '1' : '0.01'}
-                          min="0"
-                          max={billingData.discountType === 'percentage' ? '100' : undefined}
-                        />
+                      <div className="bg-white border-2 border-orange-300 rounded px-3 py-2">
+                        <p className="text-gray-900 font-medium">
+                          {billingData.billDate ? new Date(billingData.billDate).toLocaleDateString('en-IN') : 'Not set'}
+                        </p>
                       </div>
-                    ) : (
-                      <p className="text-gray-900 font-medium">
-                        {billingData.discount > 0 
-                          ? `${billingData.discount}${billingData.discountType === 'percentage' ? '%' : '₹'}`
-                          : 'No discount'}
-                      </p>
                     )}
                   </div>
+                </div>
 
-                  {/* Amount (Auto-calculated) */}
-                  <div className="col-span-2">
-                    <label className="text-sm font-medium text-gray-600 block mb-1 flex items-center gap-2">
-                      <DollarSign size={16} className="text-green-600" />
-                      Total Amount (Auto-calculated)
-                    </label>
-                    <div className="bg-green-50 border-2 border-green-200 rounded px-4 py-3">
-                      <p className="text-2xl font-bold text-green-700">₹{billingData.amount.toFixed(2)}</p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        {billingData.discountType === 'percentage'
-                          ? `Price - (Price × ${billingData.discount}%) = Amount`
-                          : `Price - ₹${billingData.discount} = Amount`}
-                      </p>
-                    </div>
+                {/* Summary Totals */}
+                <div className="grid grid-cols-3 gap-4 p-4 bg-white rounded-lg border-2 border-orange-200">
+                  <div className="text-center">
+                    <p className="text-xs font-semibold text-gray-600 mb-1">Total Price</p>
+                    <p className="text-xl font-bold text-blue-700">₹{billingData.totalPrice.toFixed(2)}</p>
                   </div>
+                  <div className="text-center border-x-2 border-orange-200">
+                    <p className="text-xs font-semibold text-gray-600 mb-1">Total Discount</p>
+                    <p className="text-xl font-bold text-red-600">₹{billingData.totalDiscount.toFixed(2)}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs font-semibold text-gray-600 mb-1">Final Amount</p>
+                    <p className="text-2xl font-bold text-green-700">₹{billingData.finalAmount.toFixed(2)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Material-wise Billing Table */}
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-orange-100 px-4 py-3 border-b-2 border-orange-300">
+                  <h4 className="text-md font-bold text-gray-900 flex items-center gap-2">
+                    <Package size={18} className="text-orange-600" />
+                    Material-wise Billing
+                  </h4>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="border px-4 py-3 text-left font-semibold text-gray-700">Material Name</th>
+                        <th className="border px-4 py-3 text-left font-semibold text-gray-700">Price (₹)</th>
+                        <th className="border px-4 py-3 text-left font-semibold text-gray-700">Discount</th>
+                        <th className="border px-4 py-3 text-left font-semibold text-gray-700 bg-green-50">Total Amount (₹)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {billingData.materialBilling.map((material, index) => (
+                        <tr key={material.materialId} className="hover:bg-gray-50">
+                          <td className="border px-4 py-3 font-medium text-gray-900">{material.materialName}</td>
+                          <td className="border px-4 py-3">
+                            {isEditMode ? (
+                              <input
+                                type="number"
+                                value={material.price}
+                                onChange={(e) => handleMaterialBillingChange(material.materialId, 'price', e.target.value)}
+                                className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-500"
+                                placeholder="0.00"
+                                step="0.01"
+                                min="0"
+                              />
+                            ) : (
+                              <span className="font-semibold text-gray-900">₹{material.price.toFixed(2)}</span>
+                            )}
+                          </td>
+                          <td className="border px-4 py-3">
+                            {isEditMode ? (
+                              <div className="flex gap-2">
+                                <select
+                                  value={material.discountType}
+                                  onChange={(e) => handleMaterialBillingChange(material.materialId, 'discountType', e.target.value)}
+                                  className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-500"
+                                >
+                                  <option value="flat">₹</option>
+                                  <option value="percentage">%</option>
+                                </select>
+                                <input
+                                  type="number"
+                                  value={material.discount}
+                                  onChange={(e) => handleMaterialBillingChange(material.materialId, 'discount', e.target.value)}
+                                  className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-500"
+                                  placeholder="0"
+                                  step={material.discountType === 'percentage' ? '1' : '0.01'}
+                                  min="0"
+                                  max={material.discountType === 'percentage' ? '100' : undefined}
+                                />
+                              </div>
+                            ) : (
+                              <span className="text-gray-900">
+                                {material.discount > 0 
+                                  ? `${material.discount}${material.discountType === 'percentage' ? '%' : '₹'}`
+                                  : '-'}
+                              </span>
+                            )}
+                          </td>
+                          <td className="border px-4 py-3 bg-green-50">
+                            <span className="font-bold text-green-700 text-lg">₹{material.totalAmount.toFixed(2)}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
