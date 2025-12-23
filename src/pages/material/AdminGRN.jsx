@@ -102,10 +102,11 @@ export default function AdminGRN() {
       sum + (d.items?.length || 0), 0
     );
 
-    // Invoice-wise summary
+    // ✅ Invoice-wise summary (use ST ID if no invoice number)
     const invoiceMap = {};
     filteredDeliveries.forEach(delivery => {
-      const invoiceNo = delivery.billing?.invoiceNumber || 'No Invoice';
+      // Use invoice number if available, otherwise use ST ID
+      const invoiceNo = delivery.billing?.invoiceNumber || delivery.transfer_number || delivery.st_id || 'Unknown';
       if (!invoiceMap[invoiceNo]) {
         invoiceMap[invoiceNo] = {
           invoiceNumber: invoiceNo,
@@ -148,30 +149,50 @@ export default function AdminGRN() {
       invoices: undefined
     })).sort((a, b) => b.totalAmount - a.totalAmount);
 
-    // Material-wise summary
+    // ✅ Material-wise summary (with category hierarchy)
     const materialMap = {};
     filteredDeliveries.forEach(delivery => {
       delivery.items?.forEach(item => {
-        const materialName = item.materialName || 'Unknown';
-        if (!materialMap[materialName]) {
-          materialMap[materialName] = {
-            materialName,
+        // Build material name from category hierarchy
+        const category = item.category || '';
+        const subCategory = item.subCategory || '';
+        const subCategory1 = item.subCategory1 || '';
+        const subCategory2 = item.subCategory2 || '';
+        
+        // Use materialName if available, otherwise build from categories
+        let displayName = item.materialName || item.itemName || item.name || '';
+        if (!displayName && category) {
+          const parts = [category, subCategory, subCategory1, subCategory2].filter(Boolean);
+          displayName = parts.join(' - ');
+        }
+        if (!displayName) {
+          displayName = 'Unknown Material';
+        }
+        
+        // Use display name as key
+        if (!materialMap[displayName]) {
+          materialMap[displayName] = {
+            materialName: displayName,
+            category,
+            subCategory,
+            subCategory1,
+            subCategory2,
             totalQuantity: 0,
             totalCost: 0,
             grnCount: 0,
             unit: item.unit || 'units'
           };
         }
-        materialMap[materialName].totalQuantity += item.quantity || 0;
+        materialMap[displayName].totalQuantity += item.quantity || 0;
         
         // Find material billing if available
         const materialBilling = delivery.billing?.materialBilling?.find(
-          mb => mb.materialName === materialName
+          mb => mb.materialName === displayName || mb.materialName === item.materialName
         );
         if (materialBilling) {
-          materialMap[materialName].totalCost += materialBilling.totalAmount || 0;
+          materialMap[displayName].totalCost += materialBilling.totalAmount || 0;
         }
-        materialMap[materialName].grnCount += 1;
+        materialMap[displayName].grnCount += 1;
       });
     });
     const materialSummary = Object.values(materialMap).sort((a, b) => b.totalCost - a.totalCost);
@@ -879,9 +900,26 @@ export default function AdminGRN() {
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {analytics.materialSummary.slice(0, 10).map((material, idx) => (
                     <div key={idx} className="bg-green-50 rounded-lg p-3 border border-green-200">
-                      <div className="flex justify-between items-start mb-1">
-                        <span className="font-semibold text-sm text-gray-900">{material.materialName}</span>
-                        <span className="font-bold text-green-600">₹{material.totalCost.toLocaleString('en-IN')}</span>
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex-1">
+                          <span className="font-semibold text-sm text-gray-900 block mb-1">{material.materialName}</span>
+                          {/* Show category hierarchy if available */}
+                          {material.category && (
+                            <div className="flex flex-wrap gap-1 text-xs">
+                              <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">{material.category}</span>
+                              {material.subCategory && (
+                                <span className="bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">{material.subCategory}</span>
+                              )}
+                              {material.subCategory1 && (
+                                <span className="bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">{material.subCategory1}</span>
+                              )}
+                              {material.subCategory2 && (
+                                <span className="bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded">{material.subCategory2}</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <span className="font-bold text-green-600 ml-2">₹{material.totalCost.toLocaleString('en-IN')}</span>
                       </div>
                       <div className="flex gap-4 text-xs text-gray-600">
                         <span>{material.totalQuantity} {material.unit}</span>
