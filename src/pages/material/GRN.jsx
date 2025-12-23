@@ -105,10 +105,10 @@ export default function GRN({ isTabView = false }) {
                       {delivery.transfer_number || delivery.st_id}
                     </h3>
                     <p className="text-xs text-gray-900 font-medium mt-1">
-                      {formatDate(delivery.updatedAt)}
+                      {formatDate(delivery.createdAt)}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      Challan Upload Date
+                      Intent Request Date
                     </p>
                     <p className="text-xs text-green-600 font-medium mt-0.5">
                       {delivery.type === 'PO' ? '📋 Vendor-wise PO' : '🚚 Site Transfer'}
@@ -133,6 +133,14 @@ export default function GRN({ isTabView = false }) {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 font-medium">To</span>
                   <span className="font-semibold text-gray-900">{delivery.to || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 font-medium">Intent Request Date</span>
+                  <span className="font-semibold text-gray-900">{formatDate(delivery.createdAt)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 font-medium">Delivery Date</span>
+                  <span className="font-semibold text-green-600">{formatDate(delivery.updatedAt)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 font-medium">Materials</span>

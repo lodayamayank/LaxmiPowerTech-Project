@@ -202,6 +202,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                     from: delivery.from,
                     to: delivery.to,
                     date: delivery.date,
+                    createdAt: delivery.createdAt,
                     status: delivery.status,
                     transfer_number: delivery.transfer_number || delivery.st_id
                 },
@@ -399,10 +400,13 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                                         <h3 className="font-bold text-gray-900 text-base">
                                             {delivery.transfer_number || delivery.st_id}
                                         </h3>
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            {formatDate(delivery.date || delivery.createdAt)}
+                                        <p className="text-xs text-gray-900 font-medium mt-1">
+                                            {formatDate(delivery.createdAt)}
                                         </p>
-                                        <p className={`text-xs font-medium mt-0.5 ${
+                                        <p className="text-xs text-gray-500 mt-0.5">
+                                            Intent Request Date
+                                        </p>
+                                        <p className={`text-xs font-medium mt-1 ${
                                             delivery.type === 'PO' ? 'text-blue-600' : 'text-purple-600'
                                         }`}>
                                             {delivery.type === 'PO' ? '📋 Purchase Order' : '🚚 Site Transfer'}
@@ -431,6 +435,10 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                                 <div className="flex justify-between items-center">
                                     <span className="text-gray-600 font-medium">Requested By</span>
                                     <span className="font-semibold text-gray-900">{delivery.requested_by || delivery.createdBy || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 font-medium">Intent Request Date</span>
+                                    <span className="font-semibold text-gray-900">{formatDate(delivery.createdAt)}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-gray-600 font-medium">Materials</span>

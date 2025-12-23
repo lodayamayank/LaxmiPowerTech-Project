@@ -178,12 +178,16 @@ export default function GRNCardDetails() {
                 </div>
 
                 <div className="col-span-2">
-                  <label className="text-xs text-gray-600">Challan Upload Date</label>
+                  <label className="text-xs text-gray-600">Intent Request Date & Time</label>
                   <p className="font-medium text-gray-900 text-sm">
-                    {formatDate(delivery.updatedAt)}
+                    {formatDate(delivery.createdAt)}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Intent Created: {formatDate(delivery.createdAt)}
+                </div>
+                
+                <div className="col-span-2">
+                  <label className="text-xs text-gray-600">Delivery Date & Time (Challan Upload)</label>
+                  <p className="font-medium text-green-600 text-sm">
+                    {formatDate(delivery.updatedAt)}
                   </p>
                 </div>
               </div>
@@ -360,8 +364,12 @@ export default function GRNCardDetails() {
                   <p className="font-bold text-green-600">✅ Transferred</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-gray-600">Challan Upload Date</p>
-                  <p className="font-medium text-gray-900">{formatDate(delivery.updatedAt)}</p>
+                  <p className="text-gray-600">Intent Request Date</p>
+                  <p className="font-medium text-gray-900">{formatDate(delivery.createdAt)}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-gray-600">Delivery Date (Challan Upload)</p>
+                  <p className="font-medium text-green-600">{formatDate(delivery.updatedAt)}</p>
                 </div>
               </div>
             </div>

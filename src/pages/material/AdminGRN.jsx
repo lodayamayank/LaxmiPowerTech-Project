@@ -276,8 +276,8 @@ export default function AdminGRN() {
                       </td>
                       <td className="border px-4 py-2">
                         <div className="flex flex-col">
-                          <span className="text-gray-900 font-medium text-sm">{formatDate(delivery.updatedAt)}</span>
-                          <span className="text-xs text-gray-500">Challan Upload</span>
+                          <span className="text-gray-900 font-medium text-sm">{formatDate(delivery.createdAt)}</span>
+                          <span className="text-xs text-gray-500">Intent Request</span>
                         </div>
                       </td>
                       <td className="border px-4 py-2">
@@ -341,12 +341,12 @@ export default function AdminGRN() {
                   <p className="text-gray-900">{selectedDelivery.createdBy || 'N/A'}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Challan Upload Date</label>
-                  <p className="text-gray-900">{formatDate(selectedDelivery.updatedAt)}</p>
+                  <label className="text-sm font-medium text-gray-600">Intent Request Date & Time</label>
+                  <p className="text-gray-900">{formatDate(selectedDelivery.createdAt)}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Intent Created</label>
-                  <p className="text-gray-600 text-sm">{formatDate(selectedDelivery.createdAt)}</p>
+                  <label className="text-sm font-medium text-gray-600">Delivery Date & Time (Challan Upload)</label>
+                  <p className="text-green-600 font-medium">{formatDate(selectedDelivery.updatedAt)}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Status</label>

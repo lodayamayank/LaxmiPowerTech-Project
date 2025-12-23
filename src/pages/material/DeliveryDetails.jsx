@@ -204,8 +204,14 @@ export default function DeliveryDetails() {
                                     <span className="font-semibold text-gray-900">{item.to || 'N/A'}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-600 font-medium">Date</span>
-                                    <span className="font-semibold text-gray-900">{new Date(item.date).toLocaleDateString('en-IN')}</span>
+                                    <span className="text-gray-600 font-medium">Intent Request Date</span>
+                                    <span className="font-semibold text-gray-900">{new Date(item.createdAt || item.date).toLocaleDateString('en-IN', { 
+                                        year: 'numeric', 
+                                        month: 'short', 
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-gray-600 font-medium">Status</span>
