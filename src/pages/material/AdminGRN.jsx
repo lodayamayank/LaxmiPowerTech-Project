@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Search, Eye, Package, Receipt, Edit2, Save, XCircle, DollarSign, Download, FileText, FileSpreadsheet, Trash2, X, Calendar, MapPin, User } from 'lucide-react';
 import { upcomingDeliveryAPI, branchesAPI } from '../../utils/materialAPI';
 import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import DashboardLayout from '../../layouts/DashboardLayout';
 
 export default function AdminGRN() {
@@ -442,8 +442,8 @@ export default function AdminGRN() {
         delivery.status || 'N/A'
       ]);
 
-      // Add table
-      doc.autoTable({
+      // Add table using autoTable
+      autoTable(doc, {
         startY: 28,
         head: [['Sr.', 'Type', 'Transfer ID', 'From', 'To', 'Invoice No.', 'Total Price', 'Bill Date', 'Final Amount', 'Status']],
         body: tableData,
