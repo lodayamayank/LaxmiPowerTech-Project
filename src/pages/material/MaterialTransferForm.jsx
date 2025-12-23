@@ -40,8 +40,20 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
   };
 
   const handleInputChange = (e) => {
-    setSearchTerm(e.target.value);
+    const newValue = e.target.value;
+    setSearchTerm(newValue);
     setIsOpen(true);
+    // ✅ Allow manual input - update value as user types
+    onChange(newValue);
+  };
+
+  const handleKeyDown = (e) => {
+    // ✅ Allow Enter key to confirm manual input
+    if (e.key === 'Enter' && searchTerm.trim()) {
+      onChange(searchTerm.trim());
+      setIsOpen(false);
+      setSearchTerm('');
+    }
   };
 
   const displayValue = isOpen ? searchTerm : (value || '');
@@ -54,6 +66,7 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
           type="text"
           value={displayValue}
           onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
           onClick={handleInputClick}
           placeholder={placeholder}
           disabled={disabled}
@@ -81,9 +94,21 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
                 </li>
               ))}
             </ul>
+          ) : searchTerm.trim() ? (
+            <div className="py-1">
+              <div className="px-3 py-2 text-xs text-gray-500 text-center border-b border-gray-200">
+                No matching options found
+              </div>
+              <div
+                onClick={() => handleSelect(searchTerm.trim())}
+                className="px-3 py-2 text-sm cursor-pointer hover:bg-green-50 transition-colors text-green-700 font-medium"
+              >
+                ✓ Use "{searchTerm.trim()}" (custom value)
+              </div>
+            </div>
           ) : (
             <div className="px-3 py-2 text-sm text-gray-500 text-center">
-              No results found
+              Type to search or enter custom value
             </div>
           )}
         </div>
@@ -119,7 +144,7 @@ export default function MaterialTransferForm() {
 
   // Material options from backend
   const [categories, setCategories] = useState([]);
-  const [allMaterials, setAllMaterials] = useState([]);
+  const [allMaterials, setAllMaterials] = useState([]); // ✅ Fallback: All materials from catalog
   const [grnMaterials, setGrnMaterials] = useState([]); // ✅ Materials from GRN of selected From Site
   
   // Sites list for dropdowns
@@ -253,8 +278,15 @@ export default function MaterialTransferForm() {
           }
         }
         
-        // ✅ NOTE: Materials are now fetched from GRN based on selected From Site
-        // See useEffect with formData.fromSite dependency
+        // ✅ FETCH MATERIAL CATALOG FOR FALLBACK SUBCATEGORIES
+        try {
+          const materials = await materialAPI.getMaterials();
+          console.log('✅ MaterialTransferForm: Fetched', materials?.length || 0, 'materials from catalog (fallback)');
+          setAllMaterials(materials || []);
+        } catch (err) {
+          console.error('❌ MaterialTransferForm: Error fetching material catalog:', err);
+          setAllMaterials([]);
+        }
         
       } catch (err) {
         console.error('❌ MaterialTransferForm: Error fetching data:', err);
@@ -265,29 +297,65 @@ export default function MaterialTransferForm() {
     fetchData();
   }, []);
 
-  // ✅ GET SUBCATEGORIES FROM GRN MATERIALS
+  // ✅ HYBRID: GET SUBCATEGORIES FROM GRN, FALLBACK TO CATALOG
   const getSubcategories = (category) => {
-    return [...new Set(
+    // Try GRN first
+    const grnSubcategories = [...new Set(
       grnMaterials
         .filter(item => item.category === category)
         .map(item => item.subCategory)
         .filter(Boolean)
-    )].sort((a, b) => a.localeCompare(b));
+    )];
+    
+    // If GRN has data, use it
+    if (grnSubcategories.length > 0) {
+      console.log('✅ Using GRN subcategories for', category, ':', grnSubcategories.length);
+      return grnSubcategories.sort((a, b) => a.localeCompare(b));
+    }
+    
+    // Fallback to catalog
+    const catalogSubcategories = [...new Set(
+      allMaterials
+        .filter(item => item.category === category)
+        .map(item => item.subCategory)
+        .filter(Boolean)
+    )];
+    
+    console.log('⚠️ Fallback to catalog subcategories for', category, ':', catalogSubcategories.length);
+    return catalogSubcategories.sort((a, b) => a.localeCompare(b));
   };
 
-  // ✅ GET SUB-SUBCATEGORIES FROM GRN MATERIALS
+  // ✅ HYBRID: GET SUB-SUBCATEGORIES FROM GRN, FALLBACK TO CATALOG
   const getSubSubcategories = (category, subCategory) => {
-    return [...new Set(
+    // Try GRN first
+    const grnSubSubcategories = [...new Set(
       grnMaterials
         .filter(item => item.category === category && item.subCategory === subCategory)
         .map(item => item.subCategory1)
         .filter(Boolean)
-    )].sort((a, b) => a.localeCompare(b));
+    )];
+    
+    if (grnSubSubcategories.length > 0) {
+      console.log('✅ Using GRN sub-subcategories');
+      return grnSubSubcategories.sort((a, b) => a.localeCompare(b));
+    }
+    
+    // Fallback to catalog
+    const catalogSubSubcategories = [...new Set(
+      allMaterials
+        .filter(item => item.category === category && item.subCategory === subCategory)
+        .map(item => item.subCategory1)
+        .filter(Boolean)
+    )];
+    
+    console.log('⚠️ Fallback to catalog sub-subcategories');
+    return catalogSubSubcategories.sort((a, b) => a.localeCompare(b));
   };
 
-  // ✅ GET SUB-SUB-SUBCATEGORIES FROM GRN MATERIALS
+  // ✅ HYBRID: GET SUB-SUB-SUBCATEGORIES FROM GRN, FALLBACK TO CATALOG
   const getSubSubSubcategories = (category, subCategory, subCategory1) => {
-    return [...new Set(
+    // Try GRN first
+    const grnSubSubSubcategories = [...new Set(
       grnMaterials
         .filter(item => 
           item.category === category && 
@@ -296,7 +364,27 @@ export default function MaterialTransferForm() {
         )
         .map(item => item.subCategory2)
         .filter(Boolean)
-    )].sort((a, b) => a.localeCompare(b));
+    )];
+    
+    if (grnSubSubSubcategories.length > 0) {
+      console.log('✅ Using GRN sub-sub-subcategories');
+      return grnSubSubSubcategories.sort((a, b) => a.localeCompare(b));
+    }
+    
+    // Fallback to catalog
+    const catalogSubSubSubcategories = [...new Set(
+      allMaterials
+        .filter(item => 
+          item.category === category && 
+          item.subCategory === subCategory && 
+          item.subCategory1 === subCategory1
+        )
+        .map(item => item.subCategory2)
+        .filter(Boolean)
+    )];
+    
+    console.log('⚠️ Fallback to catalog sub-sub-subcategories');
+    return catalogSubSubSubcategories.sort((a, b) => a.localeCompare(b));
   };
 
   const addMaterialRow = () => {
