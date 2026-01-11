@@ -33,6 +33,8 @@ const AdminLeaves = lazy(() => import('./pages/AdminLeaves'));
 const MyReimbursements = lazy(() => import('./pages/MyReimbursements'));
 const CreateReimbursement = lazy(() => import('./pages/CreateReimbursement'));
 const AdminReimbursements = lazy(() => import('./pages/AdminReimbursements'));
+const SupervisorDashboard = lazy(() => import('./pages/SupervisorDashboard'));
+const SupervisorProjectList = lazy(() => import('./pages/SupervisorProjectList'));
 
 // Material Management Pages - Lazy loaded
 const Material = lazy(() => import('./pages/material/Material'));
@@ -137,6 +139,10 @@ function App() {
         <Route path="/reimbursements" element={<MyReimbursements />} />
         <Route path="/reimbursements/new" element={<CreateReimbursement />} />
         <Route path="/admin/reimbursements" element={<AdminReimbursements />} />
+
+        {/* Supervisor/Subcontractor Routes */}
+        <Route path="/supervisor/projects" element={<SupervisorProjectList />} />
+        <Route path="/project/:projectId/labour-dashboard" element={<LabourDashboard />} />
 
         {/* Admin Dashboard Route */}
         <Route path="/admindashboard" element={<AdminDashboard />} />

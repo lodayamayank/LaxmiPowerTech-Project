@@ -3,6 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Dashboard from './AdminDashboard';
 import LabourDashboard from './LabourDashboard';
+import SupervisorDashboard from './SupervisorDashboard';
 
 const RoleBasedDashboard = () => {
   const navigate = useNavigate();
@@ -28,12 +29,17 @@ const RoleBasedDashboard = () => {
     console.log('🎭 User role detected:', role);
     console.log('📋 Full user data:', JSON.stringify(user, null, 2));
     
-    if (role === 'admin' || role === 'supervisor') {
+    if (role === 'admin') {
       console.log('✅ Rendering AdminDashboard for role:', role);
       return <Dashboard />;
     }
     
-    if (role === 'labour' || role === 'subcontractor' || role === 'staff') {
+    if (role === 'supervisor' || role === 'subcontractor') {
+      console.log('✅ Rendering SupervisorDashboard for role:', role);
+      return <SupervisorDashboard />;
+    }
+    
+    if (role === 'labour' || role === 'staff') {
       console.log('✅ Rendering LabourDashboard for role:', role);
       return <LabourDashboard />;
     }
