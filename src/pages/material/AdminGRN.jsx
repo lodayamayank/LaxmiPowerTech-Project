@@ -560,15 +560,17 @@ export default function AdminGRN() {
       
       // Ensure all numeric values are properly formatted
       const sanitizedBillingData = {
-        ...billingData,
         invoiceNumber: billingData.invoiceNumber || autoInvoiceNumber,  // Use user-entered or auto-generate
         billDate: billingData.billDate || currentDateTime,  // Use user-entered or set current date-time
         companyName: billingData.companyName || 'Laxmi Powertech Private Limited',
         materialBilling: billingData.materialBilling.map(material => ({
-          ...material,
-          price: parseFloat(material.price) || 0,
-          discount: parseFloat(material.discount) || 0,
-          totalAmount: parseFloat(material.totalAmount) || 0
+          materialId: material.materialId,
+          materialName: material.materialName,
+          quantity: parseFloat(material.quantity) || 0,
+          pricePerUnit: parseFloat(material.pricePerUnit) || 0,
+          totalPrice: parseFloat(material.totalPrice) || 0,
+          discountAmount: parseFloat(material.discountAmount) || 0,
+          finalCost: parseFloat(material.finalCost) || 0
         })),
         totalPrice: parseFloat(billingData.totalPrice) || 0,
         totalDiscount: parseFloat(billingData.totalDiscount) || 0,
