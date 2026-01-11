@@ -421,17 +421,18 @@ export default function AdminGRN() {
       
       const quantity = item.received_quantity || item.st_quantity || 0;
       const pricePerUnit = existingBilling?.pricePerUnit || 0;
-      const amount = quantity * pricePerUnit;
+      const totalPrice = quantity * pricePerUnit;
+      const discountAmount = totalPrice * 0.05;  // Fixed 5% discount
+      const finalCost = totalPrice - discountAmount;
       
       return {
         materialId: item._id || `material-${index}`,
         materialName: item.category || 'Unknown Material',
         quantity: quantity,
         pricePerUnit: pricePerUnit,
-        amount: amount,
-        discount: existingBilling?.discount || 0,
-        discountType: existingBilling?.discountType || 'flat',
-        totalAmount: existingBilling?.totalAmount || amount
+        totalPrice: totalPrice,
+        discountAmount: discountAmount,
+        finalCost: finalCost
       };
     }) || [];
     
@@ -457,31 +458,25 @@ export default function AdminGRN() {
     handleViewDetails(selectedDelivery);
   };
 
-  // Calculate totals from material billing
+  // Calculate totals from material billing with fixed 5% discount
   const calculateTotals = (materialBilling) => {
-    let totalAmount = 0;
-    let totalDiscountAmount = 0;
+    let totalPriceSum = 0;
+    let totalDiscountSum = 0;
     
     materialBilling.forEach(material => {
       const quantity = parseFloat(material.quantity) || 0;
       const pricePerUnit = parseFloat(material.pricePerUnit) || 0;
-      const amount = quantity * pricePerUnit;
-      const discount = parseFloat(material.discount) || 0;
-      const discountType = material.discountType || 'flat';
+      const totalPrice = quantity * pricePerUnit;
+      const discountAmount = totalPrice * 0.05;  // Fixed 5% discount
       
-      totalAmount += amount;
-      
-      if (discountType === 'percentage') {
-        totalDiscountAmount += (amount * discount / 100);
-      } else {
-        totalDiscountAmount += discount;
-      }
+      totalPriceSum += totalPrice;
+      totalDiscountSum += discountAmount;
     });
     
     return {
-      totalPrice: totalAmount,
-      totalDiscount: totalDiscountAmount,
-      finalAmount: totalAmount - totalDiscountAmount
+      totalPrice: totalPriceSum,
+      totalDiscount: totalDiscountSum,
+      finalAmount: totalPriceSum - totalDiscountSum
     };
   };
 
@@ -490,31 +485,24 @@ export default function AdminGRN() {
       if (material.materialId === materialId) {
         // Parse numeric values immediately
         let updatedValue = value;
-        if (field === 'pricePerUnit' || field === 'discount') {
+        if (field === 'pricePerUnit') {
           updatedValue = parseFloat(value) || 0;
         }
         
         const updatedMaterial = { ...material, [field]: updatedValue };
         
-        // Recalculate amount and total for this material
+        // Recalculate with fixed 5% discount
         const quantity = parseFloat(updatedMaterial.quantity) || 0;
         const pricePerUnit = parseFloat(updatedMaterial.pricePerUnit) || 0;
-        const amount = quantity * pricePerUnit;
-        const discount = parseFloat(updatedMaterial.discount) || 0;
-        const discountType = updatedMaterial.discountType;
+        const totalPrice = quantity * pricePerUnit;
+        const discountAmount = totalPrice * 0.05;  // Fixed 5% discount
+        const finalCost = totalPrice - discountAmount;
         
-        updatedMaterial.amount = amount;
-        
-        if (discountType === 'percentage') {
-          updatedMaterial.totalAmount = Math.max(0, amount - (amount * discount / 100));
-        } else {
-          updatedMaterial.totalAmount = Math.max(0, amount - discount);
-        }
-        
-        // Ensure all numeric fields are numbers
         updatedMaterial.quantity = quantity;
         updatedMaterial.pricePerUnit = pricePerUnit;
-        updatedMaterial.discount = discount;
+        updatedMaterial.totalPrice = totalPrice;
+        updatedMaterial.discountAmount = discountAmount;
+        updatedMaterial.finalCost = finalCost;
         
         return updatedMaterial;
       }
@@ -539,13 +527,12 @@ export default function AdminGRN() {
       const hasInvalidData = billingData.materialBilling.some(material => {
         const quantity = parseFloat(material.quantity);
         const pricePerUnit = parseFloat(material.pricePerUnit);
-        const discount = parseFloat(material.discount);
-        return isNaN(quantity) || isNaN(pricePerUnit) || isNaN(discount) || 
-               quantity < 0 || pricePerUnit < 0 || discount < 0;
+        return isNaN(quantity) || isNaN(pricePerUnit) || 
+               quantity < 0 || pricePerUnit < 0;
       });
       
       if (hasInvalidData) {
-        alert('Please enter valid quantity, price per unit, and discount values for all materials.');
+        alert('Please enter valid quantity and price per unit values for all materials.');
         setIsSaving(false);
         return;
       }
@@ -1538,9 +1525,9 @@ export default function AdminGRN() {
                         <th className="border px-4 py-3 text-left font-semibold text-gray-700">Material Name</th>
                         <th className="border px-4 py-3 text-center font-semibold text-gray-700">Quantity</th>
                         <th className="border px-4 py-3 text-left font-semibold text-gray-700">Price/Unit (₹)</th>
-                        <th className="border px-4 py-3 text-left font-semibold text-gray-700 bg-blue-50">Amount (₹)</th>
-                        <th className="border px-4 py-3 text-left font-semibold text-gray-700">Discount</th>
-                        <th className="border px-4 py-3 text-left font-semibold text-gray-700 bg-green-50">Total (₹)</th>
+                        <th className="border px-4 py-3 text-left font-semibold text-gray-700 bg-blue-50">Total Price (₹)</th>
+                        <th className="border px-4 py-3 text-left font-semibold text-gray-700 bg-red-50">Discount (5%)</th>
+                        <th className="border px-4 py-3 text-left font-semibold text-gray-700 bg-green-50">Final Cost (₹)</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1566,40 +1553,13 @@ export default function AdminGRN() {
                             )}
                           </td>
                           <td className="border px-4 py-3 bg-blue-50">
-                            <span className="font-bold text-blue-700">{formatCurrency(material.amount)}</span>
+                            <span className="font-bold text-blue-700">{formatCurrency(material.totalPrice)}</span>
                           </td>
-                          <td className="border px-4 py-3">
-                            {isEditMode ? (
-                              <div className="flex gap-2">
-                                <select
-                                  value={material.discountType || 'flat'}
-                                  onChange={(e) => handleMaterialBillingChange(material.materialId, 'discountType', e.target.value)}
-                                  className="border-2 border-blue-400 bg-white rounded-lg px-3 py-2 text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-600 shadow-sm"
-                                >
-                                  <option value="flat">₹</option>
-                                  <option value="percentage">%</option>
-                                </select>
-                                <input
-                                  type="number"
-                                  value={safeNumber(material.discount)}
-                                  onChange={(e) => handleMaterialBillingChange(material.materialId, 'discount', e.target.value)}
-                                  className="flex-1 border-2 border-blue-400 bg-white rounded-lg px-3 py-2 text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-600 shadow-sm"
-                                  placeholder="Enter discount"
-                                  step={material.discountType === 'percentage' ? '1' : '0.01'}
-                                  min="0"
-                                  max={material.discountType === 'percentage' ? '100' : undefined}
-                                />
-                              </div>
-                            ) : (
-                              <span className="text-gray-900">
-                                {safeNumber(material.discount) > 0 
-                                  ? `${safeNumber(material.discount)}${material.discountType === 'percentage' ? '%' : '₹'}`
-                                  : '-'}
-                              </span>
-                            )}
+                          <td className="border px-4 py-3 bg-red-50">
+                            <span className="font-semibold text-red-600">{formatCurrency(material.discountAmount)}</span>
                           </td>
                           <td className="border px-4 py-3 bg-green-50">
-                            <span className="font-bold text-green-700 text-lg">{formatCurrency(material.totalAmount)}</span>
+                            <span className="font-bold text-green-700 text-lg">{formatCurrency(material.finalCost)}</span>
                           </td>
                         </tr>
                       ))}
