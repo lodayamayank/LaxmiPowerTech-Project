@@ -574,6 +574,8 @@ export default function AdminGRN() {
       };
       
       console.log('📤 Sending to backend - Invoice Number:', sanitizedBillingData.invoiceNumber);
+      console.log('📤 Full sanitized billing data:', JSON.stringify(sanitizedBillingData, null, 2));
+      console.log('📤 Material billing being sent:', sanitizedBillingData.materialBilling);
       
       const response = await upcomingDeliveryAPI.updateBilling(selectedDelivery._id, sanitizedBillingData);
       
