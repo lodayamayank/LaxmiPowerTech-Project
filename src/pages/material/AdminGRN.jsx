@@ -861,33 +861,75 @@ export default function AdminGRN() {
             </div>
 
             {/* Detailed Analytics Sections */}
-            <div className="max-w-2xl mx-auto">
+            <div className="bg-white rounded-lg shadow-md border border-gray-200">
               {/* Site-wise Summary */}
-              <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
-                <h3 className="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
+              <div className="p-5">
+                <div className="flex items-center gap-2 mb-4">
                   <MapPin size={20} className="text-orange-600" />
-                  Site-wise Summary
-                </h3>
-                <p className="text-xs text-gray-600 mb-3 bg-orange-50 p-2 rounded border border-orange-200">
+                  <h3 className="text-lg font-bold text-gray-800">Site-wise Summary</h3>
+                </div>
+                <p className="text-xs text-gray-600 mb-4 bg-orange-50 p-3 rounded-lg border border-orange-200">
                   💡 <strong>Note:</strong> Shows total materials delivered to each site, total GRN entries, total amount spent, and invoice count per site.
                 </p>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {analytics.siteSummary.slice(0, 10).map((site, idx) => (
-                    <div key={idx} className="bg-orange-50 rounded-lg p-3 border border-orange-200">
-                      <div className="flex justify-between items-start mb-1">
-                        <span className="font-semibold text-sm text-gray-900">{site.siteName}</span>
-                        <span className="font-bold text-orange-600">₹{site.totalAmount.toLocaleString('en-IN')}</span>
-                      </div>
-                      <div className="flex gap-4 text-xs text-gray-600">
-                        <span>{site.grnCount} GRNs</span>
-                        <span>{site.materialCount} Materials</span>
-                        <span>{site.invoiceCount} Invoices</span>
-                      </div>
-                    </div>
-                  ))}
-                  {analytics.siteSummary.length === 0 && (
-                    <p className="text-sm text-gray-500 text-center py-4">No sites found</p>
-                  )}
+                
+                {/* Table Layout */}
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                          Site Name
+                        </th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                          Total Amount
+                        </th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                          GRN Count
+                        </th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                          Materials
+                        </th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                          Invoices
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {analytics.siteSummary.length > 0 ? (
+                        analytics.siteSummary.slice(0, 10).map((site, idx) => (
+                          <tr key={idx} className="hover:bg-orange-50 transition-colors">
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <span className="text-sm font-semibold text-gray-900">{site.siteName}</span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-right">
+                              <span className="text-sm font-bold text-orange-600">₹{site.totalAmount.toLocaleString('en-IN')}</span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-center">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {site.grnCount} GRNs
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-center">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                {site.materialCount} Items
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-center">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                {site.invoiceCount} Invoices
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="5" className="px-4 py-8 text-center text-sm text-gray-500">
+                            No sites found
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
