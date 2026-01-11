@@ -698,10 +698,12 @@ export default function AdminGRN() {
               'Category 2': item.sub_category1 || '-',
               'Quantity': `${item.received_quantity || item.quantity || item.st_quantity || 0} ${item.uom || ''}`,
               'Price (₹)': materialBilling?.price ? materialBilling.price.toLocaleString('en-IN') : '-',
-              'Amount (₹)': materialBilling?.price && item.received_quantity 
-                ? (materialBilling.price * (item.received_quantity || 0)).toLocaleString('en-IN') 
+              'Amount (₹)': materialBilling?.price ? materialBilling.price.toLocaleString('en-IN') : '-',
+              'Discount': materialBilling?.discount 
+                ? materialBilling.discountType === 'percentage' 
+                  ? `${materialBilling.discount}%` 
+                  : materialBilling.discount.toLocaleString('en-IN')
                 : '-',
-              'Discount': materialBilling?.discount ? `${materialBilling.discount}%` : '-',
               'Total (₹)': materialBilling?.totalAmount ? materialBilling.totalAmount.toLocaleString('en-IN') : '-',
               'Project Name': delivery.to || '-',
               'Vendor Name': delivery.from || delivery.vendor || '-',
@@ -823,10 +825,12 @@ export default function AdminGRN() {
               item.sub_category1 || '-',
               `${item.received_quantity || item.quantity || item.st_quantity || 0} ${item.uom || ''}`,
               materialBilling?.price ? `₹${materialBilling.price.toLocaleString('en-IN')}` : '-',
-              materialBilling?.price && item.received_quantity 
-                ? `₹${(materialBilling.price * (item.received_quantity || 0)).toLocaleString('en-IN')}` 
+              materialBilling?.price ? `₹${materialBilling.price.toLocaleString('en-IN')}` : '-',
+              materialBilling?.discount 
+                ? materialBilling.discountType === 'percentage' 
+                  ? `${materialBilling.discount}%` 
+                  : `₹${materialBilling.discount.toLocaleString('en-IN')}`
                 : '-',
-              materialBilling?.discount ? `${materialBilling.discount}%` : '-',
               materialBilling?.totalAmount ? `₹${materialBilling.totalAmount.toLocaleString('en-IN')}` : '-',
               delivery.to || '-',
               delivery.from || delivery.vendor || '-',
@@ -1272,12 +1276,14 @@ export default function AdminGRN() {
                               {materialBilling?.price ? `₹${materialBilling.price.toLocaleString('en-IN')}` : '-'}
                             </td>
                             <td className="border px-2 py-2 text-right font-medium text-gray-900">
-                              {materialBilling?.price && item.received_quantity 
-                                ? `₹${(materialBilling.price * (item.received_quantity || 0)).toLocaleString('en-IN')}` 
-                                : '-'}
+                              {materialBilling?.price ? `₹${materialBilling.price.toLocaleString('en-IN')}` : '-'}
                             </td>
                             <td className="border px-2 py-2 text-right text-red-600">
-                              {materialBilling?.discount ? `${materialBilling.discount}%` : '-'}
+                              {materialBilling?.discount 
+                                ? materialBilling.discountType === 'percentage' 
+                                  ? `${materialBilling.discount}%` 
+                                  : `₹${materialBilling.discount.toLocaleString('en-IN')}`
+                                : '-'}
                             </td>
                             <td className="border px-2 py-2 text-right font-bold text-green-700 bg-green-50">
                               {materialBilling?.totalAmount ? `₹${materialBilling.totalAmount.toLocaleString('en-IN')}` : '-'}
