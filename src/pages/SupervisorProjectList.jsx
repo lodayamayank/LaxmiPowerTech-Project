@@ -24,16 +24,18 @@ const SupervisorProjectList = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // Filter projects assigned to this user (supervisor/subcontractor)
-      const assignedProjects = res.data.filter(project => {
-        // Check if user is assigned to this project
-        // Assuming project has assignedUsers array or similar field
-        return project.assignedUsers?.includes(user._id) || 
-               project.supervisor === user._id ||
-               project.subcontractor === user._id;
-      });
+      // Filter projects based on user's assigned project field
+      // User model has a 'project' field that stores the assigned project ID
+      let assignedProjects = [];
       
-      setProjects(assignedProjects.length > 0 ? assignedProjects : res.data);
+      if (user.project) {
+        // User has an assigned project - filter to show only that project
+        const projectId = typeof user.project === 'object' ? user.project._id : user.project;
+        assignedProjects = res.data.filter(project => project._id === projectId);
+      }
+      
+      // Only show assigned projects, never show all projects
+      setProjects(assignedProjects);
     } catch (err) {
       console.error('Failed to fetch projects', err);
       // If API fails, show empty list
