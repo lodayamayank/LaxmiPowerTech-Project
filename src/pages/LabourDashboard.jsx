@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import fingerprint from '../assets/fingerprint.png';
 import layer2 from '../assets/calendar.png';
 import logo from '../assets/logo.png';
@@ -12,6 +12,7 @@ import { MdInventory } from 'react-icons/md';
 const LabourDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user'));
   const navigate = useNavigate();
+  const { branchId } = useParams(); // Get branchId from route params if accessed from supervisor flow
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -98,7 +99,7 @@ const LabourDashboard = () => {
               label="Material"
               icon={null}
               iconComponent={<MdInventory className="w-full h-full text-white" />}
-              onClick={() => navigate('/material/intent')}
+              onClick={() => navigate('/material/intent', { state: { branchId } })}
               gradient="from-teal-400 to-teal-500"
               bgColor="bg-teal-50"
             />

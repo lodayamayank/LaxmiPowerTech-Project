@@ -10,6 +10,9 @@ export default function Material({ activeTab }) {
   const navigate = useNavigate();
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  // Get branchId from location state if passed from supervisor/subcontractor flow
+  const branchId = location.state?.branchId;
 
   // Determine active tab based on route or prop
   const getCurrentTab = () => {
@@ -33,15 +36,15 @@ export default function Material({ activeTab }) {
   const renderContent = () => {
     switch (currentTab) {
       case 'intent':
-        return <Intent isTabView={true} />;
+        return <Intent isTabView={true} branchId={branchId} />;
       case 'transfer':
-        return <MaterialTransfer isTabView={true} />;
+        return <MaterialTransfer isTabView={true} branchId={branchId} />;
       case 'deliveries':
-        return <UpcomingDeliveries isTabView={true} />;
+        return <UpcomingDeliveries isTabView={true} branchId={branchId} />;
       case 'grn':
-          return <GRN isTabView={true} />;
+          return <GRN isTabView={true} branchId={branchId} />;
       default:
-        return <Intent isTabView={true} />;
+        return <Intent isTabView={true} branchId={branchId} />;
     }
   };
 
@@ -77,7 +80,7 @@ export default function Material({ activeTab }) {
               return (
                 <button
                   key={tab.key}
-                  onClick={() => navigate(tab.path)}
+                  onClick={() => navigate(tab.path, { state: { branchId } })}
                   className={`flex-1 min-w-[90px] px-3 py-3 flex flex-col items-center gap-1.5 transition-all relative ${
                     isActive
                       ? 'text-orange-600 bg-orange-50'
