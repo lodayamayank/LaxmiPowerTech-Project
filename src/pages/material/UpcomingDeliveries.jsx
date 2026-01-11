@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { upcomingDeliveryAPI, branchesAPI } from "../../utils/materialAPI";
 import { Search, Filter, Package, Plus } from "lucide-react";
 import { FaArrowLeft } from 'react-icons/fa';
+import { getSelectedBranchId, getSelectedBranchName } from "../../utils/branchContext";
 
 export default function UpcomingDeliveries({ isTabView = false }) {
     const navigate = useNavigate();
@@ -22,10 +23,13 @@ export default function UpcomingDeliveries({ isTabView = false }) {
 
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const userAssignedBranches = user?.assignedBranches || [];
+    const selectedBranchId = getSelectedBranchId();
+    const selectedBranchName = getSelectedBranchName();
     
-    // Debug: Log user's assigned branches
-    console.log('👤 Upcoming Deliveries - User:', user?.name);
+    // Debug: Log branch context
+    console.log('👤 Upcoming Deliveries - User:', user?.name, 'Role:', user?.role);
     console.log('🏢 Upcoming Deliveries - Assigned Branches:', userAssignedBranches);
+    console.log('🎯 Upcoming Deliveries - Selected Branch:', selectedBranchId, selectedBranchName);
 
     useEffect(() => {
         fetchDeliveries();
@@ -37,18 +41,17 @@ export default function UpcomingDeliveries({ isTabView = false }) {
         try {
             const branches = await branchesAPI.getAll();
             
-            // ✅ CRITICAL: Filter sites based on user's assigned branches
+            // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
             let filteredBranches = branches;
-            if (userAssignedBranches && userAssignedBranches.length > 0) {
+            if (selectedBranchId && (user.role === 'supervisor' || user.role === 'subcontractor')) {
+                filteredBranches = branches.filter(branch => branch._id === selectedBranchId);
+                console.log('🔒 Upcoming Deliveries - Single branch mode:', selectedBranchName);
+            } else if (userAssignedBranches && userAssignedBranches.length > 0) {
                 const assignedBranchIds = userAssignedBranches.map(b => b._id || b);
-                console.log('🔍 Upcoming Deliveries - Assigned Branch IDs:', assignedBranchIds);
-                
-                filteredBranches = branches.filter(branch => 
-                    assignedBranchIds.includes(branch._id)
-                );
-                console.log('✅ Upcoming Deliveries - Filtered to assigned sites:', filteredBranches.length, 'of', branches.length);
+                filteredBranches = branches.filter(branch => assignedBranchIds.includes(branch._id));
+                console.log('✅ Upcoming Deliveries - Multi-branch mode:', filteredBranches.length, 'branches');
             } else {
-                console.log('⚠️ Upcoming Deliveries - No assigned branches, showing all sites');
+                console.log('⚠️ Upcoming Deliveries - Admin mode - all sites');
             }
             
             const sitesList = filteredBranches.map(branch => branch.name).sort();
@@ -56,11 +59,11 @@ export default function UpcomingDeliveries({ isTabView = false }) {
             console.log('✅ Upcoming Deliveries - Site filter options:', sitesList);
         } catch (err) {
             console.error('Error fetching sites:', err);
-            // If user has assigned branches, use only those
-            if (userAssignedBranches && userAssignedBranches.length > 0) {
+            if (selectedBranchName) {
+                setSites([selectedBranchName]);
+            } else if (userAssignedBranches && userAssignedBranches.length > 0) {
                 const assignedSites = userAssignedBranches.map(b => b.name).filter(Boolean).sort();
                 setSites(assignedSites);
-                console.log('⚠️ Upcoming Deliveries - Using assigned sites from user object:', assignedSites);
             } else {
                 setSites([]);
             }
@@ -152,12 +155,20 @@ export default function UpcomingDeliveries({ isTabView = false }) {
             return false;
         }
         
-        // ✅ CRITICAL: Filter by user's assigned branches
-        if (userAssignedBranches && userAssignedBranches.length > 0) {
+        // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
+        if (selectedBranchName && (user.role === 'supervisor' || user.role === 'subcontractor')) {
+            const fromSite = delivery.from;
+            const toSite = delivery.to;
+            // Show delivery ONLY if either 'from' or 'to' matches SELECTED branch
+            const isMatch = fromSite === selectedBranchName || toSite === selectedBranchName;
+            if (!isMatch) {
+                return false;
+            }
+        } else if (userAssignedBranches && userAssignedBranches.length > 0) {
+            // Multi-branch filtering for other roles
             const assignedSiteNames = userAssignedBranches.map(b => b.name).filter(Boolean);
             const fromSite = delivery.from;
             const toSite = delivery.to;
-            // Show delivery if either 'from' or 'to' matches user's assigned sites
             const isAllowed = assignedSiteNames.includes(fromSite) || assignedSiteNames.includes(toSite);
             if (!isAllowed) {
                 return false;
