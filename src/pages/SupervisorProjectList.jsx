@@ -58,7 +58,11 @@ const SupervisorProjectList = () => {
     navigate('/login', { replace: true });
   };
 
-  const handleProjectClick = (branchId) => {
+  const handleProjectClick = (branchId, branchName) => {
+    // Store selected branch context in localStorage for material data isolation
+    localStorage.setItem('selectedBranchId', branchId);
+    localStorage.setItem('selectedBranchName', branchName || 'Selected Branch');
+    
     // Navigate to Labour dashboard for this specific branch
     navigate(`/branch/${branchId}/labour-dashboard`);
   };
@@ -133,7 +137,7 @@ const SupervisorProjectList = () => {
               {filteredProjects.map((project, index) => (
                 <div
                   key={project._id || index}
-                  onClick={() => handleProjectClick(project._id)}
+                  onClick={() => handleProjectClick(project._id, project.name)}
                   className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer transform transition-all duration-300 hover:scale-[1.02] hover:shadow-md active:scale-[0.98] group"
                 >
                   <div className="flex items-center justify-between">

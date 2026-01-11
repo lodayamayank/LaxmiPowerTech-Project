@@ -1,10 +1,12 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, FileText, Truck, Package, ClipboardCheck } from "lucide-react";
+import { MdFolder } from "react-icons/md";
 import Intent from "./Intent";
 import MaterialTransfer from "./MaterialTransfer";
 import UpcomingDeliveries from "./UpcomingDeliveries";
 import GRN from "./GRN";
+import { getSelectedBranchName } from "../../utils/branchContext";
 
 export default function Material({ activeTab }) {
   const navigate = useNavigate();
@@ -13,6 +15,7 @@ export default function Material({ activeTab }) {
   
   // Get branchId from location state if passed from supervisor/subcontractor flow
   const branchId = location.state?.branchId;
+  const selectedBranchName = getSelectedBranchName();
 
   // Determine active tab based on route or prop
   const getCurrentTab = () => {
@@ -68,6 +71,14 @@ export default function Material({ activeTab }) {
           </div>
           <div className="text-center">
             <h1 className="text-white text-xl font-bold">Material Management</h1>
+            {selectedBranchName && (user.role === 'supervisor' || user.role === 'subcontractor') && (
+              <div className="mt-2 flex items-center justify-center gap-2">
+                <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1.5">
+                  <MdFolder className="text-white" size={14} />
+                  <span className="text-white text-xs font-medium">{selectedBranchName}</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

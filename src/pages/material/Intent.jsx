@@ -5,6 +5,7 @@ import { Plus, Image as ImageIcon, Filter } from 'lucide-react';
 import { FaArrowLeft } from 'react-icons/fa';
 import AddIntentPopup from './AddIntentPopup';
 import axios from '../../utils/axios';
+import { getSelectedBranchId, getSelectedBranchName } from '../../utils/branchContext';
 
 export default function Intent({ isTabView = false }) {
   const navigate = useNavigate();
@@ -14,13 +15,16 @@ export default function Intent({ isTabView = false }) {
   const [totalPages, setTotalPages] = useState(1);
   const [showPopup, setShowPopup] = useState(false);
   
-  // Get user and assigned branches
+  // Get user and selected branch for data isolation
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const userAssignedBranches = user?.assignedBranches || [];
+  const selectedBranchId = getSelectedBranchId();
+  const selectedBranchName = getSelectedBranchName();
   
-  // Debug: Log user's assigned branches
-  console.log('👤 Intent - User:', user?.name);
+  // Debug: Log branch context
+  console.log('👤 Intent - User:', user?.name, 'Role:', user?.role);
   console.log('🏢 Intent - Assigned Branches:', userAssignedBranches);
+  console.log('🎯 Intent - Selected Branch:', selectedBranchId, selectedBranchName);
   
   // ✅ Filter states
   const [showFilters, setShowFilters] = useState(false);
@@ -45,18 +49,19 @@ export default function Intent({ isTabView = false }) {
     try {
       const branches = await branchesAPI.getAll();
       
-      // ✅ CRITICAL: Filter sites based on user's assigned branches
+      // ✅ CRITICAL: For supervisor/subcontractor with selected branch, show ONLY that branch
       let filteredBranches = branches;
-      if (userAssignedBranches && userAssignedBranches.length > 0) {
+      if (selectedBranchId && (user.role === 'supervisor' || user.role === 'subcontractor')) {
+        // Single branch isolation - show only selected branch
+        filteredBranches = branches.filter(branch => branch._id === selectedBranchId);
+        console.log('🔒 Intent - Single branch mode:', selectedBranchName);
+      } else if (userAssignedBranches && userAssignedBranches.length > 0) {
+        // Multi-branch mode for other roles with assignments
         const assignedBranchIds = userAssignedBranches.map(b => b._id || b);
-        console.log('🔍 Intent - Assigned Branch IDs:', assignedBranchIds);
-        
-        filteredBranches = branches.filter(branch => 
-          assignedBranchIds.includes(branch._id)
-        );
-        console.log('✅ Intent - Filtered to assigned sites:', filteredBranches.length, 'of', branches.length);
+        filteredBranches = branches.filter(branch => assignedBranchIds.includes(branch._id));
+        console.log('✅ Intent - Multi-branch mode:', filteredBranches.length, 'branches');
       } else {
-        console.log('⚠️ Intent - No assigned branches, showing all sites');
+        console.log('⚠️ Intent - Admin mode - all sites');
       }
       
       const sitesList = filteredBranches.map(branch => branch.name).sort();
@@ -64,11 +69,12 @@ export default function Intent({ isTabView = false }) {
       console.log('✅ Intent - Site filter options:', sitesList);
     } catch (err) {
       console.error('Error fetching sites:', err);
-      // If user has assigned branches, use only those
-      if (userAssignedBranches && userAssignedBranches.length > 0) {
+      // Fallback: use selected branch name if available
+      if (selectedBranchName) {
+        setSites([selectedBranchName]);
+      } else if (userAssignedBranches && userAssignedBranches.length > 0) {
         const assignedSites = userAssignedBranches.map(b => b.name).filter(Boolean).sort();
         setSites(assignedSites);
-        console.log('⚠️ Intent - Using assigned sites from user object:', assignedSites);
       } else {
         setSites([]);
       }
@@ -155,21 +161,30 @@ export default function Intent({ isTabView = false }) {
       // ✅ CRITICAL: Filter out approved intents (they should only appear in Upcoming Deliveries)
       combinedData = combinedData.filter(item => item.status !== 'approved');
       
-      // ✅ CRITICAL: Filter by user's assigned branches
-      if (userAssignedBranches && userAssignedBranches.length > 0) {
-        const assignedSiteNames = userAssignedBranches.map(b => b.name).filter(Boolean);
-        console.log('🔒 Intent - Filtering by assigned sites:', assignedSiteNames);
+      // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
+      if (selectedBranchName && (user.role === 'supervisor' || user.role === 'subcontractor')) {
+        console.log('🔒 Intent - STRICT ISOLATION: Filtering by selected branch only:', selectedBranchName);
         
         combinedData = combinedData.filter(item => {
           const deliverySite = item.deliverySite;
-          // Show intent if delivery site matches user's assigned sites
-          const isAllowed = assignedSiteNames.includes(deliverySite);
-          return isAllowed;
+          const isMatch = deliverySite === selectedBranchName;
+          return isMatch;
         });
         
-        console.log('✅ Intent - Filtered to', combinedData.length, 'intents for user\'s sites');
+        console.log('✅ Intent - Isolated to', combinedData.length, 'intents for branch:', selectedBranchName);
+      } else if (userAssignedBranches && userAssignedBranches.length > 0) {
+        // Multi-branch filtering for other roles
+        const assignedSiteNames = userAssignedBranches.map(b => b.name).filter(Boolean);
+        console.log('🔒 Intent - Multi-branch filtering:', assignedSiteNames);
+        
+        combinedData = combinedData.filter(item => {
+          const deliverySite = item.deliverySite;
+          return assignedSiteNames.includes(deliverySite);
+        });
+        
+        console.log('✅ Intent - Filtered to', combinedData.length, 'intents');
       } else {
-        console.log('⚠️ Intent - No site restriction applied (admin or no assigned branches)');
+        console.log('⚠️ Intent - Admin mode - no filtering');
       }
       
       // ✅ Apply filters client-side
