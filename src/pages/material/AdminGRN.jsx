@@ -585,10 +585,24 @@ export default function AdminGRN() {
         // Update local state
         setSelectedDelivery(response.data);
         
+        // Update billing data with saved values from response
+        setBillingData({
+          invoiceNumber: response.data.billing?.invoiceNumber || '',
+          billDate: response.data.billing?.billDate || '',
+          materialBilling: response.data.billing?.materialBilling || [],
+          totalPrice: response.data.billing?.totalPrice || 0,
+          totalDiscount: response.data.billing?.totalDiscount || 0,
+          finalAmount: response.data.billing?.finalAmount || 0,
+          companyName: response.data.billing?.companyName || 'Laxmi Powertech Private Limited'
+        });
+        
         // Update deliveries list
         setDeliveries(prev => prev.map(d => 
           d._id === response.data._id ? response.data : d
         ));
+        
+        // Refetch GRN records to ensure table has latest data
+        fetchGRNRecords();
         
         setIsEditMode(false);
         alert('Bill saved successfully! Invoice number and date-time have been assigned.');
