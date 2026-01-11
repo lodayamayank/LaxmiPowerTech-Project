@@ -409,21 +409,48 @@ export default function AdminGRN() {
     setShowDetailsModal(true);
     setIsEditMode(false);
     
+    console.log('🔍 Loading GRN Details for:', delivery.st_id);
+    console.log('📦 Delivery items:', delivery.items?.length);
+    console.log('💰 Existing billing data:', delivery.billing);
+    
     // Auto-generate invoice number from base PO ID
     const autoInvoiceNumber = extractBasePOId(delivery.transfer_number || delivery.st_id);
     
     // Initialize material-wise billing from delivery items
     const materialBilling = delivery.items?.map((item, index) => {
+      console.log(`\n🔎 Processing item ${index}:`, {
+        itemId: item._id,
+        itemCategory: item.category,
+        quantity: item.received_quantity || item.st_quantity
+      });
+      
       // Check if billing data exists for this material
       const existingBilling = delivery.billing?.materialBilling?.find(
         mb => mb.materialId === item._id || mb.materialName === item.category
       );
+      
+      console.log('   Existing billing found?', existingBilling ? 'YES' : 'NO');
+      if (existingBilling) {
+        console.log('   Existing billing data:', existingBilling);
+      } else {
+        console.log('   Available billing items:', delivery.billing?.materialBilling?.map(mb => ({
+          id: mb.materialId,
+          name: mb.materialName
+        })));
+      }
       
       const quantity = item.received_quantity || item.st_quantity || 0;
       const pricePerUnit = existingBilling?.pricePerUnit || 0;
       const totalPrice = quantity * pricePerUnit;
       const discountAmount = totalPrice * 0.05;  // Fixed 5% discount
       const finalCost = totalPrice - discountAmount;
+      
+      console.log('   Final calculated values:', {
+        pricePerUnit,
+        totalPrice,
+        discountAmount,
+        finalCost
+      });
       
       return {
         materialId: item._id || `material-${index}`,
