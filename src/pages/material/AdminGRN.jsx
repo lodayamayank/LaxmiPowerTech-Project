@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, Package, Receipt, Edit2, Save, XCircle, DollarSign, Download, FileText, FileSpreadsheet, Trash2, X, Calendar, MapPin, User, TrendingUp, CalendarDays } from 'lucide-react';
+import { Search, Eye, Package, Receipt, Edit2, Save, XCircle, DollarSign, Download, FileText, FileSpreadsheet, Trash2, X, Calendar, MapPin, User, TrendingUp } from 'lucide-react';
 import { upcomingDeliveryAPI, branchesAPI } from '../../utils/materialAPI';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -21,7 +21,8 @@ export default function AdminGRN() {
     materialBilling: [],  // Array of material-wise billing
     totalPrice: 0,
     totalDiscount: 0,
-    finalAmount: 0
+    finalAmount: 0,
+    companyName: 'Laxmi Powertech Private Limited'
   });
   const [isSaving, setIsSaving] = useState(false);
   
@@ -446,7 +447,8 @@ export default function AdminGRN() {
       materialBilling: materialBilling,
       totalPrice: delivery.billing?.totalPrice || 0,
       totalDiscount: delivery.billing?.totalDiscount || 0,
-      finalAmount: delivery.billing?.finalAmount || 0
+      finalAmount: delivery.billing?.finalAmount || 0,
+      companyName: delivery.billing?.companyName || 'Laxmi Powertech Private Limited'
     });
   };
 
@@ -565,6 +567,7 @@ export default function AdminGRN() {
         ...billingData,
         invoiceNumber: autoInvoiceNumber,  // Assign bill number on save
         billDate: currentDateTime,  // Set current date-time on save
+        companyName: billingData.companyName || 'Laxmi Powertech Private Limited',
         materialBilling: billingData.materialBilling.map(material => ({
           ...material,
           price: parseFloat(material.price) || 0,
@@ -942,7 +945,7 @@ export default function AdminGRN() {
             <p className="text-gray-600 text-sm">Loading GRN records...</p>
           </div>
         ) : (
-          <div className="bg-white shadow rounded-lg p-4 overflow-x-auto">
+          <div className="bg-white shadow rounded-lg py-3 px-2 overflow-x-auto">
             <div className="mb-4">
               <div className="flex justify-between items-center mb-3">
                 <h2 className="text-lg font-semibold text-gray-700">
@@ -1122,97 +1125,135 @@ export default function AdminGRN() {
                 <p className="text-gray-500 text-sm">No completed deliveries found</p>
               </div>
             ) : (
-              <table className="min-w-full border-collapse border border-gray-200 text-sm">
+              <table className="min-w-full border-collapse border border-gray-200 text-xs">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="border px-3 py-2 text-left font-medium text-gray-700">Sr No.</th>
-                    <th className="border px-3 py-2 text-left font-medium text-gray-700 bg-orange-50">Invoice No</th>
-                    <th className="border px-3 py-2 text-left font-medium text-gray-700">Date</th>
-                    <th className="border px-3 py-2 text-left font-medium text-gray-700">Category</th>
-                    <th className="border px-3 py-2 text-left font-medium text-gray-700">Category 1</th>
-                    <th className="border px-3 py-2 text-left font-medium text-gray-700">Category 2</th>
-                    <th className="border px-3 py-2 text-left font-medium text-gray-700">Quantity</th>
-                    <th className="border px-3 py-2 text-right font-medium text-gray-700 bg-blue-50">Price (₹)</th>
-                    <th className="border px-3 py-2 text-right font-medium text-gray-700 bg-blue-50">Amount (₹)</th>
-                    <th className="border px-3 py-2 text-right font-medium text-gray-700 bg-orange-50">Discount</th>
-                    <th className="border px-3 py-2 text-right font-medium text-gray-700 bg-green-50">Total (₹)</th>
-                    <th className="border px-3 py-2 text-left font-medium text-gray-700">Project Name</th>
-                    <th className="border px-3 py-2 text-left font-medium text-gray-700">Vendor Name</th>
-                    <th className="border px-3 py-2 text-left font-medium text-gray-700">Remark</th>
-                    <th className="border px-3 py-2 text-left font-medium text-gray-700">Company Name</th>
-                    <th className="border px-3 py-2 text-center font-medium text-gray-700">Actions</th>
+                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Sr No.</th>
+                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Invoice No</th>
+                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Date</th>
+                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Category</th>
+                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Category 1</th>
+                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Category 2</th>
+                    <th className="border px-2 py-2 text-center font-semibold text-gray-700">Quantity</th>
+                    <th className="border px-2 py-2 text-right font-semibold text-gray-700">Price (₹)</th>
+                    <th className="border px-2 py-2 text-right font-semibold text-gray-700">Amount (₹)</th>
+                    <th className="border px-2 py-2 text-right font-semibold text-gray-700">Discount</th>
+                    <th className="border px-2 py-2 text-right font-semibold text-gray-700 bg-green-50">Total (₹)</th>
+                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Project Name</th>
+                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Vendor Name</th>
+                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Remark</th>
+                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Company Name</th>
+                    <th className="border px-2 py-2 text-center font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredDeliveries.flatMap((delivery, deliveryIdx) => 
-                    (delivery.items || []).map((item, itemIdx) => {
-                      const materialBilling = delivery.billing?.materialBilling?.find(
-                        mb => mb.materialId === item._id || mb.materialName === item.category
-                      ) || {};
-                      
-                      const price = materialBilling.price || 0;
-                      const quantity = item.received_quantity || item.quantity || 0;
-                      const amount = price * quantity;
-                      const discount = materialBilling.discount || 0;
-                      const total = materialBilling.totalAmount || (amount - discount);
-                      const srNo = deliveryIdx * (delivery.items?.length || 0) + itemIdx + 1;
-                      
-                      return (
-                        <tr key={`${delivery._id}-${itemIdx}`} className="hover:bg-gray-50">
-                          <td className="border px-3 py-2 text-gray-700">{srNo}</td>
-                          <td className="border px-3 py-2 bg-orange-50 font-medium text-gray-900">
-                            {delivery.billing?.invoiceNumber || '-'}
-                          </td>
-                          <td className="border px-3 py-2 text-gray-700">
-                            {delivery.billing?.billDate 
-                              ? new Date(delivery.billing.billDate).toLocaleDateString('en-IN', { 
-                                  year: 'numeric', 
-                                  month: 'short', 
-                                  day: 'numeric' 
-                                })
-                              : new Date(delivery.createdAt).toLocaleDateString('en-IN', { 
-                                  year: 'numeric', 
-                                  month: 'short', 
-                                  day: 'numeric' 
-                                })}
-                          </td>
-                          <td className="border px-3 py-2 font-medium text-gray-900">{item.category || '-'}</td>
-                          <td className="border px-3 py-2 text-gray-700">{item.sub_category || '-'}</td>
-                          <td className="border px-3 py-2 text-gray-700">{item.sub_category1 || '-'}</td>
-                          <td className="border px-3 py-2 text-gray-700">
-                            {quantity} {item.uom || ''}
-                          </td>
-                          <td className="border px-3 py-2 bg-blue-50 text-right font-semibold text-gray-900">
-                            {formatCurrency(price)}
-                          </td>
-                          <td className="border px-3 py-2 bg-blue-50 text-right font-semibold text-gray-900">
-                            {formatCurrency(amount)}
-                          </td>
-                          <td className="border px-3 py-2 bg-orange-50 text-right text-red-600 font-medium">
-                            {formatCurrency(discount)}
-                          </td>
-                          <td className="border px-3 py-2 bg-green-50 text-right font-bold text-green-700">
-                            {formatCurrency(total)}
-                          </td>
-                          <td className="border px-3 py-2 text-gray-700">{delivery.to || '-'}</td>
-                          <td className="border px-3 py-2 text-gray-700">{delivery.from || item.vendor || '-'}</td>
-                          <td className="border px-3 py-2 text-gray-600 text-xs">{item.remarks || '-'}</td>
-                          <td className="border px-3 py-2 text-gray-700">{delivery.from || '-'}</td>
-                          <td className="border px-3 py-2 text-center">
-                            {itemIdx === 0 && (
-                              <button
-                                onClick={() => handleViewDetails(delivery)}
-                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                title="View GRN Details"
-                              >
-                                <Eye size={18} />
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
+                  {filteredDeliveries.map((delivery, deliveryIndex) => {
+                    // Expand each delivery to show all its materials
+                    return delivery.items && delivery.items.length > 0 ? (
+                      delivery.items.map((item, itemIndex) => {
+                        const srNo = deliveryIndex * 100 + itemIndex + 1;
+                        const materialBilling = delivery.billing?.materialBilling?.find(
+                          mb => mb.materialName === item.name || mb.materialName === item.category
+                        );
+                        
+                        return (
+                          <tr key={`${delivery._id}-${itemIndex}`} className="hover:bg-gray-50">
+                            <td className="border px-2 py-2 text-center text-gray-700">{srNo}</td>
+                            <td className="border px-2 py-2 font-medium text-gray-900">
+                              {delivery.billing?.invoiceNumber || '-'}
+                            </td>
+                            <td className="border px-2 py-2 text-gray-700">
+                              {delivery.billing?.billDate 
+                                ? new Date(delivery.billing.billDate).toLocaleDateString('en-IN', { 
+                                    year: 'numeric', 
+                                    month: 'short', 
+                                    day: 'numeric' 
+                                  })
+                                : new Date(delivery.createdAt).toLocaleDateString('en-IN', { 
+                                    year: 'numeric', 
+                                    month: 'short', 
+                                    day: 'numeric' 
+                                  })}
+                            </td>
+                            <td className="border px-2 py-2 text-gray-900">{item.category || item.name || '-'}</td>
+                            <td className="border px-2 py-2 text-gray-700">{item.sub_category || '-'}</td>
+                            <td className="border px-2 py-2 text-gray-700">{item.sub_category1 || '-'}</td>
+                            <td className="border px-2 py-2 text-center font-medium text-gray-900">
+                              {item.received_quantity || item.quantity || item.st_quantity || 0} {item.uom || ''}
+                            </td>
+                            <td className="border px-2 py-2 text-right text-gray-900">
+                              {materialBilling?.price ? `₹${materialBilling.price.toLocaleString('en-IN')}` : '-'}
+                            </td>
+                            <td className="border px-2 py-2 text-right font-medium text-gray-900">
+                              {materialBilling?.price && item.received_quantity 
+                                ? `₹${(materialBilling.price * (item.received_quantity || 0)).toLocaleString('en-IN')}` 
+                                : '-'}
+                            </td>
+                            <td className="border px-2 py-2 text-right text-red-600">
+                              {materialBilling?.discount ? `${materialBilling.discount}%` : '-'}
+                            </td>
+                            <td className="border px-2 py-2 text-right font-bold text-green-700 bg-green-50">
+                              {materialBilling?.totalAmount ? `₹${materialBilling.totalAmount.toLocaleString('en-IN')}` : '-'}
+                            </td>
+                            <td className="border px-2 py-2 text-gray-900">{delivery.to || '-'}</td>
+                            <td className="border px-2 py-2 text-gray-900">{delivery.from || delivery.vendor || '-'}</td>
+                            <td className="border px-2 py-2 text-gray-700">{item.remarks || '-'}</td>
+                            <td className="border px-2 py-2 font-medium text-gray-900">Laxmi Powertech Private Limited</td>
+                            <td className="border px-2 py-2 text-center">
+                              {itemIndex === 0 && (
+                                <button
+                                  onClick={() => handleViewDetails(delivery)}
+                                  className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                  title="View Details"
+                                >
+                                  <Eye size={16} />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr key={delivery._id} className="hover:bg-gray-50">
+                        <td className="border px-2 py-2 text-center text-gray-700">{deliveryIndex + 1}</td>
+                        <td className="border px-2 py-2 font-medium text-gray-900">
+                          {delivery.billing?.invoiceNumber || '-'}
+                        </td>
+                        <td className="border px-2 py-2 text-gray-700">
+                          {delivery.billing?.billDate 
+                            ? new Date(delivery.billing.billDate).toLocaleDateString('en-IN', { 
+                                year: 'numeric', 
+                                month: 'short', 
+                                day: 'numeric' 
+                              })
+                            : new Date(delivery.createdAt).toLocaleDateString('en-IN', { 
+                                year: 'numeric', 
+                                month: 'short', 
+                                day: 'numeric' 
+                              })}
+                        </td>
+                        <td className="border px-2 py-2 text-gray-500" colSpan="3">No items</td>
+                        <td className="border px-2 py-2 text-center">-</td>
+                        <td className="border px-2 py-2 text-right">-</td>
+                        <td className="border px-2 py-2 text-right">-</td>
+                        <td className="border px-2 py-2 text-right">-</td>
+                        <td className="border px-2 py-2 text-right bg-green-50">-</td>
+                        <td className="border px-2 py-2">{delivery.to || '-'}</td>
+                        <td className="border px-2 py-2">{delivery.from || delivery.vendor || '-'}</td>
+                        <td className="border px-2 py-2">-</td>
+                        <td className="border px-2 py-2 font-medium">Laxmi Powertech Private Limited</td>
+                        <td className="border px-2 py-2 text-center">
+                          <button
+                            onClick={() => handleViewDetails(delivery)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="View Details"
+                          >
+                            <Eye size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
@@ -1315,7 +1356,7 @@ export default function AdminGRN() {
                   )}
                 </div>
 
-                {/* Invoice Number and Bill Date */}
+                {/* Invoice Number, Bill Date, and Company Name */}
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">
@@ -1338,15 +1379,13 @@ export default function AdminGRN() {
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Bill Date & Time</label>
                     {isEditMode ? (
-                      <div className="relative">
-                        <input
-                          type="datetime-local"
-                          value={billingData.billDate ? new Date(billingData.billDate).toISOString().slice(0, 16) : ''}
-                          onChange={(e) => setBillingData({ ...billingData, billDate: e.target.value })}
-                          className="w-full bg-white border-2 border-orange-300 rounded pl-10 pr-3 py-2 text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                        />
-                        <CalendarDays className="absolute left-3 top-1/2 transform -translate-y-1/2 text-orange-500" size={18} />
-                      </div>
+                      <input
+                        type="datetime-local"
+                        value={billingData.billDate ? new Date(billingData.billDate).toISOString().slice(0, 16) : ''}
+                        onChange={(e) => setBillingData({ ...billingData, billDate: e.target.value })}
+                        className="w-full bg-white border-2 border-orange-300 rounded px-3 py-2 text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        style={{ colorScheme: 'light' }}
+                      />
                     ) : (
                       <div className="bg-white border-2 border-orange-300 rounded px-3 py-2">
                         <p className="text-gray-900 font-medium">
@@ -1358,6 +1397,22 @@ export default function AdminGRN() {
                             minute: '2-digit'
                           }) : 'Not set'}
                         </p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Company Name</label>
+                    {isEditMode ? (
+                      <input
+                        type="text"
+                        value={billingData.companyName || 'Laxmi Powertech Private Limited'}
+                        onChange={(e) => setBillingData({ ...billingData, companyName: e.target.value })}
+                        className="w-full bg-white border-2 border-orange-300 rounded px-3 py-2 text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        placeholder="Enter company name"
+                      />
+                    ) : (
+                      <div className="bg-white border-2 border-orange-300 rounded px-3 py-2">
+                        <p className="text-gray-900 font-medium">{billingData.companyName || 'Laxmi Powertech Private Limited'}</p>
                       </div>
                     )}
                   </div>
