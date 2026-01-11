@@ -638,13 +638,29 @@ export default function AdminGRN() {
       
       if (response.success) {
         console.log('✅ Billing saved successfully');
-        console.log('   Saved data:', response.data.billing);
+        console.log('   Saved billing data:', response.data.billing);
+        console.log('   MaterialBilling array:', response.data.billing?.materialBilling);
         
         // Refetch GRN records to ensure table has latest data
         await fetchGRNRecords();
         
-        // Reload the details modal with fresh data from backend
-        handleViewDetails(response.data);
+        // Update selectedDelivery with fresh data
+        setSelectedDelivery(response.data);
+        
+        // Directly use the saved billing data from backend response
+        // This preserves the exact values that were saved
+        const savedBilling = response.data.billing;
+        if (savedBilling) {
+          setBillingData({
+            invoiceNumber: savedBilling.invoiceNumber || '',
+            billDate: savedBilling.billDate ? new Date(savedBilling.billDate).toISOString().split('T')[0] : '',
+            companyName: savedBilling.companyName || 'Laxmi Powertech Private Limited',
+            materialBilling: savedBilling.materialBilling || [],
+            totalPrice: savedBilling.totalPrice || 0,
+            totalDiscount: savedBilling.totalDiscount || 0,
+            finalAmount: savedBilling.finalAmount || 0
+          });
+        }
         
         setIsEditMode(false);
         alert('Bill saved successfully! All billing details have been updated.');
