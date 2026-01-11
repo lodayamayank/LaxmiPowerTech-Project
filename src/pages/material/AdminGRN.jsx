@@ -447,11 +447,14 @@ export default function AdminGRN() {
         }
       }
       
-      // Use existing billing data or calculate fresh values
-      const pricePerUnit = existingBilling?.pricePerUnit || 0;
-      const totalPrice = existingBilling?.totalPrice || (quantity * pricePerUnit);
-      const discountAmount = existingBilling?.discountAmount || (totalPrice * 0.05);
-      const finalCost = existingBilling?.finalCost || (totalPrice - discountAmount);
+      // Use existing billing data - handle both old and new field names
+      // Old data might use 'price', new data uses 'pricePerUnit'
+      const pricePerUnit = existingBilling?.pricePerUnit || existingBilling?.price || 0;
+      const totalPrice = existingBilling?.totalPrice || existingBilling?.amount || (quantity * pricePerUnit);
+      const discountAmount = existingBilling?.discountAmount || existingBilling?.discount || (totalPrice * 0.05);
+      const finalCost = existingBilling?.finalCost || existingBilling?.totalAmount || (totalPrice - discountAmount);
+      
+      console.log('   Loaded values:', { pricePerUnit, totalPrice, discountAmount, finalCost });
       
       return {
         materialId: item._id || item.itemId || `material-${index}`,
@@ -1265,9 +1268,11 @@ export default function AdminGRN() {
                     return delivery.items && delivery.items.length > 0 ? (
                       delivery.items.map((item, itemIndex) => {
                         const srNo = deliveryIndex * 100 + itemIndex + 1;
-                        const materialBilling = delivery.billing?.materialBilling?.find(
-                          mb => mb.materialName === item.name || mb.materialName === item.category
-                        );
+                        // Match by index first (most reliable), then by name
+                        const materialBilling = delivery.billing?.materialBilling?.[itemIndex] || 
+                          delivery.billing?.materialBilling?.find(
+                            mb => mb.materialName === item.name || mb.materialName === item.category
+                          );
                         
                         return (
                           <tr key={`${delivery._id}-${itemIndex}`} className="hover:bg-gray-50">
@@ -1295,18 +1300,24 @@ export default function AdminGRN() {
                               {item.received_quantity || item.quantity || item.st_quantity || 0} {item.uom || ''}
                             </td>
                             <td className="border px-2 py-2 text-right text-gray-900">
-                              {materialBilling?.price ? `₹${materialBilling.price.toLocaleString('en-IN')}` : '-'}
+                              {(materialBilling?.pricePerUnit || materialBilling?.price) 
+                                ? `₹${(materialBilling?.pricePerUnit || materialBilling?.price).toLocaleString('en-IN')}` 
+                                : '-'}
                             </td>
                             <td className="border px-2 py-2 text-right font-medium text-gray-900">
-                              {materialBilling?.price && item.received_quantity 
-                                ? `₹${(materialBilling.price * (item.received_quantity || 0)).toLocaleString('en-IN')}` 
+                              {(materialBilling?.totalPrice || materialBilling?.amount) 
+                                ? `₹${(materialBilling?.totalPrice || materialBilling?.amount).toLocaleString('en-IN')}` 
                                 : '-'}
                             </td>
                             <td className="border px-2 py-2 text-right text-red-600">
-                              {materialBilling?.discount ? `${materialBilling.discount}%` : '-'}
+                              {materialBilling?.discountAmount 
+                                ? `₹${materialBilling.discountAmount.toLocaleString('en-IN')}` 
+                                : (materialBilling?.discount ? `${materialBilling.discount}%` : '-')}
                             </td>
                             <td className="border px-2 py-2 text-right font-bold text-green-700 bg-green-50">
-                              {materialBilling?.totalAmount ? `₹${materialBilling.totalAmount.toLocaleString('en-IN')}` : '-'}
+                              {(materialBilling?.finalCost || materialBilling?.totalAmount) 
+                                ? `₹${(materialBilling?.finalCost || materialBilling?.totalAmount).toLocaleString('en-IN')}` 
+                                : '-'}
                             </td>
                             <td className="border px-2 py-2 text-gray-900">{delivery.to || '-'}</td>
                             <td className="border px-2 py-2 text-gray-900">{delivery.from || delivery.vendor || '-'}</td>
