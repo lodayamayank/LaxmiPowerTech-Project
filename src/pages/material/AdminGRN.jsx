@@ -642,49 +642,98 @@ export default function AdminGRN() {
       // Use filtered deliveries for export
       const dataToExport = filteredDeliveries.length > 0 ? filteredDeliveries : deliveries;
       
-      // Prepare data for export
-      const exportData = dataToExport.map((delivery, index) => ({
-        'Sr. No.': index + 1,
-        'Type': delivery.type === 'PO' ? 'Purchase Order' : 'Site Transfer',
-        'Transfer ID': delivery.transfer_number || delivery.st_id || 'N/A',
-        'From': delivery.from || 'N/A',
-        'To': delivery.to || 'N/A',
-        'Created By': delivery.createdBy || 'N/A',
-        'Invoice Number': delivery.billing?.invoiceNumber || '-',
-        'Total Price': delivery.billing?.totalPrice ? `₹${delivery.billing.totalPrice.toFixed(2)}` : '-',
-        'Bill Date': delivery.billing?.billDate 
-          ? new Date(delivery.billing.billDate).toLocaleDateString('en-IN')
-          : '-',
-        'Total Discount': delivery.billing?.totalDiscount 
-          ? `₹${delivery.billing.totalDiscount.toFixed(2)}`
-          : '-',
-        'Final Amount': delivery.billing?.finalAmount 
-          ? `₹${delivery.billing.finalAmount.toFixed(2)}`
-          : '-',
-        'Status': delivery.status || 'N/A',
-        'Created Date': formatDate(delivery.createdAt),
-        'Delivery Date': formatDate(delivery.updatedAt)
-      }));
+      // Prepare material-level data for export (matching table structure)
+      const exportData = [];
+      dataToExport.forEach((delivery, deliveryIndex) => {
+        if (delivery.items && delivery.items.length > 0) {
+          delivery.items.forEach((item, itemIndex) => {
+            const srNo = deliveryIndex * 100 + itemIndex + 1;
+            const materialBilling = delivery.billing?.materialBilling?.find(
+              mb => mb.materialName === item.name || mb.materialName === item.category
+            );
+            
+            exportData.push({
+              'Sr No.': srNo,
+              'Invoice No': delivery.billing?.invoiceNumber || '-',
+              'Date': delivery.billing?.billDate 
+                ? new Date(delivery.billing.billDate).toLocaleDateString('en-IN', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                  })
+                : new Date(delivery.createdAt).toLocaleDateString('en-IN', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                  }),
+              'Category': item.category || item.name || '-',
+              'Category 1': item.sub_category || '-',
+              'Category 2': item.sub_category1 || '-',
+              'Quantity': `${item.received_quantity || item.quantity || item.st_quantity || 0} ${item.uom || ''}`,
+              'Price (₹)': materialBilling?.price ? materialBilling.price.toLocaleString('en-IN') : '-',
+              'Amount (₹)': materialBilling?.price && item.received_quantity 
+                ? (materialBilling.price * (item.received_quantity || 0)).toLocaleString('en-IN') 
+                : '-',
+              'Discount': materialBilling?.discount ? `${materialBilling.discount}%` : '-',
+              'Total (₹)': materialBilling?.totalAmount ? materialBilling.totalAmount.toLocaleString('en-IN') : '-',
+              'Project Name': delivery.to || '-',
+              'Vendor Name': delivery.from || delivery.vendor || '-',
+              'Remark': item.remarks || '-',
+              'Company Name': 'Laxmi Powertech Private Limited'
+            });
+          });
+        } else {
+          // Handle deliveries with no items
+          exportData.push({
+            'Sr No.': deliveryIndex + 1,
+            'Invoice No': delivery.billing?.invoiceNumber || '-',
+            'Date': delivery.billing?.billDate 
+              ? new Date(delivery.billing.billDate).toLocaleDateString('en-IN', { 
+                  year: 'numeric', 
+                  month: 'short', 
+                  day: 'numeric' 
+                })
+              : new Date(delivery.createdAt).toLocaleDateString('en-IN', { 
+                  year: 'numeric', 
+                  month: 'short', 
+                  day: 'numeric' 
+                }),
+            'Category': 'No items',
+            'Category 1': '-',
+            'Category 2': '-',
+            'Quantity': '-',
+            'Price (₹)': '-',
+            'Amount (₹)': '-',
+            'Discount': '-',
+            'Total (₹)': '-',
+            'Project Name': delivery.to || '-',
+            'Vendor Name': delivery.from || delivery.vendor || '-',
+            'Remark': '-',
+            'Company Name': 'Laxmi Powertech Private Limited'
+          });
+        }
+      });
 
       // Create worksheet
       const ws = XLSX.utils.json_to_sheet(exportData);
       
       // Set column widths
       const colWidths = [
-        { wch: 8 },  // Sr. No.
-        { wch: 15 }, // Type
-        { wch: 20 }, // Transfer ID
-        { wch: 15 }, // From
-        { wch: 15 }, // To
-        { wch: 15 }, // Created By
-        { wch: 18 }, // Invoice Number
-        { wch: 15 }, // Total Price
-        { wch: 15 }, // Bill Date
-        { wch: 15 }, // Total Discount
-        { wch: 15 }, // Final Amount
-        { wch: 12 }, // Status
-        { wch: 20 }, // Created Date
-        { wch: 20 }  // Delivery Date
+        { wch: 8 },  // Sr No.
+        { wch: 18 }, // Invoice No
+        { wch: 12 }, // Date
+        { wch: 20 }, // Category
+        { wch: 15 }, // Category 1
+        { wch: 15 }, // Category 2
+        { wch: 12 }, // Quantity
+        { wch: 12 }, // Price
+        { wch: 15 }, // Amount
+        { wch: 10 }, // Discount
+        { wch: 15 }, // Total
+        { wch: 18 }, // Project Name
+        { wch: 18 }, // Vendor Name
+        { wch: 20 }, // Remark
+        { wch: 35 }  // Company Name
       ];
       ws['!cols'] = colWidths;
 
@@ -712,7 +761,7 @@ export default function AdminGRN() {
       // Use filtered deliveries for export
       const dataToExport = filteredDeliveries.length > 0 ? filteredDeliveries : deliveries;
       
-      const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
+      const doc = new jsPDF('l', 'mm', 'a3'); // A3 Landscape for wider table
       
       // Add title
       doc.setFontSize(18);
@@ -722,58 +771,104 @@ export default function AdminGRN() {
       // Add export date and record count
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
+      const totalMaterialRows = dataToExport.reduce((sum, d) => sum + (d.items?.length || 1), 0);
       doc.text(`Export Date: ${new Date().toLocaleDateString('en-IN')}`, 14, 22);
-      doc.text(`Total Records: ${dataToExport.length}`, 14, 28);
+      doc.text(`Total Material Rows: ${totalMaterialRows}`, 14, 28);
       
-      // Prepare table data
-      const tableData = dataToExport.map((delivery, index) => [
-        index + 1,
-        delivery.type === 'PO' ? 'PO' : 'ST',
-        delivery.transfer_number || delivery.st_id || 'N/A',
-        delivery.from || 'N/A',
-        delivery.to || 'N/A',
-        delivery.billing?.invoiceNumber || '-',
-        delivery.billing?.totalPrice ? `₹${delivery.billing.totalPrice.toFixed(2)}` : '-',
-        delivery.billing?.billDate 
-          ? new Date(delivery.billing.billDate).toLocaleDateString('en-IN')
-          : '-',
-        delivery.billing?.finalAmount 
-          ? `₹${delivery.billing.finalAmount.toFixed(2)}`
-          : '-',
-        delivery.status || 'N/A'
-      ]);
+      // Prepare material-level table data (matching table structure)
+      const tableData = [];
+      dataToExport.forEach((delivery, deliveryIndex) => {
+        if (delivery.items && delivery.items.length > 0) {
+          delivery.items.forEach((item, itemIndex) => {
+            const srNo = deliveryIndex * 100 + itemIndex + 1;
+            const materialBilling = delivery.billing?.materialBilling?.find(
+              mb => mb.materialName === item.name || mb.materialName === item.category
+            );
+            
+            tableData.push([
+              srNo,
+              delivery.billing?.invoiceNumber || '-',
+              delivery.billing?.billDate 
+                ? new Date(delivery.billing.billDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+                : new Date(delivery.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+              item.category || item.name || '-',
+              item.sub_category || '-',
+              item.sub_category1 || '-',
+              `${item.received_quantity || item.quantity || item.st_quantity || 0} ${item.uom || ''}`,
+              materialBilling?.price ? `₹${materialBilling.price.toLocaleString('en-IN')}` : '-',
+              materialBilling?.price && item.received_quantity 
+                ? `₹${(materialBilling.price * (item.received_quantity || 0)).toLocaleString('en-IN')}` 
+                : '-',
+              materialBilling?.discount ? `${materialBilling.discount}%` : '-',
+              materialBilling?.totalAmount ? `₹${materialBilling.totalAmount.toLocaleString('en-IN')}` : '-',
+              delivery.to || '-',
+              delivery.from || delivery.vendor || '-',
+              item.remarks || '-',
+              'Laxmi Powertech Pvt Ltd'
+            ]);
+          });
+        } else {
+          tableData.push([
+            deliveryIndex + 1,
+            delivery.billing?.invoiceNumber || '-',
+            delivery.billing?.billDate 
+              ? new Date(delivery.billing.billDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+              : new Date(delivery.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+            'No items',
+            '-',
+            '-',
+            '-',
+            '-',
+            '-',
+            '-',
+            '-',
+            delivery.to || '-',
+            delivery.from || delivery.vendor || '-',
+            '-',
+            'Laxmi Powertech Pvt Ltd'
+          ]);
+        }
+      });
 
       // Add table using autoTable
       autoTable(doc, {
         startY: 34,
-        head: [['Sr.', 'Type', 'Transfer ID', 'From', 'To', 'Invoice No.', 'Total Price', 'Bill Date', 'Final Amount', 'Status']],
+        head: [[
+          'Sr No.', 'Invoice No', 'Date', 'Category', 'Category 1', 'Category 2',
+          'Quantity', 'Price', 'Amount', 'Discount', 'Total', 'Project', 'Vendor', 'Remark', 'Company'
+        ]],
         body: tableData,
         theme: 'grid',
         headStyles: {
           fillColor: [251, 146, 60], // Orange color
           textColor: 255,
           fontStyle: 'bold',
-          fontSize: 9
+          fontSize: 7
         },
         bodyStyles: {
-          fontSize: 8
+          fontSize: 6
         },
         alternateRowStyles: {
           fillColor: [255, 247, 237] // Light orange
         },
         columnStyles: {
-          0: { cellWidth: 10 },  // Sr.
-          1: { cellWidth: 15 },  // Type
-          2: { cellWidth: 35 },  // Transfer ID
-          3: { cellWidth: 25 },  // From
-          4: { cellWidth: 25 },  // To
-          5: { cellWidth: 30 },  // Invoice No.
-          6: { cellWidth: 25 },  // Total Price
-          7: { cellWidth: 25 },  // Bill Date
-          8: { cellWidth: 25 },  // Final Amount
-          9: { cellWidth: 20 }   // Status
+          0: { cellWidth: 12 },  // Sr No.
+          1: { cellWidth: 25 },  // Invoice No
+          2: { cellWidth: 18 },  // Date
+          3: { cellWidth: 25 },  // Category
+          4: { cellWidth: 20 },  // Category 1
+          5: { cellWidth: 20 },  // Category 2
+          6: { cellWidth: 18 },  // Quantity
+          7: { cellWidth: 20 },  // Price
+          8: { cellWidth: 22 },  // Amount
+          9: { cellWidth: 15 },  // Discount
+          10: { cellWidth: 22 }, // Total
+          11: { cellWidth: 22 }, // Project
+          12: { cellWidth: 22 }, // Vendor
+          13: { cellWidth: 20 }, // Remark
+          14: { cellWidth: 35 }  // Company
         },
-        margin: { left: 14, right: 14 }
+        margin: { left: 10, right: 10 }
       });
 
       // Generate filename with current date
