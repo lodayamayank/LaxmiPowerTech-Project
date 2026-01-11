@@ -32,8 +32,6 @@ export default function AdminGRN() {
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
   const [filterInvoiceNumber, setFilterInvoiceNumber] = useState('');
-  const [filterCostMin, setFilterCostMin] = useState('');
-  const [filterCostMax, setFilterCostMax] = useState('');
   const [filterType, setFilterType] = useState(''); // ✅ New: Type filter (Site Transfer / Intent)
   const [sites, setSites] = useState([]);
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -59,7 +57,7 @@ export default function AdminGRN() {
   // Apply all filters to deliveries
   useEffect(() => {
     applyFilters();
-  }, [deliveries, filterSite, filterDateFrom, filterDateTo, filterInvoiceNumber, filterCostMin, filterCostMax, filterType, search]);
+  }, [deliveries, filterSite, filterDateFrom, filterDateTo, filterInvoiceNumber, filterType, search]);
 
   // Calculate analytics whenever filtered deliveries change
   useEffect(() => {
@@ -271,15 +269,6 @@ export default function AdminGRN() {
       );
     }
 
-    // Cost range filter
-    if (filterCostMin || filterCostMax) {
-      filtered = filtered.filter(delivery => {
-        const finalAmount = delivery.billing?.finalAmount || 0;
-        const min = filterCostMin ? parseFloat(filterCostMin) : 0;
-        const max = filterCostMax ? parseFloat(filterCostMax) : Infinity;
-        return finalAmount >= min && finalAmount <= max;
-      });
-    }
 
     // Date range filter
     if (filterDateFrom) {
@@ -1184,41 +1173,8 @@ export default function AdminGRN() {
                   </div>
                 </div>
 
-                {/* Second Row - Cost Range */}
-                <div className="flex gap-4 items-end flex-wrap">
-                  {/* Cost Min */}
-                  <div className="flex-1 min-w-[180px]">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Min Cost (₹)</label>
-                    <input
-                      type="number"
-                      value={filterCostMin}
-                      onChange={(e) => setFilterCostMin(e.target.value)}
-                      placeholder="Min amount"
-                      min="0"
-                      step="100"
-                      className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors"
-                    />
-                  </div>
-
-                  {/* Cost Max */}
-                  <div className="flex-1 min-w-[180px]">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Max Cost (₹)</label>
-                    <input
-                      type="number"
-                      value={filterCostMax}
-                      onChange={(e) => setFilterCostMax(e.target.value)}
-                      placeholder="Max amount"
-                      min="0"
-                      step="100"
-                      className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors"
-                    />
-                  </div>
-
-                  {/* Spacer */}
-                  <div className="flex-1 min-w-[160px]"></div>
-                  <div className="flex-1 min-w-[160px]"></div>
-
-                  {/* Clear Filters Button */}
+                {/* Clear Filters Button */}
+                <div className="flex justify-end mt-3">
                   <button
                     onClick={() => {
                       setFilterSite('');
@@ -1227,8 +1183,6 @@ export default function AdminGRN() {
                       setFilterDateFrom('');
                       setFilterDateTo('');
                       setFilterInvoiceNumber('');
-                      setFilterCostMin('');
-                      setFilterCostMax('');
                     }}
                     className="px-6 py-2.5 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium text-sm shadow-sm hover:shadow-md"
                   >
