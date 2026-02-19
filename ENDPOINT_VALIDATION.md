@@ -2,7 +2,7 @@
 
 **Date:** Feb 19, 2026  
 **Frontend:** laxmipowertech-frontend-main  
-**Backend:** https://laxmipowertech-backend.onrender.com/api  
+**Backend:** https://laxmipowertech-backend-1.onrender.com/api  
 **Status:** ✅ Production Ready
 
 ---
@@ -138,7 +138,7 @@ allowedOrigins = [
 
 ### ⚠️ CRITICAL: Render Backend Status
 
-**Issue:** Backend at `https://laxmipowertech-backend.onrender.com` is returning 404 errors.
+**Issue:** Backend at `https://laxmipowertech-backend-1.onrender.com` is returning 404 errors.
 
 **Test Results:**
 ```bash
@@ -202,7 +202,7 @@ Render free tier puts services to sleep after 15 minutes of inactivity. The back
 
 ### Frontend (.env variables for Vercel)
 ```bash
-VITE_API_BASE_URL=https://laxmipowertech-backend.onrender.com/api
+VITE_API_BASE_URL=https://laxmipowertech-backend-1.onrender.com/api
 ```
 
 ### Backend (Render environment variables)

@@ -1,7 +1,7 @@
 # 🚨 Render Backend Deployment & Wake-up Checklist
 
 **Date:** Feb 19, 2026  
-**Backend URL:** https://laxmipowertech-backend.onrender.com  
+**Backend URL:** https://laxmipowertech-backend-1.onrender.com  
 **Issue:** Backend returning 404 errors - service appears asleep or not fully deployed
 
 ---
@@ -11,13 +11,13 @@
 ### Test Results
 ```bash
 # Testing backend endpoints
-curl https://laxmipowertech-backend.onrender.com/api/auth/login
+curl https://laxmipowertech-backend-1.onrender.com/api/auth/login
 # ✅ Returns: {"message":"Invalid credentials"} - AUTH WORKING
 
-curl https://laxmipowertech-backend.onrender.com/api/indents
+curl https://laxmipowertech-backend-1.onrender.com/api/indents
 # ❌ Returns: "Cannot GET /api/indents" - 404 ERROR
 
-curl https://laxmipowertech-backend.onrender.com/api/material/catalog
+curl https://laxmipowertech-backend-1.onrender.com/api/material/catalog
 # ❌ Returns: "Cannot GET /api/material/catalog" - 404 ERROR
 ```
 
@@ -43,10 +43,10 @@ curl https://laxmipowertech-backend.onrender.com/api/material/catalog
 ## ✅ Step 1: Wake Up Render Service
 
 ### Method 1: Direct Browser Access
-1. Open browser and visit: `https://laxmipowertech-backend.onrender.com/api/auth/login`
+1. Open browser and visit: `https://laxmipowertech-backend-1.onrender.com/api/auth/login`
 2. Wait 30-60 seconds for service to wake up
 3. You should see: `{"message":"Not authorized, no token"}` (instead of HTML 404)
-4. Test again: `https://laxmipowertech-backend.onrender.com/api/salary/calculate`
+4. Test again: `https://laxmipowertech-backend-1.onrender.com/api/salary/calculate`
 
 ### Method 2: Terminal Wake-up Script
 ```bash
@@ -54,7 +54,7 @@ curl https://laxmipowertech-backend.onrender.com/api/material/catalog
 echo "🔄 Waking up Render backend..."
 for i in {1..3}; do
   echo "Attempt $i/3"
-  curl -X GET https://laxmipowertech-backend.onrender.com/api/auth/login 2>&1 | grep -q "message" && echo "✅ Backend is awake!" && break
+  curl -X GET https://laxmipowertech-backend-1.onrender.com/api/auth/login 2>&1 | grep -q "message" && echo "✅ Backend is awake!" && break
   sleep 20
 done
 ```
@@ -103,7 +103,7 @@ ALLOWED_ORIGINS=http://localhost:5173,https://laxmi-power-tech-project.vercel.ap
 #!/bin/bash
 # Save as: test-backend.sh
 
-BACKEND="https://laxmipowertech-backend.onrender.com/api"
+BACKEND="https://laxmipowertech-backend-1.onrender.com/api"
 
 echo "🧪 Testing Backend Endpoints..."
 echo ""
@@ -146,7 +146,7 @@ chmod +x test-backend.sh
 ### Update axios.js to Force Production URL (Testing)
 ```javascript
 // TEMPORARY - For testing only
-const baseURL = 'https://laxmipowertech-backend.onrender.com/api';
+const baseURL = 'https://laxmipowertech-backend-1.onrender.com/api';
 
 console.log('🌐 Axios configured with baseURL:', baseURL);
 ```

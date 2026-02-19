@@ -63,7 +63,7 @@
 
 **Option A: Browser Method**
 ```
-Visit: https://laxmipowertech-backend.onrender.com/api/auth/login
+Visit: https://laxmipowertech-backend-1.onrender.com/api/auth/login
 Wait: 30-60 seconds for wake-up
 Verify: Should return JSON {"message":"Not authorized, no token"}
 ```
@@ -82,7 +82,7 @@ Verify: Should return JSON {"message":"Not authorized, no token"}
 # Run from frontend-main directory
 for i in {1..5}; do
   echo "Attempt $i - Waking backend..."
-  curl https://laxmipowertech-backend.onrender.com/api/auth/login
+  curl https://laxmipowertech-backend-1.onrender.com/api/auth/login
   sleep 15
 done
 ```
@@ -102,7 +102,7 @@ Check in Render Dashboard → Environment:
 
 Run validation script:
 ```bash
-BACKEND="https://laxmipowertech-backend.onrender.com/api"
+BACKEND="https://laxmipowertech-backend-1.onrender.com/api"
 
 echo "Testing Login..."
 curl -X POST "$BACKEND/auth/login" -H "Content-Type: application/json" \
@@ -267,7 +267,7 @@ Frontend is ready when:
 
 **Vercel Deployment:**
 - Environment Variables: Dashboard → Settings → Environment Variables
-- Required: `VITE_API_BASE_URL=https://laxmipowertech-backend.onrender.com/api`
+- Required: `VITE_API_BASE_URL=https://laxmipowertech-backend-1.onrender.com/api`
 
 ---
 
