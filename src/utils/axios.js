@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Use environment variable for API base URL
 // Always points to Render backend (no localhost fallback)
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://laxmipowertech-backend.onrender.com/api';
+const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://laxmipowertech-backend-1.onrender.com/api';
 
 console.log('🌐 Axios configured with baseURL:', baseURL);
 
