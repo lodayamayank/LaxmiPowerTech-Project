@@ -1,23 +1,16 @@
 // src/utils/axios.js
 import axios from 'axios';
 
-// 🔥 AUTO-DETECT ENVIRONMENT
-// If running on localhost → use local backend
-// If running on live site → use Render backend
-const isLocalhost = window.location.hostname === 'localhost' || 
-                    window.location.hostname === '127.0.0.1' ||
-                    window.location.hostname.includes('192.168');
+// Use environment variable for API base URL
+// Always points to Render backend (no localhost fallback)
+const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://laxmipowertech-backend.onrender.com/api';
 
-const baseURL = isLocalhost 
-  ? (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api')
-  : 'https://laxmipowertech-backend.onrender.com/api';
-
-console.log('🌐 Environment:', isLocalhost ? 'LOCAL' : 'PRODUCTION');
 console.log('🌐 Axios configured with baseURL:', baseURL);
 
 const instance = axios.create({
   baseURL,
   timeout: 30000, // 30 seconds
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },

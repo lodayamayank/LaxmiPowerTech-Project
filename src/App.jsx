@@ -55,6 +55,10 @@ const AdminGRN = lazy(() => import('./pages/material/AdminGRN'));
 const UploadPhoto = lazy(() => import('./pages/material/UploadPhoto'));
 const Intent = lazy(() => import('./pages/material/Intent'));
 
+// Salary Management Pages - Lazy loaded
+const SalaryDashboard = lazy(() => import('./pages/SalaryDashboard'));
+const SalaryHistory = lazy(() => import('./pages/SalaryHistory'));
+
 // Loading fallback component
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -175,6 +179,10 @@ function App() {
         <Route path="/dashboard/material/deliveries/:id" element={<DeliveryDetails />} />
         <Route path="/dashboard/material/delivery-checklist/:id" element={<DeliveryChecklist />} />
         <Route path="/dashboard/material/upload-photo" element={<UploadPhoto />} />
+
+        {/* Salary Management Routes */}
+        <Route path="/admin/salary" element={<SalaryDashboard />} />
+        <Route path="/admin/salary-history" element={<SalaryHistory />} />
 
         </Routes>
       </Suspense>

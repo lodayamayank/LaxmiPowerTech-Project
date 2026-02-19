@@ -55,7 +55,7 @@ const Login = () => {
       
       let errorMessage;
       if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
-        errorMessage = '❌ Cannot connect to server. Please ensure backend is running on port 5001.';
+        errorMessage = '❌ Cannot connect to server. Please ensure backend is running on port 5000.';
       } else if (err.response?.status === 401) {
         errorMessage = 'Invalid username or password. Please try again.';
       } else {

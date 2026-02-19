@@ -67,6 +67,12 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                 salaryType: user.salaryType || 'monthly',
                 salaryEffectiveDate: user.salaryEffectiveDate || '',
                 
+                // Travel Allowance & Overtime
+                perDayTravelAllowance: user.perDayTravelAllowance || 0,
+                railwayPassAmount: user.railwayPassAmount || 0,
+                standardDailyHours: user.standardDailyHours || 9,
+                overtimeRateMultiplier: user.overtimeRateMultiplier || 1.0,
+                
                 // Keep other fields that might exist
                 _id: user._id,
                 createdAt: user.createdAt,
@@ -514,6 +520,95 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                                             <p className="text-xs text-gray-500 mt-1">
                                                 Date when this salary becomes effective (leave blank for current date)
                                             </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Travel & Overtime Configuration Section */}
+                                <div>
+                                    <h3 className="text-md font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                                        <FaRupeeSign className="text-blue-500" />
+                                        Travel Allowance & Overtime
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                                Per Day Travel Allowance <span className="text-gray-500 text-xs">(₹)</span>
+                                            </label>
+                                            <div className="relative">
+                                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                                    <FaRupeeSign size={14} />
+                                                </div>
+                                                <input
+                                                    type="number"
+                                                    name="perDayTravelAllowance"
+                                                    value={form.perDayTravelAllowance || 0}
+                                                    onChange={handleChange}
+                                                    placeholder="Enter per day amount"
+                                                    min="0"
+                                                    step="10"
+                                                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                                />
+                                            </div>
+                                            <p className="text-xs text-gray-500 mt-1">Daily travel allowance per working day</p>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                                Monthly Railway Pass <span className="text-gray-500 text-xs">(₹)</span>
+                                            </label>
+                                            <div className="relative">
+                                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                                    <FaRupeeSign size={14} />
+                                                </div>
+                                                <input
+                                                    type="number"
+                                                    name="railwayPassAmount"
+                                                    value={form.railwayPassAmount || 0}
+                                                    onChange={handleChange}
+                                                    placeholder="Enter pass amount"
+                                                    min="0"
+                                                    step="100"
+                                                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                                />
+                                            </div>
+                                            <p className="text-xs text-gray-500 mt-1">Fixed monthly railway pass reimbursement</p>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                                Standard Daily Hours
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="standardDailyHours"
+                                                value={form.standardDailyHours || 9}
+                                                onChange={handleChange}
+                                                placeholder="e.g., 9"
+                                                min="1"
+                                                max="24"
+                                                step="0.5"
+                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                            />
+                                            <p className="text-xs text-gray-500 mt-1">Hours per day before overtime applies</p>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                                Overtime Rate Multiplier
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="overtimeRateMultiplier"
+                                                value={form.overtimeRateMultiplier || 1.0}
+                                                onChange={handleChange}
+                                                placeholder="e.g., 1.5"
+                                                min="1"
+                                                max="3"
+                                                step="0.1"
+                                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                            />
+                                            <p className="text-xs text-gray-500 mt-1">1.0 = normal rate, 1.5 = time-and-a-half, 2.0 = double time</p>
                                         </div>
                                     </div>
                                 </div>

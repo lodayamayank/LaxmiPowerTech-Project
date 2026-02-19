@@ -97,6 +97,11 @@ const DashboardLayout = ({ children, title }) => {
       path: "/admin/reimbursements",
     },
     {
+      label: "Salary",
+      icon: <FaMoneyBillWave />,
+      path: "/admin/salary",
+    },
+    {
       label: "Material",
       icon: <MdInventory />,
       children: [
