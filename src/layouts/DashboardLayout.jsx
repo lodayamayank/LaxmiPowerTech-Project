@@ -13,6 +13,8 @@ import {
   FaMoneyBillWave,
   FaChevronLeft,
   FaChevronRight,
+  FaMoon,
+  FaSun,
 } from "react-icons/fa";
 import { MdOutlineTaskAlt, MdSettings } from "react-icons/md";
 import { MdNotificationsActive } from "react-icons/md";
@@ -34,9 +36,17 @@ const DashboardLayout = ({ children, title }) => {
   const [materialOpen, setMaterialOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const [user, setUser] = useState(null);
 
+  // Load dark mode preference and user data
   useEffect(() => {
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+
     const userData = localStorage.getItem('user');
     if (userData) {
       try {
@@ -46,6 +56,19 @@ const DashboardLayout = ({ children, title }) => {
       }
     }
   }, []);
+
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
 
   useEffect(() => {
     const path = location.pathname;
@@ -129,7 +152,7 @@ const DashboardLayout = ({ children, title }) => {
   ];
 
   return (
-    <div className="flex w-screen h-screen overflow-hidden bg-gray-50">
+    <div className="flex w-screen h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -138,7 +161,7 @@ const DashboardLayout = ({ children, title }) => {
       )}
 
       <div
-        className={`fixed lg:static inset-y-0 left-0 flex-shrink-0 p-1 bg-orange-500 text-white flex flex-col py-6 transform transition-all duration-300 z-50 rounded-r-2xl shadow-2xl ${
+        className={`fixed lg:static inset-y-0 left-0 flex-shrink-0 p-1 bg-orange-500 dark:bg-gray-800 text-white flex flex-col py-6 transform transition-all duration-300 z-50 rounded-r-2xl shadow-2xl ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         } ${
           sidebarCollapsed ? 'w-[80px]' : 'w-[250px]'
@@ -151,7 +174,7 @@ const DashboardLayout = ({ children, title }) => {
             </div>
           )}
           <button
-            className="lg:hidden ml-2 text-white bg-white/20 hover:bg-white/30 rounded-full p-2"
+            className="lg:hidden ml-2 text-orange-500 bg-white/20 hover:bg-white/30 rounded-full p-2"
             onClick={() => setSidebarOpen(false)}
           >
             <FaTimes size={20} />
@@ -306,7 +329,7 @@ const DashboardLayout = ({ children, title }) => {
 
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Topbar */}
-        <div className="flex justify-between items-center px-4 lg:px-6 py-4 bg-white shadow-sm rounded-xl z-10">
+        <div className="flex justify-between items-center px-4 lg:px-6 py-4 bg-white dark:bg-gray-800 shadow-sm rounded-xl z-10">
           {/* Mobile Hamburger + Title */}
           <div className="flex items-center gap-4">
             <button
@@ -316,26 +339,34 @@ const DashboardLayout = ({ children, title }) => {
               <FaBars />
             </button>
             {title && (
-              <h1 className="text-lg lg:text-xl font-bold text-gray-800">{title}</h1>
+              <h1 className="text-lg lg:text-xl font-bold text-gray-800 dark:text-white">{title}</h1>
             )}
           </div>
 
           {/* Right Side */}
           <div className="flex gap-3 lg:gap-4 items-center">
-            <button className="text-orange-500 text-lg lg:text-xl hover:text-orange-600 transition-colors">
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={toggleDarkMode}
+              className="text-orange-500 dark:text-orange-400 text-lg lg:text-xl hover:text-orange-600 dark:hover:text-orange-300 transition-colors"
+              title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {darkMode ? <FaSun /> : <FaMoon />}
+            </button>
+            <button className="text-orange-500 dark:text-orange-400 text-lg lg:text-xl hover:text-orange-600 dark:hover:text-orange-300 transition-colors">
               <FaBell />
             </button>
-            <button className="text-orange-500 text-lg lg:text-xl hover:text-orange-600 transition-colors">
+            <button className="text-orange-500 dark:text-orange-400 text-lg lg:text-xl hover:text-orange-600 dark:hover:text-orange-300 transition-colors">
               <FaCalendarAlt />
             </button>
-            <span className="hidden sm:block text-xs lg:text-sm text-gray-600 font-medium bg-orange-50 px-3 py-1 rounded-full">
+            <span className="hidden sm:block text-xs lg:text-sm text-gray-600 dark:text-gray-300 font-medium bg-orange-50 dark:bg-gray-700 px-3 py-1 rounded-full">
               {today}
             </span>
           </div>
         </div>
 
         {/* Children (Main page content) */}
-        <div className="flex-1 overflow-y-auto bg-gray-50 p-4 lg:p-6">
+        <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-4 lg:p-6">
           {children || <Outlet />}
         </div>
       </div>
