@@ -94,11 +94,46 @@ useEffect(() => {
   setCurrentPage(1);
 }, [role, month, year, startDate, endDate]);
 
+  // Group attendances by user + date, combining in/out punches
+  const groupedAttendances = useMemo(() => {
+    const groups = {};
+    
+    attendances.forEach((record) => {
+      const userId = record.user?._id;
+      const date = new Date(record.createdAt).toLocaleDateString();
+      const key = `${userId}_${date}`;
+      
+      if (!groups[key]) {
+        groups[key] = {
+          user: record.user,
+          date: record.createdAt,
+          dateString: date,
+          branch: record.branch,
+          note: record.note,
+          punchIn: null,
+          punchOut: null,
+          selfieIn: null,
+          selfieOut: null,
+        };
+      }
+      
+      if (record.punchType === 'in') {
+        groups[key].punchIn = record.createdAt;
+        groups[key].selfieIn = record.selfieUrl;
+      } else if (record.punchType === 'out') {
+        groups[key].punchOut = record.createdAt;
+        groups[key].selfieOut = record.selfieUrl;
+      }
+    });
+    
+    return Object.values(groups);
+  }, [attendances]);
+
   const filtered = useMemo(() => 
-    attendances.filter((r) =>
+    groupedAttendances.filter((r) =>
       r.user?.name?.toLowerCase().includes(searchStaff.toLowerCase())
     ),
-    [attendances, searchStaff]
+    [groupedAttendances, searchStaff]
   );
 
   // Pagination calculations
@@ -125,13 +160,13 @@ useEffect(() => {
       return;
     }
 
-    const headers = ["Name", "Role", "Type", "Date", "Time", "Branch", "Note"];
+    const headers = ["Name", "Role", "Date", "Punch In Time", "Punch Out Time", "Branch", "Note"];
     const rows = filtered.map((item) => [
       item.user?.name || "N/A",
       item.user?.role || "-",
-      item.punchType || "-",
-      new Date(item.createdAt).toLocaleDateString(),
-      new Date(item.createdAt).toLocaleTimeString(),
+      item.dateString,
+      item.punchIn ? new Date(item.punchIn).toLocaleTimeString() : "-",
+      item.punchOut ? new Date(item.punchOut).toLocaleTimeString() : "-",
       item.branch || "Outside Assigned Branch",
       item.note || "-"
     ]);
@@ -294,18 +329,19 @@ useEffect(() => {
               <tr>
                 <th className="text-left px-4 py-2">Name</th>
                 <th className="text-left px-4 py-2">Role</th>
-                <th className="text-left px-4 py-2">Type</th>
                 <th className="text-left px-4 py-2">Date</th>
-                <th className="text-left px-4 py-2">Time</th>
+                <th className="text-left px-4 py-2">Punch In Time</th>
+                <th className="text-left px-4 py-2">Punch Out Time</th>
                 <th className="text-left px-4 py-2">Branch</th>
-                <th className="text-left px-4 py-2">Selfie</th>
+                <th className="text-left px-4 py-2">In Selfie</th>
+                <th className="text-left px-4 py-2">Out Selfie</th>
                 <th className="text-left px-4 py-2">Note</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td className="px-4 py-6 text-center" colSpan={8}>
+                  <td className="px-4 py-6 text-center" colSpan={9}>
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
                       <span className="ml-3">Loading...</span>
@@ -314,23 +350,35 @@ useEffect(() => {
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-6 text-center text-gray-500" colSpan={8}>
+                  <td className="px-4 py-6 text-center text-gray-500" colSpan={9}>
                     No records found
                   </td>
                 </tr>
               ) : (
-                currentItems.map((item) => (
-                  <tr key={item._id} className="border-t hover:bg-gray-50">
+                currentItems.map((item, idx) => (
+                  <tr key={`${item.user?._id}_${item.dateString}_${idx}`} className="border-t hover:bg-gray-50">
                     <td className="px-4 py-2 font-medium">{item.user?.name || 'N/A'}</td>
                     <td className="px-4 py-2 capitalize">{item.user?.role || '-'}</td>
                     <td className="px-4 py-2">
-                      <PunchTypeBadge type={item.punchType} />
+                      {item.dateString}
                     </td>
                     <td className="px-4 py-2">
-                      {new Date(item.createdAt).toLocaleDateString()}
+                      {item.punchIn ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                          {new Date(item.punchIn).toLocaleTimeString()}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-2">
-                      {new Date(item.createdAt).toLocaleTimeString()}
+                      {item.punchOut ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-200 text-gray-700 rounded-full text-xs font-medium">
+                          {new Date(item.punchOut).toLocaleTimeString()}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-2">
                       {item.branch ? (
@@ -346,14 +394,27 @@ useEffect(() => {
                       )}
                     </td>
                     <td className="px-4 py-2">
-                      {item.selfieUrl ? (
+                      {item.selfieIn ? (
                         <img
-                          src={item.selfieUrl}
-                          alt="selfie"
-                          className="w-12 h-12 object-cover rounded"
+                          src={item.selfieIn}
+                          alt="punch in selfie"
+                          className="w-12 h-12 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
+                          onClick={() => window.open(item.selfieIn, '_blank')}
                         />
                       ) : (
-                        item.punchType === "leave" ? "—" : "N/A"
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2">
+                      {item.selfieOut ? (
+                        <img
+                          src={item.selfieOut}
+                          alt="punch out selfie"
+                          className="w-12 h-12 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
+                          onClick={() => window.open(item.selfieOut, '_blank')}
+                        />
+                      ) : (
+                        <span className="text-gray-400">—</span>
                       )}
                     </td>
                     <td className="px-4 py-2 text-gray-700 italic">
