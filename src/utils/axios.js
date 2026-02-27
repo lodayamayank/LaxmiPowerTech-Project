@@ -11,9 +11,6 @@ const instance = axios.create({
   baseURL,
   timeout: 30000, // 30 seconds
   withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 // Request interceptor
@@ -23,6 +20,12 @@ instance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // If sending FormData, let the browser set Content-Type with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+    
     return config;
   },
   (error) => {
