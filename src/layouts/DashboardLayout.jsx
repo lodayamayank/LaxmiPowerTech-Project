@@ -151,7 +151,7 @@ const DashboardLayout = ({ children, title }) => {
             </div>
           )}
           <button
-            className="lg:hidden ml-2 text-white"
+            className="lg:hidden ml-2 text-white bg-white/20 hover:bg-white/30 rounded-full p-2"
             onClick={() => setSidebarOpen(false)}
           >
             <FaTimes size={20} />
@@ -159,11 +159,11 @@ const DashboardLayout = ({ children, title }) => {
         </div>
 
         <button
-          className="hidden lg:flex items-center justify-center w-8 h-8 mx-auto mb-4 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+          className="hidden lg:flex items-center justify-center w-10 h-10 mx-auto mb-4 bg-white text-orange-500 hover:bg-white/90 rounded-lg transition-all shadow-md hover:shadow-lg"
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
           title={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
         >
-          {sidebarCollapsed ? <FaChevronRight size={16} /> : <FaChevronLeft size={16} />}
+          {sidebarCollapsed ? <FaChevronRight size={18} /> : <FaChevronLeft size={18} />}
         </button>
 
         {user && (
