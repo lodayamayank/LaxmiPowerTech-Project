@@ -13,4 +13,4 @@ If you are developing a production application, we recommend using TypeScript wi
 
 ## Mongo Cloud username: admin
 ## Pass: znkMMM8cUpt5TD2Z
-## JWT secret: 4vHJ3kQ8zA$F2@pLr9zW!ybX
+## JWT secret: 4vHJ3kQ8zA$F2@pLr9zW!ybX# LaxmiPowerTech-Project
