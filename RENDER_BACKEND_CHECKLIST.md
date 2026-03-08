@@ -91,7 +91,7 @@ PORT=5000
 NODE_ENV=production
 MONGO_URI=mongodb+srv://...
 JWT_SECRET=your-secret-key-here
-ALLOWED_ORIGINS=http://localhost:5173,https://laxmi-power-tech-project.vercel.app
+ALLOWED_ORIGINS=http://localhost:5173,https://laxmipower-tech.vercel.app
 ```
 
 ---
@@ -178,7 +178,7 @@ console.log('🌐 Axios configured with baseURL:', baseURL);
 **Cause:** Frontend origin not in ALLOWED_ORIGINS  
 **Fix:** Add to Render env vars:
 ```
-ALLOWED_ORIGINS=http://localhost:5173,https://laxmi-power-tech-project.vercel.app
+ALLOWED_ORIGINS=http://localhost:5173,https://laxmipower-tech.vercel.app
 ```
 
 ### Issue 4: MongoDB Connection Failed

@@ -95,7 +95,7 @@ Check in Render Dashboard → Environment:
 ✓ NODE_ENV=production
 ✓ MONGO_URI=mongodb+srv://...
 ✓ JWT_SECRET=<secret>
-✓ ALLOWED_ORIGINS=http://localhost:5173,https://laxmi-power-tech-project.vercel.app
+✓ ALLOWED_ORIGINS=http://localhost:5173,https://laxmipower-tech.vercel.app
 ```
 
 ### 3. Test All Critical Endpoints

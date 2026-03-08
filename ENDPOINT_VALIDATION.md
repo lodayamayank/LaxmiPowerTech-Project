@@ -122,7 +122,7 @@ allowedOrigins = [
   'http://localhost:5174',
   'http://127.0.0.1:5173',
   'https://laxmipowertech-frontend.onrender.com',
-  'https://laxmi-power-tech-project.vercel.app'
+  'https://laxmipower-tech.vercel.app'
 ]
 ```
 
@@ -208,7 +208,7 @@ VITE_API_BASE_URL=https://laxmipowertech-backend-1.onrender.com/api
 ### Backend (Render environment variables)
 ```bash
 PORT=5000
-ALLOWED_ORIGINS=http://localhost:5173,https://laxmi-power-tech-project.vercel.app
+ALLOWED_ORIGINS=http://localhost:5173,https://laxmipower-tech.vercel.app
 JWT_SECRET=<your-secret>
 MONGO_URI=<your-mongo-uri>
 ```
