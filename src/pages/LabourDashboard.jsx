@@ -6,13 +6,18 @@ import logo from '../assets/logo.png';
 import avatar from '../assets/user.png';
 import leaves from '../assets/leave.png';
 import money from '../assets/salary.png';
-import { FaSignOutAlt, FaChevronRight } from 'react-icons/fa';
+import { FaSignOutAlt, FaChevronRight, FaTasks } from 'react-icons/fa';
 import { MdInventory } from 'react-icons/md';
 
 const LabourDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user'));
   const navigate = useNavigate();
   const { branchId } = useParams(); // Get branchId from route params if accessed from supervisor flow
+
+  // Determine if this is a Supervisor viewing VPS dashboard (via branchId route)
+  // Profile should NOT show for Supervisor in VPS dashboard, only for actual Labour/Staff users
+  const isSupervisorVPSView = branchId && (user?.role === 'supervisor' || user?.role === 'subcontractor');
+  const showProfile = !isSupervisorVPSView; // Show Profile only if NOT supervisor viewing VPS
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -74,13 +79,16 @@ const LabourDashboard = () => {
               gradient="from-blue-400 to-blue-500"
               bgColor="bg-blue-50"
             />
-            <DashboardCard
-              label="Profile"
-              icon={avatar}
-              onClick={() => navigate('/profile')}
-              gradient="from-purple-400 to-purple-500"
-              bgColor="bg-purple-50"
-            />
+            {/* Profile option - Hidden for Supervisor in VPS dashboard, shown for Labour/Staff */}
+            {showProfile && (
+              <DashboardCard
+                label="Profile"
+                icon={avatar}
+                onClick={() => navigate('/profile')}
+                gradient="from-purple-400 to-purple-500"
+                bgColor="bg-purple-50"
+              />
+            )}
             <DashboardCard
               label="Leave"
               icon={leaves}
@@ -103,6 +111,17 @@ const LabourDashboard = () => {
               gradient="from-teal-400 to-teal-500"
               bgColor="bg-teal-50"
             />
+            {/* Task option - Visible only for Supervisor in VPS dashboard */}
+            {isSupervisorVPSView && (
+              <DashboardCard
+                label="Task"
+                icon={null}
+                iconComponent={<FaTasks className="w-full h-full text-white" />}
+                onClick={() => navigate(`/branch/${branchId}/tasks`)}
+                gradient="from-indigo-400 to-indigo-500"
+                bgColor="bg-indigo-50"
+              />
+            )}
           </div>
 
           {/* Info Card */}

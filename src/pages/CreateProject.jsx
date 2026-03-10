@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../utils/axios';
 import DashboardLayout from '../layouts/DashboardLayout';
+import ProjectHierarchyManager from '../components/ProjectHierarchyManager';
 import {
   FaProjectDiagram,
   FaMapMarkerAlt,
@@ -17,6 +18,7 @@ const CreateProject = () => {
     name: '',
     address: '',
     branches: [],
+    buildings: [], // Add buildings hierarchy
   });
   const [projects, setProjects] = useState([]);
   const [branches, setBranches] = useState([]);
@@ -65,7 +67,7 @@ const CreateProject = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
-      setFormData({ name: '', address: '', branches: [] });
+      setFormData({ name: '', address: '', branches: [], buildings: [] });
       setEditingId(null);
       fetchProjects();
     } catch (err) {
@@ -79,13 +81,14 @@ const CreateProject = () => {
       name: project.name,
       address: project.address,
       branches: project.branches?.map((b) => b._id) || [],
+      buildings: project.buildings || [],
     });
     setEditingId(project._id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCancel = () => {
-    setFormData({ name: '', address: '', branches: [] });
+    setFormData({ name: '', address: '', branches: [], buildings: [] });
     setEditingId(null);
   };
 
@@ -237,6 +240,14 @@ const CreateProject = () => {
                 Hold Ctrl (Cmd on Mac) to select multiple branches
               </p>
             </div>
+          </div>
+
+          {/* Project Hierarchy Manager */}
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <ProjectHierarchyManager
+              buildings={formData.buildings}
+              onChange={(buildings) => setFormData({ ...formData, buildings })}
+            />
           </div>
 
           <div className="flex items-center gap-3 mt-6">

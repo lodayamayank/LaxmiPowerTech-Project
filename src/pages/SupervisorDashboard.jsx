@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import fingerprint from '../assets/fingerprint.png';
 import layer2 from '../assets/calendar.png';
 import logo from '../assets/logo.png';
+import avatar from '../assets/user.png';
 import { FaSignOutAlt, FaChevronRight, FaServer } from 'react-icons/fa';
 import { MdFolder } from 'react-icons/md';
 
@@ -55,7 +56,7 @@ const SupervisorDashboard = () => {
             <p className="text-sm text-gray-500">Select an option below</p>
           </div>
 
-          {/* Grid Cards - 3 Cards */}
+          {/* Grid Cards - 4 Cards */}
           <div className="grid grid-cols-2 gap-4">
             <DashboardCard
               label="Attendance"
@@ -71,6 +72,13 @@ const SupervisorDashboard = () => {
               onClick={() => navigate('/supervisor/projects')}
               gradient="from-blue-400 to-blue-500"
               bgColor="bg-blue-50"
+            />
+            <DashboardCard
+              label="Profile"
+              icon={avatar}
+              onClick={() => navigate('/profile')}
+              gradient="from-purple-400 to-purple-500"
+              bgColor="bg-purple-50"
             />
             <div className="col-span-2">
               <DashboardCard

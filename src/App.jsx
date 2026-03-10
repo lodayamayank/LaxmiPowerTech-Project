@@ -36,6 +36,7 @@ const AdminReimbursements = lazy(() => import('./pages/AdminReimbursements'));
 const SupervisorDashboard = lazy(() => import('./pages/SupervisorDashboard'));
 const SupervisorProjectList = lazy(() => import('./pages/SupervisorProjectList'));
 const LabourDashboard = lazy(() => import('./pages/LabourDashboard'));
+const TaskSubmission = lazy(() => import('./pages/TaskSubmission'));
 
 // Material Management Pages - Lazy loaded
 const Material = lazy(() => import('./pages/material/Material'));
@@ -58,6 +59,9 @@ const Intent = lazy(() => import('./pages/material/Intent'));
 // Salary Management Pages - Lazy loaded
 const SalaryDashboard = lazy(() => import('./pages/SalaryDashboard'));
 const SalaryHistory = lazy(() => import('./pages/SalaryHistory'));
+
+// Task Management Pages - Lazy loaded
+const AdminTasks = lazy(() => import('./pages/AdminTasks'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -148,6 +152,7 @@ function App() {
         {/* Supervisor/Subcontractor Routes */}
         <Route path="/supervisor/projects" element={<SupervisorProjectList />} />
         <Route path="/branch/:branchId/labour-dashboard" element={<LabourDashboard />} />
+        <Route path="/branch/:branchId/tasks" element={<TaskSubmission />} />
 
         {/* Admin Dashboard Route */}
         <Route path="/admindashboard" element={<AdminDashboard />} />
@@ -183,6 +188,9 @@ function App() {
         {/* Salary Management Routes */}
         <Route path="/admin/salary" element={<SalaryDashboard />} />
         <Route path="/admin/salary-history" element={<SalaryHistory />} />
+
+        {/* Task Management Routes */}
+        <Route path="/admin/tasks" element={<AdminTasks />} />
 
         </Routes>
       </Suspense>
