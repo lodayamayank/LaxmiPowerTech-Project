@@ -40,15 +40,29 @@ const TaskSubmission = () => {
   const fetchProjectAndHierarchy = async () => {
     try {
       setLoading(true);
-      // Get user's project
-      const userRes = await axios.get('/users/me');
-      const projectId = userRes.data.project;
-      setProjectId(projectId);
-
-      if (projectId) {
-        // Fetch project hierarchy
-        const hierarchyRes = await axios.get(`/projects/${projectId}/hierarchy`);
-        setHierarchy(hierarchyRes.data);
+      
+      // Get branch details to find the project
+      if (branchId) {
+        const branchRes = await axios.get(`/branches/${branchId}`);
+        const branch = branchRes.data;
+        
+        // Find project that contains this branch
+        const projectsRes = await axios.get('/projects');
+        const project = projectsRes.data.find(p => 
+          p.branches.some(b => b._id === branchId)
+        );
+        
+        if (project) {
+          setProjectId(project._id);
+          
+          // Fetch project hierarchy
+          const hierarchyRes = await axios.get(`/projects/${project._id}/hierarchy`);
+          setHierarchy(hierarchyRes.data);
+        } else {
+          toast.error('Project not found for this branch');
+        }
+      } else {
+        toast.error('Branch ID not found');
       }
     } catch (err) {
       console.error('Error fetching project hierarchy:', err);
