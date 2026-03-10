@@ -6,7 +6,7 @@ import logo from '../assets/logo.png';
 import avatar from '../assets/user.png';
 import leaves from '../assets/leave.png';
 import money from '../assets/salary.png';
-import { FaSignOutAlt, FaChevronRight, FaTasks } from 'react-icons/fa';
+import { FaSignOutAlt, FaChevronRight, FaTasks, FaArrowLeft } from 'react-icons/fa';
 import { MdInventory } from 'react-icons/md';
 
 const LabourDashboard = () => {
@@ -35,11 +35,11 @@ const LabourDashboard = () => {
           <div className="flex items-center justify-between mb-4">
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
             <button
-              onClick={handleLogout}
+              onClick={() => navigate('/supervisor/projects')}
               className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
             >
-              <FaSignOutAlt size={14} />
-              <span className="text-sm font-medium">Logout</span>
+              <FaArrowLeft size={14} />
+              <span className="text-sm font-medium">Back</span>
             </button>
           </div>
 
