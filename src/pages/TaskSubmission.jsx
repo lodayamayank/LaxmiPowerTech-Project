@@ -80,6 +80,7 @@ const TaskSubmission = () => {
       const res = await axios.get('/tasks', {
         params: { 
           project: projectId,
+          branch: branchId,
           page: 1, 
           limit: 50 
         }
