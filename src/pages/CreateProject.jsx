@@ -138,6 +138,23 @@ const CreateProject = () => {
         return;
       }
 
+      // Validate structure inputs
+      const totalFloors = parseInt(structureData.totalFloors) || 0;
+      const totalFlats = parseInt(structureData.totalFlats) || 0;
+      const buildingCount = structureData.buildingNames.split(',').filter(n => n.trim()).length;
+      const wingCount = structureData.wingNames.split(',').filter(n => n.trim()).length;
+      
+      // Calculate total hierarchy items
+      const totalItems = buildingCount * wingCount * totalFloors * totalFlats;
+      
+      // Warn if structure is too large (more than 10,000 flats)
+      if (totalItems > 10000) {
+        const confirmed = window.confirm(
+          `This will create ${totalItems.toLocaleString()} flats. This is a very large structure. Are you sure you want to continue?`
+        );
+        if (!confirmed) return;
+      }
+
       // Generate hierarchy from simple inputs
       const generatedBuildings = generateHierarchy();
       const projectData = {
@@ -149,10 +166,12 @@ const CreateProject = () => {
         await axios.put(`/projects/${editingId}`, projectData, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        alert('Project updated successfully!');
       } else {
         await axios.post('/projects', projectData, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        alert('Project created successfully!');
       }
       setFormData({ name: '', address: '', branches: [], buildings: [] });
       setStructureData({
@@ -168,7 +187,11 @@ const CreateProject = () => {
       fetchProjects();
     } catch (err) {
       console.error('Failed to save project', err);
-      alert('Failed to save project');
+      if (err.response?.status === 413) {
+        alert('Project structure too large. Please reduce the number of floors, flats, or buildings.');
+      } else {
+        alert(err.response?.data?.message || 'Failed to save project');
+      }
     }
   };
 
