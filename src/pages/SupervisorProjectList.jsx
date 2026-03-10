@@ -79,23 +79,16 @@ const SupervisorProjectList = () => {
           <div className="flex items-center justify-between mb-4">
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
             <button
-              onClick={handleLogout}
+              onClick={() => navigate('/dashboard')}
               className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
             >
-              <FaSignOutAlt size={14} />
-              <span className="text-sm font-medium">Logout</span>
+              <FaArrowLeft size={14} />
+              <span className="text-sm font-medium">Back</span>
             </button>
           </div>
 
           {/* Title Section */}
           <div className="mt-6">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 text-white/80 hover:text-white text-sm mb-3 transition-colors"
-            >
-              <FaArrowLeft size={14} />
-              <span>Back to Dashboard</span>
-            </button>
             <h2 className="text-white text-2xl font-bold">My Projects</h2>
             <p className="text-white/80 text-sm mt-1">Select a project to view details</p>
           </div>
