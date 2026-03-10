@@ -19,6 +19,13 @@ const TaskSubmission = () => {
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
+  const [projectName, setProjectName] = useState('');
+  const [taskStats, setTaskStats] = useState({
+    total: 0,
+    buildings: new Set(),
+    floors: new Set(),
+    latest: null
+  });
   
   // Form state
   const [selectedBuilding, setSelectedBuilding] = useState(null);
@@ -48,6 +55,9 @@ const TaskSubmission = () => {
         
         if (project) {
           setProjectId(project._id);
+          setProjectName(project.name);
+          
+          // Fetch project hierarchy
           const hierarchyRes = await axios.get(`/projects/${project._id}/hierarchy`);
           setHierarchy(hierarchyRes.data);
         } else {
@@ -68,9 +78,29 @@ const TaskSubmission = () => {
     try {
       setLoadingHistory(true);
       const res = await axios.get('/tasks', {
-        params: { page: 1, limit: 10 }
+        params: { 
+          project: projectId,
+          page: 1, 
+          limit: 50 
+        }
       });
-      setTasks(res.data.data || []);
+      const taskData = res.data.data || [];
+      setTasks(taskData);
+      
+      // Calculate statistics
+      const buildings = new Set();
+      const floors = new Set();
+      taskData.forEach(task => {
+        buildings.add(task.building.name);
+        floors.add(task.floor.name);
+      });
+      
+      setTaskStats({
+        total: taskData.length,
+        buildings,
+        floors,
+        latest: taskData.length > 0 ? taskData[0] : null
+      });
     } catch (err) {
       console.error('Error fetching task history:', err);
     } finally {
@@ -178,6 +208,35 @@ const TaskSubmission = () => {
 
         {/* Main Content */}
         <div className="px-6 py-6 -mt-4">
+          {/* Project Info Badge */}
+          {projectName && (
+            <div className="mb-4 p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-md">
+              <p className="text-white text-sm font-semibold">📍 {projectName}</p>
+              <p className="text-white/80 text-xs mt-0.5">{selectedBranchName}</p>
+            </div>
+          )}
+
+          {/* Task Summary Statistics */}
+          {!loading && tasks.length > 0 && (
+            <div className="mb-6 grid grid-cols-2 gap-3">
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-xl border border-orange-200">
+                <p className="text-2xl font-bold text-orange-600">{taskStats.total}</p>
+                <p className="text-xs text-gray-600 mt-1">Total Tasks</p>
+              </div>
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
+                <p className="text-2xl font-bold text-blue-600">{taskStats.buildings.size}</p>
+                <p className="text-xs text-gray-600 mt-1">Buildings</p>
+              </div>
+              <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
+                <p className="text-2xl font-bold text-green-600">{taskStats.floors.size}</p>
+                <p className="text-xs text-gray-600 mt-1">Floors Covered</p>
+              </div>
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
+                <p className="text-xs font-bold text-purple-600">{taskStats.latest ? new Date(taskStats.latest.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}</p>
+                <p className="text-xs text-gray-600 mt-1">Latest Update</p>
+              </div>
+            </div>
+          )}
           {loading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
