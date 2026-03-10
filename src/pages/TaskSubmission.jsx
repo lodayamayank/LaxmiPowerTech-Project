@@ -19,6 +19,7 @@ const TaskSubmission = () => {
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [taskStats, setTaskStats] = useState({
     total: 0,
@@ -180,6 +181,25 @@ const TaskSubmission = () => {
     setNotes('');
   };
 
+  const handleTaskStatusUpdate = async (taskId, status) => {
+    try {
+      setUpdatingStatus(true);
+      await axios.patch(`/tasks/${taskId}/status`, { status });
+      
+      toast.success(`Task ${status === 'approved' ? 'accepted' : 'rejected'} successfully!`);
+      
+      // Close modal and refresh task list
+      setShowTaskDetail(false);
+      setSelectedTask(null);
+      fetchTaskHistory();
+    } catch (err) {
+      console.error('Error updating task status:', err);
+      toast.error(err.response?.data?.message || 'Failed to update task status');
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
   const getWings = () => selectedBuilding?.wings || [];
   const getFloors = () => selectedWing?.floors || [];
   const getFlats = () => selectedFloor?.flats || [];
@@ -268,9 +288,9 @@ const TaskSubmission = () => {
                   <h3 className="text-lg font-bold text-gray-800">Recent Tasks</h3>
                   <button
                     onClick={() => setShowHistory(!showHistory)}
-                    className="text-orange-600 text-sm font-medium hover:text-orange-700"
+                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-medium rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all shadow-sm"
                   >
-                    {showHistory ? 'Hide' : 'Show All'}
+                    {showHistory ? 'Show Less' : 'Show All'}
                   </button>
                 </div>
 
@@ -666,6 +686,35 @@ const TaskSubmission = () => {
                   <div className="p-4 bg-gray-50 rounded-xl">
                     <h4 className="text-sm font-bold text-gray-700 mb-2">Notes</h4>
                     <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedTask.notes}</p>
+                  </div>
+                )}
+
+                {/* Action Buttons - Only show if task is pending */}
+                {selectedTask.status === 'pending' && user?.role === 'admin' && (
+                  <div className="mt-6 flex gap-3">
+                    <button
+                      onClick={() => handleTaskStatusUpdate(selectedTask._id, 'approved')}
+                      disabled={updatingStatus}
+                      className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {updatingStatus ? 'Processing...' : '✓ Accept Task'}
+                    </button>
+                    <button
+                      onClick={() => handleTaskStatusUpdate(selectedTask._id, 'rejected')}
+                      disabled={updatingStatus}
+                      className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {updatingStatus ? 'Processing...' : '✗ Reject Task'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Status Badge for completed/rejected tasks */}
+                {selectedTask.status !== 'pending' && (
+                  <div className="mt-6 p-4 bg-gray-100 rounded-xl text-center">
+                    <p className="text-sm text-gray-600">
+                      This task has been <span className={`font-bold ${selectedTask.status === 'approved' ? 'text-green-600' : 'text-red-600'}`}>{selectedTask.status}</span>
+                    </p>
                   </div>
                 )}
               </div>
