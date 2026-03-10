@@ -2,19 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from '../utils/axios';
 import logo from '../assets/logo.png';
-import { FaArrowLeft, FaCamera, FaCheckCircle, FaHistory } from 'react-icons/fa';
+import { FaArrowLeft, FaPlus, FaTimes, FaCheckCircle, FaHistory, FaImage } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 const TaskSubmission = () => {
   const navigate = useNavigate();
   const { branchId } = useParams();
-  const user = JSON.parse(localStorage.getItem('user'));
   const selectedBranchName = localStorage.getItem('selectedBranchName');
   
-  // Get project from user's assigned branches
   const [projectId, setProjectId] = useState('');
   const [hierarchy, setHierarchy] = useState({ buildings: [] });
   const [loading, setLoading] = useState(true);
+  const [tasks, setTasks] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   
   // Form state
   const [selectedBuilding, setSelectedBuilding] = useState(null);
@@ -26,11 +28,6 @@ const TaskSubmission = () => {
   const [photoPreview, setPhotoPreview] = useState('');
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  
-  // Task history state
-  const [tasks, setTasks] = useState([]);
-  const [showHistory, setShowHistory] = useState(false);
-  const [loadingHistory, setLoadingHistory] = useState(false);
 
   useEffect(() => {
     fetchProjectAndHierarchy();
@@ -41,12 +38,7 @@ const TaskSubmission = () => {
     try {
       setLoading(true);
       
-      // Get branch details to find the project
       if (branchId) {
-        const branchRes = await axios.get(`/branches/${branchId}`);
-        const branch = branchRes.data;
-        
-        // Find project that contains this branch
         const projectsRes = await axios.get('/projects');
         const project = projectsRes.data.find(p => 
           p.branches.some(b => b._id === branchId)
@@ -54,8 +46,6 @@ const TaskSubmission = () => {
         
         if (project) {
           setProjectId(project._id);
-          
-          // Fetch project hierarchy
           const hierarchyRes = await axios.get(`/projects/${project._id}/hierarchy`);
           setHierarchy(hierarchyRes.data);
         } else {
@@ -100,45 +90,23 @@ const TaskSubmission = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validation
-    if (!selectedBuilding || !selectedWing || !selectedFloor || !selectedFlat || !selectedRoom) {
-      toast.error('Please select all hierarchy levels');
-      return;
-    }
-
-    if (!photo) {
-      toast.error('Please upload a photo');
+    
+    if (!selectedBuilding || !selectedWing || !selectedFloor || !selectedFlat || !selectedRoom || !photo) {
+      toast.error('Please fill all required fields and upload a photo');
       return;
     }
 
     try {
       setSubmitting(true);
-
       const formData = new FormData();
-      formData.append('photo', photo);
       formData.append('project', projectId);
-      formData.append('branch', branchId || '');
-      formData.append('building', JSON.stringify({ 
-        id: selectedBuilding._id, 
-        name: selectedBuilding.name 
-      }));
-      formData.append('wing', JSON.stringify({ 
-        id: selectedWing._id, 
-        name: selectedWing.name 
-      }));
-      formData.append('floor', JSON.stringify({ 
-        id: selectedFloor._id, 
-        name: selectedFloor.name 
-      }));
-      formData.append('flat', JSON.stringify({ 
-        id: selectedFlat._id, 
-        name: selectedFlat.name 
-      }));
-      formData.append('room', JSON.stringify({ 
-        id: selectedRoom._id, 
-        name: selectedRoom.name 
-      }));
+      formData.append('branch', branchId);
+      formData.append('building', JSON.stringify({ id: selectedBuilding._id, name: selectedBuilding.name }));
+      formData.append('wing', JSON.stringify({ id: selectedWing._id, name: selectedWing.name }));
+      formData.append('floor', JSON.stringify({ id: selectedFloor._id, name: selectedFloor.name }));
+      formData.append('flat', JSON.stringify({ id: selectedFlat._id, name: selectedFlat.name }));
+      formData.append('room', JSON.stringify({ id: selectedRoom._id, name: selectedRoom.name }));
+      formData.append('photo', photo);
       formData.append('notes', notes);
 
       await axios.post('/tasks', formData, {
@@ -156,16 +124,27 @@ const TaskSubmission = () => {
       setPhoto(null);
       setPhotoPreview('');
       setNotes('');
+      setShowAddTaskModal(false);
       
       // Refresh task history
       fetchTaskHistory();
-      setShowHistory(true);
     } catch (err) {
       console.error('Error submitting task:', err);
       toast.error(err.response?.data?.message || 'Failed to submit task');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const resetForm = () => {
+    setSelectedBuilding(null);
+    setSelectedWing(null);
+    setSelectedFloor(null);
+    setSelectedFlat(null);
+    setSelectedRoom(null);
+    setPhoto(null);
+    setPhotoPreview('');
+    setNotes('');
   };
 
   const getWings = () => selectedBuilding?.wings || [];
@@ -202,181 +181,270 @@ const TaskSubmission = () => {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
               <p className="text-gray-500 text-sm">Loading project structure...</p>
             </div>
-          ) : hierarchy.buildings.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                <FaCheckCircle className="text-gray-400" size={40} />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">No Structure Defined</h3>
-              <p className="text-sm text-gray-500">
-                Please contact admin to set up project hierarchy
-              </p>
-            </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Building Selection */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Level 1 - Building Name
-                </label>
-                <select
-                  value={selectedBuilding?._id || ''}
-                  onChange={(e) => {
-                    const building = hierarchy.buildings.find(b => b._id === e.target.value);
-                    setSelectedBuilding(building);
-                    setSelectedWing(null);
-                    setSelectedFloor(null);
-                    setSelectedFlat(null);
-                    setSelectedRoom(null);
+            <>
+              {/* Add Task Button */}
+              <div className="mb-6">
+                <button
+                  onClick={() => {
+                    if (hierarchy.buildings.length === 0) {
+                      toast.error('Please contact admin to set up project hierarchy first');
+                      return;
+                    }
+                    setShowAddTaskModal(true);
                   }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                  className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
                 >
-                  <option value="">Select Building</option>
-                  {hierarchy.buildings.map((building) => (
-                    <option key={building._id} value={building._id}>
-                      {building.name}
-                    </option>
-                  ))}
-                </select>
+                  <FaPlus size={20} />
+                  <span>Add New Task</span>
+                </button>
               </div>
 
-              {/* Wing Selection */}
-              {selectedBuilding && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Level 2 - Wing
-                  </label>
-                  <select
-                    value={selectedWing?._id || ''}
-                    onChange={(e) => {
-                      const wing = getWings().find(w => w._id === e.target.value);
-                      setSelectedWing(wing);
-                      setSelectedFloor(null);
-                      setSelectedFlat(null);
-                      setSelectedRoom(null);
-                    }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+              {/* Task History Section */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-800">Recent Tasks</h3>
+                  <button
+                    onClick={() => setShowHistory(!showHistory)}
+                    className="text-orange-600 text-sm font-medium hover:text-orange-700"
                   >
-                    <option value="">Select Wing</option>
-                    {getWings().map((wing) => (
-                      <option key={wing._id} value={wing._id}>
-                        {wing.name}
-                      </option>
-                    ))}
-                  </select>
+                    {showHistory ? 'Hide' : 'Show All'}
+                  </button>
                 </div>
-              )}
 
-              {/* Floor Selection */}
-              {selectedWing && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Level 3 - Floor
-                  </label>
-                  <select
-                    value={selectedFloor?._id || ''}
-                    onChange={(e) => {
-                      const floor = getFloors().find(f => f._id === e.target.value);
-                      setSelectedFloor(floor);
-                      setSelectedFlat(null);
-                      setSelectedRoom(null);
-                    }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
-                  >
-                    <option value="">Select Floor</option>
-                    {getFloors().map((floor) => (
-                      <option key={floor._id} value={floor._id}>
-                        {floor.name}
-                      </option>
+                {loadingHistory ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+                  </div>
+                ) : tasks.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-xl">
+                    <FaHistory className="text-gray-300 text-4xl mx-auto mb-3" />
+                    <p className="text-gray-500 text-sm">No tasks submitted yet</p>
+                    <p className="text-gray-400 text-xs mt-1">Click "Add New Task" to get started</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {(showHistory ? tasks : tasks.slice(0, 3)).map((task) => (
+                      <div key={task._id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex gap-3">
+                          <img
+                            src={task.photoUrl}
+                            alt="Task"
+                            className="w-20 h-20 rounded-lg object-cover"
+                          />
+                          <div className="flex-1">
+                            <div className="text-sm font-semibold text-gray-800">
+                              {task.building.name} → {task.wing.name}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {task.floor.name} → {task.flat.name} → {task.room.name}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-2">
+                              {new Date(task.createdAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                        {task.notes && (
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <p className="text-xs text-gray-600">{task.notes}</p>
+                          </div>
+                        )}
+                      </div>
                     ))}
-                  </select>
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
 
-              {/* Flat Selection */}
-              {selectedFloor && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Level 4 - Flat
-                  </label>
-                  <select
-                    value={selectedFlat?._id || ''}
-                    onChange={(e) => {
-                      const flat = getFlats().find(f => f._id === e.target.value);
-                      setSelectedFlat(flat);
-                      setSelectedRoom(null);
-                    }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
-                  >
-                    <option value="">Select Flat</option>
-                    {getFlats().map((flat) => (
-                      <option key={flat._id} value={flat._id}>
-                        {flat.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+        {/* Add Task Modal */}
+        {showAddTaskModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
+                <h3 className="text-white text-xl font-bold">Add New Task</h3>
+                <button
+                  onClick={() => {
+                    setShowAddTaskModal(false);
+                    resetForm();
+                  }}
+                  className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+                >
+                  <FaTimes size={20} />
+                </button>
+              </div>
 
-              {/* Room Selection */}
-              {selectedFlat && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Level 5 - Room
-                  </label>
-                  <select
-                    value={selectedRoom?._id || ''}
-                    onChange={(e) => {
-                      const room = getRooms().find(r => r._id === e.target.value);
-                      setSelectedRoom(room);
-                    }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
-                  >
-                    <option value="">Select Room</option>
-                    {getRooms().map((room) => (
-                      <option key={room._id} value={room._id}>
-                        {room.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Photo Upload */}
-              {selectedRoom && (
-                <>
+              {/* Modal Content */}
+              <div className="p-6">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Building Selection */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Upload Photo
+                      Level 1 - Building Name
                     </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-4">
-                      {photoPreview ? (
-                        <div className="relative">
-                          <img src={photoPreview} alt="Preview" className="w-full rounded-lg" />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPhoto(null);
-                              setPhotoPreview('');
-                            }}
-                            className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-lg text-sm"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ) : (
-                        <label className="flex flex-col items-center cursor-pointer">
-                          <FaCamera className="text-gray-400 text-4xl mb-2" />
-                          <span className="text-sm text-gray-600">Click to upload photo</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handlePhotoChange}
-                            className="hidden"
-                          />
-                        </label>
-                      )}
+                    <select
+                      value={selectedBuilding?._id || ''}
+                      onChange={(e) => {
+                        const building = hierarchy.buildings.find(b => b._id === e.target.value);
+                        setSelectedBuilding(building);
+                        setSelectedWing(null);
+                        setSelectedFloor(null);
+                        setSelectedFlat(null);
+                        setSelectedRoom(null);
+                      }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                    >
+                      <option value="">Select Building</option>
+                      {hierarchy.buildings.map((building) => (
+                        <option key={building._id} value={building._id}>
+                          {building.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Wing Selection */}
+                  {selectedBuilding && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Level 2 - Wing
+                      </label>
+                      <select
+                        value={selectedWing?._id || ''}
+                        onChange={(e) => {
+                          const wing = getWings().find(w => w._id === e.target.value);
+                          setSelectedWing(wing);
+                          setSelectedFloor(null);
+                          setSelectedFlat(null);
+                          setSelectedRoom(null);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                      >
+                        <option value="">Select Wing</option>
+                        {getWings().map((wing) => (
+                          <option key={wing._id} value={wing._id}>
+                            {wing.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
+                  )}
+
+                  {/* Floor Selection */}
+                  {selectedWing && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Level 3 - Floor
+                      </label>
+                      <select
+                        value={selectedFloor?._id || ''}
+                        onChange={(e) => {
+                          const floor = getFloors().find(f => f._id === e.target.value);
+                          setSelectedFloor(floor);
+                          setSelectedFlat(null);
+                          setSelectedRoom(null);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                      >
+                        <option value="">Select Floor</option>
+                        {getFloors().map((floor) => (
+                          <option key={floor._id} value={floor._id}>
+                            {floor.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Flat Selection */}
+                  {selectedFloor && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Level 4 - Flat
+                      </label>
+                      <select
+                        value={selectedFlat?._id || ''}
+                        onChange={(e) => {
+                          const flat = getFlats().find(f => f._id === e.target.value);
+                          setSelectedFlat(flat);
+                          setSelectedRoom(null);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                      >
+                        <option value="">Select Flat</option>
+                        {getFlats().map((flat) => (
+                          <option key={flat._id} value={flat._id}>
+                            {flat.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Room Selection */}
+                  {selectedFlat && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Level 5 - Room
+                      </label>
+                      <select
+                        value={selectedRoom?._id || ''}
+                        onChange={(e) => {
+                          const room = getRooms().find(r => r._id === e.target.value);
+                          setSelectedRoom(room);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                      >
+                        <option value="">Select Room</option>
+                        {getRooms().map((room) => (
+                          <option key={room._id} value={room._id}>
+                            {room.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Photo Upload */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Upload Photo <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                        className="hidden"
+                        id="photo-upload"
+                      />
+                      <label
+                        htmlFor="photo-upload"
+                        className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-orange-500 transition-colors"
+                      >
+                        <FaImage className="text-gray-400" />
+                        <span className="text-sm text-gray-600">
+                          {photo ? photo.name : 'Choose photo'}
+                        </span>
+                      </label>
+                    </div>
+                    {photoPreview && (
+                      <div className="mt-3">
+                        <img
+                          src={photoPreview}
+                          alt="Preview"
+                          className="w-full h-48 object-cover rounded-xl"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Notes */}
@@ -396,62 +464,26 @@ const TaskSubmission = () => {
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    disabled={submitting}
-                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!selectedBuilding || !selectedWing || !selectedFloor || !selectedFlat || !selectedRoom || !photo || submitting}
+                    className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {submitting ? 'Submitting...' : 'SAVE'}
+                    {submitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <span>Submitting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FaCheckCircle size={18} />
+                        <span>Submit Task</span>
+                      </>
+                    )}
                   </button>
-                </>
-              )}
-            </form>
-          )}
-
-          {/* View History Button */}
-          <button
-            onClick={() => setShowHistory(!showHistory)}
-            className="w-full mt-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
-          >
-            <FaHistory />
-            {showHistory ? 'Hide History' : 'View Task History'}
-          </button>
-
-          {/* Task History */}
-          {showHistory && (
-            <div className="mt-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">Recent Tasks</h3>
-              {loadingHistory ? (
-                <p className="text-center text-gray-500 text-sm">Loading...</p>
-              ) : tasks.length === 0 ? (
-                <p className="text-center text-gray-500 text-sm">No tasks submitted yet</p>
-              ) : (
-                <div className="space-y-3">
-                  {tasks.map((task) => (
-                    <div key={task._id} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <div className="flex items-start gap-3">
-                        <img
-                          src={task.photoUrl}
-                          alt="Task"
-                          className="w-20 h-20 rounded-lg object-cover"
-                        />
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-800">
-                            {task.building.name} → {task.wing.name} → {task.floor.name} → {task.flat.name} → {task.room.name}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {new Date(task.createdAt).toLocaleDateString()} at {new Date(task.createdAt).toLocaleTimeString()}
-                          </p>
-                          {task.notes && (
-                            <p className="text-xs text-gray-600 mt-1">{task.notes}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                </form>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
