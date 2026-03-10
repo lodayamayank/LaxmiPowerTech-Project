@@ -17,6 +17,8 @@ const TaskSubmission = () => {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [showTaskDetail, setShowTaskDetail] = useState(false);
   
   // Form state
   const [selectedBuilding, setSelectedBuilding] = useState(null);
@@ -225,7 +227,14 @@ const TaskSubmission = () => {
                 ) : (
                   <div className="space-y-3">
                     {(showHistory ? tasks : tasks.slice(0, 3)).map((task) => (
-                      <div key={task._id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div 
+                        key={task._id} 
+                        onClick={() => {
+                          setSelectedTask(task);
+                          setShowTaskDetail(true);
+                        }}
+                        className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer hover:border-orange-300"
+                      >
                         <div className="flex gap-3">
                           <img
                             src={task.photoUrl}
@@ -252,7 +261,7 @@ const TaskSubmission = () => {
                         </div>
                         {task.notes && (
                           <div className="mt-3 pt-3 border-t border-gray-100">
-                            <p className="text-xs text-gray-600">{task.notes}</p>
+                            <p className="text-xs text-gray-600 line-clamp-2">{task.notes}</p>
                           </div>
                         )}
                       </div>
@@ -480,6 +489,125 @@ const TaskSubmission = () => {
                     )}
                   </button>
                 </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Task Detail Modal */}
+        {showTaskDetail && selectedTask && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
+                <h3 className="text-white text-xl font-bold">Task Details</h3>
+                <button
+                  onClick={() => {
+                    setShowTaskDetail(false);
+                    setSelectedTask(null);
+                  }}
+                  className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+                >
+                  <FaTimes size={20} />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6">
+                {/* Photo */}
+                <div className="mb-6">
+                  <img
+                    src={selectedTask.photoUrl}
+                    alt="Task Photo"
+                    className="w-full h-64 object-cover rounded-xl shadow-lg"
+                  />
+                </div>
+
+                {/* Project Info */}
+                <div className="mb-6 p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl">
+                  <h4 className="text-sm font-bold text-gray-700 mb-2">Project Information</h4>
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-800">
+                      <span className="font-semibold">Project:</span> {selectedTask.project?.name || 'N/A'}
+                    </p>
+                    {selectedTask.project?.address && (
+                      <p className="text-xs text-gray-600">
+                        <span className="font-semibold">Address:</span> {selectedTask.project.address}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Hierarchy Details */}
+                <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
+                  <h4 className="text-sm font-bold text-gray-700 mb-3">Location Hierarchy</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <p className="text-sm text-gray-800">
+                        <span className="font-semibold">Building:</span> {selectedTask.building.name}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 ml-4">
+                      <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                      <p className="text-sm text-gray-800">
+                        <span className="font-semibold">Wing:</span> {selectedTask.wing.name}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 ml-8">
+                      <div className="w-2 h-2 rounded-full bg-blue-300"></div>
+                      <p className="text-sm text-gray-800">
+                        <span className="font-semibold">Floor:</span> {selectedTask.floor.name}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 ml-12">
+                      <div className="w-2 h-2 rounded-full bg-blue-200"></div>
+                      <p className="text-sm text-gray-800">
+                        <span className="font-semibold">Flat:</span> {selectedTask.flat.name}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 ml-16">
+                      <div className="w-2 h-2 rounded-full bg-blue-100"></div>
+                      <p className="text-sm text-gray-800">
+                        <span className="font-semibold">Room:</span> {selectedTask.room.name}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Supervisor & Timestamp */}
+                <div className="mb-6 p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
+                  <h4 className="text-sm font-bold text-gray-700 mb-2">Submission Details</h4>
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-800">
+                      <span className="font-semibold">Supervisor:</span> {selectedTask.supervisor?.name || 'N/A'}
+                    </p>
+                    <p className="text-sm text-gray-800">
+                      <span className="font-semibold">Status:</span> 
+                      <span className="ml-2 px-2 py-1 bg-green-200 text-green-800 rounded-full text-xs font-medium">
+                        {selectedTask.status}
+                      </span>
+                    </p>
+                    <p className="text-sm text-gray-800">
+                      <span className="font-semibold">Submitted:</span> {new Date(selectedTask.createdAt).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {selectedTask.notes && (
+                  <div className="p-4 bg-gray-50 rounded-xl">
+                    <h4 className="text-sm font-bold text-gray-700 mb-2">Notes</h4>
+                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedTask.notes}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
