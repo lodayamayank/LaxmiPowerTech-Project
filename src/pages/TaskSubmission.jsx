@@ -10,6 +10,8 @@ const TaskSubmission = () => {
   const { branchId } = useParams();
   const selectedBranchName = localStorage.getItem('selectedBranchName');
   
+  const [availableProjects, setAvailableProjects] = useState([]); // All projects in this branch
+  const [selectedProject, setSelectedProject] = useState(null); // Currently selected project
   const [projectId, setProjectId] = useState('');
   const [hierarchy, setHierarchy] = useState({ buildings: [] });
   const [loading, setLoading] = useState(true);
@@ -41,45 +43,68 @@ const TaskSubmission = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchProjectAndHierarchy();
-    fetchTaskHistory();
+    fetchProjectsForBranch();
   }, []);
+
+  useEffect(() => {
+    if (selectedProject) {
+      fetchProjectHierarchy(selectedProject._id);
+    }
+  }, [selectedProject]);
 
   useEffect(() => {
     if (projectId) {
       fetchTaskHistory();
     }
-  }, [selectedBuildings]);
+  }, [selectedBuildings, projectId]);
 
-  const fetchProjectAndHierarchy = async () => {
+  const fetchProjectsForBranch = async () => {
     try {
       setLoading(true);
       
       if (branchId) {
         const projectsRes = await axios.get('/projects');
-        const project = projectsRes.data.find(p => 
+        // Get ALL projects that belong to this branch
+        const branchProjects = projectsRes.data.filter(p => 
           p.branches.some(b => b._id === branchId)
         );
         
-        if (project) {
-          setProjectId(project._id);
-          setProjectName(project.name);
-          
-          // Fetch project hierarchy
-          const hierarchyRes = await axios.get(`/projects/${project._id}/hierarchy`);
-          setHierarchy(hierarchyRes.data);
+        if (branchProjects.length > 0) {
+          setAvailableProjects(branchProjects);
+          // Auto-select first project
+          setSelectedProject(branchProjects[0]);
+          setProjectId(branchProjects[0]._id);
+          setProjectName(branchProjects[0].name);
         } else {
-          toast.error('Project not found for this branch');
+          toast.error('No projects found for this branch');
         }
       } else {
         toast.error('Branch ID not found');
       }
     } catch (err) {
-      console.error('Error fetching project hierarchy:', err);
-      toast.error('Failed to load project structure');
+      console.error('Error fetching projects:', err);
+      toast.error('Failed to load projects');
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchProjectHierarchy = async (projectId) => {
+    try {
+      const hierarchyRes = await axios.get(`/projects/${projectId}/hierarchy`);
+      setHierarchy(hierarchyRes.data);
+      setSelectedBuildings([]); // Reset building selection when project changes
+      fetchTaskHistory(); // Refresh tasks for new project
+    } catch (err) {
+      console.error('Error fetching project hierarchy:', err);
+      toast.error('Failed to load project structure');
+    }
+  };
+
+  const handleProjectChange = (project) => {
+    setSelectedProject(project);
+    setProjectId(project._id);
+    setProjectName(project.name);
   };
 
   const fetchTaskHistory = async () => {
@@ -249,12 +274,48 @@ const TaskSubmission = () => {
 
         {/* Main Content */}
         <div className="px-6 py-6 -mt-4">
-          {/* Project Info & Building Selection */}
+          {/* Project Selection & Info */}
           {projectName && (
             <div className="mb-4 space-y-3">
+              {/* Project Selector Dropdown */}
+              {availableProjects.length > 1 && (
+                <div className="p-4 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl shadow-lg">
+                  <label className="text-white text-xs font-semibold mb-2 block">
+                    🏗️ SELECT PROJECT
+                  </label>
+                  <select
+                    value={selectedProject?._id || ''}
+                    onChange={(e) => {
+                      const project = availableProjects.find(p => p._id === e.target.value);
+                      if (project) handleProjectChange(project);
+                    }}
+                    className="w-full px-4 py-3 rounded-lg border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white font-semibold focus:outline-none focus:border-white/50 focus:bg-white/20 transition-all"
+                  >
+                    {availableProjects.map((project) => (
+                      <option key={project._id} value={project._id} className="bg-purple-600 text-white">
+                        {project.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-white/70 text-xs mt-2">
+                    {availableProjects.length} projects available in {selectedBranchName}
+                  </p>
+                </div>
+              )}
+              
+              {/* Current Project Info Badge */}
               <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-md">
-                <p className="text-white text-sm font-semibold">📍 {projectName}</p>
-                <p className="text-white/80 text-xs mt-0.5">{selectedBranchName}</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white text-sm font-semibold">📍 {projectName}</p>
+                    <p className="text-white/80 text-xs mt-0.5">{selectedBranchName}</p>
+                  </div>
+                  {availableProjects.length === 1 && (
+                    <span className="px-2 py-1 bg-white/20 text-white text-xs rounded-full">
+                      1 Project
+                    </span>
+                  )}
+                </div>
               </div>
               
               {/* Multi-select Buildings Filter */}
@@ -391,23 +452,36 @@ const TaskSubmission = () => {
                           <img
                             src={task.photoUrl}
                             alt="Task"
-                            className="w-20 h-20 rounded-lg object-cover"
+                            className="w-20 h-20 rounded-lg object-cover border-2 border-gray-200"
                           />
                           <div className="flex-1">
-                            <div className="text-sm font-semibold text-gray-800">
-                              {task.building.name} → {task.wing.name}
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded">
+                                {task.building.name}
+                              </span>
+                              <span className="text-gray-400">→</span>
+                              <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-semibold rounded">
+                                {task.wing.name}
+                              </span>
                             </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              {task.floor.name} → {task.flat.name} → {task.room.name}
+                            <div className="text-xs text-gray-600 mt-1.5 flex items-center gap-1">
+                              <span className="font-medium">📍</span>
+                              <span>{task.floor.name}</span>
+                              <span className="text-gray-300">•</span>
+                              <span>{task.flat.name}</span>
+                              <span className="text-gray-300">•</span>
+                              <span className="text-orange-600 font-medium">{task.room.name}</span>
                             </div>
-                            <div className="text-xs text-gray-400 mt-2">
-                              {new Date(task.createdAt).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
+                            <div className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                              <span>🕐</span>
+                              <span>
+                                {new Date(task.createdAt).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
                             </div>
                           </div>
                         </div>
