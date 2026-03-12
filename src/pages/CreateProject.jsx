@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../utils/axios';
 import DashboardLayout from '../layouts/DashboardLayout';
+import SmartTowerBuilder from '../components/SmartTowerBuilder';
 import {
   FaProjectDiagram,
   FaMapMarkerAlt,
@@ -18,17 +19,6 @@ const CreateProject = () => {
     address: '',
     branches: [],
     buildings: [],
-  });
-  
-  // Simplified structure inputs
-  const [structureData, setStructureData] = useState({
-    totalBuildings: '',
-    buildingNames: '',
-    totalWings: '',
-    wingNames: '',
-    totalFloors: '',
-    totalFlats: '',
-    roomTypes: ''
   });
   const [projects, setProjects] = useState([]);
   const [branches, setBranches] = useState([]);
@@ -61,75 +51,6 @@ const CreateProject = () => {
     }
   };
 
-  // Auto-generate nested hierarchy from simple inputs
-  const generateHierarchy = () => {
-    const buildings = [];
-    
-    // Parse building names
-    const buildingNamesList = structureData.buildingNames
-      .split(',')
-      .map(name => name.trim())
-      .filter(name => name);
-    
-    // Parse wing names
-    const wingNamesList = structureData.wingNames
-      .split(',')
-      .map(name => name.trim())
-      .filter(name => name);
-    
-    // Parse room types
-    const roomTypesList = structureData.roomTypes
-      .split(',')
-      .map(name => name.trim())
-      .filter(name => name);
-    
-    const totalFloors = parseInt(structureData.totalFloors) || 0;
-    const totalFlats = parseInt(structureData.totalFlats) || 0;
-    
-    // Generate hierarchy
-    buildingNamesList.forEach(buildingName => {
-      const building = {
-        name: buildingName,
-        wings: []
-      };
-      
-      wingNamesList.forEach(wingName => {
-        const wing = {
-          name: wingName,
-          floors: []
-        };
-        
-        for (let f = 1; f <= totalFloors; f++) {
-          const floor = {
-            name: `${f}${f === 1 ? 'st' : f === 2 ? 'nd' : f === 3 ? 'rd' : 'th'} Floor`,
-            flats: []
-          };
-          
-          for (let flat = 1; flat <= totalFlats; flat++) {
-            const flatNumber = f * 100 + flat;
-            const flatObj = {
-              name: `${flatNumber}`,
-              rooms: []
-            };
-            
-            roomTypesList.forEach(roomType => {
-              flatObj.rooms.push({ name: roomType });
-            });
-            
-            floor.flats.push(flatObj);
-          }
-          
-          wing.floors.push(floor);
-        }
-        
-        building.wings.push(wing);
-      });
-      
-      buildings.push(building);
-    });
-    
-    return buildings;
-  };
 
   const handleSubmit = async () => {
     try {
@@ -138,28 +59,33 @@ const CreateProject = () => {
         return;
       }
 
-      // Validate structure inputs
-      const totalFloors = parseInt(structureData.totalFloors) || 0;
-      const totalFlats = parseInt(structureData.totalFlats) || 0;
-      const buildingCount = structureData.buildingNames.split(',').filter(n => n.trim()).length;
-      const wingCount = structureData.wingNames.split(',').filter(n => n.trim()).length;
-      
-      // Calculate total hierarchy items
-      const totalItems = buildingCount * wingCount * totalFloors * totalFlats;
-      
-      // Warn if structure is too large (more than 10,000 flats)
-      if (totalItems > 10000) {
+      if (formData.buildings.length === 0) {
+        alert('Please add at least one tower with floors and flats');
+        return;
+      }
+
+      // Count total flats for validation
+      const totalFlats = formData.buildings.reduce((sum, tower) => {
+        return sum + (tower.wings?.[0]?.floors?.reduce((fSum, floor) => 
+          fSum + (floor.flats?.length || 0), 0) || 0);
+      }, 0);
+
+      if (totalFlats === 0) {
+        alert('Please add at least one flat to your project structure');
+        return;
+      }
+
+      // Warn if structure is very large
+      if (totalFlats > 5000) {
         const confirmed = window.confirm(
-          `This will create ${totalItems.toLocaleString()} flats. This is a very large structure. Are you sure you want to continue?`
+          `This project has ${totalFlats.toLocaleString()} flats. This is a large structure. Continue?`
         );
         if (!confirmed) return;
       }
 
-      // Generate hierarchy from simple inputs
-      const generatedBuildings = generateHierarchy();
       const projectData = {
         ...formData,
-        buildings: generatedBuildings
+        buildings: formData.buildings
       };
 
       if (editingId) {
@@ -174,15 +100,6 @@ const CreateProject = () => {
         alert('Project created successfully!');
       }
       setFormData({ name: '', address: '', branches: [], buildings: [] });
-      setStructureData({
-        totalBuildings: '',
-        buildingNames: '',
-        totalWings: '',
-        wingNames: '',
-        totalFloors: '',
-        totalFlats: '',
-        roomTypes: ''
-      });
       setEditingId(null);
       fetchProjects();
     } catch (err) {
@@ -361,101 +278,12 @@ const CreateProject = () => {
             </div>
           </div>
 
-          {/* Simplified Project Structure */}
-          <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <FaBuilding className="text-blue-600" />
-              Project Structure (For Task Tracking)
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Buildings */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Building Names
-                </label>
-                <input
-                  type="text"
-                  value={structureData.buildingNames}
-                  onChange={(e) => setStructureData({ ...structureData, buildingNames: e.target.value })}
-                  placeholder="e.g., Building A, Building B, Tower 1"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                />
-                <p className="text-xs text-gray-500 mt-1">Separate multiple buildings with commas</p>
-              </div>
-
-              {/* Wings */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Wing Names
-                </label>
-                <input
-                  type="text"
-                  value={structureData.wingNames}
-                  onChange={(e) => setStructureData({ ...structureData, wingNames: e.target.value })}
-                  placeholder="e.g., Wing A, Wing B, Wing C"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                />
-                <p className="text-xs text-gray-500 mt-1">Separate multiple wings with commas</p>
-              </div>
-
-              {/* Floors */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Total Floors
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={structureData.totalFloors}
-                  onChange={(e) => setStructureData({ ...structureData, totalFloors: e.target.value })}
-                  placeholder="e.g., 10"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                />
-                <p className="text-xs text-gray-500 mt-1">Number of floors per wing</p>
-              </div>
-
-              {/* Flats */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Flats per Floor
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={structureData.totalFlats}
-                  onChange={(e) => setStructureData({ ...structureData, totalFlats: e.target.value })}
-                  placeholder="e.g., 4"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                />
-                <p className="text-xs text-gray-500 mt-1">Number of flats per floor</p>
-              </div>
-
-              {/* Room Types */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Room Types in Each Flat
-                </label>
-                <input
-                  type="text"
-                  value={structureData.roomTypes}
-                  onChange={(e) => setStructureData({ ...structureData, roomTypes: e.target.value })}
-                  placeholder="e.g., Living Room, Bedroom, Kitchen, Bathroom"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                />
-                <p className="text-xs text-gray-500 mt-1">Separate multiple room types with commas</p>
-              </div>
-            </div>
-
-            {/* Example Preview */}
-            {structureData.buildingNames && structureData.wingNames && structureData.totalFloors && structureData.totalFlats && structureData.roomTypes && (
-              <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
-                <p className="text-xs font-semibold text-gray-700 mb-2">Preview:</p>
-                <p className="text-xs text-gray-600">
-                  {structureData.buildingNames.split(',')[0].trim()} → {structureData.wingNames.split(',')[0].trim()} → 1st Floor → 101 → {structureData.roomTypes.split(',')[0].trim()}
-                </p>
-              </div>
-            )}
+          {/* Smart Tower Builder */}
+          <div className="mt-6">
+            <SmartTowerBuilder
+              buildings={formData.buildings}
+              onChange={(buildings) => setFormData({ ...formData, buildings })}
+            />
           </div>
 
           <div className="flex items-center gap-3 mt-6">
