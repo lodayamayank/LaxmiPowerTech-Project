@@ -21,6 +21,7 @@ const TaskSubmission = () => {
   const [showTaskDetail, setShowTaskDetail] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [projectName, setProjectName] = useState('');
+  const [selectedBuildings, setSelectedBuildings] = useState([]); // Multi-select buildings
   const [taskStats, setTaskStats] = useState({
     total: 0,
     buildings: new Set(),
@@ -43,6 +44,12 @@ const TaskSubmission = () => {
     fetchProjectAndHierarchy();
     fetchTaskHistory();
   }, []);
+
+  useEffect(() => {
+    if (projectId) {
+      fetchTaskHistory();
+    }
+  }, [selectedBuildings]);
 
   const fetchProjectAndHierarchy = async () => {
     try {
@@ -78,15 +85,28 @@ const TaskSubmission = () => {
   const fetchTaskHistory = async () => {
     try {
       setLoadingHistory(true);
-      const res = await axios.get('/tasks', {
-        params: { 
-          project: projectId,
-          branch: branchId,
-          page: 1, 
-          limit: 50 
-        }
-      });
-      const taskData = res.data.data || [];
+      const params = { 
+        project: projectId,
+        branch: branchId,
+        page: 1, 
+        limit: 50 
+      };
+      
+      // Add building filter if specific buildings are selected
+      if (selectedBuildings.length > 0) {
+        // Filter tasks by selected buildings on client side after fetch
+      }
+      
+      const res = await axios.get('/tasks', { params });
+      let taskData = res.data.data || [];
+      
+      // Filter by selected buildings if any
+      if (selectedBuildings.length > 0) {
+        taskData = taskData.filter(task => 
+          selectedBuildings.some(b => b._id === task.building.id || b.name === task.building.name)
+        );
+      }
+      
       setTasks(taskData);
       
       // Calculate statistics
@@ -229,11 +249,63 @@ const TaskSubmission = () => {
 
         {/* Main Content */}
         <div className="px-6 py-6 -mt-4">
-          {/* Project Info Badge */}
+          {/* Project Info & Building Selection */}
           {projectName && (
-            <div className="mb-4 p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-md">
-              <p className="text-white text-sm font-semibold">📍 {projectName}</p>
-              <p className="text-white/80 text-xs mt-0.5">{selectedBranchName}</p>
+            <div className="mb-4 space-y-3">
+              <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-md">
+                <p className="text-white text-sm font-semibold">📍 {projectName}</p>
+                <p className="text-white/80 text-xs mt-0.5">{selectedBranchName}</p>
+              </div>
+              
+              {/* Multi-select Buildings Filter */}
+              {!loading && hierarchy.buildings.length > 0 && (
+                <div className="p-4 bg-white rounded-xl border-2 border-indigo-200 shadow-sm">
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                    🏢 Select Buildings to View:
+                  </label>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    <label className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedBuildings.length === hierarchy.buildings.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedBuildings(hierarchy.buildings);
+                          } else {
+                            setSelectedBuildings([]);
+                          }
+                        }}
+                        className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                      />
+                      <span className="text-sm font-semibold text-gray-700">All Buildings</span>
+                    </label>
+                    {hierarchy.buildings.map((building) => (
+                      <label key={building._id || building.name} className="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedBuildings.some(b => b.name === building.name)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedBuildings([...selectedBuildings, building]);
+                            } else {
+                              setSelectedBuildings(selectedBuildings.filter(b => b.name !== building.name));
+                            }
+                          }}
+                          className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                        />
+                        <span className="text-sm text-gray-700">{building.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {selectedBuildings.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-gray-200">
+                      <p className="text-xs text-gray-500">
+                        Selected: {selectedBuildings.map(b => b.name).join(', ')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
