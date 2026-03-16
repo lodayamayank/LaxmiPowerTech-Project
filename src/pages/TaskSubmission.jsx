@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 const TaskSubmission = () => {
   const navigate = useNavigate();
   const { branchId } = useParams();
+  const user = JSON.parse(localStorage.getItem('user'));
   const selectedBranchName = localStorage.getItem('selectedBranchName');
   
   const [availableProjects, setAvailableProjects] = useState([]); // All projects in this branch
