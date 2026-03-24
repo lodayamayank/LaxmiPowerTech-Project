@@ -41,9 +41,20 @@ const TaskSubmission = () => {
     'Testing And Commissioning'
   ];
 
+  // Area Types for Level 2
+  const AREA_TYPES = [
+    { value: 'floor', label: 'Floor' },
+    { value: 'podium', label: 'Podium' },
+    { value: 'common_area', label: 'Common Area' },
+    { value: 'staircase', label: 'Staircase' }
+  ];
+
   // Form state
   const [selectedBuilding, setSelectedBuilding] = useState(null);
-  const [selectedWing, setSelectedWing] = useState(null);
+  const [selectedAreaType, setSelectedAreaType] = useState('floor'); // Default to floor
+  const [selectedPodium, setSelectedPodium] = useState(null);
+  const [selectedCommonArea, setSelectedCommonArea] = useState(null);
+  const [selectedStaircase, setSelectedStaircase] = useState(null);
   const [selectedLevel3Activity, setSelectedLevel3Activity] = useState(null);
   const [selectedFloor, setSelectedFloor] = useState(null);
   const [selectedFlat, setSelectedFlat] = useState(null);
@@ -181,9 +192,32 @@ const TaskSubmission = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!selectedBuilding || !selectedWing || !selectedFloor || !selectedFlat || !selectedRoom || !photo) {
-      toast.error('Please fill all required fields and upload a photo');
+    // Validation based on area type
+    if (!selectedBuilding || !photo) {
+      toast.error('Please select building and upload a photo');
       return;
+    }
+
+    if (selectedAreaType === 'floor') {
+      if (!selectedFloor || !selectedFlat || !selectedRoom) {
+        toast.error('Please select Floor, Flat, and Room');
+        return;
+      }
+    } else if (selectedAreaType === 'podium') {
+      if (!selectedPodium) {
+        toast.error('Please select a Podium');
+        return;
+      }
+    } else if (selectedAreaType === 'common_area') {
+      if (!selectedCommonArea) {
+        toast.error('Please select a Common Area');
+        return;
+      }
+    } else if (selectedAreaType === 'staircase') {
+      if (!selectedStaircase) {
+        toast.error('Please select a Staircase');
+        return;
+      }
     }
 
     try {
@@ -192,16 +226,42 @@ const TaskSubmission = () => {
       formData.append('project', projectId);
       formData.append('branch', branchId);
       formData.append('building', JSON.stringify({ id: selectedBuilding._id, name: selectedBuilding.name }));
-      formData.append('wing', JSON.stringify({ id: selectedWing._id, name: selectedWing.name }));
+      
+      // Add area type
+      formData.append('areaType', selectedAreaType);
+      
+      // Add specific area based on type
+      if (selectedAreaType === 'floor') {
+        formData.append('wing', JSON.stringify({ id: 'default', name: 'Default' })); // Backend compatibility
+        formData.append('floor', JSON.stringify({ id: selectedFloor._id, name: selectedFloor.name }));
+        formData.append('flat', JSON.stringify({ id: selectedFlat._id, name: selectedFlat.name }));
+        formData.append('room', JSON.stringify({ id: selectedRoom._id, name: selectedRoom.name }));
+      } else if (selectedAreaType === 'podium') {
+        formData.append('podium', JSON.stringify({ id: selectedPodium._id, name: selectedPodium.name }));
+        // Add dummy values for backend compatibility
+        formData.append('wing', JSON.stringify({ id: 'podium', name: 'Podium Area' }));
+        formData.append('floor', JSON.stringify({ id: 'podium', name: selectedPodium.name }));
+        formData.append('flat', JSON.stringify({ id: 'na', name: 'N/A' }));
+        formData.append('room', JSON.stringify({ id: 'na', name: 'N/A' }));
+      } else if (selectedAreaType === 'common_area') {
+        formData.append('commonArea', JSON.stringify({ id: selectedCommonArea._id, name: selectedCommonArea.name }));
+        formData.append('wing', JSON.stringify({ id: 'common', name: 'Common Area' }));
+        formData.append('floor', JSON.stringify({ id: 'common', name: selectedCommonArea.name }));
+        formData.append('flat', JSON.stringify({ id: 'na', name: 'N/A' }));
+        formData.append('room', JSON.stringify({ id: 'na', name: 'N/A' }));
+      } else if (selectedAreaType === 'staircase') {
+        formData.append('staircase', JSON.stringify({ id: selectedStaircase._id, name: selectedStaircase.name }));
+        formData.append('wing', JSON.stringify({ id: 'staircase', name: 'Staircase Area' }));
+        formData.append('floor', JSON.stringify({ id: 'staircase', name: selectedStaircase.name }));
+        formData.append('flat', JSON.stringify({ id: 'na', name: 'N/A' }));
+        formData.append('room', JSON.stringify({ id: 'na', name: 'N/A' }));
+      }
       
       // Add Level 3 Activity if selected (optional field)
       if (selectedLevel3Activity) {
         formData.append('level3Activity', JSON.stringify({ id: selectedLevel3Activity, name: selectedLevel3Activity }));
       }
       
-      formData.append('floor', JSON.stringify({ id: selectedFloor._id, name: selectedFloor.name }));
-      formData.append('flat', JSON.stringify({ id: selectedFlat._id, name: selectedFlat.name }));
-      formData.append('room', JSON.stringify({ id: selectedRoom._id, name: selectedRoom.name }));
       formData.append('photo', photo);
       formData.append('notes', notes);
 
@@ -213,7 +273,10 @@ const TaskSubmission = () => {
       
       // Reset form
       setSelectedBuilding(null);
-      setSelectedWing(null);
+      setSelectedAreaType('floor');
+      setSelectedPodium(null);
+      setSelectedCommonArea(null);
+      setSelectedStaircase(null);
       setSelectedLevel3Activity(null);
       setSelectedFloor(null);
       setSelectedFlat(null);
@@ -235,7 +298,11 @@ const TaskSubmission = () => {
 
   const resetForm = () => {
     setSelectedBuilding(null);
-    setSelectedWing(null);
+    setSelectedAreaType('floor');
+    setSelectedPodium(null);
+    setSelectedCommonArea(null);
+    setSelectedStaircase(null);
+    setSelectedLevel3Activity(null);
     setSelectedFloor(null);
     setSelectedFlat(null);
     setSelectedRoom(null);
@@ -263,8 +330,11 @@ const TaskSubmission = () => {
     }
   };
 
-  const getWings = () => selectedBuilding?.wings || [];
-  const getFloors = () => selectedWing?.floors || [];
+  // Helper functions to get areas from building
+  const getPodiums = () => selectedBuilding?.podiums || [];
+  const getCommonAreas = () => selectedBuilding?.commonAreas || [];
+  const getStaircases = () => selectedBuilding?.staircases || [];
+  const getFloors = () => selectedBuilding?.wings?.[0]?.floors || []; // Get from default wing
   const getFlats = () => selectedFloor?.flats || [];
   const getRooms = () => selectedFlat?.rooms || [];
 
@@ -541,21 +611,24 @@ const TaskSubmission = () => {
                   {/* Building Selection */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Level 1 - Building Name
+                      Level 1 - Tower / Building
                     </label>
                     <select
                       value={selectedBuilding?._id || ''}
                       onChange={(e) => {
                         const building = hierarchy.buildings.find(b => b._id === e.target.value);
                         setSelectedBuilding(building);
-                        setSelectedWing(null);
+                        setSelectedAreaType('floor');
+                        setSelectedPodium(null);
+                        setSelectedCommonArea(null);
+                        setSelectedStaircase(null);
                         setSelectedFloor(null);
                         setSelectedFlat(null);
                         setSelectedRoom(null);
                       }}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
                     >
-                      <option value="">Select Building</option>
+                      <option value="">Select Tower/Building</option>
                       {hierarchy.buildings.map((building) => (
                         <option key={building._id} value={building._id}>
                           {building.name}
@@ -564,28 +637,118 @@ const TaskSubmission = () => {
                     </select>
                   </div>
 
-                  {/* Wing Selection */}
+                  {/* Area Type Selection */}
                   {selectedBuilding && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Level 2 - Wing
+                        Level 2 - Area Type
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {AREA_TYPES.map((areaType) => {
+                          const isDisabled = 
+                            (areaType.value === 'podium' && getPodiums().length === 0) ||
+                            (areaType.value === 'common_area' && getCommonAreas().length === 0) ||
+                            (areaType.value === 'staircase' && getStaircases().length === 0);
+                          
+                          return (
+                            <button
+                              key={areaType.value}
+                              type="button"
+                              disabled={isDisabled}
+                              onClick={() => {
+                                setSelectedAreaType(areaType.value);
+                                setSelectedPodium(null);
+                                setSelectedCommonArea(null);
+                                setSelectedStaircase(null);
+                                setSelectedFloor(null);
+                                setSelectedFlat(null);
+                                setSelectedRoom(null);
+                              }}
+                              className={`px-4 py-3 rounded-lg border-2 text-sm font-semibold transition-all ${
+                                selectedAreaType === areaType.value
+                                  ? 'border-orange-500 bg-orange-50 text-orange-700'
+                                  : isDisabled
+                                  ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : 'border-gray-300 hover:border-orange-300 text-gray-700'
+                              }`}
+                            >
+                              {areaType.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Select the area where work was performed
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Podium Selection */}
+                  {selectedBuilding && selectedAreaType === 'podium' && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Select Podium
                       </label>
                       <select
-                        value={selectedWing?._id || ''}
+                        value={selectedPodium?._id || ''}
                         onChange={(e) => {
-                          const wing = getWings().find(w => w._id === e.target.value);
-                          setSelectedWing(wing);
-                          setSelectedLevel3Activity(null);
-                          setSelectedFloor(null);
-                          setSelectedFlat(null);
-                          setSelectedRoom(null);
+                          const podium = getPodiums().find(p => p._id === e.target.value);
+                          setSelectedPodium(podium);
                         }}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none bg-yellow-50"
                       >
-                        <option value="">Select Wing</option>
-                        {getWings().map((wing) => (
-                          <option key={wing._id} value={wing._id}>
-                            {wing.name}
+                        <option value="">Select Podium</option>
+                        {getPodiums().map((podium) => (
+                          <option key={podium._id} value={podium._id}>
+                            {podium.name} {podium.description && `- ${podium.description}`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Common Area Selection */}
+                  {selectedBuilding && selectedAreaType === 'common_area' && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Select Common Area
+                      </label>
+                      <select
+                        value={selectedCommonArea?._id || ''}
+                        onChange={(e) => {
+                          const commonArea = getCommonAreas().find(c => c._id === e.target.value);
+                          setSelectedCommonArea(commonArea);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none bg-cyan-50"
+                      >
+                        <option value="">Select Common Area</option>
+                        {getCommonAreas().map((area) => (
+                          <option key={area._id} value={area._id}>
+                            {area.name} {area.description && `- ${area.description}`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Staircase Selection */}
+                  {selectedBuilding && selectedAreaType === 'staircase' && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Select Staircase
+                      </label>
+                      <select
+                        value={selectedStaircase?._id || ''}
+                        onChange={(e) => {
+                          const staircase = getStaircases().find(s => s._id === e.target.value);
+                          setSelectedStaircase(staircase);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none bg-purple-50"
+                      >
+                        <option value="">Select Staircase</option>
+                        {getStaircases().map((staircase) => (
+                          <option key={staircase._id} value={staircase._id}>
+                            {staircase.name} {staircase.type && `- ${staircase.type}`}
                           </option>
                         ))}
                       </select>
@@ -593,7 +756,7 @@ const TaskSubmission = () => {
                   )}
 
                   {/* Level 3 Activities (Optional) */}
-                  {selectedWing && (
+                  {selectedBuilding && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         Level 3 - Activity <span className="text-gray-400 text-xs">(Optional)</span>
@@ -618,8 +781,8 @@ const TaskSubmission = () => {
                     </div>
                   )}
 
-                  {/* Floor Selection */}
-                  {selectedWing && (
+                  {/* Floor Selection - Only for Floor Area Type */}
+                  {selectedBuilding && selectedAreaType === 'floor' && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         Level 4 - Floor
@@ -644,11 +807,11 @@ const TaskSubmission = () => {
                     </div>
                   )}
 
-                  {/* Flat Selection */}
-                  {selectedFloor && (
+                  {/* Flat Selection - Only for Floor Area Type */}
+                  {selectedFloor && selectedAreaType === 'floor' && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Level 5 - Flat
+                        Level 5 - Flat / Unit
                       </label>
                       <select
                         value={selectedFlat?._id || ''}
@@ -662,15 +825,15 @@ const TaskSubmission = () => {
                         <option value="">Select Flat</option>
                         {getFlats().map((flat) => (
                           <option key={flat._id} value={flat._id}>
-                            {flat.name}
+                            {flat.name} {flat.flatType && `(${flat.flatType})`}
                           </option>
                         ))}
                       </select>
                     </div>
                   )}
 
-                  {/* Room Selection */}
-                  {selectedFlat && (
+                  {/* Room Selection - Only for Floor Area Type */}
+                  {selectedFlat && selectedAreaType === 'floor' && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         Level 6 - Room
@@ -690,6 +853,9 @@ const TaskSubmission = () => {
                           </option>
                         ))}
                       </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Auto-generated based on flat configuration
+                      </p>
                     </div>
                   )}
 
