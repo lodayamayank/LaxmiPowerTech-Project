@@ -357,6 +357,11 @@ const AdminTasks = () => {
                         <td className="px-6 py-4">
                           <div className="text-sm text-gray-900">
                             {task.building.name} → {task.wing.name}
+                            {task.level3Activity?.name && (
+                              <span className="ml-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                                {task.level3Activity.name}
+                              </span>
+                            )}
                           </div>
                           <div className="text-xs text-gray-500">
                             {task.floor.name} → {task.flat.name} → {task.room.name}
@@ -455,6 +460,16 @@ const AdminTasks = () => {
                       <p className="text-sm font-semibold text-gray-600">Wing</p>
                       <p className="text-gray-900">{selectedTask.wing.name}</p>
                     </div>
+                    {selectedTask.level3Activity?.name && (
+                      <div>
+                        <p className="text-sm font-semibold text-gray-600">Level 3 Activity</p>
+                        <p className="text-gray-900">
+                          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">
+                            {selectedTask.level3Activity.name}
+                          </span>
+                        </p>
+                      </div>
+                    )}
                     <div>
                       <p className="text-sm font-semibold text-gray-600">Floor</p>
                       <p className="text-gray-900">{selectedTask.floor.name}</p>

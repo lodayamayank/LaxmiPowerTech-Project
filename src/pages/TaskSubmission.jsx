@@ -32,9 +32,19 @@ const TaskSubmission = () => {
     latest: null
   });
   
+  // Level 3 Activities
+  const LEVEL_3_ACTIVITIES = [
+    'Slab Conduiting',
+    'Box Fixing',
+    'Wiring',
+    'Switch Plate',
+    'Testing And Commissioning'
+  ];
+
   // Form state
   const [selectedBuilding, setSelectedBuilding] = useState(null);
   const [selectedWing, setSelectedWing] = useState(null);
+  const [selectedLevel3Activity, setSelectedLevel3Activity] = useState(null);
   const [selectedFloor, setSelectedFloor] = useState(null);
   const [selectedFlat, setSelectedFlat] = useState(null);
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -183,6 +193,12 @@ const TaskSubmission = () => {
       formData.append('branch', branchId);
       formData.append('building', JSON.stringify({ id: selectedBuilding._id, name: selectedBuilding.name }));
       formData.append('wing', JSON.stringify({ id: selectedWing._id, name: selectedWing.name }));
+      
+      // Add Level 3 Activity if selected (optional field)
+      if (selectedLevel3Activity) {
+        formData.append('level3Activity', JSON.stringify({ id: selectedLevel3Activity, name: selectedLevel3Activity }));
+      }
+      
       formData.append('floor', JSON.stringify({ id: selectedFloor._id, name: selectedFloor.name }));
       formData.append('flat', JSON.stringify({ id: selectedFlat._id, name: selectedFlat.name }));
       formData.append('room', JSON.stringify({ id: selectedRoom._id, name: selectedRoom.name }));
@@ -198,6 +214,7 @@ const TaskSubmission = () => {
       // Reset form
       setSelectedBuilding(null);
       setSelectedWing(null);
+      setSelectedLevel3Activity(null);
       setSelectedFloor(null);
       setSelectedFlat(null);
       setSelectedRoom(null);
@@ -558,6 +575,7 @@ const TaskSubmission = () => {
                         onChange={(e) => {
                           const wing = getWings().find(w => w._id === e.target.value);
                           setSelectedWing(wing);
+                          setSelectedLevel3Activity(null);
                           setSelectedFloor(null);
                           setSelectedFlat(null);
                           setSelectedRoom(null);
@@ -574,11 +592,37 @@ const TaskSubmission = () => {
                     </div>
                   )}
 
+                  {/* Level 3 Activities (Optional) */}
+                  {selectedWing && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Level 3 - Activity <span className="text-gray-400 text-xs">(Optional)</span>
+                      </label>
+                      <select
+                        value={selectedLevel3Activity || ''}
+                        onChange={(e) => {
+                          setSelectedLevel3Activity(e.target.value || null);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none bg-blue-50"
+                      >
+                        <option value="">Skip / No Activity</option>
+                        {LEVEL_3_ACTIVITIES.map((activity) => (
+                          <option key={activity} value={activity}>
+                            {activity}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Select if task is related to: Slab Conduiting, Box Fixing, Wiring, Switch Plate, or Testing
+                      </p>
+                    </div>
+                  )}
+
                   {/* Floor Selection */}
                   {selectedWing && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Level 3 - Floor
+                        Level 4 - Floor
                       </label>
                       <select
                         value={selectedFloor?._id || ''}
@@ -604,7 +648,7 @@ const TaskSubmission = () => {
                   {selectedFloor && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Level 4 - Flat
+                        Level 5 - Flat
                       </label>
                       <select
                         value={selectedFlat?._id || ''}
@@ -629,7 +673,7 @@ const TaskSubmission = () => {
                   {selectedFlat && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Level 5 - Room
+                        Level 6 - Room
                       </label>
                       <select
                         value={selectedRoom?._id || ''}
