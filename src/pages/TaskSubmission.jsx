@@ -910,7 +910,15 @@ const TaskSubmission = () => {
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    disabled={!selectedBuilding || !selectedWing || !selectedFloor || !selectedFlat || !selectedRoom || !photo || submitting}
+                    disabled={
+                      !selectedBuilding || 
+                      !photo || 
+                      submitting ||
+                      (selectedAreaType === 'floor' && (!selectedFloor || !selectedFlat || !selectedRoom)) ||
+                      (selectedAreaType === 'podium' && !selectedPodium) ||
+                      (selectedAreaType === 'common_area' && !selectedCommonArea) ||
+                      (selectedAreaType === 'staircase' && !selectedStaircase)
+                    }
                     className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {submitting ? (
