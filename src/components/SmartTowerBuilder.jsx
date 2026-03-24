@@ -13,6 +13,7 @@ import {
   FaLayerGroup
 } from 'react-icons/fa';
 import WingManagementModal from './WingManagementModal';
+import TowerHierarchyBuilder from './TowerHierarchyBuilder';
 
 const ROOM_TYPES = [
   { value: 'living_room', label: 'Living Room', icon: '🛋️' },
@@ -353,166 +354,11 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
         </button>
       </div>
 
-      {/* Tower List */}
-      {buildings.length === 0 ? (
-        <div className="text-center py-16 bg-gradient-to-br from-orange-50 to-red-50 rounded-xl border-2 border-dashed border-orange-300">
-          <FaMagic className="text-orange-400 text-6xl mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-700 font-semibold text-lg">No towers created yet</p>
-          <p className="text-gray-500 text-sm mt-2">Click "Smart Generate Tower" to auto-create a complete building structure</p>
-          <p className="text-gray-400 text-xs mt-1">Configure once, generate floors, flats & rooms automatically!</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {buildings.map((tower, tIdx) => (
-            <div key={tIdx} className="border-2 border-orange-200 rounded-xl bg-white shadow-lg overflow-hidden">
-              {/* Tower Header */}
-              <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4">
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => toggleTower(tIdx)}
-                    className="text-white hover:bg-white/20 p-2 rounded transition-colors"
-                  >
-                    {expandedTowers[tIdx] ? <FaChevronDown size={18} /> : <FaChevronRight size={18} />}
-                  </button>
-                  <FaBuilding className="text-white text-2xl" />
-                  <input
-                    type="text"
-                    value={tower.name}
-                    onChange={(e) => updateTowerName(tIdx, e.target.value)}
-                    placeholder="Tower Name"
-                    className="flex-1 px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 font-bold text-lg focus:bg-white/30 focus:outline-none"
-                  />
-                  <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 bg-white/20 text-white text-sm rounded-full">
-                      {tower.wings?.length || 0} Wings
-                    </span>
-                    <span className="px-3 py-1 bg-white/20 text-white text-sm rounded-full">
-                      {tower.wings?.reduce((sum, w) => sum + (w.floors?.length || 0), 0) || 0} Floors
-                    </span>
-                    <span className="px-3 py-1 bg-white/20 text-white text-sm rounded-full">
-                      {tower.wings?.reduce((sum, w) => sum + (w.floors?.reduce((fSum, f) => fSum + (f.flats?.length || 0), 0) || 0), 0) || 0} Flats
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => openWingManagement(tIdx)}
-                    className="px-3 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
-                    title="Manage Wings"
-                  >
-                    <FaLayerGroup /> Wings
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => copyTower(tIdx)}
-                    className="px-3 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
-                    title="Copy Tower"
-                  >
-                    <FaCopy /> Copy
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteTower(tIdx)}
-                    className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-                    title="Delete Tower"
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
-              </div>
-
-              {/* Tower Content */}
-              {expandedTowers[tIdx] && (
-                <div className="p-6">
-                  {(!tower.wings || tower.wings.length === 0 || tower.wings.every(w => !w.floors || w.floors.length === 0)) ? (
-                    <div className="text-center py-8 bg-gray-50 rounded-lg">
-                      <p className="text-gray-500">No floors in this tower. Use "Manage Wings" to add wings and floors.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {tower.wings.map((wing, wIdx) => (
-                        <div key={wIdx} className="border-2 border-purple-200 rounded-lg p-4 bg-purple-50">
-                          <div className="flex items-center gap-2 mb-3">
-                            <FaLayerGroup className="text-purple-600" />
-                            <h4 className="font-bold text-gray-800">{wing.name}</h4>
-                            <span className="text-xs text-gray-500">({wing.floors?.length || 0} floors)</span>
-                          </div>
-                          
-                          {wing.floors?.length > 0 ? (
-                            <div className="overflow-x-auto">
-                              <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-                                <thead className="bg-gradient-to-r from-blue-50 to-indigo-50">
-                                  <tr>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Floor</th>
-                                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Flats</th>
-                                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Type</th>
-                                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Rooms</th>
-                                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Actions</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {wing.floors.map((floor, fIdx) => (
-                                    <tr key={fIdx} className={`border-t hover:bg-blue-50 transition-colors ${floor.isBasement ? 'bg-gray-50' : ''}`}>
-                                      <td className="px-4 py-3">
-                                        <div className="flex items-center gap-2">
-                                          {floor.isBasement && <span className="text-gray-500 text-xs">🅱️</span>}
-                                          <span className="font-medium text-gray-800">{floor.name}</span>
-                                        </div>
-                                      </td>
-                                      <td className="px-4 py-3 text-center">
-                                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
-                                          {floor.flats?.length || 0}
-                                        </span>
-                                      </td>
-                                      <td className="px-4 py-3 text-center">
-                                        <span className="text-sm text-gray-600">
-                                          {floor.flats?.[0]?.flatType || 'N/A'}
-                                        </span>
-                                      </td>
-                                      <td className="px-4 py-3 text-center">
-                                        <span className="text-xs text-gray-500">
-                                          {floor.flats?.[0]?.rooms?.length || 0} room types
-                                        </span>
-                                      </td>
-                                      <td className="px-4 py-3 text-center">
-                                        <div className="flex items-center justify-center gap-2">
-                                          <button
-                                            type="button"
-                                            onClick={() => openFloorOverride(tIdx, wIdx, fIdx)}
-                                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm flex items-center gap-1"
-                                          >
-                                            <FaEdit size={12} /> Override
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={() => deleteFloor(tIdx, wIdx, fIdx)}
-                                            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm flex items-center gap-1"
-                                            title="Delete Floor"
-                                          >
-                                            <FaTrash size={12} />
-                                          </button>
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          ) : (
-                            <div className="text-center py-4 bg-white rounded text-sm text-gray-500">
-                              No floors in this wing
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Tower Hierarchy Builder - Full Editable Structure */}
+      <TowerHierarchyBuilder 
+        buildings={buildings}
+        onChange={onChange}
+      />
 
       {/* Project Summary */}
       {buildings.length > 0 && (
