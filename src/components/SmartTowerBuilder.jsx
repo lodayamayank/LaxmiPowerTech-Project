@@ -45,6 +45,8 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
     podiumCount: 1,
     hasCommonArea: false,
     commonAreaCount: 1,
+    hasStaircase: false,
+    staircaseCount: 1,
     basementType: 'none',
     customBasements: '',
     totalFloors: '',
@@ -52,9 +54,9 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
     defaultFlatType: '2BHK',
     bedroomCount: 2,
     bathroomCount: 2,
+    balconyCount: 1,
     hasLivingRoom: true,
     hasKitchen: true,
-    hasBalcony: true,
     defaultRooms: ['living_room', 'bedroom', 'kitchen', 'bathroom', 'balcony']
   });
 
@@ -64,7 +66,7 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
 
   // Smart generation function
   const generateTowerStructure = () => {
-    const { basementType, customBasements, totalFloors, defaultFlatsPerFloor, defaultFlatType, defaultRooms, towerName, hasPodium, podiumCount, hasCommonArea, commonAreaCount, bedroomCount, bathroomCount, hasLivingRoom, hasKitchen, hasBalcony } = towerConfig;
+    const { basementType, customBasements, totalFloors, defaultFlatsPerFloor, defaultFlatType, defaultRooms, towerName, hasPodium, podiumCount, hasCommonArea, commonAreaCount, hasStaircase, staircaseCount, bedroomCount, bathroomCount, balconyCount, hasLivingRoom, hasKitchen } = towerConfig;
     
     const floors = [];
     const numBasements = parseInt(customBasements) || 0;
@@ -72,23 +74,23 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
     
     // Generate basements
     if (basementType === 'b1') {
-      floors.push(createFloor('B1', -1, true, defaultFlatsPerFloor, defaultFlatType, defaultRooms, bedroomCount, bathroomCount, hasLivingRoom, hasKitchen, hasBalcony));
+      floors.push(createFloor('B1', -1, true, defaultFlatsPerFloor, defaultFlatType, defaultRooms, bedroomCount, bathroomCount, balconyCount, hasLivingRoom, hasKitchen));
     } else if (basementType === 'b1_b2') {
-      floors.push(createFloor('B2', -2, true, defaultFlatsPerFloor, defaultFlatType, defaultRooms, bedroomCount, bathroomCount, hasLivingRoom, hasKitchen, hasBalcony));
-      floors.push(createFloor('B1', -1, true, defaultFlatsPerFloor, defaultFlatType, defaultRooms, bedroomCount, bathroomCount, hasLivingRoom, hasKitchen, hasBalcony));
+      floors.push(createFloor('B2', -2, true, defaultFlatsPerFloor, defaultFlatType, defaultRooms, bedroomCount, bathroomCount, balconyCount, hasLivingRoom, hasKitchen));
+      floors.push(createFloor('B1', -1, true, defaultFlatsPerFloor, defaultFlatType, defaultRooms, bedroomCount, bathroomCount, balconyCount, hasLivingRoom, hasKitchen));
     } else if (basementType === 'custom' && numBasements > 0) {
       for (let b = numBasements; b >= 1; b--) {
-        floors.push(createFloor(`B${b}`, -b, true, defaultFlatsPerFloor, defaultFlatType, defaultRooms, bedroomCount, bathroomCount, hasLivingRoom, hasKitchen, hasBalcony));
+        floors.push(createFloor(`B${b}`, -b, true, defaultFlatsPerFloor, defaultFlatType, defaultRooms, bedroomCount, bathroomCount, balconyCount, hasLivingRoom, hasKitchen));
       }
     }
     
     // Generate Ground Floor
-    floors.push(createFloor('Ground Floor', 0, false, defaultFlatsPerFloor, defaultFlatType, defaultRooms, bedroomCount, bathroomCount, hasLivingRoom, hasKitchen, hasBalcony));
+    floors.push(createFloor('Ground Floor', 0, false, defaultFlatsPerFloor, defaultFlatType, defaultRooms, bedroomCount, bathroomCount, balconyCount, hasLivingRoom, hasKitchen));
     
     // Generate regular floors
     for (let f = 1; f <= numFloors; f++) {
       const suffix = f === 1 ? 'st' : f === 2 ? 'nd' : f === 3 ? 'rd' : 'th';
-      floors.push(createFloor(`${f}${suffix} Floor`, f, false, defaultFlatsPerFloor, defaultFlatType, defaultRooms, bedroomCount, bathroomCount, hasLivingRoom, hasKitchen, hasBalcony));
+      floors.push(createFloor(`${f}${suffix} Floor`, f, false, defaultFlatsPerFloor, defaultFlatType, defaultRooms, bedroomCount, bathroomCount, balconyCount, hasLivingRoom, hasKitchen));
     }
     
     // Generate Podiums
@@ -107,9 +109,17 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
       }
     }
     
+    // Generate Staircases
+    const staircases = [];
+    if (hasStaircase) {
+      for (let s = 1; s <= (parseInt(staircaseCount) || 1); s++) {
+        staircases.push({ name: `Staircase ${s}`, type: 'Main Staircase' });
+      }
+    }
+    
     return {
       name: towerName || `Tower ${String.fromCharCode(65 + buildings.length)}`,
-      staircases: [],
+      staircases: staircases,
       podiums: podiums,
       commonAreas: commonAreas,
       wings: [{
@@ -119,7 +129,7 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
     };
   };
 
-  const createFloor = (name, floorNumber, isBasement, flatsCount, flatType, roomTypes, bedroomCount, bathroomCount, hasLivingRoom, hasKitchen, hasBalcony) => {
+  const createFloor = (name, floorNumber, isBasement, flatsCount, flatType, roomTypes, bedroomCount, bathroomCount, balconyCount, hasLivingRoom, hasKitchen) => {
     const flats = [];
     for (let i = 1; i <= flatsCount; i++) {
       const flatNumber = floorNumber >= 0 ? `${floorNumber}0${i}` : `B${Math.abs(floorNumber)}0${i}`;
@@ -147,9 +157,9 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
         rooms.push({ name: `Bathroom ${b}`, type: 'bathroom' });
       }
       
-      // Add Balcony if enabled
-      if (hasBalcony) {
-        rooms.push({ name: 'Balcony', type: 'balcony' });
+      // Add numbered Balconies
+      for (let b = 1; b <= (balconyCount || 0); b++) {
+        rooms.push({ name: `Balcony ${b}`, type: 'balcony' });
       }
       
       // Add any other selected room types from defaultRooms
@@ -168,9 +178,9 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
         flatType: flatType,
         bedroomCount: bedroomCount || 2,
         bathroomCount: bathroomCount || 2,
+        balconyCount: balconyCount || 1,
         hasLivingRoom: hasLivingRoom !== false,
         hasKitchen: hasKitchen !== false,
-        hasBalcony: hasBalcony !== false,
         variation: 'Standard',
         rooms: rooms
       });
@@ -193,6 +203,8 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
       podiumCount: 1,
       hasCommonArea: false,
       commonAreaCount: 1,
+      hasStaircase: false,
+      staircaseCount: 1,
       basementType: 'none',
       customBasements: '',
       totalFloors: '',
@@ -200,9 +212,9 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
       defaultFlatType: '2BHK',
       bedroomCount: 2,
       bathroomCount: 2,
+      balconyCount: 1,
       hasLivingRoom: true,
       hasKitchen: true,
-      hasBalcony: true,
       defaultRooms: ['living_room', 'bedroom', 'kitchen', 'bathroom', 'balcony']
     });
     setShowConfigModal(true);
@@ -634,6 +646,36 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                 )}
               </div>
 
+              {/* Staircase Configuration */}
+              <div className="p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
+                <label className="flex items-center gap-3 mb-3">
+                  <input
+                    type="checkbox"
+                    checked={towerConfig.hasStaircase}
+                    onChange={(e) => setTowerConfig({ ...towerConfig, hasStaircase: e.target.checked })}
+                    className="w-5 h-5 text-purple-600 rounded"
+                  />
+                  <span className="text-sm font-semibold text-gray-700">
+                    🪜 Does this tower have Staircases?
+                  </span>
+                </label>
+                {towerConfig.hasStaircase && (
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-2">Number of Staircases</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={towerConfig.staircaseCount}
+                      onChange={(e) => setTowerConfig({ ...towerConfig, staircaseCount: e.target.value })}
+                      placeholder="Enter number (e.g., 1, 2, 3)"
+                      className="w-full px-4 py-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Will generate: Staircase 1, Staircase 2, Staircase 3...</p>
+                  </div>
+                )}
+              </div>
+
               {/* Basement Selection */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -741,9 +783,9 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
               {/* Bedroom & Bathroom Configuration */}
               <div className="p-4 bg-indigo-50 border-2 border-indigo-200 rounded-lg">
                 <h4 className="text-sm font-semibold text-gray-700 mb-3">🛏️ Room Configuration</h4>
-                <div className="grid grid-cols-2 gap-4 mb-3">
+                <div className="grid grid-cols-3 gap-4 mb-3">
                   <div>
-                    <label className="block text-xs text-gray-600 mb-2">Number of Bedrooms</label>
+                    <label className="block text-xs text-gray-600 mb-2">Bedrooms</label>
                     <input
                       type="number"
                       min="0"
@@ -754,7 +796,7 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-600 mb-2">Number of Bathrooms</label>
+                    <label className="block text-xs text-gray-600 mb-2">Bathrooms</label>
                     <input
                       type="number"
                       min="0"
@@ -764,8 +806,19 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                       className="w-full px-4 py-2 border-2 border-indigo-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 font-semibold"
                     />
                   </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-2">Balconies</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="10"
+                      value={towerConfig.balconyCount}
+                      onChange={(e) => setTowerConfig({ ...towerConfig, balconyCount: parseInt(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border-2 border-indigo-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 font-semibold"
+                    />
+                  </div>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <label className="flex items-center gap-2 text-sm">
                     <input
                       type="checkbox"
@@ -773,7 +826,7 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                       onChange={(e) => setTowerConfig({ ...towerConfig, hasLivingRoom: e.target.checked })}
                       className="w-4 h-4 text-indigo-600 rounded"
                     />
-                    <span>Living Room</span>
+                    <span>Living Room / Hall</span>
                   </label>
                   <label className="flex items-center gap-2 text-sm">
                     <input
@@ -784,15 +837,6 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                     />
                     <span>Kitchen</span>
                   </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={towerConfig.hasBalcony}
-                      onChange={(e) => setTowerConfig({ ...towerConfig, hasBalcony: e.target.checked })}
-                      className="w-4 h-4 text-indigo-600 rounded"
-                    />
-                    <span>Balcony</span>
-                  </label>
                 </div>
                 <div className="mt-3 p-2 bg-white rounded border border-indigo-200">
                   <p className="text-xs text-gray-600">
@@ -801,7 +845,7 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                     {towerConfig.bedroomCount > 0 && ` Bedroom 1-${towerConfig.bedroomCount},`}
                     {towerConfig.hasKitchen && ' Kitchen,'}
                     {towerConfig.bathroomCount > 0 && ` Bathroom 1-${towerConfig.bathroomCount},`}
-                    {towerConfig.hasBalcony && ' Balcony'}
+                    {towerConfig.balconyCount > 0 && ` Balcony 1-${towerConfig.balconyCount}`}
                   </p>
                 </div>
               </div>
@@ -844,11 +888,12 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                 <ul className="text-sm text-gray-600 space-y-1">
                   {towerConfig.hasPodium && <li>• 🏛️ Podiums: {towerConfig.podiumCount || 1} (P1, P2, P3...)</li>}
                   {towerConfig.hasCommonArea && <li>• 🏢 Common Areas: {towerConfig.commonAreaCount || 1} (CA1, CA2, CA3...)</li>}
+                  {towerConfig.hasStaircase && <li>• 🪜 Staircases: {towerConfig.staircaseCount || 1} (Staircase 1, Staircase 2...)</li>}
                   <li>• {towerConfig.basementType !== 'none' ? `Basements: ${towerConfig.basementType === 'custom' ? (towerConfig.customBasements || 0) : towerConfig.basementType === 'b1_b2' ? '2 (B2, B1)' : '1 (B1)'}` : 'No basements'}</li>
                   <li>• Floors: Ground Floor + {towerConfig.totalFloors || 0} floors = {(parseInt(towerConfig.totalFloors) || 0) + 1} total</li>
                   <li>• Flats per floor: {towerConfig.defaultFlatsPerFloor}</li>
                   <li>• Total flats: {((parseInt(towerConfig.totalFloors) || 0) + 1 + (towerConfig.basementType === 'custom' ? (parseInt(towerConfig.customBasements) || 0) : towerConfig.basementType === 'b1_b2' ? 2 : towerConfig.basementType === 'b1' ? 1 : 0)) * towerConfig.defaultFlatsPerFloor}</li>
-                  <li>• Rooms per flat: {towerConfig.bedroomCount || 0} Bedrooms, {towerConfig.bathroomCount || 0} Bathrooms + {(towerConfig.hasLivingRoom ? 1 : 0) + (towerConfig.hasKitchen ? 1 : 0) + (towerConfig.hasBalcony ? 1 : 0)} other rooms</li>
+                  <li>• Rooms per flat: {towerConfig.bedroomCount || 0} Bedrooms, {towerConfig.bathroomCount || 0} Bathrooms, {towerConfig.balconyCount || 0} Balconies + {(towerConfig.hasLivingRoom ? 1 : 0) + (towerConfig.hasKitchen ? 1 : 0)} other rooms</li>
                 </ul>
               </div>
             </div>
