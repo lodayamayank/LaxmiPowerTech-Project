@@ -1,23 +1,19 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import fingerprint from '../assets/fingerprint.png';
-import layer2 from '../assets/calendar.png';
+import calendar from '../assets/calendar.png';
 import logo from '../assets/logo.png';
-import avatar from '../assets/user.png';
-import leaves from '../assets/leave.png';
-import money from '../assets/salary.png';
-import { FaSignOutAlt, FaChevronRight, FaServer } from 'react-icons/fa';
-import { MdFolder } from 'react-icons/md';
+import { FaArrowLeft, FaChevronRight, FaCalendarAlt, FaMoneyBillWave, FaUsers, FaTasks } from 'react-icons/fa';
+import { MdWork } from 'react-icons/md';
 
-const SupervisorDashboard = () => {
+const SupervisorProjectDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user'));
   const navigate = useNavigate();
+  const { branchId } = useParams();
+  const projectName = localStorage.getItem('selectedBranchName') || 'Project';
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('role');
-    navigate('/login', { replace: true });
+  const handleBack = () => {
+    navigate('/supervisor/projects');
   };
 
   return (
@@ -29,11 +25,11 @@ const SupervisorDashboard = () => {
           <div className="flex items-center justify-between mb-4">
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
             <button
-              onClick={handleLogout}
+              onClick={handleBack}
               className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
             >
-              <FaSignOutAlt size={14} />
-              <span className="text-sm font-medium">Logout</span>
+              <FaArrowLeft size={14} />
+              <span className="text-sm font-medium">Back</span>
             </button>
           </div>
 
@@ -45,7 +41,7 @@ const SupervisorDashboard = () => {
             <div>
               <p className="text-white/80 text-sm font-medium">Welcome back,</p>
               <h2 className="text-white text-xl font-bold">{user?.name || 'User'}</h2>
-              <p className="text-white/70 text-xs mt-0.5 capitalize">{user?.role || 'Supervisor'}</p>
+              <p className="text-white/70 text-xs mt-0.5">Project: {projectName}</p>
             </div>
           </div>
         </div>
@@ -60,6 +56,7 @@ const SupervisorDashboard = () => {
 
           {/* Grid Cards */}
           <div className="grid grid-cols-2 gap-4">
+            {/* Mark Attendance */}
             <DashboardCard
               label="Mark Attendance"
               icon={fingerprint}
@@ -67,41 +64,54 @@ const SupervisorDashboard = () => {
               gradient="from-green-400 to-green-500"
               bgColor="bg-green-50"
             />
+
+            {/* My Attendance */}
             <DashboardCard
               label="My Attendance"
-              icon={layer2}
+              icon={calendar}
               onClick={() => navigate('/my-attendance')}
               gradient="from-blue-400 to-blue-500"
               bgColor="bg-blue-50"
             />
+
+            {/* Leave */}
             <DashboardCard
               label="Leave"
-              icon={leaves}
+              icon={null}
+              iconComponent={<FaCalendarAlt className="w-full h-full text-white" />}
               onClick={() => navigate('/leaves')}
               gradient="from-orange-400 to-orange-500"
               bgColor="bg-orange-50"
             />
+
+            {/* Reimbursement */}
             <DashboardCard
               label="Reimbursement"
-              icon={money}
+              icon={null}
+              iconComponent={<FaMoneyBillWave className="w-full h-full text-white" />}
               onClick={() => navigate('/reimbursements')}
               gradient="from-yellow-400 to-yellow-500"
               bgColor="bg-yellow-50"
             />
+
+            {/* Labour Management */}
             <DashboardCard
-              label="Projects"
+              label="Labour"
               icon={null}
-              iconComponent={<MdFolder className="w-full h-full text-white" />}
-              onClick={() => navigate('/supervisor/projects')}
-              gradient="from-blue-400 to-blue-500"
-              bgColor="bg-blue-50"
-            />
-            <DashboardCard
-              label="Profile"
-              icon={avatar}
-              onClick={() => navigate('/profile')}
+              iconComponent={<FaUsers className="w-full h-full text-white" />}
+              onClick={() => navigate(`/branch/${branchId}/labours`)}
               gradient="from-purple-400 to-purple-500"
               bgColor="bg-purple-50"
+            />
+
+            {/* Tasks */}
+            <DashboardCard
+              label="Tasks"
+              icon={null}
+              iconComponent={<FaTasks className="w-full h-full text-white" />}
+              onClick={() => navigate(`/branch/${branchId}/tasks`)}
+              gradient="from-indigo-400 to-indigo-500"
+              bgColor="bg-indigo-50"
             />
           </div>
 
@@ -162,4 +172,4 @@ const DashboardCard = ({ label, icon, iconComponent, onClick, gradient, bgColor,
   </div>
 );
 
-export default SupervisorDashboard;
+export default SupervisorProjectDashboard;

@@ -63,8 +63,8 @@ const SupervisorProjectList = () => {
     localStorage.setItem('selectedBranchId', branchId);
     localStorage.setItem('selectedBranchName', branchName || 'Selected Branch');
     
-    // Navigate to Labour dashboard for this specific branch
-    navigate(`/branch/${branchId}/labour-dashboard`);
+    // Navigate to Supervisor project dashboard for this specific branch
+    navigate(`/supervisor/branch/${branchId}/dashboard`);
   };
 
   const filteredProjects = projects.filter(project =>
