@@ -146,7 +146,7 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
       flatType: '2BHK',
       bedroomCount: 2,
       bathroomCount: 2,
-      hasBalcony: true,
+      balconyCount: 1,
       hasKitchen: true,
       hasLivingRoom: true,
       rooms: [],
@@ -277,7 +277,7 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
       rooms.push({ name: 'Living Room / Hall', type: 'living_room' });
     }
 
-    // Add bedrooms
+    // Add numbered bedrooms
     for (let i = 1; i <= (flat.bedroomCount || 0); i++) {
       rooms.push({ name: `Bedroom ${i}`, type: 'bedroom' });
     }
@@ -287,14 +287,14 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
       rooms.push({ name: 'Kitchen', type: 'kitchen' });
     }
 
-    // Add bathrooms
+    // Add numbered bathrooms
     for (let i = 1; i <= (flat.bathroomCount || 0); i++) {
       rooms.push({ name: `Bathroom ${i}`, type: 'bathroom' });
     }
 
-    // Add balcony
-    if (flat.hasBalcony) {
-      rooms.push({ name: 'Balcony', type: 'balcony' });
+    // Add numbered balconies
+    for (let i = 1; i <= (flat.balconyCount || 0); i++) {
+      rooms.push({ name: `Balcony ${i}`, type: 'balcony' });
     }
 
     flat.rooms = rooms;
@@ -645,7 +645,7 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
                                                 {/* Flat Configuration */}
                                                 <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
                                                   <p className="text-sm font-semibold text-indigo-800 mb-2">🏗️ Flat Configuration</p>
-                                                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                                                     <div>
                                                       <label className="text-xs text-gray-600 mb-1 block">Variation</label>
                                                       <input
@@ -678,6 +678,17 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
                                                         className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
                                                       />
                                                     </div>
+                                                    <div>
+                                                      <label className="text-xs text-gray-600 mb-1 block">Balconies</label>
+                                                      <input
+                                                        type="number"
+                                                        min="0"
+                                                        max="10"
+                                                        value={flat.balconyCount || 1}
+                                                        onChange={(e) => updateFlat(tIdx, wIdx, fIdx, flatIdx, 'balconyCount', parseInt(e.target.value))}
+                                                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                      />
+                                                    </div>
                                                     <label className="flex items-center gap-2 col-span-1">
                                                       <input
                                                         type="checkbox"
@@ -695,15 +706,6 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
                                                         className="w-4 h-4 text-green-600 rounded"
                                                       />
                                                       <span className="text-xs text-gray-700">Kitchen</span>
-                                                    </label>
-                                                    <label className="flex items-center gap-2 col-span-1">
-                                                      <input
-                                                        type="checkbox"
-                                                        checked={flat.hasBalcony !== false}
-                                                        onChange={(e) => updateFlat(tIdx, wIdx, fIdx, flatIdx, 'hasBalcony', e.target.checked)}
-                                                        className="w-4 h-4 text-green-600 rounded"
-                                                      />
-                                                      <span className="text-xs text-gray-700">Balcony</span>
                                                     </label>
                                                   </div>
                                                   <button
