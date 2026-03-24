@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from '../utils/axios';
 import logo from '../assets/logo.png';
-import { FaArrowLeft, FaCalendarAlt, FaCheckCircle, FaTimesCircle, FaClock } from 'react-icons/fa';
+import { FaArrowLeft, FaCalendarAlt, FaCheckCircle, FaTimesCircle, FaClock, FaUsers } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 const TeamAttendance = () => {
@@ -10,14 +10,23 @@ const TeamAttendance = () => {
   const { branchId } = useParams();
   const [labours, setLabours] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [startDate, setStartDate] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [summary, setSummary] = useState({
+    totalLabours: 0,
+    totalPresent: 0,
+    totalAbsent: 0,
+    totalLeaves: 0,
+    totalOvertimeHours: 0
+  });
   const projectName = localStorage.getItem('selectedBranchName') || 'Project';
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    fetchTeamAttendance();
-  }, [selectedMonth, selectedYear]);
+    if (branchId) {
+      fetchTeamAttendance();
+    }
+  }, [startDate, endDate, branchId]);
 
   const fetchTeamAttendance = async () => {
     try {
@@ -25,27 +34,64 @@ const TeamAttendance = () => {
       
       // Fetch all labours for this branch
       const usersRes = await axios.get('/users', {
-        params: { role: 'labour', branch: branchId },
+        params: { role: 'labour' },
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Fetch attendance data for this month
-      const startDate = new Date(selectedYear, selectedMonth, 1);
-      const endDate = new Date(selectedYear, selectedMonth + 1, 0);
-      
-      const attendanceRes = await axios.get('/attendance/by-date', {
-        params: { 
-          branch: branchId,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString()
-        },
-        headers: { Authorization: `Bearer ${token}` }
+      // Filter labours by branch
+      const branchLabours = usersRes.data.filter(user => {
+        if (Array.isArray(user.assignedBranches)) {
+          return user.assignedBranches.some(branch => 
+            (typeof branch === 'object' ? branch._id : branch) === branchId
+          );
+        }
+        return false;
       });
+
+      if (branchLabours.length === 0) {
+        setLabours([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch attendance data for date range
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const allAttendance = [];
+      
+      // Fetch attendance for each date in range
+      const currentDate = new Date(start);
+      while (currentDate <= end) {
+        const dateStr = currentDate.toISOString().split('T')[0];
+        try {
+          const attendanceRes = await axios.get('/attendance/by-date', {
+            params: { 
+              branch: branchId,
+              date: dateStr
+            },
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (attendanceRes.data && Array.isArray(attendanceRes.data)) {
+            allAttendance.push(...attendanceRes.data);
+          }
+        } catch (err) {
+          // Continue if no attendance for this date
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
 
       // Calculate stats for each labour
-      const laboursWithStats = usersRes.data.map(labour => {
-        const labourAttendance = attendanceRes.data.filter(
-          att => att.user._id === labour._id || att.user === labour._id
+      let totalPresent = 0;
+      let totalAbsent = 0;
+      let totalLeaves = 0;
+      let totalOvertimeHours = 0;
+
+      const laboursWithStats = branchLabours.map(labour => {
+        const labourAttendance = allAttendance.filter(
+          att => {
+            const userId = att.user?._id || att.user;
+            return userId === labour._id;
+          }
         );
 
         const presentDays = labourAttendance.filter(att => att.punchType === 'present').length;
@@ -53,10 +99,15 @@ const TeamAttendance = () => {
         const halfDays = labourAttendance.filter(att => att.punchType === 'half-day').length;
         const leaves = labourAttendance.filter(att => att.punchType === 'leave').length;
 
-        // Calculate overtime hours (if available in attendance data)
+        // Calculate overtime hours
         const overtimeHours = labourAttendance.reduce((total, att) => {
           return total + (att.overtimeHours || 0);
         }, 0);
+
+        totalPresent += presentDays;
+        totalAbsent += absentDays;
+        totalLeaves += leaves;
+        totalOvertimeHours += overtimeHours;
 
         return {
           ...labour,
@@ -71,9 +122,17 @@ const TeamAttendance = () => {
       });
 
       setLabours(laboursWithStats);
+      setSummary({
+        totalLabours: branchLabours.length,
+        totalPresent,
+        totalAbsent,
+        totalLeaves,
+        totalOvertimeHours
+      });
     } catch (err) {
       console.error('Failed to fetch team attendance:', err);
-      toast.error('Failed to load team attendance data');
+      toast.error(err.response?.data?.message || 'Failed to load team attendance data');
+      setLabours([]);
     } finally {
       setLoading(false);
     }
@@ -109,29 +168,66 @@ const TeamAttendance = () => {
           </div>
         </div>
 
-        {/* Month/Year Selector */}
+        {/* Date Range Filter */}
         <div className="px-6 py-4 bg-white border-b">
-          <div className="flex gap-4">
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-            >
-              {months.map((month, index) => (
-                <option key={index} value={index}>{month}</option>
-              ))}
-            </select>
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-            >
-              {years.map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">From Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                max={endDate}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">To Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                min={startDate}
+                max={new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+              />
+            </div>
           </div>
         </div>
+
+        {/* Summary Cards */}
+        {!loading && labours.length > 0 && (
+          <div className="px-6 py-6 bg-gradient-to-r from-gray-50 to-white border-b">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Overview Summary</h3>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="bg-white rounded-lg border border-gray-200 p-4 text-center shadow-sm">
+                <FaUsers className="text-blue-500 mx-auto mb-2" size={24} />
+                <p className="text-2xl font-bold text-blue-600">{summary.totalLabours}</p>
+                <p className="text-xs text-gray-600">Total Labours</p>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4 text-center shadow-sm">
+                <FaCheckCircle className="text-green-500 mx-auto mb-2" size={24} />
+                <p className="text-2xl font-bold text-green-600">{summary.totalPresent}</p>
+                <p className="text-xs text-gray-600">Total Present</p>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4 text-center shadow-sm">
+                <FaTimesCircle className="text-red-500 mx-auto mb-2" size={24} />
+                <p className="text-2xl font-bold text-red-600">{summary.totalAbsent}</p>
+                <p className="text-xs text-gray-600">Total Absent</p>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4 text-center shadow-sm">
+                <FaCalendarAlt className="text-blue-500 mx-auto mb-2" size={24} />
+                <p className="text-2xl font-bold text-blue-600">{summary.totalLeaves}</p>
+                <p className="text-xs text-gray-600">Total Leaves</p>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4 text-center shadow-sm">
+                <FaClock className="text-purple-500 mx-auto mb-2" size={24} />
+                <p className="text-2xl font-bold text-purple-600">{summary.totalOvertimeHours.toFixed(1)}</p>
+                <p className="text-xs text-gray-600">OT Hours</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Content */}
         <div className="px-6 py-6">
@@ -142,7 +238,11 @@ const TeamAttendance = () => {
             </div>
           ) : labours.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">No labours found for this project</p>
+              <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                <FaUsers className="text-gray-400" size={40} />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">No Attendance Data Found</h3>
+              <p className="text-sm text-gray-500">No labours or attendance records found for the selected date range</p>
             </div>
           ) : (
             <div className="space-y-4">
