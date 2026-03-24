@@ -207,6 +207,47 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
     onChange(newBuildings);
   };
 
+  // Handle bedroom count change and auto-update BHK type (reverse sync)
+  const handleBedroomCountChange = (towerIdx, wingIdx, floorIdx, flatIdx, bedroomCount) => {
+    const newBuildings = [...buildings];
+    const flat = newBuildings[towerIdx].wings[wingIdx].floors[floorIdx].flats[flatIdx];
+    
+    // Update bedroom count
+    flat.bedroomCount = bedroomCount;
+    
+    // Auto-update flat type based on bedroom count
+    switch(bedroomCount) {
+      case 0:
+        flat.flatType = 'Studio';
+        flat.bathroomCount = 1;
+        break;
+      case 1:
+        flat.flatType = '1BHK';
+        flat.bathroomCount = 1;
+        break;
+      case 2:
+        flat.flatType = '2BHK';
+        flat.bathroomCount = 2;
+        break;
+      case 3:
+        flat.flatType = '3BHK';
+        flat.bathroomCount = 2;
+        break;
+      case 4:
+        flat.flatType = '4BHK';
+        flat.bathroomCount = 3;
+        break;
+      default:
+        // For 5+ bedrooms, set to Custom
+        if (bedroomCount > 4) {
+          flat.flatType = 'Custom';
+        }
+        break;
+    }
+    
+    onChange(newBuildings);
+  };
+
   const deleteFlat = (towerIdx, wingIdx, floorIdx, flatIdx) => {
     if (window.confirm('Delete this flat?')) {
       const newBuildings = [...buildings];
@@ -715,7 +756,7 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
                                                           value={flat.bedroomCount ?? 2}
                                                           onChange={(e) => {
                                                             const val = e.target.value === '' ? 0 : parseInt(e.target.value);
-                                                            updateFlat(tIdx, wIdx, fIdx, flatIdx, 'bedroomCount', val);
+                                                            handleBedroomCountChange(tIdx, wIdx, fIdx, flatIdx, val);
                                                           }}
                                                           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                                         />
