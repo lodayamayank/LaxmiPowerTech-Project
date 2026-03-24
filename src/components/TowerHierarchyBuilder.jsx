@@ -12,19 +12,19 @@ import {
 } from 'react-icons/fa';
 
 const ROOM_TYPES = [
-  { value: 'living_room', label: 'Living Room / Hall', icon: '🛋️' },
-  { value: 'bedroom', label: 'Bedroom', icon: '🛏️' },
-  { value: 'kitchen', label: 'Kitchen', icon: '🍳' },
-  { value: 'bathroom', label: 'Bathroom', icon: '🚿' },
-  { value: 'balcony', label: 'Balcony', icon: '🌿' },
-  { value: 'utility', label: 'Utility / Store', icon: '🔧' },
-  { value: 'dining', label: 'Dining Room', icon: '🍽️' },
-  { value: 'study', label: 'Study Room', icon: '📚' },
-  { value: 'pooja', label: 'Pooja Room', icon: '🙏' },
-  { value: 'terrace', label: 'Terrace', icon: '🏠' },
+  { value: 'living_room', label: 'Living Room / Hall' },
+  { value: 'bedroom', label: 'Bedroom' },
+  { value: 'kitchen', label: 'Kitchen' },
+  { value: 'bathroom', label: 'Bathroom' },
+  { value: 'balcony', label: 'Balcony' },
+  { value: 'utility', label: 'Utility / Store' },
+  { value: 'dining', label: 'Dining Room' },
+  { value: 'study', label: 'Study Room' },
+  { value: 'pooja', label: 'Pooja Room' },
+  { value: 'terrace', label: 'Terrace' },
 ];
 
-const FLAT_TYPES = ['1BHK', '2BHK', '3BHK', '4BHK', 'Studio', 'Penthouse', 'Duplex', 'Custom'];
+const FLAT_TYPES = ['1RK', '1BHK', '2BHK', '3BHK', '4BHK', 'Studio', 'Penthouse', 'Duplex', 'Custom'];
 
 const LEVEL_3_ACTIVITIES = [
   'Slab Conduiting',
@@ -158,6 +158,52 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
   const updateFlat = (towerIdx, wingIdx, floorIdx, flatIdx, field, value) => {
     const newBuildings = [...buildings];
     newBuildings[towerIdx].wings[wingIdx].floors[floorIdx].flats[flatIdx][field] = value;
+    onChange(newBuildings);
+  };
+
+  // Handle flat type change and auto-fill bedroom/bathroom counts
+  const handleFlatTypeChange = (towerIdx, wingIdx, floorIdx, flatIdx, flatType) => {
+    const newBuildings = [...buildings];
+    const flat = newBuildings[towerIdx].wings[wingIdx].floors[floorIdx].flats[flatIdx];
+    
+    // Update flat type
+    flat.flatType = flatType;
+    
+    // Auto-fill bedroom and bathroom counts based on flat type
+    switch(flatType) {
+      case '1RK':
+        flat.bedroomCount = 1;
+        flat.bathroomCount = 1;
+        break;
+      case '1BHK':
+        flat.bedroomCount = 1;
+        flat.bathroomCount = 1;
+        break;
+      case '2BHK':
+        flat.bedroomCount = 2;
+        flat.bathroomCount = 2;
+        break;
+      case '3BHK':
+        flat.bedroomCount = 3;
+        flat.bathroomCount = 2;
+        break;
+      case '4BHK':
+        flat.bedroomCount = 4;
+        flat.bathroomCount = 3;
+        break;
+      case 'Studio':
+        flat.bedroomCount = 0;
+        flat.bathroomCount = 1;
+        break;
+      case 'Penthouse':
+        flat.bedroomCount = 4;
+        flat.bathroomCount = 4;
+        break;
+      default:
+        // For Duplex, Custom - keep existing values
+        break;
+    }
+    
     onChange(newBuildings);
   };
 
@@ -623,7 +669,7 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
                                               />
                                               <select
                                                 value={flat.flatType || '2BHK'}
-                                                onChange={(e) => updateFlat(tIdx, wIdx, fIdx, flatIdx, 'flatType', e.target.value)}
+                                                onChange={(e) => handleFlatTypeChange(tIdx, wIdx, fIdx, flatIdx, e.target.value)}
                                                 className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-500"
                                               >
                                                 {FLAT_TYPES.map(type => (
@@ -641,114 +687,132 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
 
                                             {/* Flat Configuration & Rooms */}
                                             {expandedFlats[flatKey] && (
-                                              <div className="mt-3 space-y-3">
+                                              <div className="mt-4 space-y-4">
                                                 {/* Flat Configuration */}
-                                                <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                                                  <p className="text-sm font-semibold text-indigo-800 mb-2">🏗️ Flat Configuration</p>
-                                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                                    <div>
-                                                      <label className="text-xs text-gray-600 mb-1 block">Variation</label>
-                                                      <input
-                                                        type="text"
-                                                        value={flat.variation || 'Standard'}
-                                                        onChange={(e) => updateFlat(tIdx, wIdx, fIdx, flatIdx, 'variation', e.target.value)}
-                                                        placeholder="e.g., Premium, Standard"
-                                                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                                                      />
-                                                    </div>
-                                                    <div>
-                                                      <label className="text-xs text-gray-600 mb-1 block">Bedrooms</label>
-                                                      <input
-                                                        type="number"
-                                                        min="0"
-                                                        max="10"
-                                                        value={flat.bedroomCount || 2}
-                                                        onChange={(e) => updateFlat(tIdx, wIdx, fIdx, flatIdx, 'bedroomCount', parseInt(e.target.value))}
-                                                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                                                      />
-                                                    </div>
-                                                    <div>
-                                                      <label className="text-xs text-gray-600 mb-1 block">Bathrooms</label>
-                                                      <input
-                                                        type="number"
-                                                        min="0"
-                                                        max="10"
-                                                        value={flat.bathroomCount || 2}
-                                                        onChange={(e) => updateFlat(tIdx, wIdx, fIdx, flatIdx, 'bathroomCount', parseInt(e.target.value))}
-                                                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                                                      />
-                                                    </div>
-                                                    <div>
-                                                      <label className="text-xs text-gray-600 mb-1 block">Balconies</label>
-                                                      <input
-                                                        type="number"
-                                                        min="0"
-                                                        max="10"
-                                                        value={flat.balconyCount || 1}
-                                                        onChange={(e) => updateFlat(tIdx, wIdx, fIdx, flatIdx, 'balconyCount', parseInt(e.target.value))}
-                                                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                                                      />
-                                                    </div>
-                                                    <label className="flex items-center gap-2 col-span-1">
-                                                      <input
-                                                        type="checkbox"
-                                                        checked={flat.hasLivingRoom !== false}
-                                                        onChange={(e) => updateFlat(tIdx, wIdx, fIdx, flatIdx, 'hasLivingRoom', e.target.checked)}
-                                                        className="w-4 h-4 text-green-600 rounded"
-                                                      />
-                                                      <span className="text-xs text-gray-700">Living Room</span>
-                                                    </label>
-                                                    <label className="flex items-center gap-2 col-span-1">
-                                                      <input
-                                                        type="checkbox"
-                                                        checked={flat.hasKitchen !== false}
-                                                        onChange={(e) => updateFlat(tIdx, wIdx, fIdx, flatIdx, 'hasKitchen', e.target.checked)}
-                                                        className="w-4 h-4 text-green-600 rounded"
-                                                      />
-                                                      <span className="text-xs text-gray-700">Kitchen</span>
-                                                    </label>
+                                                <div className="bg-white rounded-lg border-2 border-indigo-200 shadow-sm">
+                                                  <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 px-4 py-3 border-b border-indigo-200">
+                                                    <h4 className="text-sm font-bold text-indigo-900">Flat Configuration</h4>
+                                                    <p className="text-xs text-indigo-600 mt-0.5">Configure bedroom, bathroom, and balcony counts</p>
                                                   </div>
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => autoGenerateRooms(tIdx, wIdx, fIdx, flatIdx)}
-                                                    className="mt-2 w-full px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
-                                                  >
-                                                    ⚡ Auto-Generate Rooms
-                                                  </button>
+                                                  <div className="p-4">
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                      <div>
+                                                        <label className="text-sm font-medium text-gray-700 mb-1.5 block">Variation</label>
+                                                        <input
+                                                          type="text"
+                                                          value={flat.variation || 'Standard'}
+                                                          onChange={(e) => updateFlat(tIdx, wIdx, fIdx, flatIdx, 'variation', e.target.value)}
+                                                          placeholder="e.g., Premium, Standard, Deluxe"
+                                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                        />
+                                                      </div>
+                                                      <div>
+                                                        <label className="text-sm font-medium text-gray-700 mb-1.5 block">Bedrooms</label>
+                                                        <input
+                                                          type="number"
+                                                          min="0"
+                                                          max="10"
+                                                          value={flat.bedroomCount ?? 2}
+                                                          onChange={(e) => {
+                                                            const val = e.target.value === '' ? 0 : parseInt(e.target.value);
+                                                            updateFlat(tIdx, wIdx, fIdx, flatIdx, 'bedroomCount', val);
+                                                          }}
+                                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                        />
+                                                      </div>
+                                                      <div>
+                                                        <label className="text-sm font-medium text-gray-700 mb-1.5 block">Bathrooms</label>
+                                                        <input
+                                                          type="number"
+                                                          min="0"
+                                                          max="10"
+                                                          value={flat.bathroomCount ?? 2}
+                                                          onChange={(e) => {
+                                                            const val = e.target.value === '' ? 0 : parseInt(e.target.value);
+                                                            updateFlat(tIdx, wIdx, fIdx, flatIdx, 'bathroomCount', val);
+                                                          }}
+                                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                        />
+                                                      </div>
+                                                      <div>
+                                                        <label className="text-sm font-medium text-gray-700 mb-1.5 block">Balconies</label>
+                                                        <input
+                                                          type="number"
+                                                          min="0"
+                                                          max="10"
+                                                          value={flat.balconyCount ?? 1}
+                                                          onChange={(e) => {
+                                                            const val = e.target.value === '' ? 0 : parseInt(e.target.value);
+                                                            updateFlat(tIdx, wIdx, fIdx, flatIdx, 'balconyCount', val);
+                                                          }}
+                                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                        />
+                                                      </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-200">
+                                                      <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+                                                        <input
+                                                          type="checkbox"
+                                                          checked={flat.hasLivingRoom !== false}
+                                                          onChange={(e) => updateFlat(tIdx, wIdx, fIdx, flatIdx, 'hasLivingRoom', e.target.checked)}
+                                                          className="w-4 h-4 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500"
+                                                        />
+                                                        <span className="text-sm font-medium text-gray-700">Living Room</span>
+                                                      </label>
+                                                      <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+                                                        <input
+                                                          type="checkbox"
+                                                          checked={flat.hasKitchen !== false}
+                                                          onChange={(e) => updateFlat(tIdx, wIdx, fIdx, flatIdx, 'hasKitchen', e.target.checked)}
+                                                          className="w-4 h-4 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500"
+                                                        />
+                                                        <span className="text-sm font-medium text-gray-700">Kitchen</span>
+                                                      </label>
+                                                    </div>
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => autoGenerateRooms(tIdx, wIdx, fIdx, flatIdx)}
+                                                      className="mt-4 w-full px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium shadow-sm transition-colors"
+                                                    >
+                                                      ⚡ Auto-Generate Rooms
+                                                    </button>
+                                                  </div>
                                                 </div>
 
                                                 {/* Room Selection */}
-                                                <div className="p-3 bg-white rounded-lg border border-green-200">
-                                                  <div className="flex items-center justify-between mb-3">
-                                                    <div className="flex items-center gap-2">
-                                                      <FaBed className="text-green-600" />
-                                                      <p className="text-sm font-semibold text-gray-700">Room Types (Manual Selection):</p>
-                                                    </div>
+                                                <div className="bg-white rounded-lg border-2 border-green-200 shadow-sm">
+                                                  <div className="bg-gradient-to-r from-green-50 to-green-100 px-4 py-3 border-b border-green-200">
+                                                    <h4 className="text-sm font-bold text-green-900">Room Types (Manual Selection)</h4>
+                                                    <p className="text-xs text-green-600 mt-0.5">Manually select additional room types if needed</p>
                                                   </div>
-                                                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                                    {ROOM_TYPES.map(roomType => (
-                                                      <label
-                                                        key={roomType.value}
-                                                        className="flex items-center gap-2 p-2 rounded-lg border-2 border-gray-200 hover:border-green-400 cursor-pointer transition-colors bg-white"
-                                                      >
-                                                        <input
-                                                          type="checkbox"
-                                                          checked={isRoomSelected(flat, roomType)}
-                                                          onChange={() => toggleRoom(tIdx, wIdx, fIdx, flatIdx, roomType)}
-                                                          className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
-                                                        />
-                                                        <span className="text-sm flex items-center gap-1">
-                                                          <span>{roomType.icon}</span>
-                                                          <span>{roomType.label}</span>
-                                                        </span>
-                                                      </label>
-                                                    ))}
-                                                  </div>
-                                                  {flat.rooms?.length > 0 && (
-                                                    <div className="mt-2 p-2 bg-green-50 rounded text-xs text-gray-600">
-                                                      <strong>Rooms ({flat.rooms.length}):</strong> {flat.rooms.map(r => r.name).join(', ')}
+                                                  <div className="p-4">
+                                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                                      {ROOM_TYPES.map(roomType => (
+                                                        <label
+                                                          key={roomType.value}
+                                                          className={`flex items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                                                            isRoomSelected(flat, roomType)
+                                                              ? 'border-green-500 bg-green-50'
+                                                              : 'border-gray-200 bg-white hover:border-green-300 hover:bg-green-50'
+                                                          }`}
+                                                        >
+                                                          <input
+                                                            type="checkbox"
+                                                            checked={isRoomSelected(flat, roomType)}
+                                                            onChange={() => toggleRoom(tIdx, wIdx, fIdx, flatIdx, roomType)}
+                                                            className="w-4 h-4 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                                                          />
+                                                          <span className="text-sm font-medium text-gray-700">{roomType.label}</span>
+                                                        </label>
+                                                      ))}
                                                     </div>
-                                                  )}
+                                                    {flat.rooms?.length > 0 && (
+                                                      <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                                                        <p className="text-xs font-semibold text-green-800 mb-1">Selected Rooms ({flat.rooms.length}):</p>
+                                                        <p className="text-xs text-gray-700">{flat.rooms.map(r => r.name).join(', ')}</p>
+                                                      </div>
+                                                    )}
+                                                  </div>
                                                 </div>
                                               </div>
                                             )}
