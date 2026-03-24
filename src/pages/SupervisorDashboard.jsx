@@ -103,6 +103,17 @@ const SupervisorDashboard = () => {
               gradient="from-purple-400 to-purple-500"
               bgColor="bg-purple-50"
             />
+            <div className="col-span-2">
+              <DashboardCard
+                label="Connect to Server"
+                icon={null}
+                iconComponent={<FaServer className="w-full h-full text-white" />}
+                onClick={() => navigate('/connect-server')}
+                gradient="from-purple-400 to-purple-500"
+                bgColor="bg-purple-50"
+                fullWidth
+              />
+            </div>
           </div>
 
           {/* Info Card */}

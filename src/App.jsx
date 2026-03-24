@@ -35,12 +35,12 @@ const CreateReimbursement = lazy(() => import('./pages/CreateReimbursement'));
 const AdminReimbursements = lazy(() => import('./pages/AdminReimbursements'));
 const SupervisorDashboard = lazy(() => import('./pages/SupervisorDashboard'));
 const SupervisorProjectList = lazy(() => import('./pages/SupervisorProjectList'));
-const SupervisorProjectDashboard = lazy(() => import('./pages/SupervisorProjectDashboard'));
 const SupervisorLabourList = lazy(() => import('./pages/SupervisorLabourList'));
 const SupervisorAddLabour = lazy(() => import('./pages/SupervisorAddLabour'));
 const SupervisorLabourDetails = lazy(() => import('./pages/SupervisorLabourDetails'));
 const LabourDashboard = lazy(() => import('./pages/LabourDashboard'));
 const TaskSubmission = lazy(() => import('./pages/TaskSubmission'));
+const TeamAttendance = lazy(() => import('./pages/TeamAttendance'));
 
 // Material Management Pages - Lazy loaded
 const Material = lazy(() => import('./pages/material/Material'));
@@ -155,12 +155,12 @@ function App() {
 
         {/* Supervisor/Subcontractor Routes */}
         <Route path="/supervisor/projects" element={<SupervisorProjectList />} />
-        <Route path="/supervisor/branch/:branchId/dashboard" element={<SupervisorProjectDashboard />} />
         <Route path="/branch/:branchId/labour-dashboard" element={<LabourDashboard />} />
         <Route path="/branch/:branchId/tasks" element={<TaskSubmission />} />
         <Route path="/branch/:branchId/labours" element={<SupervisorLabourList />} />
         <Route path="/branch/:branchId/labours/add" element={<SupervisorAddLabour />} />
         <Route path="/branch/:branchId/labours/:labourId" element={<SupervisorLabourDetails />} />
+        <Route path="/branch/:branchId/team-attendance" element={<TeamAttendance />} />
 
         {/* Admin Dashboard Route */}
         <Route path="/admindashboard" element={<AdminDashboard />} />

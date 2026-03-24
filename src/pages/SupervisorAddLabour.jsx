@@ -31,6 +31,25 @@ const SupervisorAddLabour = () => {
     emergencyContact: ''
   });
 
+  // Auto-calculate overtime rate when dailyWage or workingHours changes
+  React.useEffect(() => {
+    const dailyWage = parseFloat(formData.dailyWage);
+    const workingHours = parseFloat(formData.workingHours);
+    
+    // Only auto-calculate if both values are valid and workingHours is not zero
+    if (dailyWage && workingHours && workingHours > 0) {
+      const calculatedOvertimeRate = (dailyWage / workingHours).toFixed(2);
+      
+      // Only update if different from current value to avoid infinite loops
+      if (formData.overtimeWage !== calculatedOvertimeRate) {
+        setFormData(prev => ({
+          ...prev,
+          overtimeWage: calculatedOvertimeRate
+        }));
+      }
+    }
+  }, [formData.dailyWage, formData.workingHours]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({

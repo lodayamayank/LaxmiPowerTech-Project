@@ -115,73 +115,90 @@ const LabourDashboard = () => {
 
           {/* Grid Cards */}
           <div className="grid grid-cols-2 gap-4">
-            <DashboardCard
-              label="Mark Attendance"
-              icon={fingerprint}
-              onClick={() => navigate('/punch')}
-              gradient="from-green-400 to-green-500"
-              bgColor="bg-green-50"
-            />
-            <DashboardCard
-              label="My Attendance"
-              icon={layer2}
-              onClick={() => navigate('/my-attendance')}
-              gradient="from-blue-400 to-blue-500"
-              bgColor="bg-blue-50"
-            />
-            {/* Profile option - Hidden for Supervisor in VPS dashboard, shown for Labour/Staff */}
-            {showProfile && (
-              <DashboardCard
-                label="Profile"
-                icon={avatar}
-                onClick={() => navigate('/profile')}
-                gradient="from-purple-400 to-purple-500"
-                bgColor="bg-purple-50"
-              />
-            )}
-            <DashboardCard
-              label="Leave"
-              icon={leaves}
-              onClick={() => navigate('/leaves')}
-              gradient="from-orange-400 to-orange-500"
-              bgColor="bg-orange-50"
-            />
-            <DashboardCard
-              label="Reimbursement"
-              icon={money}
-              onClick={() => navigate('/reimbursements')}
-              gradient="from-orange-400 to-orange-500"
-              bgColor="bg-orange-50"
-            />
-            <DashboardCard
-              label="Material"
-              icon={null}
-              iconComponent={<MdInventory className="w-full h-full text-white" />}
-              onClick={() => navigate('/material/intent', { state: { branchId } })}
-              gradient="from-teal-400 to-teal-500"
-              bgColor="bg-teal-50"
-            />
-            {/* Task option - Visible only for Supervisor in VPS dashboard */}
-            {isSupervisorVPSView && (
-              <DashboardCard
-                label="Task"
-                icon={null}
-                iconComponent={<FaTasks className="w-full h-full text-white" />}
-                onClick={() => navigate(`/branch/${branchId}/tasks`)}
-                gradient="from-indigo-400 to-indigo-500"
-                bgColor="bg-indigo-50"
-              />
-            )}
-            {/* Labour option - Visible only for Supervisor in VPS dashboard */}
-            {isSupervisorVPSView && (
-              <DashboardCard
-                label="Labour"
-                icon={null}
-                iconComponent={<FaUsers className="w-full h-full text-white" />}
-                onClick={() => navigate(`/branch/${branchId}/labours`)}
-                gradient="from-pink-400 to-pink-500"
-                bgColor="bg-pink-50"
-              />
+            {/* For Supervisor Project Dashboard - Show only Material, Task, Labour, Team Attendance */}
+            {isSupervisorVPSView ? (
+              <>
+                <DashboardCard
+                  label="Material"
+                  icon={null}
+                  iconComponent={<MdInventory className="w-full h-full text-white" />}
+                  onClick={() => navigate('/material/intent', { state: { branchId } })}
+                  gradient="from-teal-400 to-teal-500"
+                  bgColor="bg-teal-50"
+                />
+                <DashboardCard
+                  label="Task"
+                  icon={null}
+                  iconComponent={<FaTasks className="w-full h-full text-white" />}
+                  onClick={() => navigate(`/branch/${branchId}/tasks`)}
+                  gradient="from-indigo-400 to-indigo-500"
+                  bgColor="bg-indigo-50"
+                />
+                <DashboardCard
+                  label="Labour"
+                  icon={null}
+                  iconComponent={<FaUsers className="w-full h-full text-white" />}
+                  onClick={() => navigate(`/branch/${branchId}/labours`)}
+                  gradient="from-pink-400 to-pink-500"
+                  bgColor="bg-pink-50"
+                />
+                <DashboardCard
+                  label="Team Attendance"
+                  icon={layer2}
+                  onClick={() => navigate(`/branch/${branchId}/team-attendance`)}
+                  gradient="from-green-400 to-green-500"
+                  bgColor="bg-green-50"
+                />
+              </>
+            ) : (
+              /* For Labour Dashboard - Show all original options */
+              <>
+                <DashboardCard
+                  label="Mark Attendance"
+                  icon={fingerprint}
+                  onClick={() => navigate('/punch')}
+                  gradient="from-green-400 to-green-500"
+                  bgColor="bg-green-50"
+                />
+                <DashboardCard
+                  label="My Attendance"
+                  icon={layer2}
+                  onClick={() => navigate('/my-attendance')}
+                  gradient="from-blue-400 to-blue-500"
+                  bgColor="bg-blue-50"
+                />
+                {showProfile && (
+                  <DashboardCard
+                    label="Profile"
+                    icon={avatar}
+                    onClick={() => navigate('/profile')}
+                    gradient="from-purple-400 to-purple-500"
+                    bgColor="bg-purple-50"
+                  />
+                )}
+                <DashboardCard
+                  label="Leave"
+                  icon={leaves}
+                  onClick={() => navigate('/leaves')}
+                  gradient="from-orange-400 to-orange-500"
+                  bgColor="bg-orange-50"
+                />
+                <DashboardCard
+                  label="Reimbursement"
+                  icon={money}
+                  onClick={() => navigate('/reimbursements')}
+                  gradient="from-orange-400 to-orange-500"
+                  bgColor="bg-orange-50"
+                />
+                <DashboardCard
+                  label="Material"
+                  icon={null}
+                  iconComponent={<MdInventory className="w-full h-full text-white" />}
+                  onClick={() => navigate('/material/intent', { state: { branchId } })}
+                  gradient="from-teal-400 to-teal-500"
+                  bgColor="bg-teal-50"
+                />
+              </>
             )}
           </div>
 
