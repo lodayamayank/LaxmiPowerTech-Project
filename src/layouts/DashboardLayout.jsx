@@ -122,7 +122,7 @@ const DashboardLayout = ({ children, title }) => {
       label: "Work Orders",
       icon: <IoDocumentTextOutline />,
       path: "/dashboard/work-orders",
-      disabled: true,
+      disabled: false,
     },
     { label: "Report", icon: <FaClipboardList />, path: "/dashboard/report", disabled: true },
     { label: "Inventory", icon: <FaBoxes />, path: "/dashboard/inventory", disabled: true },

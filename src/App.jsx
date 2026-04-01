@@ -67,6 +67,9 @@ const SalaryHistory = lazy(() => import('./pages/SalaryHistory'));
 // Task Management Pages - Lazy loaded
 const AdminTasks = lazy(() => import('./pages/AdminTasks'));
 
+// Work Order Management Pages - Lazy loaded
+const ManageWorkOrder = lazy(() => import('./pages/ManageWorkOrder'));
+
 // Loading fallback component
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -199,6 +202,9 @@ function App() {
 
         {/* Task Management Routes */}
         <Route path="/admin/tasks" element={<AdminTasks />} />
+
+        {/* Work Order Management Routes */}
+        <Route path="/dashboard/work-orders" element={<ManageWorkOrder />} />
 
         </Routes>
       </Suspense>
