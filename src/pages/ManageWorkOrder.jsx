@@ -10,6 +10,7 @@ const StatusPill = ({ value }) => {
     completed: "bg-blue-100 text-blue-700",
     "on-hold": "bg-yellow-100 text-yellow-700",
     cancelled: "bg-red-100 text-red-700",
+    triggered: "bg-purple-100 text-purple-700",
   };
   
   return (
@@ -333,6 +334,21 @@ export default function ManageWorkOrder() {
     fetchWorkOrders(reset);
   };
 
+  const handleTriggerWorkOrder = async (order) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to TRIGGER Work Order "${order.workOrderNo}"?\n\nOnce triggered:\n- This Work Order will be LOCKED\n- No new bills can be added\n- No edits allowed\n\nThis action CANNOT be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await axios.patch(`/work-orders/${order._id}/trigger`);
+      toast.success(`Work Order "${order.workOrderNo}" has been triggered and locked.`);
+      fetchWorkOrders();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to trigger work order");
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="p-6 bg-gray-50 min-h-screen">
@@ -528,12 +544,26 @@ export default function ManageWorkOrder() {
                         <StatusPill value={order.status} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button 
-                          onClick={() => handleViewBills(order)}
-                          className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                        >
-                          View Bills
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => handleViewBills(order)}
+                            className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-medium transition-colors text-xs"
+                          >
+                            View Bills
+                          </button>
+                          {order.isTriggered ? (
+                            <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-2 rounded-lg">
+                              🔒 Triggered
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handleTriggerWorkOrder(order)}
+                              className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-xs"
+                            >
+                              Trigger WO
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -696,6 +726,17 @@ export default function ManageWorkOrder() {
                 </button>
               </div>
 
+              {/* Triggered Lock Banner */}
+              {selectedWorkOrder.isTriggered && (
+                <div className="px-6 py-3 bg-purple-50 border-b border-purple-200 flex items-center gap-3">
+                  <span className="text-purple-700 text-lg">🔒</span>
+                  <div>
+                    <p className="text-sm font-semibold text-purple-800">This Work Order is Triggered and Locked</p>
+                    <p className="text-xs text-purple-600">No new bills can be added. All data is read-only.</p>
+                  </div>
+                </div>
+              )}
+
               {/* Work Order Summary */}
               <div className="p-6 bg-blue-50 border-b border-blue-100">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -732,17 +773,23 @@ export default function ManageWorkOrder() {
 
               {/* Modal Body */}
               <div className="p-6">
-                {/* Add Bill Button */}
+                {/* Add Bill Button — hidden when triggered */}
                 {!showAddBillForm && (
                   <div className="mb-6">
-                    <button
-                      onClick={handleAddBillClick}
-                      className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
-                      disabled={loadingBills}
-                    >
-                      <FaPlus />
-                      Add Bill
-                    </button>
+                    {selectedWorkOrder.isTriggered ? (
+                      <div className="inline-flex items-center gap-2 bg-purple-50 border border-purple-200 text-purple-700 text-sm font-medium px-4 py-2 rounded-lg">
+                        🔒 Work Order is locked — adding bills is disabled
+                      </div>
+                    ) : (
+                      <button
+                        onClick={handleAddBillClick}
+                        className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+                        disabled={loadingBills}
+                      >
+                        <FaPlus />
+                        Add Bill
+                      </button>
+                    )}
                   </div>
                 )}
 
