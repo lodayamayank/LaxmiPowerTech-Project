@@ -53,6 +53,8 @@ const PunchInScreen = () => {
   const [branchDistance, setBranchDistance] = useState(null);
 
   const mapRef = useRef(null);
+  const retryCountRef = useRef(0);
+  const MAX_RETRIES = 2;
   const navigate = useNavigate();
 
   // Load Google Maps
@@ -100,20 +102,41 @@ const PunchInScreen = () => {
     }
   }, [location, user]);
 
-  const getLocation = () => {
+  const getLocation = (isManualRefresh = false) => {
     setLoadingLocation(true);
+    if (isManualRefresh) retryCountRef.current = 0;
+
+    const onSuccess = (pos) => {
+      const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      setLocation(loc);
+      setLoadingLocation(false);
+      recenter(loc.lat, loc.lng);
+      retryCountRef.current = 0;
+    };
+
+    const tryLowAccuracy = () => {
+      navigator.geolocation.getCurrentPosition(
+        onSuccess,
+        () => {
+          if (retryCountRef.current < MAX_RETRIES) {
+            retryCountRef.current += 1;
+            setTimeout(() => getLocation(), 1500);
+          } else {
+            notifier.error("Failed to fetch location. Please check GPS settings and try again.");
+            setLoadingLocation(false);
+            retryCountRef.current = 0;
+          }
+        },
+        { enableHighAccuracy: false, maximumAge: 60000, timeout: 10000 }
+      );
+    };
+
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        setLocation(loc);
-        setLoadingLocation(false);
-        recenter(loc.lat, loc.lng);
-      },
+      onSuccess,
       () => {
-        notifier.error("Failed to fetch location");
-        setLoadingLocation(false);
+        tryLowAccuracy();
       },
-      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
+      { enableHighAccuracy: true, maximumAge: 60000, timeout: 20000 }
     );
   };
 
@@ -431,7 +454,7 @@ const PunchInScreen = () => {
             {/* Refresh Location Button */}
             <button
               className="absolute top-3 right-3 bg-white text-gray-800 px-4 py-2 rounded-full shadow-lg border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-2 font-medium text-sm"
-              onClick={getLocation}
+              onClick={() => getLocation(true)}
               disabled={loadingLocation}
             >
               <FaSyncAlt className={loadingLocation ? 'animate-spin' : ''} size={14} />
