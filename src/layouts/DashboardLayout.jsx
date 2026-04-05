@@ -181,14 +181,6 @@ const DashboardLayout = ({ children, title }) => {
           </button>
         </div>
 
-        <button
-          className="hidden lg:flex items-center justify-center w-10 h-10 mx-auto mb-4 bg-white text-orange-500 hover:bg-white/90 rounded-lg transition-all shadow-md hover:shadow-lg"
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          title={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-        >
-          {sidebarCollapsed ? <FaChevronRight size={18} color="orange"/> : <FaChevronLeft size={18} color="orange"/>}
-        </button>
-
         {user && (
           <div className={`pb-4 mb-4 border-b border-white/20 transition-all ${
             sidebarCollapsed ? 'px-2' : 'px-6'
@@ -337,6 +329,13 @@ const DashboardLayout = ({ children, title }) => {
               onClick={() => setSidebarOpen(true)}
             >
               <FaBars />
+            </button>
+            <button
+              className="hidden lg:flex items-center justify-center w-9 h-9 rounded-lg border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white transition-all"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              title={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            >
+              {sidebarCollapsed ? <FaChevronRight size={14} /> : <FaChevronLeft size={14} />}
             </button>
             {title && (
               <h1 className="text-lg lg:text-xl font-bold text-gray-800 dark:text-white">{title}</h1>
