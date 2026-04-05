@@ -186,7 +186,7 @@ const DashboardLayout = ({ children, title }) => {
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
           title={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
         >
-          {sidebarCollapsed ? <FaChevronRight size={18} /> : <FaChevronLeft size={18} />}
+          {sidebarCollapsed ? <FaChevronRight size={18} color="orange"/> : <FaChevronLeft size={18} color="orange"/>}
         </button>
 
         {user && (
