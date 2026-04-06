@@ -70,6 +70,9 @@ const AdminTasks = lazy(() => import('./pages/AdminTasks'));
 // Work Order Management Pages - Lazy loaded
 const ManageWorkOrder = lazy(() => import('./pages/ManageWorkOrder'));
 
+// Reports Page
+const AdminReports = lazy(() => import('./pages/AdminReports'));
+
 // Loading fallback component
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -205,6 +208,9 @@ function App() {
 
         {/* Work Order Management Routes */}
         <Route path="/dashboard/work-orders" element={<ManageWorkOrder />} />
+
+        {/* Reports */}
+        <Route path="/dashboard/report" element={<AdminReports />} />
 
         </Routes>
       </Suspense>
