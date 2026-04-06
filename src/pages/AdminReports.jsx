@@ -117,6 +117,7 @@ const AdminReports = () => {
       labourCost: reportData.totalLabourCost || 0,
       expenses: reportData.totalExpenses || 0,
       profitOrLoss: reportData.profitOrLoss || 0,
+      outstanding: reportData.outstandingAmount || 0,
     };
   }, [reportData]);
 
@@ -332,7 +333,7 @@ const AdminReports = () => {
         </header>
 
         {reportData?.projectName && (
-          <section className="grid gap-4 rounded-2xl bg-gradient-to-r from-orange-50 to-white p-6 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
+          <section className="grid gap-4 rounded-2xl bg-gradient-to-r from-orange-50 to-white p-6 shadow-sm sm:grid-cols-2 lg:grid-cols-5">
             <div>
               <p className="text-xs uppercase tracking-wide text-gray-400">Project</p>
               <p className="text-lg font-semibold text-gray-800">{reportData.projectName}</p>
@@ -344,6 +345,10 @@ const AdminReports = () => {
             <div>
               <p className="text-xs uppercase tracking-wide text-gray-400">Expenses (Material + Labour)</p>
               <p className="text-lg font-semibold text-gray-800">{formatCurrency(summaryCard?.expenses)}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-gray-400">Outstanding</p>
+              <p className="text-lg font-semibold text-gray-800">{formatCurrency(summaryCard?.outstanding)}</p>
             </div>
             <div className="rounded-xl border border-dashed border-orange-200 bg-white/70 p-4 text-sm font-semibold text-gray-700 shadow-inner">
               <p className="text-xs uppercase tracking-wide text-orange-500">Profit / Loss</p>
@@ -401,10 +406,11 @@ const AdminReports = () => {
         {reportData && (
           <section className="mt-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <h3 className="mb-4 text-lg font-semibold text-gray-900">Final Summary</h3>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <SummaryTile title="Total Billing" value={formatCurrency(summaryCard?.billing)} />
               <SummaryTile title="Material Cost" value={formatCurrency(summaryCard?.materialCost)} />
               <SummaryTile title="Labour Cost" value={formatCurrency(summaryCard?.labourCost)} />
+              <SummaryTile title="Outstanding" value={formatCurrency(summaryCard?.outstanding)} />
               <SummaryTile
                 title="Profit / Loss"
                 value={formatCurrency(summaryCard?.profitOrLoss)}

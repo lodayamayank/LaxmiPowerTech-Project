@@ -69,6 +69,7 @@ const AdminTasks = lazy(() => import('./pages/AdminTasks'));
 
 // Work Order Management Pages - Lazy loaded
 const ManageWorkOrder = lazy(() => import('./pages/ManageWorkOrder'));
+const ManageInventoryLabour = lazy(() => import('./pages/ManageInventoryLabour'));
 
 // Reports Page
 const AdminReports = lazy(() => import('./pages/AdminReports'));
@@ -211,6 +212,9 @@ function App() {
 
         {/* Reports */}
         <Route path="/dashboard/report" element={<AdminReports />} />
+
+        {/* Inventory */}
+        <Route path="/dashboard/inventory/labour/manage" element={<ManageInventoryLabour />} />
 
         </Routes>
       </Suspense>
