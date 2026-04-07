@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../layouts/DashboardLayout';
 import axios from '../utils/axios';
@@ -8,7 +8,6 @@ const formatCurrency = (value) => {
   if (value === null || value === undefined || Number.isNaN(value)) {
     return '₹0';
   }
-
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
@@ -20,11 +19,7 @@ const formatDate = (value) => {
   if (!value) return '-';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '-';
-  return date.toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
+  return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 const formatMonthYear = (month, year) => {
@@ -34,12 +29,7 @@ const formatMonthYear = (month, year) => {
 };
 
 const SummaryTile = ({ title, value, tone = 'default' }) => {
-  const toneClass = {
-    default: 'text-gray-900',
-    success: 'text-green-600',
-    danger: 'text-red-600',
-  }[tone];
-
+  const toneClass = { default: 'text-gray-900', success: 'text-green-600', danger: 'text-red-600' }[tone];
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
       <p className="text-xs uppercase tracking-wide text-gray-400">{title}</p>
@@ -48,278 +38,288 @@ const SummaryTile = ({ title, value, tone = 'default' }) => {
   );
 };
 
+const selectClass =
+  'w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 sm:w-52';
+
 const ManageInventoryLabour = () => {
   const navigate = useNavigate();
-  const [projects, setProjects] = useState([]);
+
+  // Filter state
+  const [branches, setBranches] = useState([]);
+  const [selectedBranch, setSelectedBranch] = useState('all');
+  const [branchProjects, setBranchProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState('all');
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Data state
   const [overview, setOverview] = useState({ groups: [], summary: null });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [expandedRow, setExpandedRow] = useState(null);
-  const [fallbackNotice, setFallbackNotice] = useState('');
 
-  const buildOverviewFromUsers = (users, monthValue, yearValue) => {
-    const filteredUsers = users.filter((user) => {
-      if (selectedProject === 'all') return true;
-      const userProjectId = user.project?._id || user.project?.id || user.project;
-      return userProjectId ? userProjectId.toString() === selectedProject : false;
-    });
-
-    const summary = {
-      totalLabours: filteredUsers.length,
-      totalSalary: 0,
-      totalPaid: 0,
-      totalPending: 0,
-    };
-
-    const groupsMap = new Map();
-
-    filteredUsers.forEach((labour) => {
-      const monthlySalary = Number(labour.ctcAmount) || 0;
-      summary.totalSalary += monthlySalary;
-      summary.totalPending += monthlySalary;
-
-      const project = labour.project
-        ? labour.project.name || labour.project.projectName || labour.project
-        : 'Unassigned Project';
-      const branchDocs = Array.isArray(labour.assignedBranches) ? labour.assignedBranches : [];
-      const branch = branchDocs[0]?.name || 'Unassigned Branch';
-      const key = `${project}::${branch}`;
-
-      if (!groupsMap.has(key)) {
-        groupsMap.set(key, {
-          projectName: project,
-          branchName: branch,
-          totalLabours: 0,
-          totalSalary: 0,
-          totalPaid: 0,
-          totalPending: 0,
-          labours: [],
-        });
-      }
-
-      const group = groupsMap.get(key);
-      group.totalLabours += 1;
-      group.totalSalary += monthlySalary;
-      group.totalPending += monthlySalary;
-      group.labours.push({
-        id: labour._id || labour.id,
-        name: labour.name,
-        username: labour.username,
-        workTime: labour.standardDailyHours || null,
-        monthlySalary,
-        paidAmount: 0,
-        pendingAmount: monthlySalary,
-        project: project,
-        branch: branch,
-        paymentStatus: monthlySalary ? 'pending' : 'not_configured',
-        dateOfJoining: labour.dateOfJoining || labour.createdAt || null,
-        salaryHistory: [],
-      });
-    });
-
-    return {
-      summary,
-      filters: {
-        month: monthValue,
-        year: yearValue,
-        projectId: selectedProject === 'all' ? null : selectedProject,
-      },
-      groups: Array.from(groupsMap.values()),
-    };
-  };
-
+  // ── Fetch all branches on mount ──
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchBranches = async () => {
       try {
-        const response = await axios.get('/projects');
-        if (Array.isArray(response?.data)) {
-          setProjects(response.data);
-        } else if (Array.isArray(response?.data?.data)) {
-          setProjects(response.data.data);
-        } else {
-          setProjects([]);
-        }
+        const res = await axios.get('/branches');
+        const data = Array.isArray(res?.data) ? res.data : Array.isArray(res?.data?.data) ? res.data.data : [];
+        setBranches(data);
       } catch (err) {
-        console.warn('Failed to fetch projects list', err);
+        console.warn('Failed to fetch branches', err);
       }
     };
-
-    fetchProjects();
+    fetchBranches();
   }, []);
 
+  // ── When branch changes → fetch projects for that branch (dependent dropdown) ──
+  useEffect(() => {
+    if (selectedBranch === 'all') {
+      setBranchProjects([]);
+      setSelectedProject('all');
+      return;
+    }
+    const fetchProjectsForBranch = async () => {
+      try {
+        const res = await axios.get(`/labour/projects-by-branch/${selectedBranch}`);
+        const data = Array.isArray(res?.data?.data) ? res.data.data : [];
+        setBranchProjects(data);
+      } catch (err) {
+        console.warn('Failed to fetch projects for branch', err);
+        setBranchProjects([]);
+      }
+    };
+    setSelectedProject('all');
+    fetchProjectsForBranch();
+  }, [selectedBranch]);
+
+  // ── Derive month/year from picker ──
   const [year, month] = useMemo(() => {
     const [y, m] = selectedMonth.split('-');
     return [Number(y), Number(m)];
   }, [selectedMonth]);
 
+  // ── Fetch labour overview (branch-based) ──
+  const fetchOverview = useCallback(async () => {
+    if (!month || !year) return;
+    try {
+      setLoading(true);
+      setError('');
+      const params = { month, year };
+      if (selectedBranch !== 'all') params.branchId = selectedBranch;
+      if (selectedProject !== 'all') params.projectId = selectedProject;
+
+      const response = await axios.get('/labour/overview', { params });
+      const groupedData = Array.isArray(response?.data?.data) ? response.data.data : [];
+      const summaryFromApi = response?.data?.summary || null;
+      setOverview({ groups: groupedData, summary: summaryFromApi });
+    } catch (err) {
+      console.error('Failed to fetch labour overview', err);
+      const status = err?.response?.status;
+
+      if (status === 404) {
+        // Fallback: fetch raw labour users and group by branch
+        try {
+          const fallbackRes = await axios.get('/users', { params: { role: 'labour' } });
+          const rawUsers = Array.isArray(fallbackRes?.data)
+            ? fallbackRes.data
+            : Array.isArray(fallbackRes?.data?.data)
+            ? fallbackRes.data.data
+            : [];
+          const built = buildOverviewFromUsers(rawUsers);
+          setOverview({ groups: built.groups, summary: built.summary });
+          setError('');
+        } catch (fbErr) {
+          console.error('Fallback failed', fbErr);
+          setError('Unable to load labour data. Please try again.');
+          setOverview({ groups: [], summary: null });
+        }
+      } else {
+        setError(err?.response?.data?.message || 'Unable to load labour data. Please try again.');
+        setOverview({ groups: [], summary: null });
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [month, year, selectedBranch, selectedProject]);
+
   useEffect(() => {
-    if (!month || !year) {
-      return;
+    fetchOverview();
+  }, [fetchOverview]);
+
+  // ── Fallback builder: groups by branch from raw user docs ──
+  const buildOverviewFromUsers = (users) => {
+    let filtered = users;
+    if (selectedBranch !== 'all') {
+      filtered = filtered.filter((u) => {
+        const bIds = (Array.isArray(u.assignedBranches) ? u.assignedBranches : []).map(
+          (b) => (b?._id || b)?.toString?.() || ''
+        );
+        return bIds.includes(selectedBranch);
+      });
+    }
+    if (selectedProject !== 'all') {
+      filtered = filtered.filter((u) => {
+        const pId = (u.project?._id || u.project)?.toString?.() || '';
+        return pId === selectedProject;
+      });
     }
 
-    const fetchOverview = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        setFallbackNotice('');
-        const params = {
-          month,
-          year,
-        };
-        if (selectedProject !== 'all') {
-          params.projectId = selectedProject;
+    const summary = { totalLabours: filtered.length, totalSalary: 0, totalPaid: 0, totalPending: 0 };
+    const groupsMap = new Map();
+
+    filtered.forEach((labour) => {
+      const monthlySalary = Number(labour.ctcAmount) || 0;
+      summary.totalSalary += monthlySalary;
+      summary.totalPending += monthlySalary;
+
+      const projectName = labour.project?.name || labour.project?.projectName || 'Unassigned';
+      const branchDocs = Array.isArray(labour.assignedBranches) ? labour.assignedBranches : [];
+      const branchList = branchDocs.length > 0 ? branchDocs : [null];
+
+      branchList.forEach((branchDoc) => {
+        const bId = branchDoc?._id?.toString?.() || branchDoc?.toString?.() || 'unassigned';
+        const bName = branchDoc?.name || 'Unassigned Branch';
+
+        if (!groupsMap.has(bId)) {
+          groupsMap.set(bId, {
+            branchId: branchDoc?._id || null,
+            branchName: bName,
+            totalLabours: 0,
+            totalSalary: 0,
+            totalPaid: 0,
+            totalPending: 0,
+            labours: [],
+          });
         }
 
-        const response = await axios.get('/labour/overview', { params });
-        const groupedData = Array.isArray(response?.data?.data) ? response.data.data : [];
-        const summaryFromApi = response?.data?.summary || null;
-        setOverview({
-          groups: groupedData,
-          summary: summaryFromApi,
-          filters: response?.data?.filters,
+        const group = groupsMap.get(bId);
+        group.totalLabours += 1;
+        group.totalSalary += monthlySalary;
+        group.totalPending += monthlySalary;
+        group.labours.push({
+          id: labour._id || labour.id,
+          name: labour.name,
+          username: labour.username,
+          projectName,
+          branchName: bName,
+          workingHours: labour.standardDailyHours || null,
+          monthlySalary,
+          paidAmount: 0,
+          pendingAmount: monthlySalary,
+          paymentStatus: monthlySalary ? 'pending' : 'not_configured',
+          dateOfJoining: labour.dateOfJoining || labour.createdAt || null,
+          salaryHistory: [],
         });
-      } catch (err) {
-        console.error('Failed to fetch labour overview', err);
-        const status = err?.response?.status;
+      });
+    });
 
-        if (status === 404) {
-          try {
-            const fallbackResponse = await axios.get('/users', {
-              params: { role: 'labour' },
-            });
-            const rawUsers = Array.isArray(fallbackResponse?.data)
-              ? fallbackResponse.data
-              : Array.isArray(fallbackResponse?.data?.data)
-              ? fallbackResponse.data.data
-              : [];
+    return { summary, groups: Array.from(groupsMap.values()) };
+  };
 
-            const overviewFromUsers = buildOverviewFromUsers(rawUsers, month, year);
-            setOverview({
-              groups: overviewFromUsers.groups,
-              summary: overviewFromUsers.summary,
-              filters: overviewFromUsers.filters,
-            });
-            setFallbackNotice(
-              'Using basic labour data (detailed salary history unavailable on current backend deployment).'
-            );
-            setError('');
-          } catch (fallbackErr) {
-            console.error('Failed to fetch labour list fallback', fallbackErr);
-            setError(
-              fallbackErr?.response?.data?.message ||
-                'Unable to load labour overview. Please try again.'
-            );
-            setOverview({ groups: [], summary: null, filters: null });
-          }
-        } else {
-          setError(err?.response?.data?.message || 'Unable to load labour overview. Please try again.');
-          setOverview({ groups: [], summary: null, filters: null });
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOverview();
-  }, [month, year, selectedProject]);
-
+  // ── Search filter on top of groups ──
   const groups = useMemo(() => {
     const baseGroups = Array.isArray(overview?.groups) ? overview.groups : [];
     if (!searchTerm) return baseGroups;
-
     const term = searchTerm.toLowerCase();
-
     return baseGroups
       .map((group) => ({
         ...group,
-        labours: group.labours.filter((labour) =>
-          labour.name?.toLowerCase?.().includes(term) ||
-          labour.username?.toLowerCase?.().includes(term) ||
-          labour.project?.toLowerCase?.().includes(term) ||
-          labour.branch?.toLowerCase?.().includes(term)
+        labours: group.labours.filter(
+          (l) =>
+            l.name?.toLowerCase?.().includes(term) ||
+            l.username?.toLowerCase?.().includes(term) ||
+            l.projectName?.toLowerCase?.().includes(term) ||
+            l.branchName?.toLowerCase?.().includes(term)
         ),
       }))
-      .filter((group) => group.labours.length > 0);
+      .filter((g) => g.labours.length > 0);
   }, [overview, searchTerm]);
 
+  // ── Summary cards ──
   const summaryCards = useMemo(() => {
-    const summary = overview?.summary;
-    if (!summary) {
-      return null;
-    }
-
+    const s = overview?.summary;
+    if (!s) return null;
     return [
-      {
-        title: 'Total Labour',
-        value: summary.totalLabours,
-      },
-      {
-        title: 'Monthly Salary (Configured)',
-        value: formatCurrency(summary.totalSalary),
-      },
-      {
-        title: 'Paid This Period',
-        value: formatCurrency(summary.totalPaid),
-        tone: 'success',
-      },
-      {
-        title: 'Pending This Period',
-        value: formatCurrency(summary.totalPending),
-        tone: summary.totalPending > 0 ? 'danger' : 'default',
-      },
+      { title: 'Total Labour', value: s.totalLabours },
+      { title: 'Monthly Salary (Configured)', value: formatCurrency(s.totalSalary) },
+      { title: 'Paid This Period', value: formatCurrency(s.totalPaid), tone: 'success' },
+      { title: 'Pending This Period', value: formatCurrency(s.totalPending), tone: s.totalPending > 0 ? 'danger' : 'default' },
     ];
   }, [overview]);
 
-  const handleToggleRow = (id) => {
-    setExpandedRow((current) => (current === id ? null : id));
-  };
+  const handleToggleRow = (id) => setExpandedRow((c) => (c === id ? null : id));
+
+  // ── Active filter description ──
+  const filterDescription = useMemo(() => {
+    const parts = [formatMonthYear(month, year)];
+    if (selectedBranch !== 'all') {
+      const br = branches.find((b) => b._id === selectedBranch);
+      if (br) parts.push(`Branch: ${br.name}`);
+    }
+    if (selectedProject !== 'all') {
+      const pr = branchProjects.find((p) => p._id === selectedProject);
+      if (pr) parts.push(`Project: ${pr.name}`);
+    }
+    return parts.join(' • ');
+  }, [month, year, selectedBranch, selectedProject, branches, branchProjects]);
 
   return (
     <DashboardLayout title="Manage Labour Inventory">
       <div className="space-y-6">
-        <header className="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-          <div>
+        {/* ── Header with filters ── */}
+        <header className="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm xl:flex-row xl:items-center xl:justify-between">
+          <div className="shrink-0">
             <h1 className="text-2xl font-bold text-gray-900">Labour Overview</h1>
             <p className="text-sm text-gray-500">
-              Monitor labour assignments, monthly payout status, and pending salaries across projects.
+              Monitor labour assignments and salaries across branches.
             </p>
           </div>
 
-          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-            <div className="flex items-center gap-2">
-              <select
-                value={selectedProject}
-                onChange={(event) => setSelectedProject(event.target.value)}
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 sm:w-56"
-              >
-                <option value="all">All Projects</option>
-                {projects.map((project) => (
-                  <option key={project._id} value={project._id}>
-                    {project.name}
-                  </option>
-                ))}
-              </select>
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center xl:w-auto">
+            {/* Branch dropdown (primary) */}
+            <select
+              value={selectedBranch}
+              onChange={(e) => setSelectedBranch(e.target.value)}
+              className={selectClass}
+            >
+              <option value="all">All Branches</option>
+              {branches.map((b) => (
+                <option key={b._id} value={b._id}>{b.name}</option>
+              ))}
+            </select>
 
-              <input
-                type="month"
-                value={selectedMonth}
-                onChange={(event) => setSelectedMonth(event.target.value)}
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 sm:w-40"
-              />
-            </div>
+            {/* Project dropdown (dependent on branch) */}
+            <select
+              value={selectedProject}
+              onChange={(e) => setSelectedProject(e.target.value)}
+              disabled={selectedBranch === 'all'}
+              className={`${selectClass} ${selectedBranch === 'all' ? 'cursor-not-allowed opacity-50' : ''}`}
+            >
+              <option value="all">{selectedBranch === 'all' ? 'Select branch first' : 'All Projects'}</option>
+              {branchProjects.map((p) => (
+                <option key={p._id} value={p._id}>{p.name}</option>
+              ))}
+            </select>
 
-            <div className="relative w-full sm:w-72">
+            {/* Month picker */}
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 sm:w-40"
+            />
+
+            {/* Search */}
+            <div className="relative w-full sm:w-64">
               <FaSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search by labour, username, or project"
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search labour, branch..."
                 className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-10 pr-4 text-sm text-gray-700 shadow-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100"
               />
             </div>
@@ -335,16 +335,12 @@ const ManageInventoryLabour = () => {
           </div>
         </header>
 
+        {/* Error */}
         {error && (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">{error}</div>
         )}
 
-        {!error && fallbackNotice && (
-          <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-700">
-            {fallbackNotice}
-          </div>
-        )}
-
+        {/* Summary tiles */}
         {summaryCards && (
           <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {summaryCards.map((card) => (
@@ -353,23 +349,18 @@ const ManageInventoryLabour = () => {
           </section>
         )}
 
+        {/* Main table — grouped by branch */}
         <section className="rounded-2xl border border-gray-200 bg-white shadow-sm">
           <header className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
             <div>
               <p className="text-xs uppercase tracking-wide text-gray-400">Labour Snapshot</p>
-              <p className="text-sm text-gray-500">
-                Data for {formatMonthYear(month, year)}{selectedProject !== 'all' ? ' • filtered by project' : ''}
-              </p>
+              <p className="text-sm text-gray-500">{filterDescription}</p>
             </div>
             <FaHardHat className="text-2xl text-orange-500" />
           </header>
 
           {loading ? (
             <div className="flex h-60 items-center justify-center text-gray-500">Loading labour data...</div>
-          ) : !overview?.groups ? (
-            <div className="flex h-60 flex-col items-center justify-center text-gray-500">
-              <p className="text-sm">No data available for the selected filters.</p>
-            </div>
           ) : groups.length === 0 ? (
             <div className="flex h-60 flex-col items-center justify-center text-center text-gray-500">
               <FaHardHat className="mb-3 text-3xl text-gray-300" />
@@ -382,7 +373,6 @@ const ManageInventoryLabour = () => {
                 <table className="min-w-full divide-y divide-gray-200 text-sm">
                   <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                     <tr>
-                      <th className="px-6 py-3 text-left">Project</th>
                       <th className="px-6 py-3 text-left">Branch</th>
                       <th className="px-6 py-3 text-left">Labours</th>
                       <th className="px-6 py-3 text-left">Monthly Salary</th>
@@ -393,14 +383,13 @@ const ManageInventoryLabour = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-100 bg-white">
                     {groups.map((group) => {
-                      const groupKey = `${group.projectName}-${group.branchName}`;
+                      const groupKey = group.branchId || group.branchName;
                       const isExpanded = expandedRow === groupKey;
 
                       return (
                         <React.Fragment key={groupKey}>
-                          <tr className="hover:bg-orange-50/40">
-                            <td className="px-6 py-3 font-semibold text-gray-800">{group.projectName}</td>
-                            <td className="px-6 py-3 text-gray-600">{group.branchName}</td>
+                          <tr className="hover:bg-orange-50/40 cursor-pointer" onClick={() => handleToggleRow(groupKey)}>
+                            <td className="px-6 py-3 font-semibold text-gray-800">{group.branchName}</td>
                             <td className="px-6 py-3 text-gray-600">{group.totalLabours}</td>
                             <td className="px-6 py-3 text-gray-800">{formatCurrency(group.totalSalary)}</td>
                             <td className="px-6 py-3 text-gray-600">{formatCurrency(group.totalPaid)}</td>
@@ -410,7 +399,6 @@ const ManageInventoryLabour = () => {
                             <td className="px-4 py-3 text-right">
                               <button
                                 type="button"
-                                onClick={() => handleToggleRow(groupKey)}
                                 className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-1 text-gray-500 hover:bg-gray-50"
                                 aria-label="Toggle labour list"
                               >
@@ -418,67 +406,50 @@ const ManageInventoryLabour = () => {
                               </button>
                             </td>
                           </tr>
+
                           {isExpanded && (
                             <tr className="bg-orange-50/30">
-                              <td colSpan={7} className="px-6 pb-6 pt-0">
+                              <td colSpan={6} className="px-6 pb-6 pt-2">
                                 <div className="rounded-xl border border-orange-100 bg-white p-4 shadow-inner">
-                                  <h4 className="mb-3 text-sm font-semibold text-orange-600">{group.projectName} • {group.branchName}</h4>
+                                  <h4 className="mb-3 text-sm font-semibold text-orange-600">{group.branchName}</h4>
                                   {group.labours?.length ? (
-                                    <div className="space-y-3">
-                                      {group.labours.map((labour) => (
-                                        <div
-                                          key={labour.id || `${labour.name}-${labour.username}`}
-                                          className="rounded-lg border border-gray-100 bg-gray-50/80 p-3"
-                                        >
-                                          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                                            <div>
-                                              <p className="text-sm font-semibold text-gray-800">{labour.name || '-'}</p>
-                                              <p className="text-xs text-gray-500">{labour.username || '—'} • {labour.role || 'Labour'}</p>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-xs">
-                                              <span className="rounded-full bg-orange-100 px-3 py-1 font-medium text-orange-600">
-                                                {formatCurrency(labour.monthlySalary)} / month
-                                              </span>
-                                              <span className={`rounded-full px-3 py-1 font-medium ${labour.pendingAmount > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                                                Pending: {formatCurrency(labour.pendingAmount)}
-                                              </span>
-                                            </div>
-                                          </div>
-
-                                          <div className="mt-3 grid gap-2 text-xs text-gray-500 sm:grid-cols-2 lg:grid-cols-3">
-                                            <div>
-                                              <span className="font-semibold text-gray-700">Working Hours:</span> {(labour.workingHours || labour.workTime) ? `${labour.workingHours || labour.workTime} hrs` : '—'}
-                                            </div>
-                                            <div>
-                                              <span className="font-semibold text-gray-700">Paid:</span> {formatCurrency(labour.paidAmount)}
-                                            </div>
-                                            <div>
-                                              <span className="font-semibold text-gray-700">Joined:</span> {formatDate(labour.dateOfJoining)}
-                                            </div>
-                                          </div>
-
-                                          <div className="mt-3">
-                                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Salary History</p>
-                                            {labour.salaryHistory?.length ? (
-                                              <div className="mt-2 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                                                {labour.salaryHistory.map((entry) => (
-                                                  <div key={entry.id || `${entry.month}-${entry.year}`} className="rounded-lg border border-gray-200 bg-white p-2 text-xs text-gray-600">
-                                                    <p className="font-semibold text-gray-800">{formatMonthYear(entry.month, entry.year)}</p>
-                                                    <p>{formatCurrency(entry.netSalary)}</p>
-                                                    <p className="capitalize">Status: {entry.paymentStatus || 'pending'}</p>
-                                                    {entry.paymentDate && <p>Paid on {formatDate(entry.paymentDate)}</p>}
-                                                  </div>
-                                                ))}
-                                              </div>
-                                            ) : (
-                                              <p className="mt-1 text-xs text-gray-500">No salary history recorded.</p>
-                                            )}
-                                          </div>
-                                        </div>
-                                      ))}
+                                    <div className="overflow-x-auto">
+                                      <table className="min-w-full text-xs">
+                                        <thead>
+                                          <tr className="border-b border-gray-200 text-left text-gray-500">
+                                            <th className="pb-2 pr-4 font-medium">Name</th>
+                                            <th className="pb-2 pr-4 font-medium">Branch</th>
+                                            <th className="pb-2 pr-4 font-medium">Project</th>
+                                            <th className="pb-2 pr-4 font-medium">Work Time</th>
+                                            <th className="pb-2 pr-4 font-medium">Salary</th>
+                                            <th className="pb-2 pr-4 font-medium">Paid</th>
+                                            <th className="pb-2 pr-4 font-medium">Pending</th>
+                                            <th className="pb-2 font-medium">Joined</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                          {group.labours.map((labour) => (
+                                            <tr key={labour.id || `${labour.name}-${labour.username}`} className="hover:bg-gray-50/60">
+                                              <td className="py-2 pr-4">
+                                                <p className="font-semibold text-gray-800">{labour.name || '-'}</p>
+                                                <p className="text-gray-400">{labour.username || '—'}</p>
+                                              </td>
+                                              <td className="py-2 pr-4 text-gray-600">{labour.branchName || group.branchName}</td>
+                                              <td className="py-2 pr-4 text-gray-600">{labour.projectName || 'Unassigned'}</td>
+                                              <td className="py-2 pr-4 text-gray-600">{labour.workingHours ? `${labour.workingHours} hrs` : '—'}</td>
+                                              <td className="py-2 pr-4 font-medium text-gray-800">{formatCurrency(labour.monthlySalary)}</td>
+                                              <td className="py-2 pr-4 text-green-600">{formatCurrency(labour.paidAmount)}</td>
+                                              <td className={`py-2 pr-4 font-medium ${labour.pendingAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                                {formatCurrency(labour.pendingAmount)}
+                                              </td>
+                                              <td className="py-2 text-gray-500">{formatDate(labour.dateOfJoining)}</td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
                                     </div>
                                   ) : (
-                                    <p className="text-sm text-gray-500">No salary history recorded.</p>
+                                    <p className="text-sm text-gray-500">No labours in this branch.</p>
                                   )}
                                 </div>
                               </td>
