@@ -47,7 +47,7 @@ const ManageInventoryLabour = () => {
   // Filter state
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState('all');
-  const [branchProjects, setBranchProjects] = useState([]);
+  const [allProjects, setAllProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState('all');
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -61,40 +61,41 @@ const ManageInventoryLabour = () => {
   const [error, setError] = useState('');
   const [expandedRow, setExpandedRow] = useState(null);
 
-  // ── Fetch all branches on mount ──
+  // ── Fetch branches and projects on mount ──
   useEffect(() => {
-    const fetchBranches = async () => {
+    const fetchInitialData = async () => {
       try {
-        const res = await axios.get('/branches');
-        const data = Array.isArray(res?.data) ? res.data : Array.isArray(res?.data?.data) ? res.data.data : [];
-        setBranches(data);
+        const [branchRes, projectRes] = await Promise.all([
+          axios.get('/branches'),
+          axios.get('/projects'),
+        ]);
+        const branchData = Array.isArray(branchRes?.data) ? branchRes.data : Array.isArray(branchRes?.data?.data) ? branchRes.data.data : [];
+        const projectData = Array.isArray(projectRes?.data) ? projectRes.data : Array.isArray(projectRes?.data?.data) ? projectRes.data.data : [];
+        setBranches(branchData);
+        setAllProjects(projectData);
       } catch (err) {
-        console.warn('Failed to fetch branches', err);
+        console.warn('Failed to fetch branches/projects', err);
       }
     };
-    fetchBranches();
+    fetchInitialData();
   }, []);
 
-  // ── When branch changes → fetch projects for that branch (dependent dropdown) ──
+  // ── Reset project when branch changes ──
   useEffect(() => {
-    if (selectedBranch === 'all') {
-      setBranchProjects([]);
-      setSelectedProject('all');
-      return;
-    }
-    const fetchProjectsForBranch = async () => {
-      try {
-        const res = await axios.get(`/labour/projects-by-branch/${selectedBranch}`);
-        const data = Array.isArray(res?.data?.data) ? res.data.data : [];
-        setBranchProjects(data);
-      } catch (err) {
-        console.warn('Failed to fetch projects for branch', err);
-        setBranchProjects([]);
-      }
-    };
     setSelectedProject('all');
-    fetchProjectsForBranch();
   }, [selectedBranch]);
+
+  // ── Derive projects for selected branch (client-side filter) ──
+  const branchProjects = useMemo(() => {
+    if (selectedBranch === 'all') return [];
+    return allProjects.filter((p) => {
+      const pBranches = Array.isArray(p.branches) ? p.branches : [];
+      return pBranches.some((b) => {
+        const bId = (b?._id || b)?.toString?.() || '';
+        return bId === selectedBranch;
+      });
+    });
+  }, [selectedBranch, allProjects]);
 
   // ── Derive month/year from picker ──
   const [year, month] = useMemo(() => {
