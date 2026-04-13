@@ -40,12 +40,22 @@ const SelfieCaptureScreen = () => {
     setIsSubmitting(true);
 
     try {
+      console.log('📸 Starting punch submission...');
+      console.log('User:', user?._id);
+      console.log('Location:', location);
+      console.log('PunchType:', punchType);
+      console.log('BranchId:', branchId);
+      console.log('Timestamp:', timestamp);
+      console.log('CapturedImage:', capturedImage ? 'Present' : 'Missing');
+
       if (!user?._id || !location?.lat || !location?.lng || !punchType || !capturedImage) {
         toast.error("Missing required data. Please try again.");
+        setIsSubmitting(false);
         return;
       }
 
       const selfieFile = dataURLtoFile(capturedImage, "selfie.jpg");
+      console.log('📷 Selfie file created:', selfieFile.name, selfieFile.size, 'bytes', selfieFile.type);
 
       // Offline fallback
       if (!navigator.onLine) {
@@ -71,7 +81,14 @@ const SelfieCaptureScreen = () => {
       if (branchId) formData.append("branchId", branchId);
       if (timestamp) formData.append("timestamp", String(timestamp));
 
+      console.log('📤 FormData prepared. Sending to /attendance/punch...');
+      console.log('FormData contents:');
+      for (let pair of formData.entries()) {
+        console.log(pair[0], ':', pair[1]);
+      }
+
       const res = await api.post("/attendance/punch", formData);
+      console.log('✅ Punch response:', res.status, res.data);
       if (!res || res.status < 200 || res.status >= 300) {
         throw new Error("Punch failed");
       }
@@ -79,12 +96,14 @@ const SelfieCaptureScreen = () => {
       toast.success("✅ Punch recorded successfully!");
       navigate("/dashboard");
     } catch (err) {
-      console.error(
-        "Punch error:",
-        err.response?.status,
-        err.response?.data || err.message
-      );
-      toast.error(`❌ Failed to punch. ${err.response?.data?.message || "Please try again."}`);
+      console.error('❌ Punch error details:');
+      console.error('Status:', err.response?.status);
+      console.error('Data:', err.response?.data);
+      console.error('Message:', err.message);
+      console.error('Full error:', err);
+      
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message || "Please try again.";
+      toast.error(`❌ Failed to punch: ${errorMsg}`);
     } finally {
       setIsSubmitting(false);
     }

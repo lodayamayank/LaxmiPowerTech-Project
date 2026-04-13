@@ -11,6 +11,10 @@ import {
   FaTimes,
   FaUserCircle,
   FaMoneyBillWave,
+  FaChevronLeft,
+  FaChevronRight,
+  FaMoon,
+  FaSun,
 } from "react-icons/fa";
 import { MdOutlineTaskAlt, MdSettings } from "react-icons/md";
 import { MdNotificationsActive } from "react-icons/md";
@@ -28,12 +32,21 @@ const DashboardLayout = ({ children, title }) => {
   const today = new Date().toLocaleDateString("en-GB");
   const navigate = useNavigate();
   const location = useLocation();
-  const [attendanceOpen, setAttendanceOpen] = useState(false); // ✅ Changed to false - don't open by default
+  const [attendanceOpen, setAttendanceOpen] = useState(false); // 
   const [materialOpen, setMaterialOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const [user, setUser] = useState(null);
 
+  // Load dark mode preference and user data
   useEffect(() => {
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+
     const userData = localStorage.getItem('user');
     if (userData) {
       try {
@@ -44,21 +57,30 @@ const DashboardLayout = ({ children, title }) => {
     }
   }, []);
 
-  // ✅ Auto-open parent menu based on current route
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   useEffect(() => {
     const path = location.pathname;
     
-    // Check if current route is under Attendance
     if (path.includes('/attendance/') || path.includes('/live-attendance')) {
       setAttendanceOpen(true);
       setMaterialOpen(false);
     }
-    // Check if current route is under Material
     else if (path.includes('/material/')) {
       setMaterialOpen(true);
       setAttendanceOpen(false);
     }
-    // For other routes, close both
     else {
       setAttendanceOpen(false);
       setMaterialOpen(false);
@@ -130,8 +152,7 @@ const DashboardLayout = ({ children, title }) => {
   ];
 
   return (
-    <div className="flex w-screen h-screen overflow-hidden bg-gray-50">
-      {/* Mobile Overlay */}
+    <div className="flex w-screen h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -139,38 +160,45 @@ const DashboardLayout = ({ children, title }) => {
         />
       )}
 
-      {/* Sidebar */}
       <div
-        className={`fixed lg:static inset-y-0 left-0 w-[250px] flex-shrink-0 p-1 bg-orange-500 text-white flex flex-col py-6 transform transition-transform duration-300 z-50 rounded-r-2xl shadow-2xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-          }`}
+        className={`fixed lg:static inset-y-0 left-0 flex-shrink-0 p-1 bg-orange-500 dark:bg-gray-800 text-white flex flex-col py-6 transform transition-all duration-300 z-50 rounded-r-2xl shadow-2xl ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        } ${
+          sidebarCollapsed ? 'w-[80px]' : 'w-[250px]'
+        }`}
       >
         <div className="flex items-center justify-between px-4 mb-6">
-          <div className="rounded-lg bg-white/80 p-2 flex-1">
-            <img src={logo} alt="Logo" className="w-full" />
-          </div>
+          {!sidebarCollapsed && (
+            <div className="rounded-lg bg-white/80 p-2 flex-1">
+              <img src={logo} alt="Logo" className="w-full" />
+            </div>
+          )}
           <button
-            className="lg:hidden ml-2 text-white"
+            className="lg:hidden ml-2 text-orange-500 bg-white/20 hover:bg-white/30 rounded-full p-2"
             onClick={() => setSidebarOpen(false)}
           >
             <FaTimes size={20} />
           </button>
         </div>
 
-        {/* User Info */}
         {user && (
-          <div className="px-6 pb-4 mb-4 border-b border-white/20">
-            <div className="flex items-center gap-3">
+          <div className={`pb-4 mb-4 border-b border-white/20 transition-all ${
+            sidebarCollapsed ? 'px-2' : 'px-6'
+          }`}>
+            <div className={`flex items-center ${
+              sidebarCollapsed ? 'justify-center' : 'gap-3'
+            }`}>
               <FaUserCircle className="text-3xl text-white/90" />
-              <div>
-                <div className="text-sm font-semibold">{user.name || 'User'}</div>
-                <div className="text-xs text-white/70 capitalize">{user.role || 'Staff'}</div>
-              </div>
+              {!sidebarCollapsed && (
+                <div>
+                  <div className="text-sm font-semibold">{user.name || 'User'}</div>
+                  <div className="text-xs text-white/70 capitalize">{user.role || 'Staff'}</div>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Menu */}
-        {/* Menu */}
         <nav className="flex flex-col flex-1 overflow-y-auto px-2">
           {menuItems.map((item) => {
             const isAttendance = item.label === "Attendance";
@@ -184,55 +212,66 @@ const DashboardLayout = ({ children, title }) => {
                       (isAttendance && attendanceOpen) || (isMaterial && materialOpen)
                         ? "bg-transparent text-white font-semibold shadow-md"
                         : "text-white bg-white/20 hover:bg-white/20"
-                      }`}
+                      } ${
+                      sidebarCollapsed ? 'justify-center px-2' : ''
+                    }`}
                     onClick={() => {
-                      // ✅ Toggle clicked menu and close the other
                       if (isAttendance) {
                         setAttendanceOpen((prev) => !prev);
-                        setMaterialOpen(false); // Close Material when opening Attendance
+                        setMaterialOpen(false); 
                       }
                       if (isMaterial) {
                         setMaterialOpen((prev) => !prev);
-                        setAttendanceOpen(false); // Close Attendance when opening Material
+                        setAttendanceOpen(false); 
                       }
                     }}
+                    title={sidebarCollapsed ? item.label : ''}
                   >
-                    <span className="flex items-center gap-3">
+                    <span className={`flex items-center ${
+                      sidebarCollapsed ? 'justify-center' : 'gap-3'
+                    }`}>
                       {item.icon}
-                      <span>{item.label}</span>
+                      {!sidebarCollapsed && <span>{item.label}</span>}
                     </span>
-                    <span className="transform transition-transform duration-200">
-                      {isAttendance ? (attendanceOpen ? "▲" : "▼") : isMaterial ? (materialOpen ? "▲" : "▼") : null}
-                    </span>
+                    {!sidebarCollapsed && (
+                      <span className="transform transition-transform duration-200">
+                        {isAttendance ? (attendanceOpen ? "▲" : "▼") : isMaterial ? (materialOpen ? "▲" : "▼") : null}
+                      </span>
+                    )}
                   </button>
                 ) : (
                   item.disabled ? (
                     <div
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-white/40 cursor-not-allowed rounded-lg my-1"
-                      title="Coming Soon"
+                      className={`flex items-center px-4 py-3 text-sm text-white/40 cursor-not-allowed rounded-lg my-1 ${
+                        sidebarCollapsed ? 'justify-center px-2' : 'gap-3'
+                      }`}
+                      title={sidebarCollapsed ? item.label : "Coming Soon"}
                     >
                       {item.icon}
-                      <span>{item.label}</span>
+                      {!sidebarCollapsed && <span>{item.label}</span>}
                     </div>
                   ) : (
                     <NavLink
                       to={item.path}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-3 text-sm transition-all rounded-lg my-1 ho ${isActive
-                          ? "bg-white text-orange-500 font-semibold shadow-md hover:text-orange-500"
-                          : "text-white hover:text-white hover:bg-white/20"
+                        `flex items-center px-4 py-3 text-sm transition-all rounded-lg my-1 ${
+                          isActive
+                            ? "bg-white text-orange-500 font-semibold shadow-md hover:text-orange-500"
+                            : "text-white hover:text-white hover:bg-white/20"
+                        } ${
+                          sidebarCollapsed ? 'justify-center px-2' : 'gap-3'
                         }`
                       }
                       onClick={() => setSidebarOpen(false)}
+                      title={sidebarCollapsed ? item.label : ''}
                     >
                       {item.icon}
-                      <span>{item.label}</span>
+                      {!sidebarCollapsed && <span>{item.label}</span>}
                     </NavLink>
                   )
                 )}
 
-                {/* Render submenu if open */}
-                {item.children && ((isAttendance && attendanceOpen) || (isMaterial && materialOpen)) && (
+                {item.children && !sidebarCollapsed && ((isAttendance && attendanceOpen) || (isMaterial && materialOpen)) && (
                   <div className="ml-8 text-white text-sm space-y-1 mb-2">
                     {item.children.map((sub) =>
                       sub.disabled ? (
@@ -254,10 +293,7 @@ const DashboardLayout = ({ children, title }) => {
                             }`
                           }
                           onClick={() => {
-                            // Only close mobile sidebar, keep parent dropdown open
                             setSidebarOpen(false);
-                            // Keep Material/Attendance dropdown open when clicking within same menu
-                            // No need to close the parent dropdown
                           }}
                         >
                           {sub.label}
@@ -270,21 +306,22 @@ const DashboardLayout = ({ children, title }) => {
             );
           })}
 
-          {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 text-sm text-white bg-orange-500 hover:bg-white/10 transition-all rounded-lg mt-auto my-1 mx-2"
+            className={`flex items-center px-4 py-3 text-sm text-white bg-orange-500 hover:bg-white/10 transition-all rounded-lg mt-auto my-1 mx-2 ${
+              sidebarCollapsed ? 'justify-center px-2' : 'gap-3'
+            }`}
+            title={sidebarCollapsed ? 'Logout' : ''}
           >
             <FaPowerOff />
-            <span>Logout</span>
+            {!sidebarCollapsed && <span>Logout</span>}
           </button>
         </nav>
       </div>
 
-      {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Topbar */}
-        <div className="flex justify-between items-center px-4 lg:px-6 py-4 bg-white shadow-sm rounded-xl z-10">
+        <div className="flex justify-between items-center px-4 lg:px-6 py-4 bg-white dark:bg-gray-800 shadow-sm rounded-xl z-10">
           {/* Mobile Hamburger + Title */}
           <div className="flex items-center gap-4">
             <button
@@ -293,27 +330,42 @@ const DashboardLayout = ({ children, title }) => {
             >
               <FaBars />
             </button>
+            <button
+              className="hidden lg:flex items-center justify-center w-9 h-9 rounded-lg border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white transition-all"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              title={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            >
+              {sidebarCollapsed ? <FaChevronRight size={14} /> : <FaChevronLeft size={14} />}
+            </button>
             {title && (
-              <h1 className="text-lg lg:text-xl font-bold text-gray-800">{title}</h1>
+              <h1 className="text-lg lg:text-xl font-bold text-gray-800 dark:text-white">{title}</h1>
             )}
           </div>
 
           {/* Right Side */}
           <div className="flex gap-3 lg:gap-4 items-center">
-            <button className="text-orange-500 text-lg lg:text-xl hover:text-orange-600 transition-colors">
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={toggleDarkMode}
+              className="text-orange-500 dark:text-orange-400 text-lg lg:text-xl hover:text-orange-600 dark:hover:text-orange-300 transition-colors"
+              title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {darkMode ? <FaSun /> : <FaMoon />}
+            </button>
+            <button className="text-orange-500 dark:text-orange-400 text-lg lg:text-xl hover:text-orange-600 dark:hover:text-orange-300 transition-colors">
               <FaBell />
             </button>
-            <button className="text-orange-500 text-lg lg:text-xl hover:text-orange-600 transition-colors">
+            <button className="text-orange-500 dark:text-orange-400 text-lg lg:text-xl hover:text-orange-600 dark:hover:text-orange-300 transition-colors">
               <FaCalendarAlt />
             </button>
-            <span className="hidden sm:block text-xs lg:text-sm text-gray-600 font-medium bg-orange-50 px-3 py-1 rounded-full">
+            <span className="hidden sm:block text-xs lg:text-sm text-gray-600 dark:text-gray-300 font-medium bg-orange-50 dark:bg-gray-700 px-3 py-1 rounded-full">
               {today}
             </span>
           </div>
         </div>
 
         {/* Children (Main page content) */}
-        <div className="flex-1 overflow-y-auto bg-gray-50 p-4 lg:p-6">
+        <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-4 lg:p-6">
           {children || <Outlet />}
         </div>
       </div>

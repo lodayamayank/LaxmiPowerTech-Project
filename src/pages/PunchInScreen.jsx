@@ -53,6 +53,8 @@ const PunchInScreen = () => {
   const [branchDistance, setBranchDistance] = useState(null);
 
   const mapRef = useRef(null);
+  const retryCountRef = useRef(0);
+  const MAX_RETRIES = 2;
   const navigate = useNavigate();
 
   // Load Google Maps
@@ -100,20 +102,41 @@ const PunchInScreen = () => {
     }
   }, [location, user]);
 
-  const getLocation = () => {
+  const getLocation = (isManualRefresh = false) => {
     setLoadingLocation(true);
+    if (isManualRefresh) retryCountRef.current = 0;
+
+    const onSuccess = (pos) => {
+      const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      setLocation(loc);
+      setLoadingLocation(false);
+      recenter(loc.lat, loc.lng);
+      retryCountRef.current = 0;
+    };
+
+    const tryLowAccuracy = () => {
+      navigator.geolocation.getCurrentPosition(
+        onSuccess,
+        () => {
+          if (retryCountRef.current < MAX_RETRIES) {
+            retryCountRef.current += 1;
+            setTimeout(() => getLocation(), 1500);
+          } else {
+            notifier.error("Failed to fetch location. Please check GPS settings and try again.");
+            setLoadingLocation(false);
+            retryCountRef.current = 0;
+          }
+        },
+        { enableHighAccuracy: false, maximumAge: 60000, timeout: 10000 }
+      );
+    };
+
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        setLocation(loc);
-        setLoadingLocation(false);
-        recenter(loc.lat, loc.lng);
-      },
+      onSuccess,
       () => {
-        notifier.error("Failed to fetch location");
-        setLoadingLocation(false);
+        tryLowAccuracy();
       },
-      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
+      { enableHighAccuracy: true, maximumAge: 60000, timeout: 20000 }
     );
   };
 
@@ -260,7 +283,7 @@ const PunchInScreen = () => {
         {/* Header with Gradient */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <button
-            className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
+            className="absolute top-6 left-6 bg-white/90 flex items-center gap-2 hover:bg-white px-3 py-1.5 rounded-full transition-all"
             onClick={() => navigate(-1)}
           >
             <FaArrowLeft className="text-orange-500" size={16} />
@@ -431,7 +454,7 @@ const PunchInScreen = () => {
             {/* Refresh Location Button */}
             <button
               className="absolute top-3 right-3 bg-white text-gray-800 px-4 py-2 rounded-full shadow-lg border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-2 font-medium text-sm"
-              onClick={getLocation}
+              onClick={() => getLocation(true)}
               disabled={loadingLocation}
             >
               <FaSyncAlt className={loadingLocation ? 'animate-spin' : ''} size={14} />
