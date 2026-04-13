@@ -13,6 +13,9 @@ import {
 } from "react-icons/fa";
 import EditUserModal from './EditUserModal';
 import Select from '../components/Select';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const AdminMyTeam = () => {
   const [users, setUsers] = useState([]);
@@ -401,14 +404,15 @@ const AdminMyTeam = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <button
+            <Button
               onClick={handleSubmit}
-              className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+              className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               {editId ? 'Update User' : 'Add User'}
-            </button>
+            </Button>
 
-            <button
+            <Button
+              variant="outline"
               onClick={() => {
                 setEditId(null);
                 setFormData({
@@ -422,10 +426,9 @@ const AdminMyTeam = () => {
                 setShowPasswordField(false);
                 setShowPassword(false);
               }}
-              className="px-4 py-2 rounded-lg bg-gray-500 text-white hover:bg-gray-600 transition-colors"
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -503,24 +506,15 @@ const AdminMyTeam = () => {
                     <td className="px-4 py-2 capitalize">{user.role}</td>
                     <td className="px-4 py-2">
                       <div className="flex gap-2">
-                        <button
-                          className="text-blue-600 hover:underline"
-                          onClick={() => setEditingUser(user)}
-                        >
+                        <Button variant="ghost" size="sm" className="text-blue-600" onClick={() => setEditingUser(user)}>
                           View/Edit
-                        </button>
-                        <button
-                          className="text-red-600 hover:underline"
-                          onClick={() => handleDelete(user._id)}
-                        >
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-red-600" onClick={() => handleDelete(user._id)}>
                           Delete
-                        </button>
-                        <button
-                          className="text-orange-600 hover:underline"
-                          onClick={() => handleResetPassword(user.username)}
-                        >
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-orange-600" onClick={() => handleResetPassword(user.username)}>
                           Reset
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -540,24 +534,14 @@ const AdminMyTeam = () => {
             
             <div className="flex items-center gap-2">
               {/* First Page */}
-              <button
-                onClick={() => goToPage(1)}
-                disabled={currentPage === 1}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="First Page"
-              >
+              <Button variant="outline" size="icon" onClick={() => goToPage(1)} disabled={currentPage === 1} title="First Page" className="h-9 w-9">
                 <FaAngleDoubleLeft size={14} />
-              </button>
+              </Button>
 
               {/* Previous Page */}
-              <button
-                onClick={() => goToPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Previous Page"
-              >
+              <Button variant="outline" size="icon" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1} title="Previous Page" className="h-9 w-9">
                 <FaChevronLeft size={14} />
-              </button>
+              </Button>
 
               {/* Page Numbers */}
               <div className="flex items-center gap-1">
@@ -583,24 +567,14 @@ const AdminMyTeam = () => {
               </div>
 
               {/* Next Page */}
-              <button
-                onClick={() => goToPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Next Page"
-              >
+              <Button variant="outline" size="icon" onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages} title="Next Page" className="h-9 w-9">
                 <FaChevronRight size={14} />
-              </button>
+              </Button>
 
               {/* Last Page */}
-              <button
-                onClick={() => goToPage(totalPages)}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Last Page"
-              >
+              <Button variant="outline" size="icon" onClick={() => goToPage(totalPages)} disabled={currentPage === totalPages} title="Last Page" className="h-9 w-9">
                 <FaAngleDoubleRight size={14} />
-              </button>
+              </Button>
             </div>
           </div>
         )}

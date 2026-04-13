@@ -15,6 +15,9 @@ import {
   FaExclamationTriangle,
   FaUserCircle,
 } from "react-icons/fa";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const SelfieCaptureScreen = () => {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -125,13 +128,14 @@ const SelfieCaptureScreen = () => {
       <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
         {/* Header with Gradient */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <button
-            className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
+          <Button
+            variant="ghost"
+            className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full h-auto"
             onClick={() => navigate(-1)}
           >
             <FaArrowLeft size={16} />
             <span className="text-sm font-medium">Back</span>
-          </button>
+          </Button>
 
           <div className="text-center pt-8">
             <FaCamera className="text-white mx-auto mb-3" size={40} />

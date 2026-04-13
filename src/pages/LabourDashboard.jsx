@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import fingerprint from '../assets/fingerprint.png';
 import layer2 from '../assets/calendar.png';
@@ -6,13 +6,59 @@ import logo from '../assets/logo.png';
 import avatar from '../assets/user.png';
 import leaves from '../assets/leave.png';
 import money from '../assets/salary.png';
-import { FaSignOutAlt, FaChevronRight } from 'react-icons/fa';
+import { FaSignOutAlt, FaChevronRight, FaTasks, FaArrowLeft, FaUsers } from 'react-icons/fa';
 import { MdInventory } from 'react-icons/md';
+import axios from '../utils/axios';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const LabourDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user'));
   const navigate = useNavigate();
   const { branchId } = useParams(); // Get branchId from route params if accessed from supervisor flow
+  const [projectName, setProjectName] = useState('');
+  const token = localStorage.getItem('token');
+
+  // Determine if this is a Supervisor viewing VPS dashboard (via branchId route)
+  // Profile should NOT show for Supervisor in VPS dashboard, only for actual Labour/Staff users
+  const isSupervisorVPSView = branchId && (user?.role === 'supervisor' || user?.role === 'subcontractor');
+  const showProfile = !isSupervisorVPSView; // Show Profile only if NOT supervisor viewing VPS
+
+  // Fetch branch/project name when supervisor views this page
+  useEffect(() => {
+    if (isSupervisorVPSView && branchId) {
+      fetchBranchName();
+    }
+  }, [branchId, isSupervisorVPSView]);
+
+  const fetchBranchName = async () => {
+    // PRIORITY 1: Try to get from localStorage first (set by SupervisorProjectList)
+    const storedBranchName = localStorage.getItem('selectedBranchName');
+    if (storedBranchName) {
+      setProjectName(storedBranchName);
+      // Success - no need for API call
+      return;
+    }
+    
+    // PRIORITY 2: If localStorage is empty, try API as fallback
+    try {
+      const res = await axios.get(`/branches/${branchId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data && res.data.name) {
+        setProjectName(res.data.name);
+        localStorage.setItem('selectedBranchName', res.data.name);
+      } else {
+        // API returned but no name
+        setProjectName('Project');
+      }
+    } catch (err) {
+      // API failed - show generic fallback
+      console.warn('Could not fetch branch name, using fallback');
+      setProjectName('Selected Project');
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -30,22 +76,34 @@ const LabourDashboard = () => {
           <div className="flex items-center justify-between mb-4">
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
             <button
-              onClick={handleLogout}
+              onClick={() => navigate('/supervisor/projects')}
               className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
             >
-              <FaSignOutAlt size={14} />
-              <span className="text-sm font-medium">Logout</span>
+              <FaArrowLeft size={14} />
+              <span className="text-sm font-medium">Back</span>
             </button>
           </div>
 
-          {/* User Welcome Section */}
+          {/* User Welcome Section / Project Display */}
           <div className="flex items-center gap-4 mt-6">
             <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl font-bold text-white shadow-lg border-2 border-white/30">
-              {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+              {isSupervisorVPSView 
+                ? (projectName?.charAt(0)?.toUpperCase() || 'P')
+                : (user?.name?.charAt(0)?.toUpperCase() || 'U')
+              }
             </div>
             <div>
-              <p className="text-white/80 text-sm font-medium">Welcome back,</p>
-              <h2 className="text-white text-xl font-bold">{user?.name || 'User'}</h2>
+              {isSupervisorVPSView ? (
+                <>
+                  <p className="text-white/80 text-sm font-medium">Project:</p>
+                  <h2 className="text-white text-xl font-bold">{projectName || 'Loading...'}</h2>
+                </>
+              ) : (
+                <>
+                  <p className="text-white/80 text-sm font-medium">Welcome back,</p>
+                  <h2 className="text-white text-xl font-bold">{user?.name || 'User'}</h2>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -60,49 +118,91 @@ const LabourDashboard = () => {
 
           {/* Grid Cards */}
           <div className="grid grid-cols-2 gap-4">
-            <DashboardCard
-              label="Mark Attendance"
-              icon={fingerprint}
-              onClick={() => navigate('/punch')}
-              gradient="from-green-400 to-green-500"
-              bgColor="bg-green-50"
-            />
-            <DashboardCard
-              label="My Attendance"
-              icon={layer2}
-              onClick={() => navigate('/my-attendance')}
-              gradient="from-blue-400 to-blue-500"
-              bgColor="bg-blue-50"
-            />
-            <DashboardCard
-              label="Profile"
-              icon={avatar}
-              onClick={() => navigate('/profile')}
-              gradient="from-purple-400 to-purple-500"
-              bgColor="bg-purple-50"
-            />
-            <DashboardCard
-              label="Leave"
-              icon={leaves}
-              onClick={() => navigate('/leaves')}
-              gradient="from-orange-400 to-orange-500"
-              bgColor="bg-orange-50"
-            />
-            <DashboardCard
-              label="Reimbursement"
-              icon={money}
-              onClick={() => navigate('/reimbursements')}
-              gradient="from-orange-400 to-orange-500"
-              bgColor="bg-orange-50"
-            />
-            <DashboardCard
-              label="Material"
-              icon={null}
-              iconComponent={<MdInventory className="w-full h-full text-white" />}
-              onClick={() => navigate('/material/intent', { state: { branchId } })}
-              gradient="from-teal-400 to-teal-500"
-              bgColor="bg-teal-50"
-            />
+            {/* For Supervisor Project Dashboard - Show only Material, Task, Labour, Team Attendance */}
+            {isSupervisorVPSView ? (
+              <>
+                <DashboardCard
+                  label="Material"
+                  icon={null}
+                  iconComponent={<MdInventory className="w-full h-full text-white" />}
+                  onClick={() => navigate('/material/intent', { state: { branchId } })}
+                  gradient="from-teal-400 to-teal-500"
+                  bgColor="bg-teal-50"
+                />
+                <DashboardCard
+                  label="Task"
+                  icon={null}
+                  iconComponent={<FaTasks className="w-full h-full text-white" />}
+                  onClick={() => navigate(`/branch/${branchId}/tasks`)}
+                  gradient="from-indigo-400 to-indigo-500"
+                  bgColor="bg-indigo-50"
+                />
+                <DashboardCard
+                  label="Labour"
+                  icon={null}
+                  iconComponent={<FaUsers className="w-full h-full text-white" />}
+                  onClick={() => navigate(`/branch/${branchId}/labours`)}
+                  gradient="from-pink-400 to-pink-500"
+                  bgColor="bg-pink-50"
+                />
+                <DashboardCard
+                  label="Team Attendance"
+                  icon={layer2}
+                  onClick={() => navigate(`/branch/${branchId}/team-attendance`)}
+                  gradient="from-green-400 to-green-500"
+                  bgColor="bg-green-50"
+                />
+              </>
+            ) : (
+              /* For Labour Dashboard - Show all original options */
+              <>
+                <DashboardCard
+                  label="Mark Attendance"
+                  icon={fingerprint}
+                  onClick={() => navigate('/punch')}
+                  gradient="from-green-400 to-green-500"
+                  bgColor="bg-green-50"
+                />
+                <DashboardCard
+                  label="My Attendance"
+                  icon={layer2}
+                  onClick={() => navigate('/my-attendance')}
+                  gradient="from-blue-400 to-blue-500"
+                  bgColor="bg-blue-50"
+                />
+                {showProfile && (
+                  <DashboardCard
+                    label="Profile"
+                    icon={avatar}
+                    onClick={() => navigate('/profile')}
+                    gradient="from-purple-400 to-purple-500"
+                    bgColor="bg-purple-50"
+                  />
+                )}
+                <DashboardCard
+                  label="Leave"
+                  icon={leaves}
+                  onClick={() => navigate('/leaves')}
+                  gradient="from-orange-400 to-orange-500"
+                  bgColor="bg-orange-50"
+                />
+                <DashboardCard
+                  label="Reimbursement"
+                  icon={money}
+                  onClick={() => navigate('/reimbursements')}
+                  gradient="from-orange-400 to-orange-500"
+                  bgColor="bg-orange-50"
+                />
+                <DashboardCard
+                  label="Material"
+                  icon={null}
+                  iconComponent={<MdInventory className="w-full h-full text-white" />}
+                  onClick={() => navigate('/material/intent', { state: { branchId } })}
+                  gradient="from-teal-400 to-teal-500"
+                  bgColor="bg-teal-50"
+                />
+              </>
+            )}
           </div>
 
           {/* Info Card */}

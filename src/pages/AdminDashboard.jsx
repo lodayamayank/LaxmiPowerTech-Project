@@ -18,19 +18,20 @@ import {
 } from 'react-icons/fa';
 
 const PunchTypeBadge = ({ type }) => {
-  let cls = "px-2 py-1 rounded-full text-xs font-medium capitalize ";
+  let variant = "outline";
+  let cls = "capitalize ";
   switch (type) {
-    case "in": cls += "bg-green-100 text-green-700"; break;
-    case "out": cls += "bg-gray-200 text-gray-700"; break;
-    case "half": cls += "bg-yellow-100 text-yellow-700"; break;
-    case "absent": cls += "bg-red-100 text-red-700"; break;
-    case "weekoff": cls += "bg-blue-100 text-blue-700"; break;
-    case "paidleave": cls += "bg-purple-100 text-purple-700"; break;
-    case "unpaidleave": cls += "bg-pink-100 text-pink-700"; break;
-    case "overtime": cls += "bg-orange-100 text-orange-700"; break;
-    default: cls += "bg-gray-100 text-gray-600";
+    case "in": cls += "bg-green-50 text-green-700 border-green-200"; break;
+    case "out": cls += "bg-gray-100 text-gray-700 border-gray-300"; break;
+    case "half": cls += "bg-yellow-50 text-yellow-700 border-yellow-200"; break;
+    case "absent": cls += "bg-red-50 text-red-700 border-red-200"; break;
+    case "weekoff": cls += "bg-blue-50 text-blue-700 border-blue-200"; break;
+    case "paidleave": cls += "bg-purple-50 text-purple-700 border-purple-200"; break;
+    case "unpaidleave": cls += "bg-pink-50 text-pink-700 border-pink-200"; break;
+    case "overtime": cls += "bg-orange-50 text-orange-700 border-orange-200"; break;
+    default: cls += "bg-gray-100 text-gray-600 border-gray-200";
   }
-  return <span className={cls}>{type}</span>;
+  return <Badge variant={variant} className={cls}>{type}</Badge>;
 };
 
 const AdminDashboard = () => {
@@ -232,10 +233,12 @@ useEffect(() => {
     <DashboardLayout title="Admin Dashboard">
       <div className="space-y-4">
         {/* Filters */}
-        <form
-          onSubmit={onSearch}
-          className="grid grid-cols-1 md:grid-cols-6 gap-3 bg-white p-4 rounded-xl shadow"
-        >
+        <Card>
+          <CardContent className="pt-6">
+            <form
+              onSubmit={onSearch}
+              className="grid grid-cols-1 md:grid-cols-6 gap-3"
+            >
           <input
             className="border rounded-lg px-3 py-2"
             placeholder="Search Staff"
@@ -294,147 +297,174 @@ useEffect(() => {
             onChange={(e) => setEndDate(e.target.value)}
           />
 
-          <Button type="submit" className="bg-orange-500 hover:bg-orange-600">
-            Filter
-          </Button>
-        </form>
+              <Button
+                type="submit"
+                className="bg-black hover:bg-gray-800"
+              >
+                Filter
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
 
         {/* Results Info & Items Per Page */}
         {!loading && filtered.length > 0 && (
           <Card>
-            <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 py-3">
-              <div className="text-sm text-gray-600">
-                Showing <span className="font-semibold text-gray-900">{startIndex + 1}</span> to{' '}
-                <span className="font-semibold text-gray-900">{Math.min(endIndex, totalItems)}</span> of{' '}
-                <span className="font-semibold text-gray-900">{totalItems}</span> records
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">Rows per page:</label>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                  className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                >
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                  <option value={200}>200</option>
-                </select>
-              </div>
+            <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-3">
+            <div className="text-sm text-gray-600">
+              Showing <span className="font-semibold text-gray-900">{startIndex + 1}</span> to{' '}
+              <span className="font-semibold text-gray-900">{Math.min(endIndex, totalItems)}</span> of{' '}
+              <span className="font-semibold text-gray-900">{totalItems}</span> records
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600">Rows per page:</label>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              >
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={200}>200</option>
+              </select>
+            </div>
             </CardContent>
           </Card>
         )}
 
         {/* Table */}
         <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Punch In Time</TableHead>
-                <TableHead>Punch Out Time</TableHead>
-                <TableHead>Branch</TableHead>
-                <TableHead>In Selfie</TableHead>
-                <TableHead>Out Selfie</TableHead>
-                <TableHead>Note</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell className="text-center" colSpan={9}>
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                      <span className="ml-3">Loading...</span>
-                    </div>
-                  </TableCell>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Branch</TableHead>
+                  <TableHead>Selfie</TableHead>
+                  <TableHead>Note</TableHead>
                 </TableRow>
-              ) : filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell className="text-center text-muted-foreground" colSpan={9}>
-                    No records found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                currentItems.map((item, idx) => (
-                  <TableRow key={`${item.user?._id}_${item.dateString}_${idx}`}>
-                    <TableCell className="font-medium">{item.user?.name || 'N/A'}</TableCell>
-                    <TableCell className="capitalize">{item.user?.role || '-'}</TableCell>
-                    <TableCell>{item.dateString}</TableCell>
-                    <TableCell>
-                      {item.punchIn ? (
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                          {new Date(item.punchIn).toLocaleTimeString()}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {item.punchOut ? (
-                        <Badge variant="secondary">
-                          {new Date(item.punchOut).toLocaleTimeString()}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {item.branch ? (
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                          <FaMapMarkerAlt size={10} className="mr-1" />
-                          {item.branch}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-muted-foreground">
-                          <FaMapMarkerAlt size={10} className="mr-1" />
-                          Outside Branch
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {item.selfieIn ? (
-                        <img
-                          src={item.selfieIn}
-                          alt="punch in selfie"
-                          className="w-12 h-12 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
-                          onClick={() => window.open(item.selfieIn, '_blank')}
-                        />
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {item.selfieOut ? (
-                        <img
-                          src={item.selfieOut}
-                          alt="punch out selfie"
-                          className="w-12 h-12 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
-                          onClick={() => window.open(item.selfieOut, '_blank')}
-                        />
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="italic text-muted-foreground">
-                      {item.note || '-'}
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-6">
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                        <span className="ml-3">Loading...</span>
+                      </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-6">
+                      No records found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  currentItems.map((item) => (
+                    <TableRow key={item._id}>
+                      <TableCell className="font-medium">{item.user?.name || 'N/A'}</TableCell>
+                      <TableCell className="capitalize">{item.user?.role || '-'}</TableCell>
+                      <TableCell>
+                        <PunchTypeBadge type={item.punchType} />
+                      </TableCell>
+                      <TableCell>
+                        {new Date(item.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(item.createdAt).toLocaleTimeString()}
+                      </TableCell>
+                      <TableCell>
+                        {item.branch ? (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 gap-1">
+                            <FaMapMarkerAlt size={10} />
+                            {item.branch}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-gray-100 text-gray-600 border-gray-300 gap-1">
+                            <FaMapMarkerAlt size={10} />
+                            Outside Assigned Branch
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {item.selfieUrl ? (
+                          <img
+                            src={item.selfieUrl}
+                            alt="selfie"
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        ) : (
+                          item.punchType === "leave" ? "—" : "N/A"
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground italic">
+                        {item.note || '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
         </Card>
 
         {/* Pagination Controls */}
         {!loading && filtered.length > 0 && totalPages > 1 && (
           <Card>
-            <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3">
-              <div className="text-sm text-gray-600">
-                Page <span className="font-semibold text-gray-900">{currentPage}</span> of{' '}
-                <span className="font-semibold text-gray-900">{totalPages}</span>
+            <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 py-3">
+            <div className="text-sm text-gray-600">
+              Page <span className="font-semibold text-gray-900">{currentPage}</span> of{' '}
+              <span className="font-semibold text-gray-900">{totalPages}</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {/* First Page */}
+              <Button
+                onClick={() => goToPage(1)}
+                disabled={currentPage === 1}
+                variant="outline"
+                size="icon"
+                title="First Page"
+              >
+                <FaAngleDoubleLeft size={14} />
+              </Button>
+
+              {/* Previous Page */}
+              <Button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                variant="outline"
+                size="icon"
+                title="Previous Page"
+              >
+                <FaChevronLeft size={14} />
+              </Button>
+
+              {/* Page Numbers */}
+              <div className="flex items-center gap-1">
+                {getPageNumbers().map((page, index) => (
+                  page === '...' ? (
+                    <span key={`ellipsis-${index}`} className="px-3 py-1 text-muted-foreground">
+                      ...
+                    </span>
+                  ) : (
+                    <Button
+                      key={page}
+                      onClick={() => goToPage(page)}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      className={currentPage === page ? "bg-orange-500 hover:bg-orange-600" : ""}
+                    >
+                      {page}
+                    </Button>
+                  )
+                ))}
               </div>
               <div className="flex items-center gap-2">
                 {/* First Page */}
@@ -448,60 +478,28 @@ useEffect(() => {
                   <FaAngleDoubleLeft size={14} />
                 </Button>
 
-                {/* Previous Page */}
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => goToPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  title="Previous Page"
-                >
-                  <FaChevronLeft size={14} />
-                </Button>
+              {/* Next Page */}
+              <Button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                variant="outline"
+                size="icon"
+                title="Next Page"
+              >
+                <FaChevronRight size={14} />
+              </Button>
 
-                {/* Page Numbers */}
-                <div className="flex items-center gap-1">
-                  {getPageNumbers().map((page, index) => (
-                    page === '...' ? (
-                      <span key={`ellipsis-${index}`} className="px-3 py-1 text-gray-500">
-                        ...
-                      </span>
-                    ) : (
-                      <Button
-                        key={page}
-                        variant={currentPage === page ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => goToPage(page)}
-                        className={currentPage === page ? 'bg-orange-500 hover:bg-orange-600' : ''}
-                      >
-                        {page}
-                      </Button>
-                    )
-                  ))}
-                </div>
-
-                {/* Next Page */}
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => goToPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  title="Next Page"
-                >
-                  <FaChevronRight size={14} />
-                </Button>
-
-                {/* Last Page */}
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => goToPage(totalPages)}
-                  disabled={currentPage === totalPages}
-                  title="Last Page"
-                >
-                  <FaAngleDoubleRight size={14} />
-                </Button>
-              </div>
+              {/* Last Page */}
+              <Button
+                onClick={() => goToPage(totalPages)}
+                disabled={currentPage === totalPages}
+                variant="outline"
+                size="icon"
+                title="Last Page"
+              >
+                <FaAngleDoubleRight size={14} />
+              </Button>
+            </div>
             </CardContent>
           </Card>
         )}

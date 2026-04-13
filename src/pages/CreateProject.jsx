@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../utils/axios';
 import DashboardLayout from '../layouts/DashboardLayout';
+import SmartTowerBuilder from '../components/SmartTowerBuilder';
 import {
   FaProjectDiagram,
   FaMapMarkerAlt,
@@ -11,12 +12,16 @@ import {
   FaTimes,
   FaCheck
 } from 'react-icons/fa';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const CreateProject = () => {
   const [formData, setFormData] = useState({
     name: '',
     address: '',
     branches: [],
+    buildings: [],
   });
   const [projects, setProjects] = useState([]);
   const [branches, setBranches] = useState([]);
@@ -49,6 +54,7 @@ const CreateProject = () => {
     }
   };
 
+
   const handleSubmit = async () => {
     try {
       if (!formData.name || !formData.address) {
@@ -56,21 +62,56 @@ const CreateProject = () => {
         return;
       }
 
-      if (editingId) {
-        await axios.put(`/projects/${editingId}`, formData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      } else {
-        await axios.post('/projects', formData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+      if (formData.buildings.length === 0) {
+        alert('Please add at least one tower with floors and flats');
+        return;
       }
-      setFormData({ name: '', address: '', branches: [] });
+
+      // Count total flats for validation
+      const totalFlats = formData.buildings.reduce((sum, tower) => {
+        return sum + (tower.wings?.[0]?.floors?.reduce((fSum, floor) => 
+          fSum + (floor.flats?.length || 0), 0) || 0);
+      }, 0);
+
+      if (totalFlats === 0) {
+        alert('Please add at least one flat to your project structure');
+        return;
+      }
+
+      // Warn if structure is very large
+      if (totalFlats > 5000) {
+        const confirmed = window.confirm(
+          `This project has ${totalFlats.toLocaleString()} flats. This is a large structure. Continue?`
+        );
+        if (!confirmed) return;
+      }
+
+      const projectData = {
+        ...formData,
+        buildings: formData.buildings
+      };
+
+      if (editingId) {
+        await axios.put(`/projects/${editingId}`, projectData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        alert('Project updated successfully!');
+      } else {
+        await axios.post('/projects', projectData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        alert('Project created successfully!');
+      }
+      setFormData({ name: '', address: '', branches: [], buildings: [] });
       setEditingId(null);
       fetchProjects();
     } catch (err) {
       console.error('Failed to save project', err);
-      alert('Failed to save project');
+      if (err.response?.status === 413) {
+        alert('Project structure too large. Please reduce the number of floors, flats, or buildings.');
+      } else {
+        alert(err.response?.data?.message || 'Failed to save project');
+      }
     }
   };
 
@@ -79,13 +120,14 @@ const CreateProject = () => {
       name: project.name,
       address: project.address,
       branches: project.branches?.map((b) => b._id) || [],
+      buildings: project.buildings || [],
     });
     setEditingId(project._id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCancel = () => {
-    setFormData({ name: '', address: '', branches: [] });
+    setFormData({ name: '', address: '', branches: [], buildings: [] });
     setEditingId(null);
   };
 
@@ -239,10 +281,18 @@ const CreateProject = () => {
             </div>
           </div>
 
+          {/* Smart Tower Builder */}
+          <div className="mt-6">
+            <SmartTowerBuilder
+              buildings={formData.buildings}
+              onChange={(buildings) => setFormData({ ...formData, buildings })}
+            />
+          </div>
+
           <div className="flex items-center gap-3 mt-6">
-            <button
+            <Button
               onClick={handleSubmit}
-              className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium transition-colors shadow-md hover:shadow-lg"
+              className="bg-orange-500 hover:bg-orange-600 text-white shadow-md"
             >
               {editingId ? (
                 <>
@@ -255,15 +305,12 @@ const CreateProject = () => {
                   Create Project
                 </>
               )}
-            </button>
+            </Button>
 
             {editingId && (
-              <button
-                onClick={handleCancel}
-                className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
-              >
+              <Button variant="outline" onClick={handleCancel}>
                 Cancel
-              </button>
+              </Button>
             )}
           </div>
         </div>

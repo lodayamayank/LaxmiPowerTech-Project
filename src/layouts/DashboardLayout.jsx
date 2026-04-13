@@ -11,10 +11,10 @@ import {
   FaTimes,
   FaUserCircle,
   FaMoneyBillWave,
-  FaChevronLeft,
-  FaChevronRight,
-  FaMoon,
-  FaSun,
+  FaTasks,
+  FaHardHat,
+  FaChevronDown,
+  FaChevronUp,
 } from "react-icons/fa";
 import { MdOutlineTaskAlt, MdSettings } from "react-icons/md";
 import { MdNotificationsActive } from "react-icons/md";
@@ -25,15 +25,13 @@ import { FaFileUpload, FaTruck, FaClipboardCheck, FaShoppingCart } from "react-i
 import { MdInventory } from "react-icons/md";
 import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
-import avatar from "../assets/avatar.png";
 import { useState, useEffect } from 'react';
 
 const DashboardLayout = ({ children, title }) => {
   const today = new Date().toLocaleDateString("en-GB");
   const navigate = useNavigate();
   const location = useLocation();
-  const [attendanceOpen, setAttendanceOpen] = useState(false); // 
-  const [materialOpen, setMaterialOpen] = useState(false);
+  const [openMenus, setOpenMenus] = useState({});
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -72,25 +70,102 @@ const DashboardLayout = ({ children, title }) => {
 
   useEffect(() => {
     const path = location.pathname;
-    
-    if (path.includes('/attendance/') || path.includes('/live-attendance')) {
-      setAttendanceOpen(true);
-      setMaterialOpen(false);
-    }
-    else if (path.includes('/material/')) {
-      setMaterialOpen(true);
-      setAttendanceOpen(false);
-    }
-    else {
-      setAttendanceOpen(false);
-      setMaterialOpen(false);
-    }
+
+    const isAttendance = path.includes('/attendance/') || path.includes('/live-attendance');
+    const isMaterial = path.includes('/dashboard/material/') || path.includes('/material/');
+    const isInventoryRoot = path.includes('/dashboard/inventory/');
+    const isLabourInventory = path.includes('/dashboard/inventory/labour');
+
+    setOpenMenus((prev) => ({
+      ...prev,
+      Attendance: isAttendance,
+      Inventory: isMaterial || isInventoryRoot,
+      'Inventory>Material': isMaterial,
+      'Inventory>Labour': isLabourInventory,
+    }));
   }, [location.pathname]);
+
+  const toggleMenu = (key) => {
+    setOpenMenus((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/login');
+  };
+
+  const renderMenuItem = (item, depth = 0, parentKey = "") => {
+    const key = parentKey ? `${parentKey}>${item.label}` : item.label;
+    const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+    const isOpen = !!openMenus[key];
+    const paddingLeft = depth === 0 ? "" : depth === 1 ? "ml-4" : "ml-8";
+
+    const ButtonIcon = isOpen ? FaChevronUp : FaChevronDown;
+
+    if (hasChildren) {
+      return (
+        <div key={key} className={`${paddingLeft} mb-1`}>
+          <button
+            className={`flex items-center justify-between w-full px-4 py-3 text-sm text-left transition-all rounded-lg ${
+              depth === 0
+                ? "my-1 text-white bg-white/20 hover:bg-white/20"
+                : "text-white/90 bg-white/10 hover:bg-white/20"
+            } ${isOpen ? "font-semibold" : ""}`}
+            onClick={() => toggleMenu(key)}
+          >
+            <span className="flex items-center gap-3">
+              {item.icon}
+              <span>{item.label}</span>
+            </span>
+            <ButtonIcon className="text-xs" />
+          </button>
+          {isOpen && (
+            <div className={`mt-1 ${depth === 0 ? "ml-3" : "ml-4"}`}>
+              {item.children.map((child) => renderMenuItem(child, depth + 1, key))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (item.disabled) {
+      return (
+        <div
+          key={key}
+          className={`${paddingLeft} flex items-center gap-3 px-4 py-3 text-sm text-white/40 cursor-not-allowed rounded-lg my-1`}
+          title="Coming Soon"
+        >
+          {item.icon}
+          <span>{item.label}</span>
+        </div>
+      );
+    }
+
+    const linkClasses = ({ isActive }) => {
+      const base = `${paddingLeft} flex items-center gap-3 transition-all rounded-lg my-1`;
+      if (depth === 0) {
+        return `${base} px-4 py-3 text-sm ${
+          isActive
+            ? "bg-white text-orange-500 font-semibold shadow-md hover:text-orange-500"
+            : "text-white hover:text-white hover:bg-white/20"
+        }`;
+      }
+
+      return `${base} px-3 py-2 text-sm ${
+        isActive ? "bg-white/40 text-white font-semibold" : "text-white/80 hover:bg-white/20 hover:text-white"
+      }`;
+    };
+
+    return (
+      <NavLink key={key} to={item.path} className={linkClasses} onClick={() => setSidebarOpen(false)}>
+        {item.icon && <span className="text-sm">{item.icon}</span>}
+        <span>{item.label}</span>
+      </NavLink>
+    );
   };
 
   const menuItems = [
@@ -114,6 +189,11 @@ const DashboardLayout = ({ children, title }) => {
       path: "/admin/projects",
     },
     {
+      label: "Tasks",
+      icon: <FaTasks />,
+      path: "/admin/tasks",
+    },
+    {
       label: "Reimbursements",
       icon: <FaMoneyBillWave />,
       path: "/admin/reimbursements",
@@ -124,24 +204,36 @@ const DashboardLayout = ({ children, title }) => {
       path: "/admin/salary",
     },
     {
-      label: "Material",
-      icon: <MdInventory />,
+      label: "Inventory",
+      icon: <FaBoxes />,
       children: [
-        { label: "Upload Indent List", path: "/dashboard/material/uploadindent", icon: <FaFileUpload /> },
-        { label: "Intent (PO)", path: "/dashboard/material/intent", icon: <FaShoppingCart /> },
-        { label: "Site Transfers", path: "/dashboard/material/site-transfers", icon: <FaTruck /> },
-        { label: "Upcoming Deliveries", path: "/dashboard/material/upcoming-deliveries", icon: <FaClipboardCheck /> },
-        { label: "GRN", path: "/dashboard/material/grn", icon: <FaClipboardList /> },
+        {
+          label: "Material",
+          icon: <MdInventory />,
+          children: [
+            { label: "Upload Indent List", path: "/dashboard/material/uploadindent", icon: <FaFileUpload /> },
+            { label: "Intent (PO)", path: "/dashboard/material/intent", icon: <FaShoppingCart /> },
+            { label: "Site Transfers", path: "/dashboard/material/site-transfers", icon: <FaTruck /> },
+            { label: "Upcoming Deliveries", path: "/dashboard/material/upcoming-deliveries", icon: <FaClipboardCheck /> },
+            { label: "GRN", path: "/dashboard/material/grn", icon: <FaClipboardList /> },
+          ],
+        },
+        {
+          label: "Labour",
+          icon: <FaHardHat />,
+          children: [
+            { label: "Manage Labour", path: "/dashboard/inventory/labour/manage" },
+          ],
+        },
       ],
     },
     {
       label: "Work Orders",
       icon: <IoDocumentTextOutline />,
       path: "/dashboard/work-orders",
-      disabled: true,
+      disabled: false,
     },
-    { label: "Report", icon: <FaClipboardList />, path: "/dashboard/report", disabled: true },
-    { label: "Inventory", icon: <FaBoxes />, path: "/dashboard/inventory", disabled: true },
+    { label: "Reports", icon: <FaClipboardList />, path: "/dashboard/report", disabled: false },
     { label: "Vendors", icon: <FaUserCog />, path: "/dashboard/vendors", disabled: false },
     {
       label: "Branches",
@@ -155,7 +247,7 @@ const DashboardLayout = ({ children, title }) => {
     <div className="flex w-screen h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -200,111 +292,7 @@ const DashboardLayout = ({ children, title }) => {
         )}
 
         <nav className="flex flex-col flex-1 overflow-y-auto px-2">
-          {menuItems.map((item) => {
-            const isAttendance = item.label === "Attendance";
-            const isMaterial = item.label === "Material";
-
-            return (
-              <div key={item.label}>
-                {item.children ? (
-                  <button
-                    className={`flex items-center justify-between w-full px-4 py-3 text-sm text-left transition-all rounded-lg my-1 ${
-                      (isAttendance && attendanceOpen) || (isMaterial && materialOpen)
-                        ? "bg-transparent text-white font-semibold shadow-md"
-                        : "text-white bg-white/20 hover:bg-white/20"
-                      } ${
-                      sidebarCollapsed ? 'justify-center px-2' : ''
-                    }`}
-                    onClick={() => {
-                      if (isAttendance) {
-                        setAttendanceOpen((prev) => !prev);
-                        setMaterialOpen(false); 
-                      }
-                      if (isMaterial) {
-                        setMaterialOpen((prev) => !prev);
-                        setAttendanceOpen(false); 
-                      }
-                    }}
-                    title={sidebarCollapsed ? item.label : ''}
-                  >
-                    <span className={`flex items-center ${
-                      sidebarCollapsed ? 'justify-center' : 'gap-3'
-                    }`}>
-                      {item.icon}
-                      {!sidebarCollapsed && <span>{item.label}</span>}
-                    </span>
-                    {!sidebarCollapsed && (
-                      <span className="transform transition-transform duration-200">
-                        {isAttendance ? (attendanceOpen ? "▲" : "▼") : isMaterial ? (materialOpen ? "▲" : "▼") : null}
-                      </span>
-                    )}
-                  </button>
-                ) : (
-                  item.disabled ? (
-                    <div
-                      className={`flex items-center px-4 py-3 text-sm text-white/40 cursor-not-allowed rounded-lg my-1 ${
-                        sidebarCollapsed ? 'justify-center px-2' : 'gap-3'
-                      }`}
-                      title={sidebarCollapsed ? item.label : "Coming Soon"}
-                    >
-                      {item.icon}
-                      {!sidebarCollapsed && <span>{item.label}</span>}
-                    </div>
-                  ) : (
-                    <NavLink
-                      to={item.path}
-                      className={({ isActive }) =>
-                        `flex items-center px-4 py-3 text-sm transition-all rounded-lg my-1 ${
-                          isActive
-                            ? "bg-white text-orange-500 font-semibold shadow-md hover:text-orange-500"
-                            : "text-white hover:text-white hover:bg-white/20"
-                        } ${
-                          sidebarCollapsed ? 'justify-center px-2' : 'gap-3'
-                        }`
-                      }
-                      onClick={() => setSidebarOpen(false)}
-                      title={sidebarCollapsed ? item.label : ''}
-                    >
-                      {item.icon}
-                      {!sidebarCollapsed && <span>{item.label}</span>}
-                    </NavLink>
-                  )
-                )}
-
-                {item.children && !sidebarCollapsed && ((isAttendance && attendanceOpen) || (isMaterial && materialOpen)) && (
-                  <div className="ml-8 text-white text-sm space-y-1 mb-2">
-                    {item.children.map((sub) =>
-                      sub.disabled ? (
-                        <div
-                          key={sub.label}
-                          className="block py-2 px-3 text-white/40 cursor-not-allowed rounded-lg"
-                          title="Coming Soon"
-                        >
-                          {sub.label}
-                        </div>
-                      ) : (
-                        <NavLink
-                          key={sub.label}
-                          to={sub.path}
-                          className={({ isActive }) =>
-                            `block py-2 px-3 transition-all rounded-lg ${isActive
-                              ? "bg-white/30 text-white font-medium"
-                              : "text-white/80 hover:bg-white/20 hover:text-white"
-                            }`
-                          }
-                          onClick={() => {
-                            setSidebarOpen(false);
-                          }}
-                        >
-                          {sub.label}
-                        </NavLink>
-                      )
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          {menuItems.map((item) => renderMenuItem(item))}
 
           <button
             onClick={handleLogout}

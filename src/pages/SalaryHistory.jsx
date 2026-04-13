@@ -2,6 +2,10 @@ import React, { useEffect, useState, useMemo } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
 import axios from '../utils/axios';
 import { toast } from 'react-toastify';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import {
     FaRupeeSign,
     FaCalendarAlt,
@@ -88,10 +92,10 @@ const SalaryHistory = () => {
         const Icon = badge.icon;
 
         return (
-            <span className={`px-2 py-1 text-xs font-medium rounded-full ${badge.bg} ${badge.text} flex items-center gap-1`}>
+            <Badge variant="outline" className={`${badge.bg} ${badge.text} border-transparent flex items-center gap-1 capitalize`}>
                 <Icon size={10} />
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-            </span>
+                {status}
+            </Badge>
         );
     };
 
@@ -144,7 +148,8 @@ const SalaryHistory = () => {
         <DashboardLayout title="Salary History">
             <div className="space-y-6">
                 {/* Header with Filters */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
+                <Card>
+                    <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row gap-4 mb-6">
                         <div className="flex-1">
                             <div className="relative">
@@ -198,82 +203,88 @@ const SalaryHistory = () => {
                     {/* Table */}
                     {!loading && filteredSlips.length > 0 && (
                         <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="bg-gray-50 dark:bg-gray-700 border-b">
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Employee</th>
-                                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Period</th>
-                                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Gross</th>
-                                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Deductions</th>
-                                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Net</th>
-                                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Status</th>
-                                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Employee</TableHead>
+                                        <TableHead className="text-center">Period</TableHead>
+                                        <TableHead className="text-right">Gross</TableHead>
+                                        <TableHead className="text-right">Deductions</TableHead>
+                                        <TableHead className="text-right">Net</TableHead>
+                                        <TableHead className="text-center">Status</TableHead>
+                                        <TableHead className="text-center">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
                                     {filteredSlips.map((slip) => (
-                                        <tr key={slip._id} className="border-b dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">
-                                            <td className="px-4 py-3">
+                                        <TableRow key={slip._id}>
+                                            <TableCell>
                                                 <div>
                                                     <p className="font-semibold text-gray-900 dark:text-white">{slip.employeeDetails.name}</p>
                                                     <p className="text-sm text-gray-500">@{slip.employeeDetails.username}</p>
                                                     <p className="text-xs text-gray-400">{slip.employeeDetails.employeeId}</p>
                                                 </div>
-                                            </td>
-                                            <td className="px-4 py-3 text-center">
+                                            </TableCell>
+                                            <TableCell className="text-center">
                                                 <div className="flex flex-col items-center">
                                                     <span className="font-medium">{monthNames[slip.month - 1]}</span>
                                                     <span className="text-xs text-gray-500">{slip.year}</span>
                                                     {slip.locked && <FaLock className="text-orange-500 mt-1" size={12} />}
                                                 </div>
-                                            </td>
-                                            <td className="px-4 py-3 text-right font-medium">
+                                            </TableCell>
+                                            <TableCell className="text-right font-medium">
                                                 {formatCurrency(slip.grossSalary)}
-                                            </td>
-                                            <td className="px-4 py-3 text-right text-red-600 dark:text-red-400">
+                                            </TableCell>
+                                            <TableCell className="text-right text-red-600">
                                                 {formatCurrency(slip.deductions.total)}
-                                            </td>
-                                            <td className="px-4 py-3 text-right">
-                                                <p className="font-bold text-green-600 dark:text-green-400">
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <p className="font-bold text-green-600">
                                                     {formatCurrency(slip.netSalary)}
                                                 </p>
-                                            </td>
-                                            <td className="px-4 py-3 text-center">
+                                            </TableCell>
+                                            <TableCell className="text-center">
                                                 {getStatusBadge(slip.paymentStatus)}
-                                            </td>
-                                            <td className="px-4 py-3">
+                                            </TableCell>
+                                            <TableCell>
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <button
+                                                    <Button
                                                         onClick={() => setSelectedSlip(slip)}
-                                                        className="text-blue-500 hover:text-blue-600"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="text-blue-500 hover:text-blue-600 h-8 w-8"
                                                         title="View Details"
                                                     >
                                                         <FaEye size={16} />
-                                                    </button>
+                                                    </Button>
                                                     {slip.paymentStatus === 'pending' && !slip.locked && (
                                                         <>
-                                                            <button
+                                                            <Button
                                                                 onClick={() => markAsPaid(slip._id)}
-                                                                className="text-green-500 hover:text-green-600"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="text-green-500 hover:text-green-600 h-8 w-8"
                                                                 title="Mark as Paid"
                                                             >
                                                                 <FaCheckCircle size={16} />
-                                                            </button>
-                                                            <button
+                                                            </Button>
+                                                            <Button
                                                                 onClick={() => deleteSlip(slip._id)}
-                                                                className="text-red-500 hover:text-red-600"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="text-red-500 hover:text-red-600 h-8 w-8"
                                                                 title="Delete"
                                                             >
                                                                 <FaTrash size={16} />
-                                                            </button>
+                                                            </Button>
                                                         </>
                                                     )}
                                                 </div>
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     ))}
-                                </tbody>
-                            </table>
+                                </TableBody>
+                            </Table>
                         </div>
                     )}
 
@@ -300,7 +311,8 @@ const SalaryHistory = () => {
                             <p className="text-gray-600 dark:text-gray-400">Loading salary history...</p>
                         </div>
                     )}
-                </div>
+                    </CardContent>
+                </Card>
 
                 {/* Slip Detail Modal */}
                 {selectedSlip && (
@@ -319,7 +331,7 @@ const SalaryHistory = () => {
 // Slip Detail Modal Component
 const SlipDetailModal = ({ slip, onClose, formatCurrency, monthNames }) => {
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-4xl shadow-2xl max-h-[90vh] overflow-y-auto">
                 {/* Header */}
                 <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 z-10">

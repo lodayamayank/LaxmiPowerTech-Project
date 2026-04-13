@@ -11,6 +11,9 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const CreateReimbursement = () => {
   const navigate = useNavigate();
@@ -141,14 +144,15 @@ const CreateReimbursement = () => {
       <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
         {/* Header */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <button
-            className="absolute top-6 left-6 bg-white/90 flex items-center gap-2 hover:bg-white px-3 py-1.5 rounded-full transition-all"
+          <Button
+            variant="ghost"
+            className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full h-auto"
             onClick={() => navigate(-1)}
             type="button"
           >
             <FaArrowLeft className="text-orange-600" size={16} />
             <span className="text-sm font-medium text-orange-600">Back</span>
-          </button>
+          </Button>
 
           <div className="text-center pt-8">
             <FaMoneyBillWave className="text-white mx-auto mb-3" size={40} />
@@ -335,10 +339,10 @@ const CreateReimbursement = () => {
           {/* Submit Button - Fixed at bottom */}
           <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
             <div className="max-w-md mx-auto">
-              <button
+              <Button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold shadow-lg hover:from-pink-600 hover:to-pink-700 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-4 h-auto rounded-2xl bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold shadow-lg hover:from-pink-600 hover:to-pink-700 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? (
                   <>
@@ -351,7 +355,7 @@ const CreateReimbursement = () => {
                     <span>Submit Reimbursement</span>
                   </>
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </form>

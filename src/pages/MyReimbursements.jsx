@@ -12,6 +12,9 @@ import {
   FaFileInvoiceDollar,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const MyReimbursements = () => {
   const [reimbursements, setReimbursements] = useState([]);
@@ -80,13 +83,14 @@ const MyReimbursements = () => {
       <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
         {/* Header */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <button
-            className="absolute top-6 left-6 bg-white/90 flex items-center gap-2 hover:bg-white px-3 py-1.5 rounded-full transition-all"
+          <Button
+            variant="ghost"
+            className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full h-auto"
             onClick={() => navigate(-1)}
           >
             <FaArrowLeft className="text-orange-600" size={16} />
             <span className="text-sm font-medium text-orange-600">Back</span>
-          </button>
+          </Button>
 
           <div className="text-center pt-8">
             <FaFileInvoiceDollar className="text-white mx-auto mb-3" size={40} />
@@ -98,13 +102,13 @@ const MyReimbursements = () => {
         {/* Main Content */}
         <div className="px-6 py-6 -mt-4">
           {/* New Request Button */}
-          <button
+          <Button
             onClick={() => navigate("/reimbursements/new")}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all flex items-center justify-center gap-3 mb-6"
+            className="w-full py-4 h-auto rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all flex items-center justify-center gap-3 mb-6"
           >
             <FaPlus size={18} />
             <span>New Reimbursement Request</span>
-          </button>
+          </Button>
 
           {/* Reimbursements List */}
           {reimbursements.length === 0 ? (

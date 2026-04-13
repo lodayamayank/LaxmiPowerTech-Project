@@ -1,7 +1,10 @@
 // src/pages/mobile/MobileMyIndents.jsx
 import { useEffect, useState } from "react";
-import axios from "../../utils/axios";
+import axios from "../utils/axios";
 import dayjs from "dayjs";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const StatusPill = ({ value }) => {
   const map = {

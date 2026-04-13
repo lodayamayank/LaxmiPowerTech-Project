@@ -13,6 +13,9 @@ import {
   FaChevronRight,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const StatusBadge = ({ status }) => {
   const cls =
@@ -227,12 +230,9 @@ const AdminReimbursements = () => {
             placeholder="To"
           />
 
-          <button
-            type="submit"
-            className="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800 transition-colors"
-          >
+          <Button type="submit">
             Filter
-          </button>
+          </Button>
         </form>
 
         {/* Table */}
@@ -352,20 +352,12 @@ const AdminReimbursements = () => {
                   </option>
                 ))}
               </select>
-              <button
-                disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
+              <Button variant="outline" size="icon" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="h-9 w-9">
                 <FaChevronLeft size={14} />
-              </button>
-              <button
-                disabled={page >= totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
+              </Button>
+              <Button variant="outline" size="icon" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} className="h-9 w-9">
                 <FaChevronRight size={14} />
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -392,7 +384,7 @@ const AdminReimbursements = () => {
 // Details Modal Component
 const ReimbursementDetailsModal = ({ reimbursement, onClose, onApprove, onReject, onMarkPaid }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Modal Header */}
         <div className="sticky top-0 bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex items-center justify-between rounded-t-xl">
@@ -527,31 +519,31 @@ const ReimbursementDetailsModal = ({ reimbursement, onClose, onApprove, onReject
           <div className="mt-6 pt-6 border-t border-gray-200">
             {reimbursement.status === "pending" && (
               <div className="flex gap-3">
-                <button
+                <Button
                   onClick={() => onApprove(reimbursement._id)}
-                  className="flex-1 py-3 rounded-xl bg-green-500 hover:bg-green-600 text-white font-semibold transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-3 h-auto rounded-xl bg-green-500 hover:bg-green-600 text-white font-semibold"
                 >
                   <FaCheck size={16} />
                   Approve
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => onReject(reimbursement._id)}
-                  className="flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-semibold transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-3 h-auto rounded-xl bg-red-500 hover:bg-red-600 text-white font-semibold"
                 >
                   <FaTimes size={16} />
                   Reject
-                </button>
+                </Button>
               </div>
             )}
 
             {reimbursement.status === "approved" && (
-              <button
+              <Button
                 onClick={() => onMarkPaid(reimbursement._id)}
-                className="w-full py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 h-auto rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold flex items-center justify-center gap-2"
               >
                 <FaMoneyBillWave size={16} />
                 Mark as Paid
-              </button>
+              </Button>
             )}
           </div>
         </div>

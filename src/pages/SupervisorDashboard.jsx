@@ -3,8 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import fingerprint from '../assets/fingerprint.png';
 import layer2 from '../assets/calendar.png';
 import logo from '../assets/logo.png';
+import avatar from '../assets/user.png';
+import leaves from '../assets/leave.png';
+import money from '../assets/salary.png';
 import { FaSignOutAlt, FaChevronRight, FaServer } from 'react-icons/fa';
 import { MdFolder } from 'react-icons/md';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const SupervisorDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -55,14 +61,35 @@ const SupervisorDashboard = () => {
             <p className="text-sm text-gray-500">Select an option below</p>
           </div>
 
-          {/* Grid Cards - 3 Cards */}
+          {/* Grid Cards */}
           <div className="grid grid-cols-2 gap-4">
             <DashboardCard
-              label="Attendance"
+              label="Mark Attendance"
               icon={fingerprint}
               onClick={() => navigate('/punch')}
               gradient="from-green-400 to-green-500"
               bgColor="bg-green-50"
+            />
+            <DashboardCard
+              label="My Attendance"
+              icon={layer2}
+              onClick={() => navigate('/my-attendance')}
+              gradient="from-blue-400 to-blue-500"
+              bgColor="bg-blue-50"
+            />
+            <DashboardCard
+              label="Leave"
+              icon={leaves}
+              onClick={() => navigate('/leaves')}
+              gradient="from-orange-400 to-orange-500"
+              bgColor="bg-orange-50"
+            />
+            <DashboardCard
+              label="Reimbursement"
+              icon={money}
+              onClick={() => navigate('/reimbursements')}
+              gradient="from-yellow-400 to-yellow-500"
+              bgColor="bg-yellow-50"
             />
             <DashboardCard
               label="Projects"
@@ -71,6 +98,13 @@ const SupervisorDashboard = () => {
               onClick={() => navigate('/supervisor/projects')}
               gradient="from-blue-400 to-blue-500"
               bgColor="bg-blue-50"
+            />
+            <DashboardCard
+              label="Profile"
+              icon={avatar}
+              onClick={() => navigate('/profile')}
+              gradient="from-purple-400 to-purple-500"
+              bgColor="bg-purple-50"
             />
             <div className="col-span-2">
               <DashboardCard

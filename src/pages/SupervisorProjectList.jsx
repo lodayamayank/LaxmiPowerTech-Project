@@ -4,6 +4,9 @@ import axios from '../utils/axios';
 import logo from '../assets/logo.png';
 import { FaSignOutAlt, FaSearch, FaChevronRight, FaArrowLeft } from 'react-icons/fa';
 import { MdFolder } from 'react-icons/md';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const SupervisorProjectList = () => {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -78,24 +81,18 @@ const SupervisorProjectList = () => {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 h-auto"
             >
-              <FaSignOutAlt size={14} />
-              <span className="text-sm font-medium">Logout</span>
-            </button>
+              <FaArrowLeft size={14} />
+              <span className="text-sm font-medium">Back</span>
+            </Button>
           </div>
 
           {/* Title Section */}
           <div className="mt-6">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 text-white/80 hover:text-white text-sm mb-3 transition-colors"
-            >
-              <FaArrowLeft size={14} />
-              <span>Back to Dashboard</span>
-            </button>
             <h2 className="text-white text-2xl font-bold">My Projects</h2>
             <p className="text-white/80 text-sm mt-1">Select a project to view details</p>
           </div>

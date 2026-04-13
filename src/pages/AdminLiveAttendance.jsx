@@ -13,6 +13,9 @@ import {
   FaSearch
 } from "react-icons/fa";
 import { formatIST } from "../utils/date";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const AdminLiveAttendance = () => {
   const [staffData, setStaffData] = useState([]);
@@ -111,13 +114,10 @@ const AdminLiveAttendance = () => {
           <div>
             <p className="text-sm text-gray-500 mt-1">Real-time attendance tracking • Auto-refreshes every 30s</p>
           </div>
-          <button
-            onClick={downloadCSV}
-            className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 transition-colors shadow-md hover:shadow-lg"
-          >
+          <Button onClick={downloadCSV} className="bg-orange-500 hover:bg-orange-600 text-white shadow-md">
             <FaDownload size={14} />
             Export CSV
-          </button>
+          </Button>
         </div>
 
         {/* Stats Cards */}

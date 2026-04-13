@@ -8,11 +8,14 @@ import {
   getAllTransfers,
   decideTransfer,
   completeTransfer,
-} from "../../api/materialTransfers.api";
-import StatusBadge from "../../components/transfers/StatusBadge";
-import useDebounce from "../../hooks/useDebounce";
-import { useBranches } from "../../hooks/useBranches";
-import DashboardLayout from "../../layouts/DashboardLayout";
+} from "../api/materialTransfers.api";
+import StatusBadge from "../components/transfers/StatusBadge";
+import useDebounce from "../hooks/useDebounce";
+import { useBranches } from "../hooks/useBranches";
+import DashboardLayout from "../layouts/DashboardLayout";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 // ---- Default export: page wrapped in DashboardLayout ----
 export default function AdminTransfers() {
@@ -164,12 +167,9 @@ function AdminTransfersInner() {
             />
           </div>
           <div className="flex items-end">
-            <button
-              onClick={() => loadData(1)}
-              className="h-[38px] rounded-lg border px-3 text-sm"
-            >
+            <Button variant="outline" size="sm" onClick={() => loadData(1)}>
               Refresh
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -236,17 +236,9 @@ function AdminTransfersInner() {
       <div className="mt-4 flex items-center justify-between">
         <div className="text-sm text-gray-600">Total: {total}</div>
         <div className="flex items-center gap-2">
-          <button
-            className="rounded-lg border px-3 py-1 text-sm disabled:opacity-40"
-            onClick={() => { const p = Math.max(1, page - 1); setPage(p); loadData(p); }}
-            disabled={page <= 1}
-          >Prev</button>
+          <Button variant="outline" size="sm" onClick={() => { const p = Math.max(1, page - 1); setPage(p); loadData(p); }} disabled={page <= 1}>Prev</Button>
           <span className="text-sm">{page} / {totalPages}</span>
-          <button
-            className="rounded-lg border px-3 py-1 text-sm disabled:opacity-40"
-            onClick={() => { const p = Math.min(totalPages, page + 1); setPage(p); loadData(p); }}
-            disabled={page >= totalPages}
-          >Next</button>
+          <Button variant="outline" size="sm" onClick={() => { const p = Math.min(totalPages, page + 1); setPage(p); loadData(p); }} disabled={page >= totalPages}>Next</Button>
         </div>
       </div>
 

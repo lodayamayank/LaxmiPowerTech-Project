@@ -2,6 +2,10 @@ import React, { useEffect, useState, useMemo } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
 import axios from '../utils/axios';
 import { toast } from 'react-toastify';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import {
   FaRupeeSign,
   FaCalendarAlt,
@@ -289,9 +293,10 @@ const SalaryDashboard = () => {
     <DashboardLayout title="Salary Management">
       <div className="space-y-6">
         {/* Month/Year Selector & Actions */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                   Month
@@ -323,23 +328,24 @@ const SalaryDashboard = () => {
             </div>
 
             <div className="flex gap-3">
-              <button
+              <Button
                 onClick={() => window.location.href = '/admin/salary-history'}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600"
               >
                 <FaCalendarAlt />
                 View History
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setShowGenerateModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition"
+                className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600"
               >
                 <FaFileDownload />
                 Generate Slips
-              </button>
+              </Button>
+              </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
         {/* Auto-Calculation Info Banner */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-4 shadow-lg text-white">
           <div className="flex items-center gap-3">
@@ -437,7 +443,8 @@ const SalaryDashboard = () => {
 
         {/* Filters and Search */}
         {!loading && salaryData.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
+          <Card>
+            <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1">
                 <div className="relative">
@@ -463,86 +470,89 @@ const SalaryDashboard = () => {
                   <option value="labour">Labour</option>
                   <option value="subcontractor">Subcontractor</option>
                 </Select>
-                <button
+                <Button
                   onClick={exportToCSV}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-500 dark:bg-green-900 text-white rounded-lg hover:bg-green-600 dark:hover:bg-green-900 transition"
+                  className="flex items-center gap-2 bg-green-500 hover:bg-green-600"
                 >
                   <FaFileDownload />
                   Export CSV
-                </button>
+                </Button>
               </div>
             </div>
 
             {/* Salary Table */}
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-800 border-b">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Employee</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Role</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">CTC</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Gross</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Days</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Deductions</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Net Salary</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Employee</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead className="text-right">CTC</TableHead>
+                    <TableHead className="text-right">Gross</TableHead>
+                    <TableHead className="text-center">Days</TableHead>
+                    <TableHead className="text-right">Deductions</TableHead>
+                    <TableHead className="text-right">Net Salary</TableHead>
+                    <TableHead className="text-center">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {filteredData.map((item) => (
                     <React.Fragment key={item.userId}>
-                      <tr className="border-b dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                        <td className="px-4 py-3">
+                      <TableRow>
+                        <TableCell>
                           <div>
                             <p className="font-semibold text-gray-900 dark:text-white">{item.name}</p>
                             <p className="text-sm text-gray-500 dark:text-gray-400">@{item.username}</p>
                             <p className="text-xs text-gray-400 dark:text-gray-500">{item.employeeId}</p>
                           </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${item.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                            item.role === 'staff' ? 'bg-blue-100 text-blue-800' :
-                              item.role === 'labour' ? 'bg-green-100 text-green-800' :
-                                'bg-gray-100 text-gray-800'
-                            } dark:bg-gray-700 dark:text-white`}>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={`capitalize ${
+                            item.role === 'admin' ? 'bg-purple-50 text-purple-800 border-purple-200' :
+                            item.role === 'staff' ? 'bg-blue-50 text-blue-800 border-blue-200' :
+                            item.role === 'labour' ? 'bg-green-50 text-green-800 border-green-200' :
+                            'bg-gray-50 text-gray-800 border-gray-200'
+                          }`}>
                             {item.role}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right">
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
                           <p className="font-medium">{formatCurrency(item.ctcAmount)}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{item.salaryType}</p>
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium">
+                          <p className="text-xs text-muted-foreground">{item.salaryType}</p>
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
                           {formatCurrency(item.grossSalary)}
-                        </td>
-                        <td className="px-4 py-3 text-center">
+                        </TableCell>
+                        <TableCell className="text-center">
                           <div className="text-sm">
-                            <p className="text-green-600 dark:text-green-400 font-semibold">{item.payableDays}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">of {item.attendance.workingDays}</p>
+                            <p className="text-green-600 font-semibold">{item.payableDays}</p>
+                            <p className="text-xs text-muted-foreground">of {item.attendance.workingDays}</p>
                           </div>
-                        </td>
-                        <td className="px-4 py-3 text-right text-red-600 dark:text-red-400 font-medium">
+                        </TableCell>
+                        <TableCell className="text-right text-red-600 font-medium">
                           {formatCurrency(item.deductions.total)}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <p className="font-bold text-lg text-green-600 dark:text-green-400">
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <p className="font-bold text-lg text-green-600">
                             {formatCurrency(item.netSalary)}
                           </p>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <button
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button
                             onClick={() => setExpandedRow(expandedRow === item.userId ? null : item.userId)}
-                            className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-500 font-medium text-sm"
+                            variant="ghost"
+                            size="sm"
+                            className="text-orange-500 hover:text-orange-600"
                           >
                             {expandedRow === item.userId ? 'Hide' : 'Details'}
-                          </button>
-                        </td>
-                      </tr>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
                       {/* Expanded Row Details */}
                       {/* Expanded Row Details */}
                       {expandedRow === item.userId && (
-                        <tr className="bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-600">
-                          <td colSpan="8" className="px-4 py-6">
+                        <TableRow className="bg-muted/50">
+                          <TableCell colSpan="8" className="py-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                               {/* Attendance Breakdown */}
                               <div>
@@ -723,42 +733,47 @@ const SalaryDashboard = () => {
                                 </div>
                               </div>
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       )}
                     </React.Fragment>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
 
             {/* Results Summary */}
             <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 text-center">
               Showing {filteredData.length} of {salaryData.length} employees
             </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* No Data Message */}
         {!loading && salaryData.length === 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-12 text-center">
+          <Card>
+            <CardContent className="p-12 text-center">
             <FaInfoCircle size={48} className="mx-auto text-gray-300 dark:text-gray-500 mb-4" />
             <h3 className="text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">No Salary Data</h3>
             <p className="text-gray-500 dark:text-gray-400">No employees found with salary information for the selected period.</p>
-          </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Loading State */}
         {loading && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-12 text-center">
+          <Card>
+            <CardContent className="p-12 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 dark:border-orange-400 mx-auto mb-4"></div>
             <p className="text-gray-600 dark:text-gray-400">Loading salary data...</p>
-          </div>
+            </CardContent>
+          </Card>
         )}
       </div>
       {/* Generate Salary Slips Modal */}
       {showGenerateModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-2xl">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-xl font-bold text-gray-800 dark:text-white">
@@ -805,17 +820,18 @@ const SalaryDashboard = () => {
             </div>
 
             <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
-              <button
+              <Button
                 onClick={() => setShowGenerateModal(false)}
                 disabled={generating}
-                className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition disabled:opacity-50"
+                variant="outline"
+                className="flex-1"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleGenerateSlips}
                 disabled={generating || filteredData.length === 0}
-                className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 bg-purple-500 hover:bg-purple-600 flex items-center justify-center gap-2"
               >
                 {generating ? (
                   <>
@@ -828,7 +844,7 @@ const SalaryDashboard = () => {
                     Generate {filteredData.length} Slip(s)
                   </>
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

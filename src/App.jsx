@@ -35,7 +35,12 @@ const CreateReimbursement = lazy(() => import('./pages/CreateReimbursement'));
 const AdminReimbursements = lazy(() => import('./pages/AdminReimbursements'));
 const SupervisorDashboard = lazy(() => import('./pages/SupervisorDashboard'));
 const SupervisorProjectList = lazy(() => import('./pages/SupervisorProjectList'));
+const SupervisorLabourList = lazy(() => import('./pages/SupervisorLabourList'));
+const SupervisorAddLabour = lazy(() => import('./pages/SupervisorAddLabour'));
+const SupervisorLabourDetails = lazy(() => import('./pages/SupervisorLabourDetails'));
 const LabourDashboard = lazy(() => import('./pages/LabourDashboard'));
+const TaskSubmission = lazy(() => import('./pages/TaskSubmission'));
+const TeamAttendance = lazy(() => import('./pages/TeamAttendance'));
 
 // Material Management Pages - Lazy loaded
 const Material = lazy(() => import('./pages/material/Material'));
@@ -58,6 +63,19 @@ const Intent = lazy(() => import('./pages/material/Intent'));
 // Salary Management Pages - Lazy loaded
 const SalaryDashboard = lazy(() => import('./pages/SalaryDashboard'));
 const SalaryHistory = lazy(() => import('./pages/SalaryHistory'));
+
+// Task Management Pages - Lazy loaded
+const AdminTasks = lazy(() => import('./pages/AdminTasks'));
+
+// Work Order Management Pages - Lazy loaded
+const ManageWorkOrder = lazy(() => import('./pages/ManageWorkOrder'));
+const ManageInventoryLabour = lazy(() => import('./pages/ManageInventoryLabour'));
+
+// Reports Page
+const AdminReports = lazy(() => import('./pages/AdminReports'));
+const AdminTransfers = lazy(() => import('./pages/AdminTransfers'));
+const MobileMyIndents = lazy(() => import('./pages/MobileMyIndents'));
+const MaterialTransferMobile = lazy(() => import('./pages/MaterialTransferMobile'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -148,6 +166,11 @@ function App() {
         {/* Supervisor/Subcontractor Routes */}
         <Route path="/supervisor/projects" element={<SupervisorProjectList />} />
         <Route path="/branch/:branchId/labour-dashboard" element={<LabourDashboard />} />
+        <Route path="/branch/:branchId/tasks" element={<TaskSubmission />} />
+        <Route path="/branch/:branchId/labours" element={<SupervisorLabourList />} />
+        <Route path="/branch/:branchId/labours/add" element={<SupervisorAddLabour />} />
+        <Route path="/branch/:branchId/labours/:labourId" element={<SupervisorLabourDetails />} />
+        <Route path="/branch/:branchId/team-attendance" element={<TeamAttendance />} />
 
         {/* Admin Dashboard Route */}
         <Route path="/admindashboard" element={<AdminDashboard />} />
@@ -183,6 +206,23 @@ function App() {
         {/* Salary Management Routes */}
         <Route path="/admin/salary" element={<SalaryDashboard />} />
         <Route path="/admin/salary-history" element={<SalaryHistory />} />
+
+        {/* Task Management Routes */}
+        <Route path="/admin/tasks" element={<AdminTasks />} />
+
+        {/* Work Order Management Routes */}
+        <Route path="/dashboard/work-orders" element={<ManageWorkOrder />} />
+
+        {/* Reports */}
+        <Route path="/dashboard/report" element={<AdminReports />} />
+
+        {/* Inventory */}
+        <Route path="/dashboard/inventory/labour/manage" element={<ManageInventoryLabour />} />
+
+        {/* Transfers */}
+        <Route path="/admin/transfers" element={<AdminTransfers />} />
+        <Route path="/material/my-indents" element={<MobileMyIndents />} />
+        <Route path="/material/transfer-mobile" element={<MaterialTransferMobile />} />
 
         </Routes>
       </Suspense>
