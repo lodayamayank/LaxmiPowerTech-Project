@@ -15,6 +15,8 @@ import {
   FaHardHat,
   FaChevronDown,
   FaChevronUp,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
 import { MdOutlineTaskAlt, MdSettings } from "react-icons/md";
 import { MdNotificationsActive } from "react-icons/md";

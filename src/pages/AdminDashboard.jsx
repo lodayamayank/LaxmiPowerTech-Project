@@ -466,17 +466,6 @@ useEffect(() => {
                   )
                 ))}
               </div>
-              <div className="flex items-center gap-2">
-                {/* First Page */}
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => goToPage(1)}
-                  disabled={currentPage === 1}
-                  title="First Page"
-                >
-                  <FaAngleDoubleLeft size={14} />
-                </Button>
 
               {/* Next Page */}
               <Button

@@ -5,8 +5,6 @@ import axios from 'axios';
 // Always points to Render backend (no localhost fallback)
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://laxmipowertech-backend-1.onrender.com/api';
 
-console.log('🌐 Axios configured with baseURL:', baseURL);
-
 const instance = axios.create({
   baseURL,
   timeout: 30000, // 30 seconds
@@ -29,7 +27,6 @@ instance.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('❌ Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -39,7 +36,6 @@ instance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.warn('⚠️ Unauthorized - clearing localStorage');
       localStorage.clear();
       window.location.href = '/login';
     }
