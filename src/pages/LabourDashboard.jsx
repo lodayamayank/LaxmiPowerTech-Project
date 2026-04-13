@@ -9,6 +9,9 @@ import money from '../assets/salary.png';
 import { FaSignOutAlt, FaChevronRight, FaTasks, FaArrowLeft, FaUsers } from 'react-icons/fa';
 import { MdInventory } from 'react-icons/md';
 import axios from '../utils/axios';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const LabourDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user'));

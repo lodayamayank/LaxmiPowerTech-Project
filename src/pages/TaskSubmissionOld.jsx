@@ -4,6 +4,9 @@ import axios from '../utils/axios';
 import logo from '../assets/logo.png';
 import { FaArrowLeft, FaCamera, FaCheckCircle, FaHistory } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const TaskSubmission = () => {
   const navigate = useNavigate();

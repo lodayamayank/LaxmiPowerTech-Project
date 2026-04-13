@@ -504,7 +504,7 @@ export default function DeliveryChecklist() {
 
                 {/* Confirmation Modal */}
                 {showConfirmModal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-lg shadow-xl max-w-sm w-full p-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">Mark as Fully Received?</h3>
                             <p className="text-sm text-gray-600 mb-6">

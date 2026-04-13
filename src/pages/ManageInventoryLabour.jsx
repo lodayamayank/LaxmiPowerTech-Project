@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../layouts/DashboardLayout';
 import axios from '../utils/axios';
 import { FaHardHat, FaPlus, FaSearch, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined || Number.isNaN(value)) {
@@ -325,14 +328,14 @@ const ManageInventoryLabour = () => {
               />
             </div>
 
-            <button
+            <Button
               type="button"
               onClick={() => navigate('/admin/my-team', { state: { tab: 'labour' } })}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600"
+              className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               <FaPlus />
               Add Labour
-            </button>
+            </Button>
           </div>
         </header>
 
@@ -398,13 +401,15 @@ const ManageInventoryLabour = () => {
                               {formatCurrency(group.totalPending)}
                             </td>
                             <td className="px-4 py-3 text-right">
-                              <button
+                              <Button
                                 type="button"
-                                className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-1 text-gray-500 hover:bg-gray-50"
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
                                 aria-label="Toggle labour list"
                               >
                                 {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
-                              </button>
+                              </Button>
                             </td>
                           </tr>
 

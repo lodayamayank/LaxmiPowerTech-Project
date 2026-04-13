@@ -4,6 +4,9 @@ import axios from '../utils/axios';
 import logo from '../assets/logo.png';
 import { FaArrowLeft, FaCalendarAlt, FaCheckCircle, FaTimesCircle, FaClock, FaUsers } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const TeamAttendance = () => {
   const navigate = useNavigate();
@@ -153,13 +156,14 @@ const TeamAttendance = () => {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
-            <button
+            <Button
+              variant="ghost"
               onClick={() => navigate(`/branch/${branchId}/labour-dashboard`)}
-              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
+              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 h-auto"
             >
               <FaArrowLeft size={14} />
               <span className="text-sm font-medium">Back</span>
-            </button>
+            </Button>
           </div>
 
           <div className="mt-6">

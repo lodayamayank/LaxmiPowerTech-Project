@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import Dashboard from './AdminDashboard';
 import LabourDashboard from './LabourDashboard';
 import SupervisorDashboard from './SupervisorDashboard';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const RoleBasedDashboard = () => {
   const navigate = useNavigate();

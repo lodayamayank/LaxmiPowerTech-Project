@@ -4,6 +4,9 @@ import axios from '../utils/axios';
 import DashboardLayout from '../layouts/DashboardLayout';
 import { FaFilter, FaSearch, FaEye, FaCalendarAlt, FaUserTie, FaBuilding } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const AdminTasks = () => {
   const navigate = useNavigate();
@@ -130,7 +133,8 @@ const AdminTasks = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <Card>
+            <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Tasks</p>
@@ -140,7 +144,8 @@ const AdminTasks = () => {
                 <FaBuilding className="text-blue-600 text-xl" />
               </div>
             </div>
-          </div>
+            </CardContent>
+          </Card>
           
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
             <div className="flex items-center justify-between">
@@ -182,18 +187,20 @@ const AdminTasks = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+        <Card className="mb-6"><CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <FaFilter className="text-gray-600" />
               <h3 className="font-semibold text-gray-800">Filters</h3>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className="text-sm text-blue-600 hover:text-blue-700"
+              className="text-blue-600"
             >
               {showFilters ? 'Hide' : 'Show'}
-            </button>
+            </Button>
           </div>
 
           {showFilters && (
@@ -291,25 +298,20 @@ const AdminTasks = () => {
               </div>
 
               <div className="md:col-span-4 flex justify-end gap-2">
-                <button
-                  onClick={clearFilters}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
-                >
+                <Button variant="outline" size="sm" onClick={clearFilters}>
                   Clear Filters
-                </button>
-                <button
-                  onClick={fetchTasks}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                >
+                </Button>
+                <Button size="sm" onClick={fetchTasks}>
                   Apply Filters
-                </button>
+                </Button>
               </div>
             </div>
           )}
-        </div>
+        </CardContent></Card>
 
         {/* Tasks Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <Card className="overflow-hidden">
+          <CardContent className="p-0">
           {loading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -375,12 +377,14 @@ const AdminTasks = () => {
                           <div className="text-sm text-gray-900">{formatDate(task.createdAt)}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => viewTaskDetails(task)}
-                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                            className="text-blue-600"
                           >
                             <FaEye /> View
-                          </button>
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -394,32 +398,35 @@ const AdminTasks = () => {
                   Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalItems)} of {totalItems} tasks
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                   >
                     Previous
-                  </button>
+                  </Button>
                   <span className="px-4 py-2 text-sm">
                     Page {currentPage} of {totalPages}
                   </span>
-                  <button
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                   >
                     Next
-                  </button>
+                  </Button>
                 </div>
               </div>
             </>
           )}
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Task Details Modal */}
         {showModal && selectedTask && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -500,12 +507,12 @@ const AdminTasks = () => {
                 </div>
 
                 <div className="mt-6 flex justify-end">
-                  <button
+                  <Button
+                    variant="outline"
                     onClick={() => setShowModal(false)}
-                    className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
                   >
                     Close
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

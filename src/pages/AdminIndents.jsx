@@ -4,6 +4,9 @@ import axios from "../utils/axios";
 import DashboardLayout from "../layouts/DashboardLayout";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const StatusPill = ({ value }) => {
   const map = {
@@ -192,8 +195,8 @@ export default function AdminIndents() {
           onChange={(e) => setFilters((s) => ({ ...s, search: e.target.value }))}
         />
         <div className="flex gap-2 md:col-span-2">
-          <button type="submit" className="px-3 py-2 rounded bg-black text-white">Apply</button>
-          <button type="button" onClick={clearFilters} className="px-3 py-2 rounded border">Reset</button>
+          <Button type="submit" size="sm">Apply</Button>
+          <Button type="button" variant="outline" size="sm" onClick={clearFilters}>Reset</Button>
         </div>
       </form>
 
@@ -255,27 +258,19 @@ export default function AdminIndents() {
             Page {page} of {totalPages} • {total} total
           </span>
           <div className="flex gap-2">
-            <button
-              className="px-3 py-2 border rounded disabled:opacity-50"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
+            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
               Prev
-            </button>
-            <button
-              className="px-3 py-2 border rounded disabled:opacity-50"
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            >
+            </Button>
+            <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
               Next
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Drawer */}
       {drawerOpen && active && (
-        <div className="fixed inset-0 z-40">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40">
           <div className="absolute inset-0 bg-black/30" onClick={() => setDrawerOpen(false)} />
           <div className="absolute right-0 top-0 h-full w-full sm:w-[460px] bg-white shadow-xl p-5 overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
@@ -338,12 +333,12 @@ export default function AdminIndents() {
             <div className="mt-6 flex gap-2">
               {active.status === "pending" && (
                 <>
-                  <button className="px-3 py-2 rounded bg-green-600 text-white" onClick={() => actionCall(active._id, "approve")}>Approve</button>
-                  <button className="px-3 py-2 rounded bg-red-600 text-white" onClick={() => actionCall(active._id, "reject")}>Reject</button>
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => actionCall(active._id, "approve")}>Approve</Button>
+                  <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white" onClick={() => actionCall(active._id, "reject")}>Reject</Button>
                 </>
               )}
               {active.status === "approved" && (
-                <button className="px-3 py-2 rounded bg-emerald-700 text-white" onClick={() => actionCall(active._id, "issue")}>Mark Issued</button>
+                <Button size="sm" className="bg-emerald-700 hover:bg-emerald-800 text-white" onClick={() => actionCall(active._id, "issue")}>Mark Issued</Button>
               )}
             </div>
           </div>

@@ -4,6 +4,9 @@ import axios from "../utils/axios";
 import DashboardLayout from "../layouts/DashboardLayout";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 //import "react-toastify/dist/ReactToastify.css";
 
 
@@ -15,9 +18,9 @@ const StatusBadge = ({ status }) => {
                 ? "bg-red-100 text-red-700"
                 : "bg-yellow-100 text-yellow-700";
     return (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${cls}`}>
+        <Badge variant="outline" className={`border-transparent ${cls}`}>
             {status}
-        </span>
+        </Badge>
     );
 };
 
@@ -100,9 +103,9 @@ export default function AdminLeaves() {
         <DashboardLayout title="Leave Management">
             <div className="space-y-4">
                 {/* Filters */}
-                <form
+                <Card><CardContent className="pt-6"><form
                     onSubmit={onSearch}
-                    className="grid grid-cols-1 md:grid-cols-7 gap-3 bg-white p-4 rounded-xl shadow"
+                    className="grid grid-cols-1 md:grid-cols-7 gap-3 p-4"
                 >
                     <select
                         value={filters.role}
@@ -190,17 +193,14 @@ export default function AdminLeaves() {
                             }
                             className="border rounded-lg px-3 py-2 w-full"
                         />
-                        <button
-                            type="submit"
-                            className="px-4 py-2 rounded-lg bg-black text-white"
-                        >
+                        <Button type="submit">
                             Filter
-                        </button>
+                        </Button>
                     </div>
-                </form>
+                </form></CardContent></Card>
 
                 {/* Table */}
-                <div className="bg-white rounded-xl shadow overflow-x-auto">
+                <Card><CardContent className="p-0 overflow-x-auto">
                     <table className="min-w-full text-sm">
                         <thead className="bg-gray-50 text-gray-700">
                             <tr>
@@ -268,27 +268,32 @@ export default function AdminLeaves() {
                                                     : "—"}
                                             </td>
                                             <td className="px-4 py-2 space-x-2">
-                                                <button
-                                                    className="px-3 py-1 rounded-lg border border-green-600 text-green-700 disabled:opacity-40"
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="border-green-600 text-green-700"
                                                     disabled={r.status === "approved"}
                                                     onClick={() => handleAction(r._id, "approved")}
                                                 >
                                                     Approve
-                                                </button>
-                                                <button
-                                                    className="px-3 py-1 rounded-lg border border-red-600 text-red-700 disabled:opacity-40"
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="border-red-600 text-red-700"
                                                     disabled={r.status === "rejected"}
                                                     onClick={() => handleAction(r._id, "rejected")}
                                                 >
                                                     Reject
-                                                </button>
+                                                </Button>
                                                 {r.status !== "pending" && (
-                                                    <button
-                                                        className="px-3 py-1 rounded-lg border text-gray-700"
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
                                                         onClick={() => handleAction(r._id, "pending")}
                                                     >
                                                         Mark Pending
-                                                    </button>
+                                                    </Button>
                                                 )}
                                             </td>
                                         </tr>
@@ -297,7 +302,7 @@ export default function AdminLeaves() {
                             )}
                         </tbody>
                     </table>
-                </div>
+                </CardContent></Card>
 
                 {/* Pagination */}
                 <div className="flex items-center justify-between">
@@ -319,20 +324,22 @@ export default function AdminLeaves() {
                                 </option>
                             ))}
                         </select>
-                        <button
+                        <Button
+                            variant="outline"
+                            size="sm"
                             disabled={page <= 1}
                             onClick={() => setPage((p) => Math.max(1, p - 1))}
-                            className="px-3 py-1 rounded-lg border disabled:opacity-40"
                         >
                             Prev
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
                             disabled={page >= totalPages}
                             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                            className="px-3 py-1 rounded-lg border disabled:opacity-40"
                         >
                             Next
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

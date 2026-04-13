@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
 import axios from '../utils/axios';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const AdminAttendance = ({role}) => {
   const [summary, setSummary] = useState([]);

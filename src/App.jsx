@@ -73,6 +73,9 @@ const ManageInventoryLabour = lazy(() => import('./pages/ManageInventoryLabour')
 
 // Reports Page
 const AdminReports = lazy(() => import('./pages/AdminReports'));
+const AdminTransfers = lazy(() => import('./pages/AdminTransfers'));
+const MobileMyIndents = lazy(() => import('./pages/MobileMyIndents'));
+const MaterialTransferMobile = lazy(() => import('./pages/MaterialTransferMobile'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -215,6 +218,11 @@ function App() {
 
         {/* Inventory */}
         <Route path="/dashboard/inventory/labour/manage" element={<ManageInventoryLabour />} />
+
+        {/* Transfers */}
+        <Route path="/admin/transfers" element={<AdminTransfers />} />
+        <Route path="/material/my-indents" element={<MobileMyIndents />} />
+        <Route path="/material/transfer-mobile" element={<MaterialTransferMobile />} />
 
         </Routes>
       </Suspense>

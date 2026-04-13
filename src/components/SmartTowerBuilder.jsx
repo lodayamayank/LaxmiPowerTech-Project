@@ -399,7 +399,7 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
 
       {/* Smart Configuration Modal */}
       {showConfigModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-orange-600 to-orange-700 p-6 sticky top-0 z-10">
               <div className="flex items-center justify-between">
@@ -540,8 +540,8 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                       onClick={() => setTowerConfig({ ...towerConfig, basementType: option.value })}
                       className={`px-4 py-3 rounded-lg border-2 transition-all font-medium ${
                         towerConfig.basementType === option.value
-                          ? 'border-orange-500 bg-orange-50 text-orange-700'
-                          : 'border-gray-300 hover:border-orange-300'
+                          ? 'border-orange-500 bg-orange-50 text-orange-700 shadow-md'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-orange-400 hover:bg-orange-50 hover:shadow-sm'
                       }`}
                     >
                       {option.label}
@@ -591,8 +591,8 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                       onClick={() => setTowerConfig({ ...towerConfig, defaultFlatsPerFloor: num })}
                       className={`px-4 py-3 rounded-lg border-2 transition-all font-bold text-lg ${
                         towerConfig.defaultFlatsPerFloor === num
-                          ? 'border-green-500 bg-green-50 text-green-700'
-                          : 'border-gray-300 hover:border-green-300'
+                          ? 'border-green-500 bg-green-50 text-green-700 shadow-md'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-green-400 hover:bg-green-50 hover:shadow-sm'
                       }`}
                     >
                       {num}
@@ -775,7 +775,7 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
 
       {/* Floor Override Modal */}
       {showOverrideModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 sticky top-0 z-10">
               <div className="flex items-center justify-between">

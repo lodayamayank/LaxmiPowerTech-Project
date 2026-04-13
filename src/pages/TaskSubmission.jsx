@@ -4,6 +4,9 @@ import axios from '../utils/axios';
 import logo from '../assets/logo.png';
 import { FaArrowLeft, FaPlus, FaTimes, FaCheckCircle, FaHistory, FaImage } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const TaskSubmission = () => {
   const navigate = useNavigate();
@@ -345,13 +348,14 @@ const TaskSubmission = () => {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
-            <button
+            <Button
+              variant="ghost"
               onClick={() => navigate(-1)}
-              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
+              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 h-auto"
             >
               <FaArrowLeft size={14} />
               <span className="text-sm font-medium">Back</span>
-            </button>
+            </Button>
           </div>
 
           <div className="mt-6">
@@ -589,7 +593,7 @@ const TaskSubmission = () => {
 
         {/* Add Task Modal */}
         {showAddTaskModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
               {/* Modal Header */}
               <div className="sticky top-0 bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
@@ -941,7 +945,7 @@ const TaskSubmission = () => {
 
         {/* Task Detail Modal */}
         {showTaskDetail && selectedTask && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               {/* Modal Header */}
               <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
@@ -1057,20 +1061,20 @@ const TaskSubmission = () => {
                 {/* Action Buttons - Only show if task is pending */}
                 {selectedTask.status === 'pending' && user?.role === 'admin' && (
                   <div className="mt-6 flex gap-3">
-                    <button
+                    <Button
                       onClick={() => handleTaskStatusUpdate(selectedTask._id, 'approved')}
                       disabled={updatingStatus}
-                      className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 py-3 h-auto bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold hover:from-green-600 hover:to-green-700 shadow-md"
                     >
                       {updatingStatus ? 'Processing...' : '✓ Accept Task'}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={() => handleTaskStatusUpdate(selectedTask._id, 'rejected')}
                       disabled={updatingStatus}
-                      className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 py-3 h-auto bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-semibold hover:from-red-600 hover:to-red-700 shadow-md"
                     >
                       {updatingStatus ? 'Processing...' : '✗ Reject Task'}
-                    </button>
+                    </Button>
                   </div>
                 )}
 

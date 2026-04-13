@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../utils/axios';
 import logo from "../assets/logo.png";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { FaUser, FaLock, FaSignInAlt, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Login = () => {
@@ -84,7 +86,8 @@ const Login = () => {
         </div>
 
         {/* Login Form Card */}
-        <div className="bg-white rounded-3xl shadow-2xl p-8">
+        <Card className="rounded-3xl shadow-2xl">
+          <CardContent className="p-8">
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-xl font-bold text-gray-800 tracking-wide">
@@ -163,9 +166,9 @@ const Login = () => {
             </div>
 
             {/* Login Button */}
-            <button
+            <Button
               type="submit"
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all flex items-center justify-center gap-3 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 h-auto rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all flex items-center justify-center gap-3 transform hover:scale-[1.02] active:scale-[0.98]"
               disabled={loading}
             >
               {loading ? (
@@ -179,7 +182,7 @@ const Login = () => {
                   <span>LOG IN</span>
                 </>
               )}
-            </button>
+            </Button>
           </form>
 
           {/* Additional Info */}
@@ -188,7 +191,8 @@ const Login = () => {
               By logging in, you agree to our Terms of Service and Privacy Policy
             </p>
           </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Footer */}
         <div className="mt-8 text-center">

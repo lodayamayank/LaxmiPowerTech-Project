@@ -8,6 +8,9 @@ import leaves from '../assets/leave.png';
 import money from '../assets/salary.png';
 import { FaSignOutAlt, FaChevronRight, FaServer } from 'react-icons/fa';
 import { MdFolder } from 'react-icons/md';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const SupervisorDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user'));

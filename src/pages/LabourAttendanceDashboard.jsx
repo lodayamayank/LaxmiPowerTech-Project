@@ -2,6 +2,9 @@ import DashboardLayout from '../layouts/DashboardLayout';
 import React, { useEffect, useState } from 'react';
 import axios from '../utils/axios';
 import Select from '../components/Select';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import {
   FaUser, FaCalendarAlt, FaChevronLeft, FaChevronRight, FaAngleDoubleLeft,
   FaAngleDoubleRight, FaDownload, FaSearch, FaCheckCircle, FaTimesCircle, FaClock
@@ -91,9 +94,9 @@ const LabourAttendanceDashboard = () => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <p className="text-sm text-gray-500">Monthly attendance overview for labour workers</p>
-          <button onClick={exportToCSV} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 transition-colors shadow-md">
+          <Button onClick={exportToCSV} className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600">
             <FaDownload size={14} />Export CSV
-          </button>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -103,21 +106,24 @@ const LabourAttendanceDashboard = () => {
             { label: "Total Absent", value: totals.absent, color: "red", icon: FaTimesCircle },
             { label: "Total Overtime", value: totals.overtime, color: "orange", icon: FaClock }
           ].map((stat, i) => (
-            <div key={i} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500 font-medium">{stat.label}</p>
-                  <p className={`text-3xl font-bold text-${stat.color}-600 mt-1`}>{stat.value}</p>
+            <Card key={i}>
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">{stat.label}</p>
+                    <p className={`text-3xl font-bold text-${stat.color}-600 mt-1`}>{stat.value}</p>
+                  </div>
+                  <div className={`w-12 h-12 rounded-full bg-${stat.color}-100 flex items-center justify-center`}>
+                    <stat.icon className={`text-${stat.color}-600`} size={20} />
+                  </div>
                 </div>
-                <div className={`w-12 h-12 rounded-full bg-${stat.color}-100 flex items-center justify-center`}>
-                  <stat.icon className={`text-${stat.color}-600`} size={20} />
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
 
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+        <Card>
+          <CardContent className="p-5">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Filters</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
@@ -136,10 +142,12 @@ const LabourAttendanceDashboard = () => {
               <Select value={year} onChange={(e) => setYear(e.target.value)} options={Array.from({ length: 5 }, (_, i) => ({ value: new Date().getFullYear() - i, label: (new Date().getFullYear() - i).toString() }))} icon={<FaCalendarAlt size={14} />} />
             </div>
           </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {!loading && filtered.length > 0 && (
-          <div className="flex justify-between bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-100">
+          <Card>
+            <CardContent className="flex justify-between py-3">
             <div className="text-sm text-gray-600">Showing <span className="font-semibold">{startIndex + 1}</span> to <span className="font-semibold">{Math.min(endIndex, totalItems)}</span> of <span className="font-semibold">{totalItems}</span></div>
             <div className="flex items-center gap-2">
               <label className="text-sm text-gray-600">Rows:</label>
@@ -147,58 +155,63 @@ const LabourAttendanceDashboard = () => {
                 <option value={10}>10</option><option value={25}>25</option><option value={50}>50</option><option value={100}>100</option>
               </select>
             </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 text-gray-700">
-              <tr>{["Name", "Employee ID", "Present", "Absent", "Half Day", "Week Off", "Paid Leave", "Unpaid Leave", "Sick Leave", "Casual Leave", "Overtime"].map(h => <th key={h} className="text-left px-4 py-3 font-semibold">{h}</th>)}</tr>
-            </thead>
-            <tbody>
-              {loading ? <tr><td colSpan={11} className="px-4 py-6 text-center text-gray-500">Loading...</td></tr> : 
-               filtered.length === 0 ? <tr><td colSpan={11} className="px-4 py-6 text-center text-gray-500">No records</td></tr> :
-               currentItems.map((item, i) => (
-                <tr key={i} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium">{item.name}</td>
-                  <td className="px-4 py-3">{item.employeeId}</td>
-                  <td className="px-4 py-3">{item.present}</td>
-                  <td className="px-4 py-3">{item.absent}</td>
-                  <td className="px-4 py-3">{item.halfDay}</td>
-                  <td className="px-4 py-3">{item.weekOff}</td>
-                  <td className="px-4 py-3">{item.paidLeave}</td>
-                  <td className="px-4 py-3">{item.unpaidLeave}</td>
-                  <td className="px-4 py-3">{item.sickLeave}</td>
-                  <td className="px-4 py-3">{item.casualLeave}</td>
-                  <td className="px-4 py-3">{item.overtime}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>{["Name", "Employee ID", "Present", "Absent", "Half Day", "Week Off", "Paid Leave", "Unpaid Leave", "Sick Leave", "Casual Leave", "Overtime"].map(h => <TableHead key={h}>{h}</TableHead>)}</TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-6">Loading...</TableCell></TableRow> : 
+                 filtered.length === 0 ? <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-6">No records</TableCell></TableRow> :
+                 currentItems.map((item, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{item.employeeId}</TableCell>
+                    <TableCell>{item.present}</TableCell>
+                    <TableCell>{item.absent}</TableCell>
+                    <TableCell>{item.halfDay}</TableCell>
+                    <TableCell>{item.weekOff}</TableCell>
+                    <TableCell>{item.paidLeave}</TableCell>
+                    <TableCell>{item.unpaidLeave}</TableCell>
+                    <TableCell>{item.sickLeave}</TableCell>
+                    <TableCell>{item.casualLeave}</TableCell>
+                    <TableCell>{item.overtime}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
 
         {!loading && totalPages > 1 && (
-          <div className="flex justify-between bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-100">
-            <div className="text-sm">Page <span className="font-semibold">{currentPage}</span> of <span className="font-semibold">{totalPages}</span></div>
-            <div className="flex gap-2">
-              {[
-                { icon: FaAngleDoubleLeft, onClick: () => goToPage(1), disabled: currentPage === 1 },
-                { icon: FaChevronLeft, onClick: () => goToPage(currentPage - 1), disabled: currentPage === 1 }
-              ].map((btn, i) => <button key={i} onClick={btn.onClick} disabled={btn.disabled} className="p-2 rounded-lg border hover:bg-gray-50 disabled:opacity-50"><btn.icon size={14} /></button>)}
-              
-              <div className="flex gap-1">
-                {getPageNumbers().map((page, idx) => page === '...' ? 
-                  <span key={idx} className="px-3 py-1">...</span> : 
-                  <button key={page} onClick={() => goToPage(page)} className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === page ? 'bg-orange-500 text-white shadow-md' : 'border hover:bg-gray-50'}`}>{page}</button>
-                )}
-              </div>
+          <Card>
+            <CardContent className="flex justify-between py-3">
+              <div className="text-sm">Page <span className="font-semibold">{currentPage}</span> of <span className="font-semibold">{totalPages}</span></div>
+              <div className="flex gap-2">
+                {[
+                  { icon: FaAngleDoubleLeft, onClick: () => goToPage(1), disabled: currentPage === 1 },
+                  { icon: FaChevronLeft, onClick: () => goToPage(currentPage - 1), disabled: currentPage === 1 }
+                ].map((btn, i) => <Button key={i} onClick={btn.onClick} disabled={btn.disabled} variant="outline" size="icon"><btn.icon size={14} /></Button>)}
+                
+                <div className="flex gap-1">
+                  {getPageNumbers().map((page, idx) => page === '...' ? 
+                    <span key={idx} className="px-3 py-1 text-muted-foreground">...</span> : 
+                    <Button key={page} onClick={() => goToPage(page)} variant={currentPage === page ? "default" : "outline"} size="sm" className={currentPage === page ? "bg-orange-500 hover:bg-orange-600" : ""}>{page}</Button>
+                  )}
+                </div>
 
-              {[
-                { icon: FaChevronRight, onClick: () => goToPage(currentPage + 1), disabled: currentPage === totalPages },
-                { icon: FaAngleDoubleRight, onClick: () => goToPage(totalPages), disabled: currentPage === totalPages }
-              ].map((btn, i) => <button key={i} onClick={btn.onClick} disabled={btn.disabled} className="p-2 rounded-lg border hover:bg-gray-50 disabled:opacity-50"><btn.icon size={14} /></button>)}
-            </div>
-          </div>
+                {[
+                  { icon: FaChevronRight, onClick: () => goToPage(currentPage + 1), disabled: currentPage === totalPages },
+                  { icon: FaAngleDoubleRight, onClick: () => goToPage(totalPages), disabled: currentPage === totalPages }
+                ].map((btn, i) => <Button key={i} onClick={btn.onClick} disabled={btn.disabled} variant="outline" size="icon"><btn.icon size={14} /></Button>)}
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </DashboardLayout>

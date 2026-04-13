@@ -4,6 +4,9 @@ import axios from '../utils/axios';
 import { FaArrowLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import logo from '../assets/logo.png';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const SupervisorAddLabour = () => {
   const navigate = useNavigate();
@@ -111,13 +114,14 @@ const SupervisorAddLabour = () => {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg sticky top-0 z-10">
           <div className="flex items-center justify-between mb-4">
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
-            <button
+            <Button
+              variant="ghost"
               onClick={() => navigate(`/branch/${branchId}/labours`)}
-              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
+              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 h-auto"
             >
               <FaArrowLeft size={14} />
               <span className="text-sm font-medium">Back</span>
-            </button>
+            </Button>
           </div>
 
           <div className="mt-6">
@@ -307,10 +311,10 @@ const SupervisorAddLabour = () => {
 
           {/* Submit Button - Matching Material Form */}
           <div className="sticky bottom-0 bg-white pt-4 pb-6 -mx-6 px-6 border-t border-gray-100">
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-sm hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full py-3 h-auto bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-sm hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -320,7 +324,7 @@ const SupervisorAddLabour = () => {
               ) : (
                 'Create Labour'
               )}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

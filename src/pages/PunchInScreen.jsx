@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import axios from "../utils/axios";
 import { syncOfflineAttendance } from "../utils/syncAttendance";
 import useNotifier from "../hooks/useNotifier";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { GoogleMap, MarkerF, CircleF, useJsApiLoader } from "@react-google-maps/api";
 import { formatIST } from "../utils/date";
 import { 
@@ -202,10 +205,10 @@ const PunchInScreen = () => {
 
     if (!punchStatus.punchedIn) {
       return (
-        <button
+        <Button
           onClick={() => handlePunchClick("in")}
           disabled={!isWithinRange || !location}
-          className={`w-full py-4 rounded-2xl font-bold shadow-lg transition-all duration-300 flex items-center justify-center gap-3 ${
+          className={`w-full py-4 h-auto rounded-2xl font-bold shadow-lg transition-all duration-300 flex items-center justify-center gap-3 ${
             isWithinRange && location
               ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 transform hover:scale-[1.02] active:scale-[0.98]"
               : "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -213,14 +216,14 @@ const PunchInScreen = () => {
         >
           <FaFingerprint size={24} />
           <span className="text-lg">Punch In</span>
-        </button>
+        </Button>
       );
     } else if (!punchStatus.punchedOut) {
       return (
-        <button
+        <Button
           onClick={() => handlePunchClick("out")}
           disabled={!isWithinRange || !location}
-          className={`w-full py-4 rounded-2xl font-bold shadow-lg transition-all duration-300 flex items-center justify-center gap-3 ${
+          className={`w-full py-4 h-auto rounded-2xl font-bold shadow-lg transition-all duration-300 flex items-center justify-center gap-3 ${
             isWithinRange && location
               ? "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 transform hover:scale-[1.02] active:scale-[0.98]"
               : "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -228,17 +231,17 @@ const PunchInScreen = () => {
         >
           <FaSignOutAlt size={20} />
           <span className="text-lg">Punch Out</span>
-        </button>
+        </Button>
       );
     }
     return (
-      <button
+      <Button
         disabled
-        className="w-full py-4 rounded-2xl font-bold shadow-lg bg-gradient-to-r from-gray-400 to-gray-500 text-white cursor-not-allowed flex items-center justify-center gap-3"
+        className="w-full py-4 h-auto rounded-2xl font-bold shadow-lg bg-gradient-to-r from-gray-400 to-gray-500 text-white cursor-not-allowed flex items-center justify-center gap-3"
       >
         <FaCheckCircle size={20} />
         <span className="text-lg">Attendance Complete for Today</span>
-      </button>
+      </Button>
     );
   };
 
@@ -289,7 +292,8 @@ const PunchInScreen = () => {
         {/* Main Content */}
         <div className="px-6 py-6 -mt-4">
           {/* Status Card */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 mb-4 border border-blue-100 shadow-sm">
+          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl mb-4 border-blue-100">
+            <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {punchStatus.punchedIn && !punchStatus.punchedOut ? (
@@ -337,7 +341,8 @@ const PunchInScreen = () => {
                 </span>
               </div>
             </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Branch Distance Info */}
           {nearestBranch && branchDistance !== null && (
@@ -429,14 +434,15 @@ const PunchInScreen = () => {
             )}
 
             {/* Refresh Location Button */}
-            <button
+            <Button
               className="absolute top-3 right-3 bg-white text-gray-800 px-4 py-2 rounded-full shadow-lg border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-2 font-medium text-sm"
               onClick={getLocation}
               disabled={loadingLocation}
+              variant="outline"
             >
               <FaSyncAlt className={loadingLocation ? 'animate-spin' : ''} size={14} />
               Refresh
-            </button>
+            </Button>
           </div>
 
           {/* Punch Button */}

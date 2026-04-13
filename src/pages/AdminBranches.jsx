@@ -20,6 +20,9 @@ import {
   FaRulerCombined,
   FaSearchLocation
 } from "react-icons/fa";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const MAP_STYLE = { height: "400px", width: "100%" };
 const DEFAULT_CENTER = { lat: -33.8688, lng: 151.2093 };

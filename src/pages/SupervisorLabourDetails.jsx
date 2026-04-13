@@ -4,6 +4,9 @@ import axios from '../utils/axios';
 import { FaArrowLeft, FaSave, FaTrash } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import logo from '../assets/logo.png';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const SupervisorLabourDetails = () => {
   const navigate = useNavigate();
@@ -141,13 +144,14 @@ const SupervisorLabourDetails = () => {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg sticky top-0 z-10">
           <div className="flex items-center justify-between mb-4">
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
-            <button
+            <Button
+              variant="ghost"
               onClick={() => navigate(`/branch/${branchId}/labours`)}
-              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
+              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 h-auto"
             >
               <FaArrowLeft size={14} />
               <span className="text-sm font-medium">Back</span>
-            </button>
+            </Button>
           </div>
 
           <div className="mt-6">
@@ -354,10 +358,10 @@ const SupervisorLabourDetails = () => {
 
           {/* Action Buttons */}
           <div className="flex gap-3">
-            <button
+            <Button
               type="submit"
               disabled={saving}
-              className="flex-1 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-sm hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+              className="flex-1 py-3 h-auto bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-sm hover:from-orange-600 hover:to-orange-700 shadow-md"
             >
               {saving ? (
                 <>
@@ -370,16 +374,16 @@ const SupervisorLabourDetails = () => {
                   Save Changes
                 </>
               )}
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
               onClick={handleDelete}
               disabled={saving}
-              className="px-6 py-3 bg-red-500 text-white rounded-xl font-semibold text-sm hover:bg-red-600 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="px-6 py-3 h-auto bg-red-500 text-white rounded-xl font-semibold text-sm hover:bg-red-600 shadow-md"
             >
               <FaTrash size={14} />
-            </button>
+            </Button>
           </div>
         </form>
       </div>

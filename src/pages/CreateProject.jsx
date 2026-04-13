@@ -12,6 +12,9 @@ import {
   FaTimes,
   FaCheck
 } from 'react-icons/fa';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const CreateProject = () => {
   const [formData, setFormData] = useState({
@@ -287,9 +290,9 @@ const CreateProject = () => {
           </div>
 
           <div className="flex items-center gap-3 mt-6">
-            <button
+            <Button
               onClick={handleSubmit}
-              className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium transition-colors shadow-md hover:shadow-lg"
+              className="bg-orange-500 hover:bg-orange-600 text-white shadow-md"
             >
               {editingId ? (
                 <>
@@ -302,15 +305,12 @@ const CreateProject = () => {
                   Create Project
                 </>
               )}
-            </button>
+            </Button>
 
             {editingId && (
-              <button
-                onClick={handleCancel}
-                className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
-              >
+              <Button variant="outline" onClick={handleCancel}>
                 Cancel
-              </button>
+              </Button>
             )}
           </div>
         </div>

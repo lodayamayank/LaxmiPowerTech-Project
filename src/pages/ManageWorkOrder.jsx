@@ -3,6 +3,9 @@ import axios from "../utils/axios";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { toast } from "react-toastify";
 import { FaPlus, FaFilter, FaSearch, FaTimes } from "react-icons/fa";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const StatusPill = ({ value }) => {
   const statusColors = {
@@ -14,9 +17,9 @@ const StatusPill = ({ value }) => {
   };
   
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[value] || "bg-gray-100 text-gray-700"}`}>
+    <Badge variant="outline" className={`border-transparent ${statusColors[value] || "bg-gray-100 text-gray-700"}`}>
       {value || "N/A"}
-    </span>
+    </Badge>
   );
 };
 
@@ -382,13 +385,13 @@ export default function ManageWorkOrder() {
 
             {/* Add Work Order Button */}
             <div className="w-full sm:w-auto sm:mt-6">
-              <button
+              <Button
                 onClick={handleAddWorkOrder}
-                className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+                className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white"
               >
                 <FaPlus />
                 Add Work Order
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -400,12 +403,9 @@ export default function ManageWorkOrder() {
               <FaFilter className="text-orange-500" />
               Filters
             </h2>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="text-orange-500 hover:text-orange-600 text-sm font-medium"
-            >
+            <Button variant="ghost" size="sm" onClick={() => setShowFilters(!showFilters)} className="text-orange-500">
               {showFilters ? "Hide" : "Show"} Filters
-            </button>
+            </Button>
           </div>
 
           {showFilters && (
@@ -444,19 +444,13 @@ export default function ManageWorkOrder() {
 
               {/* Action Buttons */}
               <div className="col-span-1 sm:col-span-2 flex gap-2">
-                <button
-                  onClick={handleSearch}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
-                >
+                <Button onClick={handleSearch} className="bg-orange-500 hover:bg-orange-600 text-white">
                   <FaSearch />
                   Search
-                </button>
-                <button
-                  onClick={clearFilters}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors"
-                >
+                </Button>
+                <Button variant="outline" onClick={clearFilters}>
                   Clear Filters
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -575,7 +569,7 @@ export default function ManageWorkOrder() {
 
         {/* Add Work Order Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -708,7 +702,7 @@ export default function ManageWorkOrder() {
 
         {/* Bills Management Modal */}
         {showBillsModal && selectedWorkOrder && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">

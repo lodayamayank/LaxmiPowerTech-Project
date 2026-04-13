@@ -15,6 +15,9 @@ import {
   FaEdit,
   FaPaperPlane,
 } from 'react-icons/fa';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 
 
@@ -108,13 +111,14 @@ export default function Leaves() {
       <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
         {/* Header with Gradient */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <button
-            className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
+          <Button
+            variant="ghost"
+            className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full h-auto"
             onClick={() => navigate('/dashboard')}
           >
             <FaArrowLeft className="text-orange-500" size={16} />
             <span className="text-sm text-orange-500 font-medium">Back</span>
-          </button>
+          </Button>
 
           <div className="text-center pt-8">
             <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-lg border-4 border-white/30 mx-auto mb-3">
@@ -213,13 +217,13 @@ export default function Leaves() {
                 />
               </div>
 
-              <button
+              <Button
                 type="submit"
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all flex items-center justify-center gap-3 transform hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full py-3.5 h-auto rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all flex items-center justify-center gap-3 transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 <FaPaperPlane size={16} />
                 <span>Submit Leave Request</span>
-              </button>
+              </Button>
             </form>
           </div>
 

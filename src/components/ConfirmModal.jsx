@@ -1,30 +1,43 @@
-
 import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 const ConfirmModal = ({ image, user, punchType, onConfirm, onCancel }) => {
   const time = new Date().toLocaleTimeString();
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg text-center w-full max-w-md mx-auto">
-        <h3 className="text-lg font-semibold mb-2 text-gray-800">{user?.name || "User"}</h3>
-        <div className="w-40 h-40 mx-auto overflow-hidden rounded-full border-4 border-emerald-600 shadow-lg mb-3">
-          <img src={image} alt="selfie" className="object-cover w-full h-full" />
-        </div>
-        <p className="text-sm text-gray-700 mb-4">Punching {punchType} at {time}</p>
-        <button
-          onClick={onConfirm}
-          className="bg-emerald-600 text-white px-4 py-2 rounded w-full mb-2 shadow-sm hover:bg-emerald-700"
-        >
-          Confirm
-        </button>
-        <button
-          onClick={onCancel}
-          className="bg-gray-200 text-black px-4 py-2 rounded w-full hover:bg-gray-300"
-        >
-          Cancel
-        </button>
-      </div>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle className="text-center">{user?.name || "User"}</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center space-y-4">
+          <div className="flex justify-center">
+            <Avatar className="w-40 h-40 border-4 border-green-600">
+              <AvatarImage src={image} alt="selfie" className="object-cover" />
+            </Avatar>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Punching {punchType} at {time}
+          </p>
+          <div className="space-y-2">
+            <Button
+              onClick={onConfirm}
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              Confirm
+            </Button>
+            <Button
+              onClick={onCancel}
+              variant="secondary"
+              className="w-full"
+            >
+              Cancel
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "../utils/axios";
 import { useNavigate } from "react-router-dom";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   FaArrowLeft,
   FaCalendarAlt,
@@ -223,13 +226,14 @@ const MyAttendance = () => {
       <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
         {/* Header with Gradient */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <button
-            className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
+          <Button
+            className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full h-auto"
+            variant="ghost"
             onClick={() => navigate(-1)}
           >
             <FaArrowLeft className="text-orange-600" size={16} />
             <span className="text-sm font-medium text-orange-600">Back</span>
-          </button>
+          </Button>
 
           <div className="text-center pt-8">
             <h1 className="text-white text-2xl font-bold mb-2">My Attendance</h1>
@@ -289,28 +293,32 @@ const MyAttendance = () => {
             <div>
               {/* Month Navigation */}
               <div className="flex items-center justify-between mb-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-4 shadow-sm">
-                <button
+                <Button
                   className="w-10 h-10 rounded-full bg-white shadow hover:shadow-md transition-all flex items-center justify-center text-orange-600"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => {
                     if (month === 0) { setMonth(11); setYear(year - 1); }
                     else setMonth(month - 1);
                   }}
                 >
                   <FaChevronLeft className="text-orange-600" size={16} />
-                </button>
+                </Button>
                 <div className="text-center">
                   <div className="font-bold text-gray-800 text-lg">{months[month]}</div>
                   <div className="text-sm text-gray-600">{year}</div>
                 </div>
-                <button
+                <Button
                   className="w-10 h-10 rounded-full bg-white shadow hover:shadow-md transition-all flex items-center justify-center text-orange-600"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => {
                     if (month === 11) { setMonth(0); setYear(year + 1); }
                     else setMonth(month + 1);
                   }}
                 >
                   <FaChevronRight className="text-orange-600" size={16} />
-                </button>
+                </Button>
               </div>
 
               {/* Weekday Headers */}
@@ -415,7 +423,7 @@ const MyAttendance = () => {
 
       {/* Day detail modal */}
       {selectedDay && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all animate-slideUp">
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 rounded-t-3xl">
@@ -480,18 +488,19 @@ const MyAttendance = () => {
 
             {/* Modal Footer */}
             <div className="flex items-center gap-3 px-6 pb-6">
-              <button
+              <Button
                 onClick={() => setSelectedDay(null)}
-                className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-all"
+                variant="outline"
+                className="flex-1 px-4 py-3 h-auto rounded-xl border-2 border-gray-300 text-gray-700 font-semibold"
               >
                 Close
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={saveNote}
-                className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg"
+                className="flex-1 px-4 py-3 h-auto rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold hover:from-orange-600 hover:to-orange-700 shadow-lg"
               >
                 Save Note
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -563,10 +572,10 @@ function StatusBadge({ status }) {
   const { bg, icon: Icon } = config[status] || { bg: "bg-gray-200", icon: FaCalendarDay };
   
   return (
-    <span className={`px-3 py-1.5 rounded-full ${bg} text-xs font-semibold text-white flex items-center gap-1.5 shadow-sm`}>
+    <Badge className={`${bg} text-xs font-semibold text-white flex items-center gap-1.5 shadow-sm border-transparent`}>
       <Icon size={10} />
       {status}
-    </span>
+    </Badge>
   );
 }
 

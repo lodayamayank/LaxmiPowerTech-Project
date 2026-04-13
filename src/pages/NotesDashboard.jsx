@@ -16,6 +16,9 @@ import {
   FaCalendarAlt,
   FaFileAlt
 } from "react-icons/fa";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const NotesDashboard = () => {
   const [notes, setNotes] = useState([]);
@@ -131,13 +134,10 @@ const NotesDashboard = () => {
           <div>
             <p className="text-sm text-gray-500 mt-1">View and manage attendance notes</p>
           </div>
-          <button
-            onClick={exportToCSV}
-            className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 transition-colors shadow-md hover:shadow-lg"
-          >
+          <Button onClick={exportToCSV} className="bg-orange-500 hover:bg-orange-600 text-white shadow-md">
             <FaDownload size={14} />
             Export CSV
-          </button>
+          </Button>
         </div>
 
         {/* Stats Cards */}
@@ -313,23 +313,13 @@ const NotesDashboard = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => goToPage(1)}
-                disabled={page === 1}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="First Page"
-              >
+              <Button variant="outline" size="icon" onClick={() => goToPage(1)} disabled={page === 1} title="First Page" className="h-9 w-9">
                 <FaAngleDoubleLeft size={14} />
-              </button>
+              </Button>
 
-              <button
-                onClick={() => goToPage(page - 1)}
-                disabled={page === 1}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Previous Page"
-              >
+              <Button variant="outline" size="icon" onClick={() => goToPage(page - 1)} disabled={page === 1} title="Previous Page" className="h-9 w-9">
                 <FaChevronLeft size={14} />
-              </button>
+              </Button>
 
               <div className="flex items-center gap-1">
                 {getPageNumbers().map((pageNum, idx) =>
@@ -353,23 +343,13 @@ const NotesDashboard = () => {
                 )}
               </div>
 
-              <button
-                onClick={() => goToPage(page + 1)}
-                disabled={page === totalPages}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Next Page"
-              >
+              <Button variant="outline" size="icon" onClick={() => goToPage(page + 1)} disabled={page === totalPages} title="Next Page" className="h-9 w-9">
                 <FaChevronRight size={14} />
-              </button>
+              </Button>
 
-              <button
-                onClick={() => goToPage(totalPages)}
-                disabled={page === totalPages}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Last Page"
-              >
+              <Button variant="outline" size="icon" onClick={() => goToPage(totalPages)} disabled={page === totalPages} title="Last Page" className="h-9 w-9">
                 <FaAngleDoubleRight size={14} />
-              </button>
+              </Button>
             </div>
           </div>
         )}

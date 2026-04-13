@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
 import axios from '../utils/axios';
 import { useSearchParams } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const AttendancePage = () => {
   const [searchParams] = useSearchParams();
@@ -86,7 +89,7 @@ const AttendancePage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button className="bg-orange-500 text-white px-4 py-2 rounded">Download Report</button>
+            <Button className="bg-orange-500 hover:bg-orange-600 text-white">Download Report</Button>
           </div>
 
           <table className="w-full border text-sm">

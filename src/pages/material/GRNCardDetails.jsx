@@ -380,7 +380,7 @@ export default function GRNCardDetails() {
       {/* Full-Size Image Modal */}
       {showImageModal && selectedImage && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[9999] p-4"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
           onClick={() => setShowImageModal(false)}
         >
           <div className="relative max-w-4xl w-full">

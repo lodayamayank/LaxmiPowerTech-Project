@@ -3,6 +3,10 @@ import DashboardLayout from '../layouts/DashboardLayout';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from '../utils/axios';
 import Select from '../components/Select';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { 
   FaUser, 
   FaCalendarAlt, 
@@ -14,19 +18,20 @@ import {
 } from 'react-icons/fa';
 
 const PunchTypeBadge = ({ type }) => {
-  let cls = "px-2 py-1 rounded-full text-xs font-medium capitalize ";
+  let variant = "outline";
+  let cls = "capitalize ";
   switch (type) {
-    case "in": cls += "bg-green-100 text-green-700"; break;
-    case "out": cls += "bg-gray-200 text-gray-700"; break;
-    case "half": cls += "bg-yellow-100 text-yellow-700"; break;
-    case "absent": cls += "bg-red-100 text-red-700"; break;
-    case "weekoff": cls += "bg-blue-100 text-blue-700"; break;
-    case "paidleave": cls += "bg-purple-100 text-purple-700"; break;
-    case "unpaidleave": cls += "bg-pink-100 text-pink-700"; break;
-    case "overtime": cls += "bg-orange-100 text-orange-700"; break;
-    default: cls += "bg-gray-100 text-gray-600";
+    case "in": cls += "bg-green-50 text-green-700 border-green-200"; break;
+    case "out": cls += "bg-gray-100 text-gray-700 border-gray-300"; break;
+    case "half": cls += "bg-yellow-50 text-yellow-700 border-yellow-200"; break;
+    case "absent": cls += "bg-red-50 text-red-700 border-red-200"; break;
+    case "weekoff": cls += "bg-blue-50 text-blue-700 border-blue-200"; break;
+    case "paidleave": cls += "bg-purple-50 text-purple-700 border-purple-200"; break;
+    case "unpaidleave": cls += "bg-pink-50 text-pink-700 border-pink-200"; break;
+    case "overtime": cls += "bg-orange-50 text-orange-700 border-orange-200"; break;
+    default: cls += "bg-gray-100 text-gray-600 border-gray-200";
   }
-  return <span className={cls}>{type}</span>;
+  return <Badge variant={variant} className={cls}>{type}</Badge>;
 };
 
 const AdminDashboard = () => {
@@ -193,10 +198,12 @@ useEffect(() => {
     <DashboardLayout title="Admin Dashboard">
       <div className="space-y-4">
         {/* Filters */}
-        <form
-          onSubmit={onSearch}
-          className="grid grid-cols-1 md:grid-cols-6 gap-3 bg-white p-4 rounded-xl shadow"
-        >
+        <Card>
+          <CardContent className="pt-6">
+            <form
+              onSubmit={onSearch}
+              className="grid grid-cols-1 md:grid-cols-6 gap-3"
+            >
           <input
             className="border rounded-lg px-3 py-2"
             placeholder="Search Staff"
@@ -255,17 +262,20 @@ useEffect(() => {
             onChange={(e) => setEndDate(e.target.value)}
           />
 
-          <button
-            type="submit"
-            className="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800 transition-colors"
-          >
-            Filter
-          </button>
-        </form>
+              <Button
+                type="submit"
+                className="bg-black hover:bg-gray-800"
+              >
+                Filter
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
 
         {/* Results Info & Items Per Page */}
         {!loading && filtered.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white px-4 py-3 rounded-xl shadow">
+          <Card>
+            <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-3">
             <div className="text-sm text-gray-600">
               Showing <span className="font-semibold text-gray-900">{startIndex + 1}</span> to{' '}
               <span className="font-semibold text-gray-900">{Math.min(endIndex, totalItems)}</span> of{' '}
@@ -284,91 +294,95 @@ useEffect(() => {
                 <option value={200}>200</option>
               </select>
             </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 text-gray-700">
-              <tr>
-                <th className="text-left px-4 py-2">Name</th>
-                <th className="text-left px-4 py-2">Role</th>
-                <th className="text-left px-4 py-2">Type</th>
-                <th className="text-left px-4 py-2">Date</th>
-                <th className="text-left px-4 py-2">Time</th>
-                <th className="text-left px-4 py-2">Branch</th>
-                <th className="text-left px-4 py-2">Selfie</th>
-                <th className="text-left px-4 py-2">Note</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td className="px-4 py-6 text-center" colSpan={8}>
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                      <span className="ml-3">Loading...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : filtered.length === 0 ? (
-                <tr>
-                  <td className="px-4 py-6 text-center text-gray-500" colSpan={8}>
-                    No records found
-                  </td>
-                </tr>
-              ) : (
-                currentItems.map((item) => (
-                  <tr key={item._id} className="border-t hover:bg-gray-50">
-                    <td className="px-4 py-2 font-medium">{item.user?.name || 'N/A'}</td>
-                    <td className="px-4 py-2 capitalize">{item.user?.role || '-'}</td>
-                    <td className="px-4 py-2">
-                      <PunchTypeBadge type={item.punchType} />
-                    </td>
-                    <td className="px-4 py-2">
-                      {new Date(item.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-2">
-                      {new Date(item.createdAt).toLocaleTimeString()}
-                    </td>
-                    <td className="px-4 py-2">
-                      {item.branch ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                          <FaMapMarkerAlt size={10} />
-                          {item.branch}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
-                          <FaMapMarkerAlt size={10} />
-                          Outside Assigned Branch
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-2">
-                      {item.selfieUrl ? (
-                        <img
-                          src={item.selfieUrl}
-                          alt="selfie"
-                          className="w-12 h-12 object-cover rounded"
-                        />
-                      ) : (
-                        item.punchType === "leave" ? "—" : "N/A"
-                      )}
-                    </td>
-                    <td className="px-4 py-2 text-gray-700 italic">
-                      {item.note || '-'}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Branch</TableHead>
+                  <TableHead>Selfie</TableHead>
+                  <TableHead>Note</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-6">
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                        <span className="ml-3">Loading...</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-6">
+                      No records found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  currentItems.map((item) => (
+                    <TableRow key={item._id}>
+                      <TableCell className="font-medium">{item.user?.name || 'N/A'}</TableCell>
+                      <TableCell className="capitalize">{item.user?.role || '-'}</TableCell>
+                      <TableCell>
+                        <PunchTypeBadge type={item.punchType} />
+                      </TableCell>
+                      <TableCell>
+                        {new Date(item.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(item.createdAt).toLocaleTimeString()}
+                      </TableCell>
+                      <TableCell>
+                        {item.branch ? (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 gap-1">
+                            <FaMapMarkerAlt size={10} />
+                            {item.branch}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-gray-100 text-gray-600 border-gray-300 gap-1">
+                            <FaMapMarkerAlt size={10} />
+                            Outside Assigned Branch
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {item.selfieUrl ? (
+                          <img
+                            src={item.selfieUrl}
+                            alt="selfie"
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        ) : (
+                          item.punchType === "leave" ? "—" : "N/A"
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground italic">
+                        {item.note || '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
 
         {/* Pagination Controls */}
         {!loading && filtered.length > 0 && totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white px-4 py-3 rounded-xl shadow">
+          <Card>
+            <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 py-3">
             <div className="text-sm text-gray-600">
               Page <span className="font-semibold text-gray-900">{currentPage}</span> of{' '}
               <span className="font-semibold text-gray-900">{totalPages}</span>
@@ -376,69 +390,72 @@ useEffect(() => {
             
             <div className="flex items-center gap-2">
               {/* First Page */}
-              <button
+              <Button
                 onClick={() => goToPage(1)}
                 disabled={currentPage === 1}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                variant="outline"
+                size="icon"
                 title="First Page"
               >
                 <FaAngleDoubleLeft size={14} />
-              </button>
+              </Button>
 
               {/* Previous Page */}
-              <button
+              <Button
                 onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                variant="outline"
+                size="icon"
                 title="Previous Page"
               >
                 <FaChevronLeft size={14} />
-              </button>
+              </Button>
 
               {/* Page Numbers */}
               <div className="flex items-center gap-1">
                 {getPageNumbers().map((page, index) => (
                   page === '...' ? (
-                    <span key={`ellipsis-${index}`} className="px-3 py-1 text-gray-500">
+                    <span key={`ellipsis-${index}`} className="px-3 py-1 text-muted-foreground">
                       ...
                     </span>
                   ) : (
-                    <button
+                    <Button
                       key={page}
                       onClick={() => goToPage(page)}
-                      className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                        currentPage === page
-                          ? 'bg-orange-500 text-white shadow-md'
-                          : 'border border-gray-300 hover:bg-gray-50 text-gray-700'
-                      }`}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      className={currentPage === page ? "bg-orange-500 hover:bg-orange-600" : ""}
                     >
                       {page}
-                    </button>
+                    </Button>
                   )
                 ))}
               </div>
 
               {/* Next Page */}
-              <button
+              <Button
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                variant="outline"
+                size="icon"
                 title="Next Page"
               >
                 <FaChevronRight size={14} />
-              </button>
+              </Button>
 
               {/* Last Page */}
-              <button
+              <Button
                 onClick={() => goToPage(totalPages)}
                 disabled={currentPage === totalPages}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                variant="outline"
+                size="icon"
                 title="Last Page"
               >
                 <FaAngleDoubleRight size={14} />
-              </button>
+              </Button>
             </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </DashboardLayout>

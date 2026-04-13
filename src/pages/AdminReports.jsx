@@ -3,6 +3,9 @@ import DashboardLayout from '../layouts/DashboardLayout';
 import axios from '../utils/axios';
 import { FaChartPie, FaHardHat, FaWarehouse } from 'react-icons/fa';
 import { MdOutlineWork } from 'react-icons/md';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const REPORT_TYPES = [
   {

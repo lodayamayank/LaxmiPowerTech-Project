@@ -1,6 +1,9 @@
 // src/pages/InstallInstructions.jsx
 import React from 'react';
 import { FaApple, FaAndroid, FaShareAlt } from 'react-icons/fa';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const InstallInstructions = () => {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);

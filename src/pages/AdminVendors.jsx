@@ -14,6 +14,9 @@ import {
   FaTimes,
   FaUserTie
 } from 'react-icons/fa';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const AdminVendors = () => {
   const [vendors, setVendors] = useState([]);
@@ -273,10 +276,7 @@ const AdminVendors = () => {
           </div>
 
           <div className="flex items-center gap-3 mt-6">
-            <button
-              onClick={handleSubmit}
-              className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium transition-colors shadow-md hover:shadow-lg"
-            >
+            <Button onClick={handleSubmit} className="bg-orange-500 hover:bg-orange-600 text-white shadow-md">
               {editId ? (
                 <>
                   <FaCheck size={14} />
@@ -288,15 +288,12 @@ const AdminVendors = () => {
                   Add Vendor
                 </>
               )}
-            </button>
+            </Button>
 
             {editId && (
-              <button
-                onClick={handleCancel}
-                className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
-              >
+              <Button variant="outline" onClick={handleCancel}>
                 Cancel
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -343,20 +340,14 @@ const AdminVendors = () => {
                       <td className="px-6 py-4 text-gray-600">{v.gst || '—'}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <button
-                            className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                            onClick={() => handleEdit(v)}
-                          >
+                          <Button variant="ghost" size="sm" className="text-blue-600" onClick={() => handleEdit(v)}>
                             <FaEdit size={14} />
                             Edit
-                          </button>
-                          <button
-                            className="flex items-center gap-1 text-red-600 hover:text-red-700 font-medium transition-colors"
-                            onClick={() => handleDelete(v._id)}
-                          >
+                          </Button>
+                          <Button variant="ghost" size="sm" className="text-red-600" onClick={() => handleDelete(v._id)}>
                             <FaTrash size={14} />
                             Delete
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>

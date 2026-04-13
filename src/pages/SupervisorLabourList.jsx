@@ -4,6 +4,9 @@ import axios from '../utils/axios';
 import logo from '../assets/logo.png';
 import { FaArrowLeft, FaPlus, FaPhone, FaSearch, FaTrash, FaEdit } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const SupervisorLabourList = () => {
   const navigate = useNavigate();
@@ -154,13 +157,14 @@ const SupervisorLabourList = () => {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
-            <button
+            <Button
+              variant="ghost"
               onClick={() => navigate(`/branch/${branchId}/labour-dashboard`)}
-              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
+              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 h-auto"
             >
               <FaArrowLeft size={14} />
               <span className="text-sm font-medium">Back</span>
-            </button>
+            </Button>
           </div>
 
           {/* Title Section */}
@@ -226,12 +230,13 @@ const SupervisorLabourList = () => {
                   <p className="text-sm text-gray-500 mb-4">
                     {searchTerm ? 'Try a different search term' : 'No labours assigned to this project yet'}
                   </p>
-                  <button
+                  <Button
                     onClick={() => navigate(`/branch/${branchId}/labours/add`)}
-                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                    size="sm"
                   >
                     Add First Labour
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="space-y-3 pb-20">
@@ -268,13 +273,15 @@ const SupervisorLabourList = () => {
                             </span>
                           )}
                         </div>
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => handleDeleteLabour(labour._id, labour.name)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          className="text-red-500 hover:bg-red-50 h-9 w-9"
                           title="Delete Labour"
                         >
                           <FaTrash size={16} />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   ))}
