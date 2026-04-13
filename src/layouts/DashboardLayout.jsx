@@ -17,14 +17,17 @@ import {
   FaChevronUp,
   FaChevronLeft,
   FaChevronRight,
+  FaSun,
+  FaMoon,
+  FaFileUpload,
+  FaTruck,
+  FaClipboardCheck,
+  FaShoppingCart,
 } from "react-icons/fa";
-import { MdOutlineTaskAlt, MdSettings } from "react-icons/md";
-import { MdNotificationsActive } from "react-icons/md";
+import { MdOutlineTaskAlt, MdSettings, MdNotificationsActive, MdInventory } from "react-icons/md";
 import { IoDocumentTextOutline } from "react-icons/io5";
 import { FiPackage } from "react-icons/fi";
 import { BiUserCheck } from "react-icons/bi";
-import { FaFileUpload, FaTruck, FaClipboardCheck, FaShoppingCart } from "react-icons/fa";
-import { MdInventory } from "react-icons/md";
 import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { useState, useEffect } from 'react';
