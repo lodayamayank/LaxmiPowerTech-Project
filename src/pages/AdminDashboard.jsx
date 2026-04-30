@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { 
   FaUser, 
+  FaSearch,
   FaCalendarAlt, 
   FaChevronLeft, 
   FaChevronRight,
@@ -217,7 +218,27 @@ useEffect(() => {
 
   const onSearch = (e) => {
     e.preventDefault();
+    
+    if (startDate && !endDate) {
+      setEndDate(startDate);
+      return;
+    }
+
+    if (!startDate && endDate) {
+      setStartDate(endDate);
+      return;
+    }
+
     fetchData();
+  };
+
+  const resetFilters = () => {
+    setSearchStaff('');
+    setRole('');
+    setStartDate('');
+    setEndDate('');
+    setMonth(new Date().getMonth() + 1);
+    setYear(new Date().getFullYear());
   };
 
   // Generate page numbers to display
@@ -261,75 +282,101 @@ useEffect(() => {
       <div className="space-y-4">
         {/* Filters */}
         <Card>
-          <CardContent className="pt-6">
-            <form
-              onSubmit={onSearch}
-              className="grid grid-cols-1 md:grid-cols-6 gap-3"
-            >
-          <input
-            className="border rounded-lg px-3 py-2"
-            placeholder="Search Staff"
-            value={searchStaff}
-            onChange={(e) => setSearchStaff(e.target.value)}
-          />
+          <CardContent className="p-5">
+            <form onSubmit={onSearch} className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+                <div className="lg:col-span-3">
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">Search</label>
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      <FaSearch size={14} />
+                    </div>
+                    <input
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                      placeholder="Search staff..."
+                      value={searchStaff}
+                      onChange={(e) => setSearchStaff(e.target.value)}
+                    />
+                  </div>
+                </div>
 
-          <Select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            placeholder="All Roles"
-            options={[
-              { value: 'staff', label: 'Staff' },
-              { value: 'labour', label: 'Labour' },
-              { value: 'subcontractor', label: 'Subcontractor' },
-            ]}
-            icon={<FaUser size={14} />}
-          />
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">Role</label>
+                  <Select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    placeholder={null}
+                    options={[
+                      { value: '', label: 'All Roles' },
+                      { value: 'staff', label: 'Staff' },
+                      { value: 'labour', label: 'Labour' },
+                      { value: 'subcontractor', label: 'Subcontractor' },
+                    ]}
+                    icon={<FaUser size={14} />}
+                  />
+                </div>
 
+                {!startDate && !endDate ? (
+                  <>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1.5">Month</label>
+                      <Select
+                        value={month}
+                        onChange={(e) => setMonth(e.target.value)}
+                        options={[...Array(12).keys()].map((m) => ({
+                          value: m + 1,
+                          label: new Date(0, m).toLocaleString('default', { month: 'long' })
+                        }))}
+                        icon={<FaCalendarAlt size={14} />}
+                      />
+                    </div>
 
-          {!startDate && !endDate && (
-            <>
-              <Select
-                value={month}
-                onChange={(e) => setMonth(e.target.value)}
-                options={[...Array(12).keys()].map((m) => ({
-                  value: m + 1,
-                  label: new Date(0, m).toLocaleString('default', { month: 'long' })
-                }))}
-                icon={<FaCalendarAlt size={14} />}
-              />
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1.5">Year</label>
+                      <Select
+                        value={year}
+                        onChange={(e) => setYear(e.target.value)}
+                        options={Array.from({ length: 5 }, (_, i) => {
+                          const y = new Date().getFullYear() - i;
+                          return { value: y, label: y.toString() };
+                        })}
+                        icon={<FaCalendarAlt size={14} />}
+                      />
+                    </div>
+                  </>
+                ) : null}
+              </div>
 
-              <Select
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                options={Array.from({ length: 5 }, (_, i) => {
-                  const y = new Date().getFullYear() - i;
-                  return { value: y, label: y.toString() };
-                })}
-                icon={<FaCalendarAlt size={14} />}
-              />
-            </>
-          )}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">Start Date</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                  />
+                </div>
 
-          <input
-            type="date"
-            className="border rounded-lg px-3 py-2"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">End Date</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                  />
+                </div>
+              </div>
 
-          <input
-            type="date"
-            className="border rounded-lg px-3 py-2"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-
-              <Button
-                type="submit"
-                className="bg-black hover:bg-gray-800"
-              >
-                Filter
-              </Button>
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+                <Button type="button" variant="outline" onClick={resetFilters}>
+                  Reset
+                </Button>
+                <Button type="submit" className="bg-black hover:bg-gray-800">
+                  Apply
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>
