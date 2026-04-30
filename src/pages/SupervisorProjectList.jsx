@@ -58,6 +58,9 @@ const SupervisorProjectList = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('role');
+    localStorage.removeItem('loginTime');
+    localStorage.removeItem('selectedBranchId');
+    localStorage.removeItem('selectedBranchName');
     navigate('/login', { replace: true });
   };
 
@@ -81,14 +84,24 @@ const SupervisorProjectList = () => {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 h-auto"
-            >
-              <FaArrowLeft size={14} />
-              <span className="text-sm font-medium">Back</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/dashboard')}
+                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 h-auto"
+              >
+                <FaArrowLeft size={14} />
+                <span className="text-sm font-medium">Back</span>
+              </Button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-3 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
+                title="Logout"
+              >
+                <FaSignOutAlt size={14} />
+                <span className="hidden sm:inline text-sm font-medium">Logout</span>
+              </button>
+            </div>
           </div>
 
           {/* Title Section */}

@@ -100,7 +100,11 @@ const DashboardLayout = ({ children, title }) => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    navigate('/login');
+    localStorage.removeItem('role');
+    localStorage.removeItem('loginTime');
+    localStorage.removeItem('selectedBranchId');
+    localStorage.removeItem('selectedBranchName');
+    navigate('/login', { replace: true });
   };
 
   const renderMenuItem = (item, depth = 0, parentKey = "") => {
@@ -354,6 +358,14 @@ const DashboardLayout = ({ children, title }) => {
             <span className="hidden sm:block text-xs lg:text-sm text-gray-600 dark:text-gray-300 font-medium bg-orange-50 dark:bg-gray-700 px-3 py-1 rounded-full">
               {today}
             </span>
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-600 shadow-sm transition-all hover:bg-orange-100 dark:border-gray-600 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600"
+              title="Logout"
+            >
+              <FaPowerOff className="text-sm" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
           </div>
         </div>
 
