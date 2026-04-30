@@ -20,6 +20,11 @@ import {
 const PunchTypeBadge = ({ type }) => {
   let variant = "outline";
   let cls = "capitalize ";
+  const labelMap = {
+    weekoff: "week off",
+    paidleave: "paid leave",
+    unpaidleave: "unpaid leave",
+  };
   switch (type) {
     case "in": cls += "bg-green-50 text-green-700 border-green-200"; break;
     case "out": cls += "bg-gray-100 text-gray-700 border-gray-300"; break;
@@ -31,7 +36,18 @@ const PunchTypeBadge = ({ type }) => {
     case "overtime": cls += "bg-orange-50 text-orange-700 border-orange-200"; break;
     default: cls += "bg-gray-100 text-gray-600 border-gray-200";
   }
-  return <Badge variant={variant} className={cls}>{type}</Badge>;
+  return <Badge variant={variant} className={cls}>{labelMap[type] || type}</Badge>;
+};
+
+const punchTypeOrder = {
+  in: 0,
+  out: 1,
+  half: 2,
+  absent: 3,
+  weekoff: 4,
+  paidleave: 5,
+  unpaidleave: 6,
+  overtime: 7,
 };
 
 const AdminDashboard = () => {
@@ -110,8 +126,9 @@ useEffect(() => {
       
       if (!groups[key]) {
         groups[key] = {
+          _id: key,
           user: record.user,
-          date: record.createdAt,
+          createdAt: record.createdAt,
           dateString: date,
           branch: record.branch,
           note: record.note,
@@ -119,7 +136,12 @@ useEffect(() => {
           punchOut: null,
           selfieIn: null,
           selfieOut: null,
+          punchTypes: [],
         };
+      }
+
+      if (!groups[key].punchTypes.includes(record.punchType)) {
+        groups[key].punchTypes.push(record.punchType);
       }
       
       if (record.punchType === 'in') {
@@ -131,7 +153,12 @@ useEffect(() => {
       }
     });
     
-    return Object.values(groups);
+    return Object.values(groups).map((group) => ({
+      ...group,
+      punchTypes: [...group.punchTypes].sort(
+        (left, right) => (punchTypeOrder[left] ?? 99) - (punchTypeOrder[right] ?? 99)
+      ),
+    }));
   }, [attendances]);
 
   const filtered = useMemo(() => 
@@ -371,13 +398,31 @@ useEffect(() => {
                       <TableCell className="font-medium">{item.user?.name || 'N/A'}</TableCell>
                       <TableCell className="capitalize">{item.user?.role || '-'}</TableCell>
                       <TableCell>
-                        <PunchTypeBadge type={item.punchType} />
+                        <div className="flex flex-col items-start gap-1">
+                          {item.punchTypes.length > 0 ? (
+                            item.punchTypes.map((type) => (
+                              <PunchTypeBadge key={`${item._id}_${type}`} type={type} />
+                            ))
+                          ) : (
+                            <span className="text-sm text-muted-foreground">-</span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {new Date(item.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
-                        {new Date(item.createdAt).toLocaleTimeString()}
+                        <div className="space-y-1 text-sm">
+                          {item.punchIn ? (
+                            <div>In: {new Date(item.punchIn).toLocaleTimeString()}</div>
+                          ) : null}
+                          {item.punchOut ? (
+                            <div>Out: {new Date(item.punchOut).toLocaleTimeString()}</div>
+                          ) : null}
+                          {!item.punchIn && !item.punchOut ? (
+                            <span className="text-muted-foreground">-</span>
+                          ) : null}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {item.branch ? (
@@ -393,14 +438,25 @@ useEffect(() => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {item.selfieUrl ? (
-                          <img
-                            src={item.selfieUrl}
-                            alt="selfie"
-                            className="w-12 h-12 object-cover rounded"
-                          />
+                        {item.selfieIn || item.selfieOut ? (
+                          <div className="flex items-center gap-2">
+                            {item.selfieIn ? (
+                              <img
+                                src={item.selfieIn}
+                                alt="Punch in selfie"
+                                className="w-12 h-12 object-cover rounded"
+                              />
+                            ) : null}
+                            {item.selfieOut ? (
+                              <img
+                                src={item.selfieOut}
+                                alt="Punch out selfie"
+                                className="w-12 h-12 object-cover rounded"
+                              />
+                            ) : null}
+                          </div>
                         ) : (
-                          item.punchType === "leave" ? "—" : "N/A"
+                          <span className="text-sm text-muted-foreground">N/A</span>
                         )}
                       </TableCell>
                       <TableCell className="text-muted-foreground italic">
