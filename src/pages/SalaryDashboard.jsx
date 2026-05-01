@@ -27,7 +27,12 @@ import Select from '../components/Select';
 
 const SalaryDashboard = () => {
   const [salaryData, setSalaryData] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 50;
   const [loading, setLoading] = useState(false);
+  const [computedAt, setComputedAt] = useState(null);
+  const [recalculating, setRecalculating] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [generating, setGenerating] = useState(false);
   //  AUTO-CALCULATION: Determine correct month based on salary day (10th)
@@ -124,20 +129,22 @@ const SalaryDashboard = () => {
   }, [month, year]);
 
   // Fetch salary data
-  const fetchSalaryData = async () => {
+  const fetchSalaryData = async (targetPage = page) => {
     setLoading(true);
     try {
-      const params = { month, year };
+      const params = { month, year, page: targetPage, limit: PAGE_SIZE };
       if (roleFilter) params.role = roleFilter;
 
       const res = await axios.get('/salary/calculate', {
         params,
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSalaryData(res.data || []);
+      const { data, total, totalPages, page: returnedPage, computedAt: ca } = res.data;
+      setSalaryData(data || []);
+      setPagination({ page: returnedPage, total, totalPages });
+      if (ca) setComputedAt(new Date(ca));
     } catch (err) {
       console.error('Failed to fetch salary data:', err);
-      // Don't show error toast if it's just a 404 (route not implemented yet)
       if (err.response?.status !== 404) {
         toast.error('Failed to load salary data');
       }
@@ -148,8 +155,13 @@ const SalaryDashboard = () => {
   };
 
   useEffect(() => {
-    fetchSalaryData();
+    setPage(1);
+    fetchSalaryData(1);
   }, [month, year, roleFilter]);
+
+  useEffect(() => {
+    fetchSalaryData(page);
+  }, [page]);
 
   // Filter data based on search
   const filteredData = useMemo(() => {
@@ -160,7 +172,7 @@ const SalaryDashboard = () => {
     );
   }, [salaryData, searchTerm]);
 
-  // Calculate summary statistics
+  // Calculate summary statistics (across current page only)
   const summary = useMemo(() => {
     const totalGross = filteredData.reduce((sum, item) => sum + item.grossSalary, 0);
     const totalNet = filteredData.reduce((sum, item) => sum + item.netSalary, 0);
@@ -168,7 +180,7 @@ const SalaryDashboard = () => {
     const totalReimbursements = filteredData.reduce((sum, item) => sum + (item.reimbursements?.total || 0), 0);
     const totalTravel = filteredData.reduce((sum, item) => sum + (item.travel?.total || 0), 0);
     const totalOvertime = filteredData.reduce((sum, item) => sum + (item.overtime?.total ?? item.overtime?.pay ?? 0), 0);
-    const employeeCount = filteredData.length;
+    const employeeCount = pagination.total;
 
     return {
       totalGross: Math.round(totalGross),
@@ -180,6 +192,20 @@ const SalaryDashboard = () => {
       employeeCount,
     };
   }, [filteredData]);
+
+  const handleRecalculate = async () => {
+    setRecalculating(true);
+    try {
+      await axios.post('/salary/recalculate', { month, year }, { headers: { Authorization: `Bearer ${token}` } });
+      toast.success('Salary recalculated');
+      setPage(1);
+      fetchSalaryData(1);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Recalculation failed');
+    } finally {
+      setRecalculating(false);
+    }
+  };
 
   const toggleRow = (item) => {
     const next = expandedRow === item.userId ? null : item.userId;
@@ -356,22 +382,40 @@ const SalaryDashboard = () => {
               </div>
             </div>
 
-            <div className="flex gap-3">
-              <Button
-                onClick={() => window.location.href = '/admin/salary-history'}
-                className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600"
-              >
-                <FaCalendarAlt />
-                View History
-              </Button>
-              <Button
-                onClick={() => setShowGenerateModal(true)}
-                className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600"
-              >
-                <FaFileDownload />
-                Generate Slips
-              </Button>
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => window.location.href = '/admin/salary-history'}
+                  className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600"
+                >
+                  <FaCalendarAlt />
+                  View History
+                </Button>
+                <Button
+                  onClick={handleRecalculate}
+                  disabled={recalculating || loading}
+                  className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600"
+                >
+                  {recalculating ? (
+                    <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> Recalculating...</>
+                  ) : (
+                    <><FaChartLine /> Recalculate</>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => setShowGenerateModal(true)}
+                  className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600"
+                >
+                  <FaFileDownload />
+                  Generate Slips
+                </Button>
               </div>
+              {computedAt && (
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  Last computed: {computedAt.toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </p>
+              )}
+            </div>
             </div>
           </CardContent>
         </Card>
@@ -856,9 +900,34 @@ const SalaryDashboard = () => {
               </Table>
             </div>
 
-            {/* Results Summary */}
-            <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 text-center">
-              Showing {filteredData.length} of {salaryData.length} employees
+            {/* Results Summary + Pagination */}
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Showing {((pagination.page - 1) * PAGE_SIZE) + 1}–{Math.min(pagination.page * PAGE_SIZE, pagination.total)} of {pagination.total} employees
+              </p>
+              {pagination.totalPages > 1 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={pagination.page <= 1 || loading}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-gray-600 dark:text-gray-400 px-2">
+                    Page {pagination.page} of {pagination.totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                    disabled={pagination.page >= pagination.totalPages || loading}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
             </div>
             </CardContent>
           </Card>
