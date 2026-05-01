@@ -76,6 +76,7 @@ const SalaryDashboard = () => {
   const [roleFilter, setRoleFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedRow, setExpandedRow] = useState(null);
+  const [otherEdits, setOtherEdits] = useState({}); // { [userId]: { amount, type, saving } }
 
   const token = localStorage.getItem('token');
 
@@ -179,6 +180,34 @@ const SalaryDashboard = () => {
       employeeCount,
     };
   }, [filteredData]);
+
+  const toggleRow = (item) => {
+    const next = expandedRow === item.userId ? null : item.userId;
+    setExpandedRow(next);
+    if (next && !otherEdits[next]) {
+      setOtherEdits(prev => ({
+        ...prev,
+        [next]: { amount: item.otherAmount || 0, type: item.otherAmountType || 'earning', saving: false },
+      }));
+    }
+  };
+
+  const saveOtherAmount = async (userId) => {
+    const edit = otherEdits[userId];
+    setOtherEdits(prev => ({ ...prev, [userId]: { ...prev[userId], saving: true } }));
+    try {
+      await axios.patch(`/users/${userId}/salary-config`, {
+        otherAmount: parseFloat(edit.amount) || 0,
+        otherAmountType: edit.type,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      toast.success('Other amount saved');
+      fetchSalaryData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save');
+    } finally {
+      setOtherEdits(prev => ({ ...prev, [userId]: { ...prev[userId], saving: false } }));
+    }
+  };
 
   // Format currency
   const formatCurrency = (amount) => {
@@ -539,7 +568,7 @@ const SalaryDashboard = () => {
                         </TableCell>
                         <TableCell className="text-center">
                           <Button
-                            onClick={() => setExpandedRow(expandedRow === item.userId ? null : item.userId)}
+                            onClick={() => toggleRow(item)}
                             variant="ghost"
                             size="sm"
                             className="text-orange-500 hover:text-orange-600"
@@ -619,6 +648,16 @@ const SalaryDashboard = () => {
                                     <span className="text-gray-600 dark:text-gray-400">Payable Days:</span>
                                     <span className="font-medium">{item.payableDays}</span>
                                   </div>
+                                  {item.otherAmount > 0 && (
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-600 dark:text-gray-400">
+                                        Other ({item.otherAmountType === 'deduction' ? 'Deduction' : 'Earning'}):
+                                      </span>
+                                      <span className={`font-medium ${item.otherAmountType === 'deduction' ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                                        {item.otherAmountType === 'deduction' ? '−' : '+'}{formatCurrency(item.otherAmount)}
+                                      </span>
+                                    </div>
+                                  )}
                                   <div className="flex justify-between border-t pt-2">
                                     <span className="text-gray-700 dark:text-gray-300 font-semibold">Net Salary:</span>
                                     <span className="font-bold text-green-600 dark:text-green-400">{formatCurrency(item.netSalary)}</span>
@@ -733,6 +772,81 @@ const SalaryDashboard = () => {
                                 </div>
                               </div>
                             </div>
+
+                            {/* Other Amount inline editor */}
+                            {otherEdits[item.userId] && (
+                              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                                  <FaRupeeSign className="text-orange-500" />
+                                  Other Amount
+                                  <span className="text-xs font-normal text-gray-400">(added/deducted each month)</span>
+                                </h4>
+                                <div className="flex flex-wrap items-end gap-3">
+                                  <div>
+                                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Type</label>
+                                    <select
+                                      value={otherEdits[item.userId].type}
+                                      onChange={e => setOtherEdits(prev => ({
+                                        ...prev,
+                                        [item.userId]: { ...prev[item.userId], type: e.target.value },
+                                      }))}
+                                      className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    >
+                                      <option value="earning">Earning (+)</option>
+                                      <option value="deduction">Deduction (−)</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Amount (₹)</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      value={otherEdits[item.userId].amount}
+                                      onChange={e => setOtherEdits(prev => ({
+                                        ...prev,
+                                        [item.userId]: { ...prev[item.userId], amount: e.target.value },
+                                      }))}
+                                      className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-36"
+                                    />
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => saveOtherAmount(item.userId)}
+                                    disabled={otherEdits[item.userId].saving}
+                                    className="bg-orange-500 hover:bg-orange-600"
+                                  >
+                                    {otherEdits[item.userId].saving ? 'Saving...' : 'Save'}
+                                  </Button>
+                                  {item.otherAmount > 0 && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={async () => {
+                                        setOtherEdits(prev => ({ ...prev, [item.userId]: { ...prev[item.userId], amount: 0, saving: true } }));
+                                        try {
+                                          await axios.patch(`/users/${item.userId}/salary-config`, { otherAmount: 0 }, { headers: { Authorization: `Bearer ${token}` } });
+                                          toast.success('Other amount removed');
+                                          fetchSalaryData();
+                                        } catch {
+                                          toast.error('Failed to remove');
+                                        } finally {
+                                          setOtherEdits(prev => ({ ...prev, [item.userId]: { ...prev[item.userId], saving: false } }));
+                                        }
+                                      }}
+                                      disabled={otherEdits[item.userId].saving}
+                                      className="text-red-500 border-red-200 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                    >
+                                      Remove
+                                    </Button>
+                                  )}
+                                  {item.otherAmount > 0 && (
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                                      Current: {item.otherAmountType === 'deduction' ? '−' : '+'}{formatCurrency(item.otherAmount)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </TableCell>
                         </TableRow>
                       )}
