@@ -14,6 +14,7 @@ const SalaryPolicyPage = () => {
   const [saving, setSaving] = useState(false);
   const [holidayRoles, setHolidayRoles] = useState([]);
   const [sundayExcludedRoles, setSundayExcludedRoles] = useState([]);
+  const [overtimeRoles, setOvertimeRoles] = useState([]);
 
   const fetchPolicy = async () => {
     setLoading(true);
@@ -22,6 +23,7 @@ const SalaryPolicyPage = () => {
       setPolicy(res.data);
       setHolidayRoles(res.data.holidayPaidLeaveEligibleRoles || []);
       setSundayExcludedRoles(res.data.sundayHolidayExcludedRoles || []);
+      setOvertimeRoles(res.data.overtimeEligibleRoles || []);
     } catch (err) {
       toast.error('Failed to load salary policy');
     } finally {
@@ -45,6 +47,7 @@ const SalaryPolicyPage = () => {
       await axios.put('/salary-policy', {
         holidayPaidLeaveEligibleRoles: holidayRoles,
         sundayHolidayExcludedRoles: sundayExcludedRoles,
+        overtimeEligibleRoles: overtimeRoles,
       });
       toast.success('Salary policy saved');
     } catch (err) {
@@ -115,6 +118,15 @@ const SalaryPolicyPage = () => {
                 selectedRoles={sundayExcludedRoles}
                 onToggle={(role) => toggleRole(role, sundayExcludedRoles, setSundayExcludedRoles)}
               />
+
+              <hr className="border-gray-200 dark:border-gray-700" />
+
+              <RoleCheckboxGroup
+                label="Overtime Pay Eligibility"
+                description="Only employees in selected roles will receive overtime compensation. Roles not selected will have overtime hours tracked but no overtime pay added to their salary."
+                selectedRoles={overtimeRoles}
+                onToggle={(role) => toggleRole(role, overtimeRoles, setOvertimeRoles)}
+              />
             </div>
 
             <div className="mt-8 flex justify-end">
@@ -141,6 +153,10 @@ const SalaryPolicyPage = () => {
               <p>
                 <span className="font-medium">Sunday = working day for: </span>
                 {sundayExcludedRoles.length > 0 ? sundayExcludedRoles.join(', ') : 'None (all get Sunday off)'}
+              </p>
+              <p>
+                <span className="font-medium">Overtime pay eligible: </span>
+                {overtimeRoles.length > 0 ? overtimeRoles.join(', ') : 'None (no overtime pay for anyone)'}
               </p>
             </div>
           </CardContent>
