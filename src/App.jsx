@@ -63,6 +63,8 @@ const Intent = lazy(() => import('./pages/material/Intent'));
 // Salary Management Pages - Lazy loaded
 const SalaryDashboard = lazy(() => import('./pages/SalaryDashboard'));
 const SalaryHistory = lazy(() => import('./pages/SalaryHistory'));
+const HolidayCalendar = lazy(() => import('./pages/HolidayCalendar'));
+const SalaryPolicyPage = lazy(() => import('./pages/SalaryPolicyPage'));
 
 // Task Management Pages - Lazy loaded
 const AdminTasks = lazy(() => import('./pages/AdminTasks'));
@@ -206,6 +208,8 @@ function App() {
         {/* Salary Management Routes */}
         <Route path="/admin/salary" element={<SalaryDashboard />} />
         <Route path="/admin/salary-history" element={<SalaryHistory />} />
+        <Route path="/admin/holidays" element={<HolidayCalendar />} />
+        <Route path="/admin/salary-policy" element={<SalaryPolicyPage />} />
 
         {/* Task Management Routes */}
         <Route path="/admin/tasks" element={<AdminTasks />} />

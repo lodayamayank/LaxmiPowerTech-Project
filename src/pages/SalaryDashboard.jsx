@@ -166,7 +166,7 @@ const SalaryDashboard = () => {
     const totalDeductions = filteredData.reduce((sum, item) => sum + item.deductions.total, 0);
     const totalReimbursements = filteredData.reduce((sum, item) => sum + (item.reimbursements?.total || 0), 0);
     const totalTravel = filteredData.reduce((sum, item) => sum + (item.travel?.total || 0), 0);
-    const totalOvertime = filteredData.reduce((sum, item) => sum + (item.overtime?.total || 0), 0);
+    const totalOvertime = filteredData.reduce((sum, item) => sum + (item.overtime?.total ?? item.overtime?.pay ?? 0), 0);
     const employeeCount = filteredData.length;
 
     return {
@@ -231,7 +231,7 @@ const SalaryDashboard = () => {
       item.deductions.total,
       item.reimbursements?.total || 0,
       item.travel?.total || 0,
-      item.overtime?.total || 0,
+      item.overtime?.total ?? item.overtime?.pay ?? 0,
       item.netSalary,
       salaryDateInfo.formattedDate,
       salaryDateInfo.isPast ? 'Paid' : salaryDateInfo.isToday ? 'Due Today' : 'Pending',
@@ -465,8 +465,8 @@ const SalaryDashboard = () => {
                   className="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="">All Roles</option>
-                  <option value="admin">Admin</option>
                   <option value="staff">Staff</option>
+                  <option value="supervisor">Supervisor</option>
                   <option value="labour">Labour</option>
                   <option value="subcontractor">Subcontractor</option>
                 </Select>
@@ -723,7 +723,7 @@ const SalaryDashboard = () => {
                                       <div className="flex justify-between border-t pt-2">
                                         <span className="text-gray-700 dark:text-gray-300 font-semibold">OT Pay:</span>
                                         <span className="font-bold text-purple-600 dark:text-purple-400">
-                                          {formatCurrency(item.overtime.total || 0)}
+                                          {formatCurrency(item.overtime?.total ?? item.overtime?.pay ?? 0)}
                                         </span>
                                       </div>
                                     </>

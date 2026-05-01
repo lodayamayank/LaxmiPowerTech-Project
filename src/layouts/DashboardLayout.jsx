@@ -210,7 +210,12 @@ const DashboardLayout = ({ children, title }) => {
     {
       label: "Salary",
       icon: <FaMoneyBillWave />,
-      path: "/admin/salary",
+      children: [
+        { label: "Dashboard", path: "/admin/salary" },
+        { label: "History", path: "/admin/salary-history" },
+        { label: "Holidays", path: "/admin/holidays" },
+        { label: "Policy", path: "/admin/salary-policy" },
+      ],
     },
     {
       label: "Inventory",
