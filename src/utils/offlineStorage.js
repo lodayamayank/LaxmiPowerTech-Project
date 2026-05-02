@@ -3,7 +3,7 @@
 // Supports: create, update, delete actions for any module (tasks, attendance, material, etc.)
 
 const DB_NAME = 'LaxmiPowerTechDB';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const ACTION_QUEUE_STORE = 'actionQueue';
 const CACHE_STORE = 'cachedData';
 const TEMPLATE_STORE = 'taskTemplates';
@@ -33,6 +33,7 @@ class OfflineStorage {
 
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
+        const oldVersion = event.oldVersion;
 
         // Migrate: delete old v1 stores if they exist
         if (db.objectStoreNames.contains('offlineTasks')) {
@@ -48,6 +49,23 @@ class OfflineStorage {
           qs.createIndex('timestamp', 'timestamp', { unique: false });
           qs.createIndex('synced', 'synced', { unique: false });
           qs.createIndex('module', 'module', { unique: false });
+        }
+
+        // v2→v3 migration: convert boolean synced to integer 0/1
+        if (oldVersion === 2 && db.objectStoreNames.contains(ACTION_QUEUE_STORE)) {
+          const tx = event.target.transaction;
+          const store = tx.objectStore(ACTION_QUEUE_STORE);
+          store.openCursor().onsuccess = (e) => {
+            const cursor = e.target.result;
+            if (cursor) {
+              const entry = cursor.value;
+              if (typeof entry.synced === 'boolean') {
+                entry.synced = entry.synced ? 1 : 0;
+                cursor.update(entry);
+              }
+              cursor.continue();
+            }
+          };
         }
 
         // Cached API responses – keyed by a string cacheKey
@@ -106,7 +124,7 @@ class OfflineStorage {
     const entry = {
       ...action,
       timestamp: Date.now(),
-      synced: false,
+      synced: 0,
       retries: 0,
       lastError: null
     };
@@ -117,7 +135,7 @@ class OfflineStorage {
   async getPendingActions() {
     const store = await this._getStore(ACTION_QUEUE_STORE);
     const idx = store.index('synced');
-    const all = await this._req(idx, 'getAll', false);
+    const all = await this._req(idx, 'getAll', IDBKeyRange.only(0));
     return all.sort((a, b) => a.timestamp - b.timestamp);
   }
 
@@ -125,7 +143,7 @@ class OfflineStorage {
   async getPendingCount() {
     const store = await this._getStore(ACTION_QUEUE_STORE);
     const idx = store.index('synced');
-    return this._req(idx, 'count', false);
+    return this._req(idx, 'count', IDBKeyRange.only(0));
   }
 
   // Mark one action as synced
@@ -133,7 +151,7 @@ class OfflineStorage {
     const store = await this._getStore(ACTION_QUEUE_STORE, 'readwrite');
     const entry = await this._req(store, 'get', id);
     if (!entry) return false;
-    entry.synced = true;
+    entry.synced = 1;
     entry.syncedAt = Date.now();
     await this._req(store, 'put', entry);
     return true;
@@ -160,7 +178,7 @@ class OfflineStorage {
   async clearSyncedActions() {
     const store = await this._getStore(ACTION_QUEUE_STORE, 'readwrite');
     const idx = store.index('synced');
-    const synced = await this._req(idx, 'getAll', true);
+    const synced = await this._req(idx, 'getAll', IDBKeyRange.only(1));
     let count = 0;
     for (const entry of synced) {
       await this._req(store, 'delete', entry.id);
