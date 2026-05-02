@@ -1,18 +1,30 @@
-const CACHE_NAME = 'lpt-attendance-v1';
+const STATIC_CACHE = 'lpt-static-v2';
+const API_CACHE = 'lpt-api-v2';
+const CACHE_NAMES = [STATIC_CACHE, API_CACHE];
+
 const urlsToCache = [
   '/',
   '/login',
   '/manifest.json'
 ];
 
+// GET API paths that are safe to cache for offline reads
+const CACHEABLE_API_PATTERNS = [
+  '/api/projects',
+  '/api/branches',
+  '/api/tasks',
+  '/api/material/catalog',
+  '/api/attendance'
+];
+
 // Install event - cache essential assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches.open(STATIC_CACHE)
       .then((cache) => {
-        console.log('Opened cache');
+        console.log('[SW] Caching static assets');
         return cache.addAll(urlsToCache).catch(err => {
-          console.log('Cache failed (non-critical):', err);
+          console.log('[SW] Static cache failed (non-critical):', err);
         });
       })
   );
@@ -22,12 +34,12 @@ self.addEventListener('install', (event) => {
 // Activate event - clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    caches.keys().then((names) => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
+        names.map((name) => {
+          if (!CACHE_NAMES.includes(name)) {
+            console.log('[SW] Deleting old cache:', name);
+            return caches.delete(name);
           }
         })
       );
@@ -36,62 +48,80 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - Network first for API, cache for static assets
+// Helper: is this a GET API request we should cache?
+function isCacheableAPI(url) {
+  return CACHEABLE_API_PATTERNS.some(pattern => url.includes(pattern));
+}
+
+// Fetch event
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  
-  // Skip cross-origin requests
-  if (!request.url.startsWith(self.location.origin)) {
+
+  // Skip non-GET and cross-origin
+  if (request.method !== 'GET') return;
+  if (!request.url.startsWith(self.location.origin) && !request.url.includes('/api/')) {
     return;
   }
 
-  // Always use network for API calls (don't cache backend responses)
-  if (request.url.includes('/api/') || request.url.includes('attendance')) {
-    event.respondWith(fetch(request));
-    return;
-  }
-
-  // For navigation (HTML pages), use network first
-  if (request.mode === 'navigate') {
+  // ─── API requests: Network first, cache fallback ───
+  if (request.url.includes('/api/') || isCacheableAPI(request.url)) {
+    // Mutating endpoints (POST/PUT/DELETE) are skipped above (non-GET)
     event.respondWith(
       fetch(request)
         .then(response => {
-          // Cache successful navigation responses
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(request, responseClone);
-          });
+          if (response && response.status === 200 && isCacheableAPI(request.url)) {
+            const clone = response.clone();
+            caches.open(API_CACHE).then(cache => cache.put(request, clone));
+          }
           return response;
         })
         .catch(() => {
-          // Offline - return cached login page
-          return caches.match('/login').then(cachedResponse => {
-            return cachedResponse || caches.match('/');
+          // Offline: serve from API cache
+          return caches.match(request).then(cached => {
+            if (cached) {
+              console.log('[SW] Serving cached API:', request.url);
+              return cached;
+            }
+            return new Response(JSON.stringify({ offline: true, message: 'No cached data available' }), {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' }
+            });
           });
         })
     );
     return;
   }
 
-  // For static assets (CSS, JS, images), cache first
-  event.respondWith(
-    caches.match(request).then(cachedResponse => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      return fetch(request).then(response => {
-        // Don't cache failed responses
-        if (!response || response.status !== 200) {
+  // ─── Navigation: Network first, cached app shell fallback ───
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(STATIC_CACHE).then(cache => cache.put(request, clone));
           return response;
-        }
+        })
+        .catch(() => {
+          return caches.match(request)
+            .then(cached => cached || caches.match('/'))
+            .then(cached => cached || caches.match('/login'));
+        })
+    );
+    return;
+  }
 
-        const responseClone = response.clone();
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(request, responseClone);
-        });
-
+  // ─── Static assets: Cache first, network fallback ───
+  event.respondWith(
+    caches.match(request).then(cached => {
+      if (cached) return cached;
+      return fetch(request).then(response => {
+        if (!response || response.status !== 200) return response;
+        const clone = response.clone();
+        caches.open(STATIC_CACHE).then(cache => cache.put(request, clone));
         return response;
+      }).catch(() => {
+        // Offline with no cache – return nothing
+        return new Response('', { status: 503 });
       });
     })
   );

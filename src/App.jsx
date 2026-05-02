@@ -4,6 +4,8 @@ import { syncOfflineAttendance } from './utils/syncAttendance';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import useNotifier from './hooks/useNotifier';
+import syncEngine from './utils/syncEngine';
+import OfflineBanner from './components/OfflineBanner';
 
 // Eager load only critical components
 import PrivateRoute from './components/PrivateRoute';
@@ -78,6 +80,7 @@ const AdminReports = lazy(() => import('./pages/AdminReports'));
 const AdminTransfers = lazy(() => import('./pages/AdminTransfers'));
 const MobileMyIndents = lazy(() => import('./pages/MobileMyIndents'));
 const MaterialTransferMobile = lazy(() => import('./pages/MaterialTransferMobile'));
+const ConnectServer = lazy(() => import('./pages/ConnectServer'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -94,6 +97,9 @@ function App() {
   const notifier = useNotifier();
 
   useEffect(() => {
+    // Initialize offline sync engine (auto-syncs on reconnect)
+    syncEngine.init();
+
     if (navigator.onLine) {
       syncOfflineAttendance();
     }
@@ -108,6 +114,7 @@ function App() {
     <>
       <ToastContainer newestOnTop theme="colored" autoClose={3000} />
       <InstallPWA />
+      <OfflineBanner />
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
@@ -227,6 +234,9 @@ function App() {
         <Route path="/admin/transfers" element={<AdminTransfers />} />
         <Route path="/material/my-indents" element={<MobileMyIndents />} />
         <Route path="/material/transfer-mobile" element={<MaterialTransferMobile />} />
+
+        {/* Offline Sync */}
+        <Route path="/connect-server" element={<ConnectServer />} />
 
         </Routes>
       </Suspense>

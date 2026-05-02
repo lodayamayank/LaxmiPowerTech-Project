@@ -6,7 +6,7 @@ import logo from '../assets/logo.png';
 import avatar from '../assets/user.png';
 import leaves from '../assets/leave.png';
 import money from '../assets/salary.png';
-import { FaSignOutAlt, FaChevronRight, FaTasks, FaArrowLeft, FaUsers } from 'react-icons/fa';
+import { FaSignOutAlt, FaChevronRight, FaTasks, FaArrowLeft, FaUsers, FaServer } from 'react-icons/fa';
 import { MdInventory } from 'react-icons/md';
 import axios from '../utils/axios';
 import { Button } from '@/components/ui/button';
@@ -207,14 +207,16 @@ const LabourDashboard = () => {
                   gradient="from-orange-400 to-orange-500"
                   bgColor="bg-orange-50"
                 />
-                <DashboardCard
-                  label="Material"
-                  icon={null}
-                  iconComponent={<MdInventory className="w-full h-full text-white" />}
-                  onClick={() => navigate('/material/intent', { state: { branchId } })}
-                  gradient="from-teal-400 to-teal-500"
-                  bgColor="bg-teal-50"
-                />
+                <div className="col-span-2">
+                  <DashboardCard
+                    label="Connect to Server"
+                    icon={null}
+                    iconComponent={<FaServer className="w-full h-full text-white" />}
+                    onClick={() => navigate('/connect-server')}
+                    gradient="from-purple-400 to-purple-500"
+                    bgColor="bg-purple-50"
+                  />
+                </div>
               </>
             )}
           </div>
@@ -235,8 +237,17 @@ const LabourDashboard = () => {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="px-6 pb-6 pt-2">
+        {/* Logout + Footer */}
+        <div className="px-6 pb-6 pt-2 space-y-4">
+          {!isSupervisorVPSView && (
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+            >
+              <FaSignOutAlt size={16} />
+              <span>Logout</span>
+            </button>
+          )}
           <div className="text-center">
             <p className="text-xs text-gray-400">
               Powered by Laxmi Power Tech

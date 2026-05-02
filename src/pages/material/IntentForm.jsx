@@ -4,6 +4,7 @@ import { purchaseOrderAPI, materialCatalogAPI as materialAPI } from '../../utils
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import axios from '../../utils/axios';
+import { getSelectedBranchName } from '../../utils/branchContext';
 
 // Searchable Dropdown Component
 function SearchableDropdown({ value, onChange, options, placeholder, disabled }) {
@@ -102,15 +103,15 @@ export default function IntentForm() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const userName = user?.name || '';
   const userId = user?._id || user?.id || '';
-  const userAssignedBranches = user?.assignedBranches || [];
   
-  // Debug: Log user's assigned branches
+  // Auto-resolve delivery site from already-selected project/branch
+  const selectedBranchName = getSelectedBranchName() || '';
   console.log('👤 IntentForm - User:', userName);
-  console.log('🏢 IntentForm - Assigned Branches:', userAssignedBranches);
+  console.log('🏢 IntentForm - Auto Delivery Site:', selectedBranchName);
   
   const [formData, setFormData] = useState({
-    requestedBy: userName, // ✅ Use user NAME (not ID) - matches Site Transfer
-    deliverySite: '',
+    requestedBy: userName,
+    deliverySite: selectedBranchName, // ✅ Auto-filled from selected project
     materials: [],
     remarks: '',
     attachments: []
@@ -120,57 +121,17 @@ export default function IntentForm() {
   const [categories, setCategories] = useState([]);
   const [allMaterials, setAllMaterials] = useState([]);
   
-  // Sites list for dropdowns (filtered by assigned branches)
-  const [sites, setSites] = useState([]);
-  
   // Image preview
   const [imagePreviews, setImagePreviews] = useState([]);
   
   // Track which material is currently being edited
   const [editingMaterialId, setEditingMaterialId] = useState(null);
 
-  // Fetch materials and sites from backend
+  // Fetch materials from backend
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
-        // Fetch sites from backend and filter by assigned branches
-        try {
-          const branchesResponse = await axios.get('/branches');
-          const branches = branchesResponse.data || [];
-          
-          // ✅ CRITICAL: Filter sites based on user's assigned branches
-          let filteredBranches = branches;
-          if (userAssignedBranches && userAssignedBranches.length > 0) {
-            const assignedBranchIds = userAssignedBranches.map(b => b._id || b);
-            console.log('🔍 Assigned Branch IDs:', assignedBranchIds);
-            console.log('🔍 All Branches:', branches.map(b => ({ id: b._id, name: b.name })));
-            
-            filteredBranches = branches.filter(branch => 
-              assignedBranchIds.includes(branch._id)
-            );
-            console.log('✅ Filtered to assigned sites:', filteredBranches.length, 'of', branches.length);
-            console.log('✅ Filtered site names:', filteredBranches.map(b => b.name));
-          } else {
-            console.log('⚠️ No assigned branches found, showing all sites');
-          }
-          
-          const sitesList = filteredBranches.map(branch => branch.name).sort((a, b) => a.localeCompare(b));
-          setSites(sitesList);
-          console.log('✅ Delivery Site options:', sitesList);
-        } catch (err) {
-          console.error('❌ Error fetching sites:', err);
-          // If user has assigned branches, use only those
-          if (userAssignedBranches && userAssignedBranches.length > 0) {
-            const assignedSites = userAssignedBranches.map(b => b.name).filter(Boolean).sort((a, b) => a.localeCompare(b));
-            setSites(assignedSites);
-            console.log('⚠️ Using assigned sites from user object:', assignedSites);
-          } else {
-            const fallbackSites = ['Neelkanth Mongolia', 'Panorama', 'test'].sort((a, b) => a.localeCompare(b));
-            setSites(fallbackSites);
-          }
-        }
         
         // Fetch materials from database - MATCHES DEMONSTRATED PROJECT
         // Demonstrated project calls /materials/materials, we call /material/catalog/materials
@@ -439,24 +400,16 @@ export default function IntentForm() {
                 <label className="text-gray-700 text-sm font-medium mb-2 block">
                   Delivery Site <span className="text-red-500">*</span>
                 </label>
-                <select
+                <input
+                  type="text"
                   value={formData.deliverySite}
-                  onChange={(e) => setFormData(prev => ({ ...prev, deliverySite: e.target.value }))}
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 appearance-none font-medium"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23f97316' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-                    backgroundPosition: 'right 1rem center',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundSize: '1.25em 1.25em'
-                  }}
-                  required
-                  disabled={submitting}
-                >
-                  <option value="">Select delivery site</option>
-                  {sites.map(site => (
-                    <option key={site} value={site}>{site}</option>
-                  ))}
-                </select>
+                  className="w-full bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none cursor-not-allowed font-medium"
+                  readOnly
+                  disabled
+                />
+                {!formData.deliverySite && (
+                  <p className="text-xs text-red-500 mt-1">No project selected. Please go back and select a project first.</p>
+                )}
               </div>
 
               <div>
