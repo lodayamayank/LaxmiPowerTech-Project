@@ -1,23 +1,24 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaArrowLeft, FaCamera, FaCheckCircle } from "react-icons/fa";
+import { FaArrowLeft, FaCamera, FaCheckCircle, FaImages } from "react-icons/fa";
 import { Upload, X } from "lucide-react";
 import axios from "../../utils/axios";
 import { toast } from "react-toastify";
+import { getSelectedBranchName } from '../../utils/branchContext';
 
 export default function UploadPhoto() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
   const [indentId, setIndentId] = useState("");
-  const [project, setProject] = useState("");
+  const selectedBranchName = getSelectedBranchName() || '';
+  const [project] = useState(selectedBranchName);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [sites, setSites] = useState([]);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-  // Generate Intent ID and fetch sites on mount
+  // Generate Intent ID on mount
   useEffect(() => {
     const generateIntentId = () => {
       const today = new Date();
@@ -26,7 +27,6 @@ export default function UploadPhoto() {
       const day = String(today.getDate()).padStart(2, '0');
       const dateStr = `${year}${month}${day}`;
       
-      // Generate 4 random alphanumeric characters
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let randomStr = '';
       for (let i = 0; i < 4; i++) {
@@ -37,56 +37,60 @@ export default function UploadPhoto() {
     };
     
     setIndentId(generateIntentId());
-    
-    // Fetch sites from backend
-    const fetchSites = async () => {
-      try {
-        setLoading(true);
-        const branchesResponse = await axios.get('/branches');
-        const branches = branchesResponse.data || [];
-        const sitesList = branches.map(branch => branch.name).sort((a, b) => a.localeCompare(b));
-        setSites(sitesList);
-        console.log('✅ Fetched', sitesList.length, 'sites from backend');
-      } catch (err) {
-        console.error('❌ Error fetching sites:', err);
-        // Fallback to hardcoded list if API fails
-        const fallbackSites = ['Site A', 'Site B', 'Site C', 'Site D', 'Site E'].sort();
-        setSites(fallbackSites);
-        console.log('⚠️ Using fallback sites list');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchSites();
   }, []);
 
-  const handleImageSelect = (e) => {
+  // Compress image before upload
+  const compressImage = (file, maxWidth = 1200, quality = 0.7) => {
+    return new Promise((resolve) => {
+      if (!file.type.startsWith('image/')) { resolve(file); return; }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let { width, height } = img;
+          if (width > maxWidth) { height = (height * maxWidth) / width; width = maxWidth; }
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            const compressed = new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() });
+            console.log(`📦 Compressed: ${(file.size / 1024).toFixed(0)}KB → ${(compressed.size / 1024).toFixed(0)}KB`);
+            resolve(compressed);
+          }, 'image/jpeg', quality);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageSelect = async (e) => {
     const file = e.target.files[0];
     if (file) {
       if (!file.type.startsWith('image/')) {
         toast.error('Please select a valid image file');
         return;
       }
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      if (file.size > 10 * 1024 * 1024) {
         toast.error('Image size should be less than 10MB');
         return;
       }
-      setSelectedImage(file);
+      const compressed = await compressImage(file);
+      setSelectedImage(compressed);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(compressed);
     }
   };
 
   const handleRemoveImage = () => {
     setSelectedImage(null);
     setImagePreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
 
   const handleSubmit = async () => {
@@ -180,22 +184,18 @@ export default function UploadPhoto() {
             <p className="text-xs text-gray-500 mt-1">This ID is automatically generated and cannot be edited</p>
           </div>
 
-          {/* Project Dropdown */}
+          {/* Project / Site (Auto-filled) */}
           <div className="mb-6">
             <label className="block text-gray-700 font-semibold mb-2">Site <span className="text-red-500">*</span></label>
-            <select
+            <input
+              type="text"
               value={project}
-              onChange={(e) => setProject(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              disabled={loading || sites.length === 0}
-            >
-              <option value="">{loading ? 'Loading sites...' : 'Select Site'}</option>
-              {sites.map(site => (
-                <option key={site} value={site}>{site}</option>
-              ))}
-            </select>
-            {sites.length === 0 && !loading && (
-              <p className="text-xs text-red-500 mt-1">No sites available. Please contact admin.</p>
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100 text-gray-700 font-medium cursor-not-allowed"
+              readOnly
+              disabled
+            />
+            {!project && (
+              <p className="text-xs text-red-500 mt-1">No project selected. Please go back and select a project first.</p>
             )}
           </div>
 
@@ -204,14 +204,16 @@ export default function UploadPhoto() {
             <label className="block text-gray-700 font-semibold mb-3">Material List Photo</label>
             
             {!imagePreview ? (
-              <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-orange-400 transition-all cursor-pointer bg-gradient-to-br from-gray-50 to-white"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
-                  <FaCamera className="text-orange-500 text-3xl" />
-                </div>
-                <p className="text-gray-700 font-semibold mb-1">Tap to upload photo</p>
-                <p className="text-gray-500 text-sm">JPG, PNG or JPEG (Max 10MB)</p>
+              <div className="space-y-3">
+                {/* Camera + Gallery hidden inputs */}
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -219,6 +221,28 @@ export default function UploadPhoto() {
                   onChange={handleImageSelect}
                   className="hidden"
                 />
+
+                {/* Camera Button */}
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98]"
+                >
+                  <FaCamera size={24} />
+                  <span className="text-lg font-bold">Take Photo</span>
+                </button>
+
+                {/* Gallery Button */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98]"
+                >
+                  <FaImages size={24} />
+                  <span className="text-lg font-bold">Choose from Gallery</span>
+                </button>
+
+                <p className="text-center text-gray-400 text-xs">JPG, PNG or JPEG (Max 10MB) • Auto-compressed</p>
               </div>
             ) : (
               <div className="relative rounded-2xl overflow-hidden border-2 border-gray-200 shadow-md">
@@ -243,7 +267,7 @@ export default function UploadPhoto() {
           {/* Submit Button */}
           <button
             onClick={handleSubmit}
-            disabled={uploading || !indentId || !selectedImage}
+            disabled={uploading || !indentId || !project || !selectedImage}
             className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold py-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {uploading ? (

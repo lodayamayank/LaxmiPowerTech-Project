@@ -3,6 +3,7 @@ import { ArrowLeft, X, Upload, ChevronDown } from 'lucide-react';
 import { siteTransferAPI, materialCatalogAPI as materialAPI, upcomingDeliveryAPI } from '../../utils/materialAPI';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../utils/axios';
+import { getSelectedBranchName } from '../../utils/branchContext';
 
 // SearchableDropdown Component - Same as Intent PO
 function SearchableDropdown({ value, onChange, options, placeholder, disabled }) {
@@ -125,16 +126,16 @@ export default function MaterialTransferForm() {
   // Get logged-in user from localStorage
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const userName = user?.name || '';
-  const userAssignedBranches = user?.assignedBranches || [];
   
-  // Debug: Log user's assigned branches
+  // Auto-resolve From Site from selected project
+  const selectedBranchName = getSelectedBranchName() || '';
   console.log('👤 MaterialTransferForm - User:', userName);
-  console.log('🏢 MaterialTransferForm - Assigned Branches:', userAssignedBranches);
+  console.log('🏢 MaterialTransferForm - Auto From Site:', selectedBranchName);
   
   const [formData, setFormData] = useState({
-    fromSite: '',
+    fromSite: selectedBranchName, // ✅ Auto-filled from selected project
     toSite: '',
-    requestedBy: userName, // ✅ Auto-filled
+    requestedBy: userName,
     materials: [],
     remarks: ''
   });
@@ -147,9 +148,8 @@ export default function MaterialTransferForm() {
   const [allMaterials, setAllMaterials] = useState([]); // ✅ Fallback: All materials from catalog
   const [grnMaterials, setGrnMaterials] = useState([]); // ✅ Materials from GRN of selected From Site
   
-  // Sites list for dropdowns
-  const [fromSites, setFromSites] = useState([]); // ✅ Restricted to assigned branches
-  const [toSites, setToSites] = useState([]); // ✅ All sites (no restriction)
+  // To Site dropdown (all sites, user picks destination)
+  const [toSites, setToSites] = useState([]);
   
   // Search state for filtering materials in dropdowns
   const [categorySearch, setCategorySearch] = useState('');
@@ -227,55 +227,22 @@ export default function MaterialTransferForm() {
     fetchGRNMaterials();
   }, [formData.fromSite]);
 
-  // ✅ FETCH SITES FROM BACKEND
+  // ✅ FETCH TO-SITES FROM BACKEND (From Site is auto-filled)
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // ✅ FETCH SITES FROM BACKEND API AND APPLY RESTRICTIONS
+        // Fetch all sites for "To Site" dropdown
         try {
           const branchesResponse = await axios.get('/branches');
           const branches = branchesResponse.data || [];
-          
-          // ✅ CRITICAL: Filter "From Site" based on user's assigned branches
-          let filteredFromBranches = branches;
-          if (userAssignedBranches && userAssignedBranches.length > 0) {
-            const assignedBranchIds = userAssignedBranches.map(b => b._id || b);
-            console.log('🔍 Assigned Branch IDs:', assignedBranchIds);
-            console.log('🔍 All Branches:', branches.map(b => ({ id: b._id, name: b.name })));
-            
-            filteredFromBranches = branches.filter(branch => 
-              assignedBranchIds.includes(branch._id)
-            );
-            console.log('✅ Filtered From Sites to assigned:', filteredFromBranches.length, 'of', branches.length);
-            console.log('✅ Filtered From Site names:', filteredFromBranches.map(b => b.name));
-          } else {
-            console.log('⚠️ No assigned branches found for From Site, showing all');
-          }
-          
-          // ✅ From Site: Only assigned branches
-          const fromSitesList = filteredFromBranches.map(branch => branch.name).sort((a, b) => a.localeCompare(b));
-          setFromSites(fromSitesList);
-          
-          // ✅ To Site: All sites (no restriction)
           const toSitesList = branches.map(branch => branch.name).sort((a, b) => a.localeCompare(b));
           setToSites(toSitesList);
-          
-          console.log('✅ From Site options:', fromSitesList);
-          console.log('✅ To Site options (all):', toSitesList.length, 'sites');
+          console.log('✅ To Site options:', toSitesList.length, 'sites');
         } catch (err) {
           console.error('❌ MaterialTransferForm: Error fetching sites:', err);
-          // If user has assigned branches, use only those for From Site
-          if (userAssignedBranches && userAssignedBranches.length > 0) {
-            const assignedSites = userAssignedBranches.map(b => b.name).filter(Boolean).sort((a, b) => a.localeCompare(b));
-            setFromSites(assignedSites);
-            console.log('⚠️ Using assigned sites from user object for From Site:', assignedSites);
-          } else {
-            const fallbackSites = ['Neelkanth Mongolia', 'Panorama', 'test'].sort((a, b) => a.localeCompare(b));
-            setFromSites(fallbackSites);
-            setToSites(fallbackSites);
-          }
+          setToSites([]);
         }
         
         // ✅ FETCH MATERIAL CATALOG FOR FALLBACK SUBCATEGORIES
@@ -606,24 +573,16 @@ export default function MaterialTransferForm() {
                 <label className="text-gray-700 text-sm font-medium mb-2 block">
                   From Site <span className="text-red-500">*</span>
                 </label>
-                <select
+                <input
+                  type="text"
                   value={formData.fromSite}
-                  onChange={(e) => setFormData(prev => ({ ...prev, fromSite: e.target.value }))}
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 appearance-none font-medium"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23f97316' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-                    backgroundPosition: 'right 1rem center',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundSize: '1.25em 1.25em'
-                  }}
-                  required
-                  disabled={submitting}
-                >
-                  <option value="">Select from site (assigned only)</option>
-                  {fromSites.map(site => (
-                    <option key={site} value={site}>{site}</option>
-                  ))}
-                </select>
+                  className="w-full bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none cursor-not-allowed font-medium"
+                  readOnly
+                  disabled
+                />
+                {!formData.fromSite && (
+                  <p className="text-xs text-red-500 mt-1">No project selected. Please go back and select a project first.</p>
+                )}
               </div>
 
               <div className="mb-4">
