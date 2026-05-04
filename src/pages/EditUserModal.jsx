@@ -95,7 +95,10 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                 axios.get("/branches", { headers: { Authorization: `Bearer ${token}` } }),
             ]);
             setProjects(projRes.data || []);
-            setBranches(branchRes.data || []);
+            const sorted = (branchRes.data || []).slice().sort((a, b) =>
+                a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+            );
+            setBranches(sorted);
         } catch (err) {
             console.error("Failed to load meta data", err);
         }

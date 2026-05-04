@@ -81,7 +81,10 @@ const AdminMyTeam = () => {
       const res = await axios.get('/branches', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setBranches(res.data);
+      const sorted = (res.data || []).slice().sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+      );
+      setBranches(sorted);
     } catch (err) {
       console.error('Failed to fetch branches', err);
     }

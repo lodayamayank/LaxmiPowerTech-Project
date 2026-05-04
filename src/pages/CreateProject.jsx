@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from '../utils/axios';
 import DashboardLayout from '../layouts/DashboardLayout';
 import SmartTowerBuilder from '../components/SmartTowerBuilder';
@@ -15,6 +15,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Autocomplete, useJsApiLoader } from '@react-google-maps/api';
+
+const GOOGLE_LIBS = ['places'];
 
 const CreateProject = () => {
   const [formData, setFormData] = useState({
@@ -28,6 +31,28 @@ const CreateProject = () => {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem('token');
+
+  // Google Places Autocomplete
+  const { isLoaded: mapsLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+    libraries: GOOGLE_LIBS,
+  });
+  const autocompleteWidgetRef = useRef(null);
+
+  const onAutocompleteLoad = (ac) => {
+    autocompleteWidgetRef.current = ac;
+  };
+
+  const onPlaceChanged = () => {
+    const ac = autocompleteWidgetRef.current;
+    if (!ac) return;
+    const place = ac.getPlace();
+    const addr = place?.formatted_address || place?.name || '';
+    if (addr) {
+      setFormData((prev) => ({ ...prev, address: addr }));
+    }
+  };
 
   const fetchProjects = async () => {
     try {
@@ -48,7 +73,10 @@ const CreateProject = () => {
       const res = await axios.get('/branches', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setBranches(res.data);
+      const sorted = (res.data || []).slice().sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+      );
+      setBranches(sorted);
     } catch (err) {
       console.error('Failed to fetch branches', err);
     }
@@ -241,17 +269,37 @@ const CreateProject = () => {
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                 Address <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  <FaMapMarkerAlt size={14} />
+              {mapsLoaded ? (
+                <Autocomplete
+                  onLoad={onAutocompleteLoad}
+                  onPlaceChanged={onPlaceChanged}
+                  options={{ componentRestrictions: { country: 'in' } }}
+                >
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10">
+                      <FaMapMarkerAlt size={14} />
+                    </div>
+                    <input
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                      placeholder="Enter project address"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    />
+                  </div>
+                </Autocomplete>
+              ) : (
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10">
+                    <FaMapMarkerAlt size={14} />
+                  </div>
+                  <input
+                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                    placeholder="Enter project address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  />
                 </div>
-                <input
-                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                  placeholder="Enter project address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                />
-              </div>
+              )}
             </div>
 
             <div className="md:col-span-2">
@@ -364,7 +412,7 @@ const CreateProject = () => {
                             ))}
                           </div>
                         ) : (
-                          <span className="text-gray-400">—</span>
+                          <span className="text-gray-400">N/A</span>
                         )}
                       </td>
                       <td className="px-6 py-4">

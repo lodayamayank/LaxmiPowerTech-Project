@@ -17,9 +17,8 @@ const InstallPWA = () => {
                        window.navigator.standalone === true;
     setIsStandalone(standalone);
 
-    // Chrome/Android install prompt
+    // Chrome/Android install prompt — capture event for custom Install button
     const handler = (e) => {
-      e.preventDefault();
       setDeferredPrompt(e);
       setShowInstall(true);
     };
