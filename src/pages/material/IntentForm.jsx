@@ -345,11 +345,8 @@ export default function IntentForm() {
         navigate('/material/intent');
       }
     } catch (error) {
-      // Show actual backend error message for debugging
-      const backendMsg = error.response?.data?.message || error.response?.data?.error;
-      const displayMsg = backendMsg || error.message || 'Failed to create intent. Please try again.';
-      console.error('❌ Intent creation error:', error.response?.data || error.message);
-      alert(displayMsg);
+      // Error creating purchase order
+      alert(error.message || 'Failed to create intent. Please try again.');
     } finally {
       setSubmitting(false);
     }
