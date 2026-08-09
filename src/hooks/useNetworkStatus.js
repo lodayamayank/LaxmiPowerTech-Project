@@ -6,15 +6,20 @@ import syncEngine from '../utils/syncEngine';
 export default function useNetworkStatus() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingCount, setPendingCount] = useState(0);
+  const [failedCount, setFailedCount] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const [lastSyncResult, setLastSyncResult] = useState(null);
 
-  // Refresh pending count from IndexedDB
+  // Refresh queue counts from IndexedDB
   const refreshPendingCount = useCallback(async () => {
     try {
       await offlineStorage.init();
-      const count = await offlineStorage.getPendingCount();
-      setPendingCount(count);
+      const [pending, failed] = await Promise.all([
+        offlineStorage.getPendingCount(),
+        offlineStorage.getFailedCount(),
+      ]);
+      setPendingCount(pending);
+      setFailedCount(failed);
     } catch {
       // IndexedDB may not be ready yet
     }
@@ -41,14 +46,28 @@ export default function useNetworkStatus() {
           break;
         case 'syncEnd':
           setSyncing(false);
-          setLastSyncResult({ synced: event.synced, failed: event.failed, total: event.total, at: event.timestamp });
+          setLastSyncResult({
+            synced: event.synced,
+            failed: event.failed,
+            total: event.total,
+            skipped: event.skipped,
+            at: event.timestamp,
+          });
           refreshPendingCount();
           break;
         case 'syncProgress':
           refreshPendingCount();
           break;
+        case 'queued':
+          // A form just wrote straight to IndexedDB via smartRequest, outside
+          // any sync run — reflect it immediately rather than waiting for the
+          // next periodic poll.
+          refreshPendingCount();
+          break;
         case 'syncError':
-          setSyncing(false);
+          // A single action failing does not end the run – syncEnd does that.
+          // Only refresh the counts so a newly-parked action shows up.
+          refreshPendingCount();
           break;
         default:
           break;
@@ -69,19 +88,30 @@ export default function useNetworkStatus() {
     };
   }, [refreshPendingCount]);
 
-  // Manual sync trigger
+  // Manual sync trigger. Forced: the user tapped "Sync Now" on purpose, so an
+  // action still sitting in its automatic backoff window should be attempted
+  // anyway rather than silently skipped until the backoff timer elapses.
   const triggerSync = useCallback(async () => {
-    if (!navigator.onLine) return { synced: 0, failed: 0, total: 0 };
-    const result = await syncEngine.syncAll();
+    if (!navigator.onLine) return { synced: 0, failed: 0, total: 0, skipped: 0 };
+    const result = await syncEngine.syncAll({ force: true });
     return result;
   }, []);
+
+  // Put every parked action back in the queue and try again
+  const retryFailed = useCallback(async () => {
+    const count = await syncEngine.retryFailed();
+    await refreshPendingCount();
+    return count;
+  }, [refreshPendingCount]);
 
   return {
     isOnline,
     pendingCount,
+    failedCount,
     syncing,
     lastSyncResult,
     triggerSync,
+    retryFailed,
     refreshPendingCount
   };
 }

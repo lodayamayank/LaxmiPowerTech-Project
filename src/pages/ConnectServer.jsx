@@ -7,25 +7,33 @@ import offlineStorage from '../utils/offlineStorage';
 
 export default function ConnectServer() {
   const navigate = useNavigate();
-  const { isOnline, pendingCount, syncing, lastSyncResult, triggerSync, refreshPendingCount } = useNetworkStatus();
+  const {
+    isOnline, pendingCount, failedCount, syncing, triggerSync, retryFailed, refreshPendingCount
+  } = useNetworkStatus();
   const [pendingActions, setPendingActions] = useState([]);
+  const [failedActions, setFailedActions] = useState([]);
   const [showDetails, setShowDetails] = useState(false);
   const [manualSyncResult, setManualSyncResult] = useState(null);
   const [clearing, setClearing] = useState(false);
+  const [retrying, setRetrying] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
-    loadPendingActions();
-  }, [pendingCount]);
+    loadActions();
+  }, [pendingCount, failedCount]);
 
-  const loadPendingActions = async () => {
+  const loadActions = async () => {
     try {
       await offlineStorage.init();
-      const actions = await offlineStorage.getPendingActions();
-      setPendingActions(actions);
+      const [pending, failed] = await Promise.all([
+        offlineStorage.getPendingActions(),
+        offlineStorage.getFailedActions(),
+      ]);
+      setPendingActions(pending);
+      setFailedActions(failed);
     } catch (err) {
-      console.error('Failed to load pending actions:', err);
+      console.error('Failed to load queued actions:', err);
     }
   };
 
@@ -33,7 +41,35 @@ export default function ConnectServer() {
     setManualSyncResult(null);
     const result = await triggerSync();
     setManualSyncResult(result);
-    loadPendingActions();
+    loadActions();
+  };
+
+  const handleRetryFailed = async () => {
+    setRetrying(true);
+    try {
+      await retryFailed();
+      await loadActions();
+    } catch (err) {
+      console.error('Failed to retry actions:', err);
+    } finally {
+      setRetrying(false);
+    }
+  };
+
+  // Deliberately destructive and behind a confirm: these entries hold the only
+  // copy of work the user did offline, so discarding them loses that data.
+  const handleDiscardFailed = async () => {
+    const confirmed = window.confirm(
+      `Permanently delete ${failedCount} action(s) that could not be synced? This data cannot be recovered.`
+    );
+    if (!confirmed) return;
+    try {
+      await offlineStorage.clearFailedActions();
+      refreshPendingCount();
+      loadActions();
+    } catch (err) {
+      console.error('Failed to discard actions:', err);
+    }
   };
 
   const handleClearSynced = async () => {
@@ -42,7 +78,7 @@ export default function ConnectServer() {
       const count = await offlineStorage.clearSyncedActions();
       console.log(`Cleared ${count} synced actions`);
       refreshPendingCount();
-      loadPendingActions();
+      loadActions();
     } catch (err) {
       console.error('Failed to clear synced:', err);
     } finally {
@@ -121,7 +157,7 @@ export default function ConnectServer() {
                   <div key={action.id} className="bg-white rounded-lg p-3 border border-gray-200 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-gray-800 capitalize">
-                        {action.actionType} {action.module}
+                        {action.label || `${action.actionType} ${action.module}`}
                       </span>
                       <span className="text-gray-400">
                         {new Date(action.timestamp).toLocaleTimeString()}
@@ -129,13 +165,68 @@ export default function ConnectServer() {
                     </div>
                     <p className="text-gray-500 mt-1 truncate">{action.endpoint}</p>
                     {action.retries > 0 && (
-                      <p className="text-red-500 mt-1">Retries: {action.retries} | {action.lastError}</p>
+                      <p className="text-orange-500 mt-1">
+                        Attempt {action.retries} · {action.lastError}
+                      </p>
                     )}
                   </div>
                 ))}
               </div>
             )}
           </div>
+
+          {/* Actions that gave up – shown so offline work is never lost silently */}
+          {failedCount > 0 && (
+            <div className="bg-red-50 rounded-2xl p-5 border border-red-200 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center">
+                  <FaExclamationTriangle size={16} className="text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-sm text-red-800">Needs Attention</h3>
+                  <p className="text-xs text-red-600">
+                    {failedCount} action(s) could not be synced automatically
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2 max-h-48 overflow-y-auto mb-3">
+                {failedActions.map((action) => (
+                  <div key={action.id} className="bg-white rounded-lg p-3 border border-red-200 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-gray-800 capitalize">
+                        {action.label || `${action.actionType} ${action.module}`}
+                      </span>
+                      <span className="text-gray-400">
+                        {new Date(action.timestamp).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-red-500 mt-1">
+                      Gave up after {action.retries} attempt(s): {action.lastError}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleRetryFailed}
+                  disabled={!isOnline || retrying}
+                  className="flex-1 bg-red-500 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-red-600 transition-all disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <FaSync size={12} className={retrying ? 'animate-spin' : ''} />
+                  <span>{retrying ? 'Retrying...' : 'Try Again'}</span>
+                </button>
+                <button
+                  onClick={handleDiscardFailed}
+                  className="px-4 bg-white border-2 border-red-200 text-red-600 py-2.5 rounded-xl font-semibold text-sm hover:bg-red-50 transition-all flex items-center justify-center gap-2"
+                >
+                  <FaTrash size={12} />
+                  <span>Discard</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Sync Button */}
           <button
@@ -200,11 +291,12 @@ export default function ConnectServer() {
           <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
             <h4 className="text-sm font-semibold text-gray-800 mb-2">How it works</h4>
             <ul className="text-xs text-gray-600 space-y-1.5">
-              <li>• All actions are saved locally when offline</li>
-              <li>• Data syncs automatically when internet returns</li>
-              <li>• Use the button above to manually trigger sync</li>
+              <li>• Attendance, tasks, leaves, reimbursements and indent photos are saved on your device when offline</li>
+              <li>• They sync automatically when internet returns, in the order you made them</li>
+              <li>• Each is recorded at the time you made it, not the time it synced</li>
+              <li>• A failed sync retries automatically; anything that still fails moves to "Needs Attention"</li>
               <li>• Synced data is cleaned up automatically</li>
-              <li>• Login requires internet connection</li>
+              <li>• Login requires an internet connection</li>
             </ul>
           </div>
         </div>

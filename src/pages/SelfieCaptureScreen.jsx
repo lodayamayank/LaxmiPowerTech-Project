@@ -3,8 +3,8 @@ import React, { useRef, useState } from "react";
 import Webcam from "react-webcam";
 import { useNavigate, useLocation } from "react-router-dom";
 import ConfirmModal from "../components/ConfirmModal";
-import { storeOfflinePunch } from "../utils/syncAttendance";
-import api from "../utils/axios";
+import { submitOffline } from "../utils/offlineSubmit";
+import { markPunchedLocally } from "../utils/punchStatusCache";
 import { toast } from "react-toastify";
 import {
   FaArrowLeft,
@@ -60,21 +60,6 @@ const SelfieCaptureScreen = () => {
       const selfieFile = dataURLtoFile(capturedImage, "selfie.jpg");
       console.log('📷 Selfie file created:', selfieFile.name, selfieFile.size, 'bytes', selfieFile.type);
 
-      // Offline fallback
-      if (!navigator.onLine) {
-        storeOfflinePunch({
-          selfie: selfieFile,
-          punchType,
-          lat: location.lat,
-          lng: location.lng,
-          branchId,
-          timestamp,
-        });
-        toast.info("📴 You're offline. Punch saved and will sync when internet is back.");
-        navigate("/dashboard");
-        return;
-      }
-
       // Build multipart form data
       const formData = new FormData();
       formData.append("selfie", selfieFile);
@@ -82,21 +67,29 @@ const SelfieCaptureScreen = () => {
       formData.append("lat", String(location.lat));
       formData.append("lng", String(location.lng));
       if (branchId) formData.append("branchId", branchId);
-      if (timestamp) formData.append("timestamp", String(timestamp));
 
-      console.log('📤 FormData prepared. Sending to /attendance/punch...');
-      console.log('FormData contents:');
-      for (let pair of formData.entries()) {
-        console.log(pair[0], ':', pair[1]);
+      // One call for both cases: sent now if there is a connection, stored in
+      // IndexedDB (selfie File and all) and replayed later if there is not.
+      // capturedAt is the moment the user punched, so a punch that syncs hours
+      // later is still recorded at the time it was actually made.
+      const result = await submitOffline({
+        module: "attendance",
+        endpoint: "/attendance/punch",
+        formData,
+        capturedAt: timestamp || new Date().toISOString(),
+        label: `Punch ${punchType}`,
+        meta: { branchId, punchType },
+      });
+
+      // Remember it locally either way, so the punch screen shows the right
+      // next action even before the queue drains.
+      markPunchedLocally(punchType);
+
+      if (result.offline) {
+        toast.info("📴 You're offline. Punch saved and will sync when internet is back.");
+      } else {
+        toast.success("✅ Punch recorded successfully!");
       }
-
-      const res = await api.post("/attendance/punch", formData);
-      console.log('✅ Punch response:', res.status, res.data);
-      if (!res || res.status < 200 || res.status >= 300) {
-        throw new Error("Punch failed");
-      }
-
-      toast.success("✅ Punch recorded successfully!");
       navigate("/dashboard");
     } catch (err) {
       console.error('❌ Punch error details:');

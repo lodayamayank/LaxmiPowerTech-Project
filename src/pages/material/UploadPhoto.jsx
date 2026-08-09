@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaCamera, FaCheckCircle, FaImages } from "react-icons/fa";
 import { Upload, X } from "lucide-react";
-import axios from "../../utils/axios";
+import { submitOffline } from "../../utils/offlineSubmit";
 import { toast } from "react-toastify";
 import { getSelectedBranchName } from '../../utils/branchContext';
 
@@ -121,19 +121,29 @@ export default function UploadPhoto() {
       console.log('📸 Image:', selectedImage.name, selectedImage.size, 'bytes');
       console.log('🌐 Endpoint: /indents/upload-photo');
 
-      const response = await axios.post('/indents/upload-photo', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      const result = await submitOffline({
+        module: 'material',
+        endpoint: '/indents/upload-photo',
+        formData,
+        label: 'Indent photo upload',
+        meta: { indentId, project },
       });
 
-      if (response.data.success) {
+      if (result.offline) {
+        toast.info('📴 Offline – photo saved and will upload when you reconnect.');
+        setTimeout(() => navigate('/material/intent'), 1500);
+        return;
+      }
+
+      if (result.response?.data?.success) {
         toast.success('Intent list uploaded successfully!');
         // Trigger refresh event for Intent list
         window.dispatchEvent(new Event('intentCreated'));
         localStorage.setItem('intentRefresh', Date.now().toString());
-        
+
         // Trigger refresh for Upcoming Deliveries
         localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
-        
+
         // Navigate back to Intent page after short delay
         setTimeout(() => {
           navigate('/material/intent');

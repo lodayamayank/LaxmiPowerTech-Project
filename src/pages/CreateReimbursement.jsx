@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "../utils/axios";
+import { submitOffline } from "../utils/offlineSubmit";
 import { useNavigate } from "react-router-dom";
 import {
   FaArrowLeft,
@@ -17,8 +17,7 @@ import { Badge } from '@/components/ui/badge';
 
 const CreateReimbursement = () => {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-  
+
   const [items, setItems] = useState([
     {
       amount: "",
@@ -120,14 +119,18 @@ const CreateReimbursement = () => {
         });
       });
 
-      await axios.post("/reimbursements", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
+      const result = await submitOffline({
+        module: "reimbursement",
+        endpoint: "/reimbursements",
+        formData,
+        label: `Reimbursement (₹${totalAmount})`,
       });
 
-      toast.success("Reimbursement submitted successfully!");
+      if (result.offline) {
+        toast.info("📴 Offline – claim saved with its receipts and will submit when you reconnect.");
+      } else {
+        toast.success("Reimbursement submitted successfully!");
+      }
       navigate("/reimbursements");
     } catch (err) {
       console.error("Submission error:", err);

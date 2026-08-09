@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../utils/axios";
-import { syncOfflineAttendance } from "../utils/syncAttendance";
+import { readPunchStatus, writePunchStatus } from "../utils/punchStatusCache";
 import useNotifier from "../hooks/useNotifier";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -143,37 +143,56 @@ const PunchInScreen = () => {
     );
   };
 
+  // Read the copy of the user saved at login. This screen has to render without
+  // a network round-trip, otherwise it sits on "Loading user..." forever on a
+  // site with no signal — which is exactly when someone needs to punch.
+  const readCachedUser = () => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "null");
+    } catch {
+      return null;
+    }
+  };
+
   const fetchUser = async () => {
+    const cached = readCachedUser();
+    if (cached) setUser(cached);
+
     try {
       const res = await axios.get("/auth/me", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       setUser(res.data.user);
+      // Keep the offline copy current, including branch assignments/radii.
+      localStorage.setItem("user", JSON.stringify(res.data.user));
     } catch (err) {
-      notifier.error("Failed to load user. Please log in again.");
       console.error(err);
+      // Only a genuine problem if we have nothing cached to fall back on.
+      if (!cached) {
+        notifier.error("Failed to load user. Please connect to the internet and log in again.");
+      }
     }
   };
 
   const fetchPunchStatus = async () => {
+    // Start from the local record so a punch queued offline is reflected
+    // immediately and the user is not invited to punch in twice.
+    const cached = readPunchStatus();
+    if (cached) setPunchStatus(cached);
+
     try {
       const res = await axios.get("/attendance/today", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      setPunchStatus({
-        punchedIn: res.data.punchedIn,
-        punchedOut: res.data.punchedOut,
-      });
+      const status = {
+        punchedIn: res.data.punchedIn || cached?.punchedIn || false,
+        punchedOut: res.data.punchedOut || cached?.punchedOut || false,
+      };
+      setPunchStatus(status);
+      writePunchStatus(status);
     } catch (err) {
       console.error("Failed to fetch punch status", err);
     }
-  };
-
-  const queuePunchOffline = (data) => {
-    const existing = JSON.parse(localStorage.getItem("offlinePunchQueue") || "[]");
-    existing.push({ ...data, queuedAt: new Date().toISOString() });
-    localStorage.setItem("offlinePunchQueue", JSON.stringify(existing));
-    notifier.info("Offline – Punch queued locally and will sync when online.");
   };
 
   const handlePunchClick = async (type) => {
@@ -194,31 +213,30 @@ const PunchInScreen = () => {
       return;
     }
 
-    const punchPayload = {
-      punchType: type,
-      location: { lat, lng },
-      branchId: nearbyBranch._id,
-      timestamp: new Date().toISOString(),
-    };
-
-    if (!navigator.onLine) {
-      queuePunchOffline(punchPayload);
-      return;
-    }
-
-    navigate("/selfie", { state: punchPayload });
+    // Offline is not a special case here any more: the selfie screen queues the
+    // complete punch (selfie included) through the sync engine. Short-circuiting
+    // to a local queue at this point is what used to drop the punch entirely,
+    // since a punch with no selfie is not something the backend can accept.
+    navigate("/selfie", {
+      state: {
+        punchType: type,
+        location: { lat, lng },
+        branchId: nearbyBranch._id,
+        timestamp: new Date().toISOString(),
+      },
+    });
   };
 
   useEffect(() => {
     fetchUser();
     getLocation();
     fetchPunchStatus();
-    syncOfflineAttendance();
 
-    const handleOnline = () => {
-      console.log("🔌 Back online — syncing offline punches...");
-      syncOfflineAttendance();
-    };
+    // Queued punches are drained by syncEngine, which App.jsx starts once for
+    // the whole app. This screen used to register a second 'online' listener of
+    // its own, which meant reconnecting fired two concurrent syncs of the same
+    // queue. Refreshing the server-side status is all that is needed here.
+    const handleOnline = () => fetchPunchStatus();
     window.addEventListener("online", handleOnline);
     return () => window.removeEventListener("online", handleOnline);
   }, []);

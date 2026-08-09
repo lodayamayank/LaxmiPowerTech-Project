@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, lazy, Suspense } from 'react';
-import { syncOfflineAttendance } from './utils/syncAttendance';
-import { ToastContainer } from 'react-toastify';
+import { migrateLegacyOfflinePunches } from './utils/syncAttendance';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import useNotifier from './hooks/useNotifier';
 import syncEngine from './utils/syncEngine';
@@ -97,17 +97,24 @@ function App() {
   const notifier = useNotifier();
 
   useEffect(() => {
-    // Initialize offline sync engine (auto-syncs on reconnect)
+    // The sync engine owns the 'online' listener for the whole app – screens
+    // must not register their own, or reconnecting fires concurrent syncs of
+    // the same queue.
     syncEngine.init();
 
-    if (navigator.onLine) {
-      syncOfflineAttendance();
-    }
-
-    const onOnline = () => syncOfflineAttendance();
-    window.addEventListener('online', onOnline);
-
-    return () => window.removeEventListener('online', onOnline);
+    // Clear out the two localStorage queues written by the previous offline
+    // implementation. They cannot be replayed (their selfies did not survive
+    // JSON serialisation), so tell the user rather than failing silently.
+    migrateLegacyOfflinePunches()
+      .then(({ unrecoverable }) => {
+        if (unrecoverable > 0) {
+          toast.warn(
+            `${unrecoverable} attendance punch(es) saved by an older version of the app could not be recovered. Please re-punch if needed.`,
+            { autoClose: 10000 }
+          );
+        }
+      })
+      .catch((err) => console.error('Legacy offline punch migration failed:', err));
   }, []);
 
   return (

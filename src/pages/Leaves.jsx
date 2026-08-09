@@ -1,6 +1,7 @@
 // src/pages/Leaves.jsx
 import { useEffect, useState } from "react";
 import axios from "../utils/axios";
+import { submitOffline } from "../utils/offlineSubmit";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
@@ -80,13 +81,25 @@ export default function Leaves() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("/leaves", form);
-      toast.success("Leave request submitted successfully!");
+      const result = await submitOffline({
+        module: "leave",
+        endpoint: "/leaves",
+        data: form,
+        label: `Leave request (${form.type})`,
+      });
+
+      if (result.offline) {
+        toast.info("📴 Offline – leave request saved and will submit when you reconnect.");
+      } else {
+        toast.success("Leave request submitted successfully!");
+      }
+
       setForm({ type: "paid", startDate: "", endDate: "", reason: "" });
-      loadLeaves();
+      // Nothing new to list until the queued request actually reaches the server.
+      if (!result.offline) loadLeaves();
     } catch (err) {
       console.error(err);
-      toast.error("Failed to submit leave request");
+      toast.error(err.response?.data?.message || "Failed to submit leave request");
     }
   };
 

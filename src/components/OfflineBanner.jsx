@@ -1,14 +1,15 @@
 // Floating offline status banner + sync indicator
 // Shows: offline warning, pending action count, syncing animation
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { FaWifi, FaCloudUploadAlt, FaSync, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import useNetworkStatus from '../hooks/useNetworkStatus';
 
 export default function OfflineBanner() {
-  const { isOnline, pendingCount, syncing, lastSyncResult } = useNetworkStatus();
+  const { isOnline, pendingCount, failedCount, syncing, lastSyncResult } = useNetworkStatus();
 
-  // Nothing to show when online and no pending actions and no recent sync result
-  if (isOnline && pendingCount === 0 && !syncing) {
+  // Nothing to show when online, the queue is empty and nothing needs attention
+  if (isOnline && pendingCount === 0 && failedCount === 0 && !syncing) {
     // Show brief success toast after sync
     if (lastSyncResult && lastSyncResult.synced > 0 && Date.now() - lastSyncResult.at < 5000) {
       return (
@@ -54,8 +55,21 @@ export default function OfflineBanner() {
           </div>
         )}
 
-        {/* Sync failed warning */}
-        {lastSyncResult && lastSyncResult.failed > 0 && Date.now() - lastSyncResult.at < 10000 && (
+        {/* Actions that gave up – persistent, because this needs a decision
+            from the user rather than another automatic retry */}
+        {failedCount > 0 && (
+          <Link
+            to="/connect-server"
+            className="bg-red-600 text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium hover:bg-red-700 transition-colors"
+          >
+            <FaExclamationTriangle size={14} />
+            <span className="flex-1">{failedCount} action(s) need attention</span>
+            <span className="text-white/80 text-xs underline">Review</span>
+          </Link>
+        )}
+
+        {/* Transient warning for failures that will be retried automatically */}
+        {failedCount === 0 && lastSyncResult && lastSyncResult.failed > 0 && Date.now() - lastSyncResult.at < 10000 && (
           <div className="bg-orange-500 text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium">
             <FaExclamationTriangle size={14} />
             <span>{lastSyncResult.failed} action(s) failed to sync. Will retry.</span>

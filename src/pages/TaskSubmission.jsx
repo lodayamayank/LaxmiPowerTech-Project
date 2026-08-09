@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from '../utils/axios';
+import { submitOffline } from '../utils/offlineSubmit';
 import logo from '../assets/logo.png';
 import { FaArrowLeft, FaPlus, FaTimes, FaCheckCircle, FaHistory, FaImage } from 'react-icons/fa';
 import { toast } from 'react-toastify';
@@ -268,12 +269,22 @@ const TaskSubmission = () => {
       formData.append('photo', photo);
       formData.append('notes', notes);
 
-      await axios.post('/tasks', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      // Goes out now if there is signal, otherwise the whole submission —
+      // photo included — waits in IndexedDB and replays on reconnect.
+      const result = await submitOffline({
+        module: 'task',
+        endpoint: '/tasks',
+        formData,
+        label: `Task – ${selectedBuilding.name}`,
+        meta: { projectId, branchId },
       });
 
-      toast.success('Task submitted successfully!');
-      
+      if (result.offline) {
+        toast.info('📴 Offline – task saved and will sync when you reconnect.');
+      } else {
+        toast.success('Task submitted successfully!');
+      }
+
       // Reset form
       setSelectedBuilding(null);
       setSelectedAreaType('floor');
@@ -288,9 +299,12 @@ const TaskSubmission = () => {
       setPhotoPreview('');
       setNotes('');
       setShowAddTaskModal(false);
-      
-      // Refresh task history
-      fetchTaskHistory();
+
+      // Refresh task history (pointless offline – the request would just fail
+      // and the queued task is not on the server to list yet).
+      if (!result.offline) {
+        fetchTaskHistory();
+      }
     } catch (err) {
       console.error('Error submitting task:', err);
       toast.error(err.response?.data?.message || 'Failed to submit task');
