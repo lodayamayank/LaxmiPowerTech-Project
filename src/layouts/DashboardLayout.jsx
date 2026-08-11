@@ -190,6 +190,7 @@ const DashboardLayout = ({ children, title }) => {
         { label: "Labour", path: "/attendance/labour" },
         { label: "Notes", path: "/attendance/notes" },
         { label: "Leaves", path: "/attendance/leaves" },
+        { label: "Delete Records", path: "/admin/attendance/delete" },
       ],
     },
     {

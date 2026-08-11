@@ -43,6 +43,7 @@ const SupervisorLabourDetails = lazy(() => import('./pages/SupervisorLabourDetai
 const LabourDashboard = lazy(() => import('./pages/LabourDashboard'));
 const TaskSubmission = lazy(() => import('./pages/TaskSubmission'));
 const TeamAttendance = lazy(() => import('./pages/TeamAttendance'));
+const AdminDeleteAttendance = lazy(() => import('./pages/AdminDeleteAttendance'));
 
 // Material Management Pages - Lazy loaded
 const Material = lazy(() => import('./pages/material/Material'));
@@ -132,6 +133,7 @@ function App() {
         <Route path="/admin/attendance/staff" element={<AdminAttendance role="staff" />} />
         <Route path="/admin/attendance/labour" element={<AdminAttendance role="labour" />} />
         <Route path="/admin/attendance/subcontractor" element={<AdminAttendance role="subcontractor" />} />
+        <Route path="/admin/attendance/delete" element={<AdminDeleteAttendance />} />
         <Route path="/dashboard/vendors" element={<AdminVendors />} />
         <Route path="/dashboard/attendance" element={<AttendancePage />} />
         <Route
