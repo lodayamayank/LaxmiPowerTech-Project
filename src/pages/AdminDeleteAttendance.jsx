@@ -20,8 +20,11 @@ const AdminDeleteAttendance = () => {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState('');
 
-  const [deleteFromDatabase, setDeleteFromDatabase] = useState(true);
-  const [deleteFromCloudinary, setDeleteFromCloudinary] = useState(true);
+  // 'cloudinary' = Cloudinary selfies only, kept records get selfieUrl cleared.
+  // 'both' = Cloudinary selfies + the attendance records themselves.
+  const [deleteMode, setDeleteMode] = useState('both');
+  const deleteFromCloudinary = true;
+  const deleteFromDatabase = deleteMode === 'both';
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState('');
@@ -60,10 +63,8 @@ const AdminDeleteAttendance = () => {
     };
   }, [startDate, endDate]);
 
-  const noTargetSelected = !deleteFromDatabase && !deleteFromCloudinary;
-
   const openConfirm = () => {
-    if (!preview || preview.count === 0 || noTargetSelected) return;
+    if (!preview || preview.count === 0) return;
     setConfirmText('');
     setConfirmOpen(true);
   };
@@ -191,34 +192,50 @@ const AdminDeleteAttendance = () => {
                 Delete from
               </label>
               <div className="flex flex-col sm:flex-row gap-3">
-                <label className="flex items-center gap-2 text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2.5 flex-1 cursor-pointer hover:bg-gray-50">
+                <label
+                  className={`flex items-center gap-2 text-sm rounded-lg px-3 py-2.5 flex-1 cursor-pointer border ${
+                    deleteMode === 'cloudinary'
+                      ? 'border-red-400 bg-red-50 text-gray-900'
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
                   <input
-                    type="checkbox"
+                    type="radio"
+                    name="deleteMode"
                     className="h-4 w-4 accent-red-600"
-                    checked={deleteFromDatabase}
-                    onChange={(e) => setDeleteFromDatabase(e.target.checked)}
+                    checked={deleteMode === 'cloudinary'}
+                    onChange={() => setDeleteMode('cloudinary')}
                   />
-                  Database
+                  Delete from Cloudinary
                 </label>
-                <label className="flex items-center gap-2 text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2.5 flex-1 cursor-pointer hover:bg-gray-50">
+                <label
+                  className={`flex items-center gap-2 text-sm rounded-lg px-3 py-2.5 flex-1 cursor-pointer border ${
+                    deleteMode === 'both'
+                      ? 'border-red-400 bg-red-50 text-gray-900'
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
                   <input
-                    type="checkbox"
+                    type="radio"
+                    name="deleteMode"
                     className="h-4 w-4 accent-red-600"
-                    checked={deleteFromCloudinary}
-                    onChange={(e) => setDeleteFromCloudinary(e.target.checked)}
+                    checked={deleteMode === 'both'}
+                    onChange={() => setDeleteMode('both')}
                   />
-                  Cloudinary (selfies)
+                  Delete from Cloudinary + Database
                 </label>
               </div>
-              {noTargetSelected && (
-                <p className="text-xs text-red-600 mt-1.5">Select at least one target</p>
-              )}
+              <p className="text-xs text-gray-400 mt-1.5">
+                {deleteMode === 'cloudinary'
+                  ? 'Only the selfie images are removed from Cloudinary — the attendance records stay in the database.'
+                  : 'The selfie images and the attendance records themselves are both permanently removed.'}
+              </p>
             </div>
 
             <div className="pt-2">
               <Button
                 variant="destructive"
-                disabled={!preview || preview.count === 0 || previewLoading || noTargetSelected}
+                disabled={!preview || preview.count === 0 || previewLoading}
                 onClick={openConfirm}
                 className="bg-red-600 hover:bg-red-700 text-white"
               >
