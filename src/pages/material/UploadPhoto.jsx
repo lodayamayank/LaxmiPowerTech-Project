@@ -127,6 +127,7 @@ export default function UploadPhoto() {
         formData,
         label: 'Indent photo upload',
         meta: { indentId, project },
+        retryServerErrors: false,
       });
 
       if (result.offline) {

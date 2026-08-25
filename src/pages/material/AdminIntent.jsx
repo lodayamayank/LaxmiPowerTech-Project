@@ -1,9 +1,18 @@
 import { useState, useEffect } from "react";
 import { indentAPI, purchaseOrderAPI, materialCatalogAPI as materialAPI, branchesAPI, vendorsAPI } from "../../utils/materialAPI";
-import { Eye, Trash2, X, Edit2, Save, Plus, Image as ImageIcon } from "lucide-react";
+import { Eye, Trash2, X, Edit2, Save, Plus, Image as ImageIcon, ZoomIn, ZoomOut, RotateCcw, ExternalLink, CheckCircle, RefreshCw } from "lucide-react";
 import MaterialLineItem from "./MaterialLineItem";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import axios from "../../utils/axios";
+
+const resolveFileUrl = (url) => {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  const apiBase = axios.defaults.baseURL || '';
+  const backendBase = apiBase.replace(/\/api\/?$/, '');
+  const normalizedPath = url.startsWith('/') ? url : `/${url}`;
+  return `${backendBase}${normalizedPath}`;
+};
 
 export default function AdminIntent() {
   const [indents, setIndents] = useState([]); // Changed from purchaseOrders
@@ -24,6 +33,25 @@ export default function AdminIntent() {
   const [sites, setSites] = useState([]);
   const [editingMaterialId, setEditingMaterialId] = useState(null);
   const [vendors, setVendors] = useState([]); // Vendor list for dropdown
+  const [showManualMaterialForm, setShowManualMaterialForm] = useState(false);
+  const [addingMaterial, setAddingMaterial] = useState(false);
+  const [deletingMaterial, setDeletingMaterial] = useState(false);
+  const [manualMaterialMode, setManualMaterialMode] = useState('add');
+  const [editingManualMaterialId, setEditingManualMaterialId] = useState(null);
+  const [materialToDelete, setMaterialToDelete] = useState(null);
+  const [imageZoom, setImageZoom] = useState(100);
+  const [lastAddedMaterialId, setLastAddedMaterialId] = useState(null);
+  const [materialSuccessMessage, setMaterialSuccessMessage] = useState('');
+  const [manualMaterial, setManualMaterial] = useState({
+    category: '',
+    subCategory: '',
+    subCategory1: '',
+    subCategory2: '',
+    quantity: '',
+    uom: 'Nos',
+    vendor: '',
+    remarks: ''
+  });
   
   // ✅ Filter states
   const [filterSite, setFilterSite] = useState('');
@@ -95,7 +123,8 @@ export default function AdminIntent() {
       const indentsData = indentResponse.success ? (indentResponse.data || []).map(item => ({
         ...item,
         type: 'indent', // Mark as indent type
-        purchaseOrderId: item.indentId // Use indentId as PO-ID
+        purchaseOrderId: item.indentId, // Use indentId as PO-ID
+        deliverySite: item.deliverySite || item.branch?.name || item.project?.name || ''
       })) : [];
       
       const posData = poResponse.success ? (poResponse.data || []).map(item => ({
@@ -167,7 +196,32 @@ export default function AdminIntent() {
     }
   };
 
-  const handleViewDetails = async (id) => {
+  const normalizeIntentDetails = (data, type) => {
+    const isPurchaseOrder = type === 'purchaseOrder';
+
+    return {
+      ...data,
+      type,
+      materials: isPurchaseOrder ? data.materials : (data.items || []).map(item => {
+        const nameParts = item.name ? item.name.split(' - ').map(s => s.trim()) : [];
+        return {
+          itemName: item.name,
+          category: item.category || nameParts[0] || '',
+          subCategory: item.subCategory || nameParts[1] || '',
+          subCategory1: item.subCategory1 || nameParts[2] || '',
+          subCategory2: item.subCategory2 || nameParts[3] || '',
+          quantity: item.quantity,
+          uom: item.unit || 'Nos',
+          remarks: item.remarks,
+          vendor: item.vendor,
+          createdAt: item.createdAt,
+          _id: item._id
+        };
+      })
+    };
+  };
+
+  const handleViewDetails = async (id, options = {}) => {
     try {
       // ✅ CRITICAL FIX: Fetch fresh data from backend instead of using stale state
       const indent = indents.find(i => i._id === id);
@@ -188,32 +242,19 @@ export default function AdminIntent() {
       if (response.success) {
         // Use fresh data from backend
         const data = response.data;
-        
-        // ✅ NORMALIZE DATA: Indents use 'items', POs use 'materials'
-        // Convert items to materials for consistent UI display
-        const normalizedData = {
-          ...data,
-          type: isPurchaseOrder ? 'purchaseOrder' : 'indent',
-          materials: isPurchaseOrder ? data.materials : (data.items || []).map(item => {
-            // Parse itemName to extract category/subcategory (e.g., "Tape - PVC Insulation Tape - Black")
-            const nameParts = item.name ? item.name.split(' - ').map(s => s.trim()) : [];
-            return {
-              itemName: item.name,
-              category: nameParts[0] || '',
-              subCategory: nameParts[1] || '',
-              subCategory1: nameParts[2] || '',
-              subCategory2: nameParts[3] || '',
-              quantity: item.quantity,
-              uom: item.unit || 'Nos',
-              remarks: item.remarks,
-              vendor: item.vendor,
-              _id: item._id
-            };
-          })
-        };
+        const normalizedData = normalizeIntentDetails(data, isPurchaseOrder ? 'purchaseOrder' : 'indent');
         
         setSelectedIndent(normalizedData);
         setShowDetailsModal(true);
+        const shouldOpenMaterialForm = !!options.openMaterialForm && normalizedData.type === 'indent' && !!normalizedData.imageUrl;
+        setShowManualMaterialForm(shouldOpenMaterialForm);
+        setImageZoom(100);
+        setLastAddedMaterialId(null);
+        setMaterialSuccessMessage('');
+        setManualMaterialMode('add');
+        setEditingManualMaterialId(null);
+        setMaterialToDelete(null);
+        resetManualMaterialForm();
         console.log('✅ Loaded fresh Intent PO data from backend', normalizedData);
       } else {
         setError('Failed to fetch latest indent details');
@@ -225,9 +266,13 @@ export default function AdminIntent() {
     }
   };
 
+  const handleQuickAddMaterial = (id) => {
+    handleViewDetails(id, { openMaterialForm: true });
+  };
+
   const handleViewImage = (imageUrl) => {
     if (imageUrl) {
-      window.open(`${axios.defaults.baseURL}${imageUrl}`, '_blank');
+      window.open(resolveFileUrl(imageUrl), '_blank');
     }
   };
 
@@ -306,9 +351,27 @@ export default function AdminIntent() {
     setSelectedIndent(null);
     setEditing(false);
     setFormData({});
+    setShowManualMaterialForm(false);
+    setImageZoom(100);
+    setLastAddedMaterialId(null);
+    setMaterialSuccessMessage('');
+    setManualMaterialMode('add');
+    setEditingManualMaterialId(null);
+    setMaterialToDelete(null);
+    setManualMaterial({
+      category: '',
+      subCategory: '',
+      subCategory1: '',
+      subCategory2: '',
+      quantity: '',
+      uom: 'Nos',
+      vendor: '',
+      remarks: ''
+    });
   };
 
   const handleEdit = () => {
+    setShowManualMaterialForm(false);
     // Defensive: Ensure materials is always an array
     const materialsArray = Array.isArray(selectedIndent?.materials) 
       ? selectedIndent.materials 
@@ -378,6 +441,10 @@ export default function AdminIntent() {
         // For Indents: use 'items' with simpler structure
         const itemsData = materialsArray.map(m => ({
           name: `${m.category}${m.subCategory ? ' - ' + m.subCategory : ''}${m.subCategory1 ? ' - ' + m.subCategory1 : ''}${m.subCategory2 ? ' - ' + m.subCategory2 : ''}`,
+          category: m.category || '',
+          subCategory: m.subCategory || '',
+          subCategory1: m.subCategory1 || '',
+          subCategory2: m.subCategory2 || '',
           quantity: parseInt(m.quantity),
           unit: m.uom || 'Nos',
           remarks: m.remarks || '',
@@ -570,27 +637,6 @@ export default function AdminIntent() {
     )].sort((a, b) => a.localeCompare(b));
   };
 
-  const addMaterialRow = () => {
-    const newMaterialId = `material-${Date.now()}`;
-    setFormData(prev => ({
-      ...prev,
-      materials: [
-        ...(Array.isArray(prev.materials) ? prev.materials : []),
-        {
-          id: newMaterialId,
-          category: '',
-          subCategory: '',
-          subCategory1: '',
-          subCategory2: '',
-          quantity: '',
-          uom: 'Nos',
-          remarks: ''
-        }
-      ]
-    }));
-    setEditingMaterialId(newMaterialId);
-  };
-
   const removeMaterialRow = (id) => {
     setFormData(prev => ({
       ...prev,
@@ -605,6 +651,200 @@ export default function AdminIntent() {
         m.id === id ? { ...m, ...updates } : m
       )
     }));
+  };
+
+  const resetManualMaterialForm = () => {
+    setManualMaterial({
+      category: '',
+      subCategory: '',
+      subCategory1: '',
+      subCategory2: '',
+      quantity: '',
+      uom: 'Nos',
+      vendor: '',
+      remarks: ''
+    });
+  };
+
+  const updateManualMaterial = (field, value) => {
+    setManualMaterial(prev => {
+      if (field === 'category') {
+        return { ...prev, category: value, subCategory: '', subCategory1: '', subCategory2: '' };
+      }
+      if (field === 'subCategory') {
+        return { ...prev, subCategory: value, subCategory1: '', subCategory2: '' };
+      }
+      if (field === 'subCategory1') {
+        return { ...prev, subCategory1: value, subCategory2: '' };
+      }
+      return { ...prev, [field]: value };
+    });
+  };
+
+  const handleOpenManualMaterialForm = () => {
+    setEditing(false);
+    setShowManualMaterialForm(true);
+    setManualMaterialMode('add');
+    setEditingManualMaterialId(null);
+    setImageZoom(100);
+    setMaterialSuccessMessage('');
+    resetManualMaterialForm();
+  };
+
+  const getMaterialRowKey = (material, index) => (
+    material?._id || material?.createdAt || `${material?.itemName || 'material'}-${index}`
+  );
+
+  const getVendorId = (vendor) => {
+    if (!vendor) return '';
+    return typeof vendor === 'string' ? vendor : vendor._id || '';
+  };
+
+  const handleEditManualMaterial = (material) => {
+    if (!material?._id) {
+      showToast('This material cannot be edited because its ID is missing', 'error');
+      return;
+    }
+
+    setEditing(false);
+    setManualMaterialMode('edit');
+    setEditingManualMaterialId(material._id);
+    setManualMaterial({
+      category: material.category || '',
+      subCategory: material.subCategory || '',
+      subCategory1: material.subCategory1 || '',
+      subCategory2: material.subCategory2 || '',
+      quantity: material.quantity || '',
+      uom: material.uom || 'Nos',
+      vendor: getVendorId(material.vendor),
+      remarks: material.remarks || ''
+    });
+    setShowManualMaterialForm(true);
+    setImageZoom(100);
+    setLastAddedMaterialId(getMaterialRowKey(material, 0));
+    setMaterialSuccessMessage('');
+  };
+
+  const closeManualMaterialForm = () => {
+    setShowManualMaterialForm(false);
+    setManualMaterialMode('add');
+    setEditingManualMaterialId(null);
+    setMaterialSuccessMessage('');
+    resetManualMaterialForm();
+  };
+
+  const applyUpdatedIndent = (data) => {
+    const normalizedData = normalizeIntentDetails(data, 'indent');
+    setSelectedIndent(normalizedData);
+    setIndents(prev => prev.map(item => (
+      item._id === selectedIndent._id
+        ? { ...item, ...normalizedData, deliverySite: normalizedData.deliverySite || normalizedData.branch?.name || normalizedData.project?.name || '' }
+        : item
+    )));
+    return normalizedData;
+  };
+
+  const handleSaveManualMaterial = async (addAnother = false) => {
+    if (!selectedIndent || selectedIndent.type !== 'indent') {
+      showToast('Manual material entry is available for uploaded Intent PO images only', 'error');
+      return;
+    }
+
+    const materialName = [
+      manualMaterial.category,
+      manualMaterial.subCategory,
+      manualMaterial.subCategory1,
+      manualMaterial.subCategory2
+    ].filter(Boolean).join(' - ');
+
+    if (!materialName.trim()) {
+      showToast('Please enter/select material details', 'error');
+      return;
+    }
+
+    const quantity = Number(manualMaterial.quantity);
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      showToast('Please enter a valid quantity', 'error');
+      return;
+    }
+
+    try {
+      setAddingMaterial(true);
+      const materialPayload = {
+        itemName: materialName,
+        category: manualMaterial.category,
+        subCategory: manualMaterial.subCategory,
+        subCategory1: manualMaterial.subCategory1,
+        subCategory2: manualMaterial.subCategory2,
+        quantity,
+        uom: manualMaterial.uom || 'Nos',
+        vendor: manualMaterial.vendor || undefined,
+        remarks: manualMaterial.remarks
+      };
+
+      const response = manualMaterialMode === 'edit'
+        ? await indentAPI.updateMaterial(selectedIndent._id, editingManualMaterialId, materialPayload)
+        : await indentAPI.addMaterial(selectedIndent._id, materialPayload);
+
+      if (response.success) {
+        const normalizedData = applyUpdatedIndent(response.data);
+        const savedMaterials = normalizedData.materials || [];
+        const updatedMaterial = manualMaterialMode === 'edit'
+          ? savedMaterials.find(material => material._id === editingManualMaterialId)
+          : savedMaterials[savedMaterials.length - 1];
+        const updatedIndex = updatedMaterial ? savedMaterials.indexOf(updatedMaterial) : savedMaterials.length - 1;
+        const updatedKey = updatedMaterial
+          ? getMaterialRowKey(updatedMaterial, updatedIndex)
+          : null;
+
+        resetManualMaterialForm();
+        setLastAddedMaterialId(updatedKey);
+        setMaterialSuccessMessage(
+          manualMaterialMode === 'edit'
+            ? 'Material updated successfully.'
+            : 'Material added successfully to this Intent PO.'
+        );
+        setTimeout(() => setMaterialSuccessMessage(''), 4500);
+        showToast(
+          manualMaterialMode === 'edit'
+            ? 'Material updated successfully.'
+            : addAnother ? 'Material added. Ready for another item.' : 'Material added successfully to this Intent PO.',
+          'success'
+        );
+
+        if (manualMaterialMode === 'edit') {
+          setManualMaterialMode('add');
+          setEditingManualMaterialId(null);
+          setShowManualMaterialForm(false);
+        }
+      }
+    } catch (err) {
+      console.error('❌ Error adding manual material:', err);
+      showToast(err.response?.data?.message || `Failed to ${manualMaterialMode === 'edit' ? 'update' : 'add'} material`, 'error');
+    } finally {
+      setAddingMaterial(false);
+    }
+  };
+
+  const handleDeleteManualMaterial = async () => {
+    if (!selectedIndent || !materialToDelete?._id) return;
+
+    try {
+      setDeletingMaterial(true);
+      const response = await indentAPI.deleteMaterial(selectedIndent._id, materialToDelete._id);
+
+      if (response.success) {
+        applyUpdatedIndent(response.data);
+        setMaterialToDelete(null);
+        setLastAddedMaterialId(null);
+        showToast('Material deleted successfully.', 'success');
+      }
+    } catch (err) {
+      console.error('❌ Error deleting manual material:', err);
+      showToast(err.response?.data?.message || 'Failed to delete material', 'error');
+    } finally {
+      setDeletingMaterial(false);
+    }
   };
 
   // Toast notification helper
@@ -663,22 +903,54 @@ export default function AdminIntent() {
     }
   };
 
+  const latestUploadedIndent = indents.find(indent => indent.type === 'indent' && indent.imageUrl);
+  const activeFilterCount = [filterSite, filterStatus, filterDateFrom, filterDateTo].filter(Boolean).length;
+
   return (
     <DashboardLayout title="Intent (PO)">
     <div className="flex-1 p-6 bg-gray-50">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col gap-4 mb-6 xl:flex-row xl:items-center xl:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-gray-800">Intent (PO)</h1>
           <p className="text-sm text-gray-500">View all purchase order requests</p>
         </div>
-        <button
-          onClick={handleDeleteAll}
-          disabled={indents.length === 0 || deleting}
-          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
-        >
-          <Trash2 size={18} />
-          {deleting ? 'Deleting...' : 'Delete All'}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={fetchIndents}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            Refresh
+          </button>
+          <button
+            type="button"
+            onClick={() => latestUploadedIndent && handleViewDetails(latestUploadedIndent._id)}
+            disabled={!latestUploadedIndent}
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-600 ring-1 ring-blue-100 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Eye size={16} />
+            Open Latest
+          </button>
+          <button
+            type="button"
+            onClick={() => latestUploadedIndent && handleQuickAddMaterial(latestUploadedIndent._id)}
+            disabled={!latestUploadedIndent}
+            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Plus size={16} />
+            Add to Latest
+          </button>
+          <button
+            onClick={handleDeleteAll}
+            disabled={indents.length === 0 || deleting}
+            className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+          >
+            <Trash2 size={16} />
+            {deleting ? 'Deleting...' : 'Delete All'}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -704,17 +976,46 @@ export default function AdminIntent() {
       ) : (
         <div className="bg-white shadow rounded-lg p-4 overflow-x-auto">
           <div className="mb-4">
-            <div className="flex justify-between items-center mb-3">
+            <div className="flex flex-col gap-3 mb-3 lg:flex-row lg:items-center lg:justify-between">
               <h2 className="text-lg font-semibold text-gray-700">
                 Purchase Orders Table ({indents.length} records)
               </h2>
-              <input
-                type="text"
-                placeholder="Search by PO ID..."
-                className="border border-gray-300 rounded p-2 w-80 focus:ring-2 focus:ring-orange-400 text-sm"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="relative w-full sm:w-80">
+                  <input
+                    type="text"
+                    placeholder="Search by PO ID..."
+                    className="w-full rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-sm focus:ring-2 focus:ring-orange-400"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => setSearch('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                      title="Clear search"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+                {(search || activeFilterCount > 0) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearch('');
+                      setFilterSite('');
+                      setFilterStatus('');
+                      setFilterDateFrom('');
+                      setFilterDateTo('');
+                    }}
+                    className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-100"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
             </div>
             
             {/* ✅ Filters Section */}
@@ -785,7 +1086,7 @@ export default function AdminIntent() {
                   }}
                   className="px-5 py-2.5 bg-white border-2 border-gray-300 hover:bg-gray-100 hover:border-gray-400 text-gray-700 text-sm font-semibold rounded-lg transition-all"
                 >
-                  Clear Filters
+                  Clear Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
                 </button>
               </div>
             </div>
@@ -795,8 +1096,10 @@ export default function AdminIntent() {
               <table className="min-w-full border text-sm">
                 <thead className="bg-orange-100">
                   <tr>
+                    <th className="border px-4 py-2 text-left font-medium text-gray-700">#</th>
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">PO-ID</th>
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">Image</th>
+                    <th className="border px-4 py-2 text-left font-medium text-gray-700">Site</th>
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">Requested By</th>
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">Status</th>
                     <th className="border px-4 py-2 text-left font-medium text-gray-700">Date</th>
@@ -804,8 +1107,16 @@ export default function AdminIntent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {indents.map((indent) => (
-                    <tr key={indent._id} className="hover:bg-gray-50">
+                  {indents.map((indent, index) => (
+                    <tr
+                      key={indent._id}
+                      className="cursor-pointer hover:bg-orange-50/40"
+                      onDoubleClick={() => handleViewDetails(indent._id)}
+                      title="Double-click to open details"
+                    >
+                      <td className="border px-4 py-2 text-gray-600">
+                        {(currentPage - 1) * 20 + index + 1}
+                      </td>
                       <td className="border px-4 py-2 font-medium text-gray-900">
                         {indent.indentId || 'N/A'}
                       </td>
@@ -813,7 +1124,7 @@ export default function AdminIntent() {
                         {indent.imageUrl ? (
                           <div className="flex items-center gap-2">
                             <img 
-                              src={`${axios.defaults.baseURL}${indent.imageUrl}`}
+                              src={resolveFileUrl(indent.imageUrl)}
                               alt="Intent"
                               className="w-12 h-12 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80"
                               onClick={() => handleViewImage(indent.imageUrl)}
@@ -830,6 +1141,7 @@ export default function AdminIntent() {
                           <span className="text-gray-400 text-xs">No image</span>
                         )}
                       </td>
+                      <td className="border px-4 py-2 text-gray-700">{indent.deliverySite || 'N/A'}</td>
                       <td className="border px-4 py-2">{indent.requestedBy?.name || indent.requestedBy || 'N/A'}</td>
                       <td className="border px-4 py-2">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(indent.status)}`}>
@@ -842,14 +1154,33 @@ export default function AdminIntent() {
                       <td className="border px-4 py-2">
                         <div className="flex gap-2">
                           <button
-                            onClick={() => handleViewDetails(indent._id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewDetails(indent._id);
+                            }}
                             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                             title="View Details"
                           >
                             <Eye size={18} />
                           </button>
+                          {indent.type === 'indent' && indent.imageUrl && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleQuickAddMaterial(indent._id);
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded bg-orange-50 px-2.5 py-1.5 text-xs font-semibold text-orange-600 hover:bg-orange-100 transition-colors"
+                              title="Add Material"
+                            >
+                              <Plus size={14} />
+                              Add
+                            </button>
+                          )}
                           <button
-                            onClick={() => handleDelete(indent._id, indent.indentId || indent.purchaseOrderId, indent.type)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(indent._id, indent.indentId || indent.purchaseOrderId, indent.type);
+                            }}
                             className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                             title="Delete"
                             disabled={deleting}
@@ -905,26 +1236,69 @@ export default function AdminIntent() {
           onClick={closeModal}
         >
           <div 
-            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out"
+            className={`bg-white rounded-lg shadow-xl w-full max-h-[92vh] flex flex-col overflow-hidden transform transition-all duration-300 ease-out ${
+              showManualMaterialForm ? 'max-w-7xl' : 'max-w-4xl'
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="sticky top-0 z-10 bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex justify-between items-center rounded-t-lg">
-              <h2 className="text-xl font-bold text-white">
-                Purchase Order Details
-              </h2>
-              <button
-                onClick={closeModal}
-                className="text-white hover:text-orange-100 transition-colors p-1 hover:bg-orange-600 rounded"
-                title="Close"
-              >
-                <X size={24} />
-              </button>
+            <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 sm:px-6 py-4 rounded-t-lg">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="min-w-0">
+                  <h2 className="text-xl font-bold text-white">
+                    Purchase Order Details
+                  </h2>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-orange-50">
+                    <span className="font-semibold">{selectedIndent.purchaseOrderId || selectedIndent.indentId}</span>
+                    <span>{formatDate(selectedIndent.requestDate || selectedIndent.createdAt)}</span>
+                    <span>{selectedIndent.requestedBy?.name || selectedIndent.requestedBy || 'N/A'}</span>
+                    <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold">
+                      {selectedIndent.status?.charAt(0).toUpperCase() + selectedIndent.status?.slice(1)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  {selectedIndent.imageUrl && (
+                    <a
+                      href={resolveFileUrl(selectedIndent.imageUrl)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/25"
+                    >
+                      <ExternalLink size={16} />
+                      Open Image
+                    </a>
+                  )}
+                  {selectedIndent.type === 'indent' && selectedIndent.imageUrl && !editing && (
+                    <button
+                      type="button"
+                      onClick={handleOpenManualMaterialForm}
+                      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-sm transition-colors ${
+                        showManualMaterialForm
+                          ? 'bg-white text-orange-600'
+                          : 'bg-white text-orange-600 hover:bg-orange-50'
+                      }`}
+                    >
+                      <Plus size={16} />
+                      Add Material
+                    </button>
+                  )}
+                  <button
+                    onClick={closeModal}
+                    className="text-white hover:text-orange-100 transition-colors p-2 hover:bg-orange-600 rounded-lg"
+                    title="Close"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Modal Content */}
-            <div className="px-6 py-4">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
               {/* Intent PO Information */}
+              {!showManualMaterialForm && (
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-orange-200">
                   Intent PO Information
@@ -982,21 +1356,394 @@ export default function AdminIntent() {
                   </div>
                 </div>
               </div>
+              )}
 
+              {/* Uploaded image */}
+              {selectedIndent.imageUrl && !showManualMaterialForm && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-orange-200">
+                    Uploaded Intent Image
+                  </h3>
+                  <div className="border rounded-lg overflow-hidden bg-gray-50">
+                    <img
+                      src={resolveFileUrl(selectedIndent.imageUrl)}
+                      alt="Uploaded intent"
+                      className="w-full max-h-[60vh] object-contain bg-white"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const fallback = e.currentTarget.nextElementSibling;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                    <div className="hidden min-h-48 items-center justify-center p-6 text-center text-gray-500">
+                      Image could not be loaded. The file may be missing or unavailable.
+                    </div>
+                    <div className="flex flex-wrap justify-end gap-3 border-t bg-white px-4 py-3">
+                      <a
+                        href={resolveFileUrl(selectedIndent.imageUrl)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+                      >
+                        Open Image
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {showManualMaterialForm && selectedIndent.imageUrl && (
+                <div className="mb-6 overflow-hidden rounded-lg border border-orange-200 bg-white">
+                  <div className="flex flex-col gap-3 border-b border-orange-200 bg-orange-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        {manualMaterialMode === 'edit' ? 'Edit Material' : 'Add Material From Uploaded Image'}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {manualMaterialMode === 'edit'
+                          ? `Update this material without creating a duplicate on ${selectedIndent.purchaseOrderId || selectedIndent.indentId}.`
+                          : `Keep the image visible while saving materials to ${selectedIndent.purchaseOrderId || selectedIndent.indentId}.`}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {materialSuccessMessage && (
+                        <div className="inline-flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">
+                          <CheckCircle size={16} />
+                          {materialSuccessMessage}
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={closeManualMaterialForm}
+                        className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50"
+                        disabled={addingMaterial}
+                      >
+                        Close Form
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid max-h-none grid-cols-1 lg:max-h-[calc(92vh-210px)] lg:grid-cols-[minmax(0,48%)_minmax(0,52%)]">
+                    <div className="border-b border-orange-100 bg-gray-50 lg:border-b-0 lg:border-r">
+                      <div className="flex h-full flex-col p-4">
+                        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-700">Uploaded image reference</p>
+                            <p className="text-xs text-gray-500">Zoom: {imageZoom}%</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setImageZoom(prev => Math.max(60, prev - 20))}
+                              className="rounded-lg border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-50"
+                              title="Zoom out"
+                            >
+                              <ZoomOut size={16} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setImageZoom(100)}
+                              className="rounded-lg border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-50"
+                              title="Reset zoom"
+                            >
+                              <RotateCcw size={16} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setImageZoom(prev => Math.min(220, prev + 20))}
+                              className="rounded-lg border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-50"
+                              title="Zoom in"
+                            >
+                              <ZoomIn size={16} />
+                            </button>
+                            <a
+                              href={resolveFileUrl(selectedIndent.imageUrl)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-100"
+                            >
+                              <ExternalLink size={14} />
+                              Full
+                            </a>
+                          </div>
+                        </div>
+                        <div className="flex-1 overflow-auto rounded-lg border bg-white">
+                          <img
+                            src={resolveFileUrl(selectedIndent.imageUrl)}
+                            alt="Uploaded intent reference"
+                            className="mx-auto max-w-none object-contain bg-white transition-all duration-150"
+                            style={{ width: `${imageZoom}%` }}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const fallback = e.currentTarget.nextElementSibling;
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
+                          />
+                          <div className="hidden min-h-64 items-center justify-center p-6 text-center text-gray-500">
+                            Image could not be loaded. Open the full image from the button above.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex max-h-none flex-col overflow-hidden lg:max-h-[calc(92vh-210px)]">
+                      <div className="flex-1 overflow-y-auto p-4">
+                        <div className="rounded-lg border border-gray-200 bg-white p-4">
+                          <div className="mb-4 flex items-center justify-between gap-3">
+                            <div>
+                              <h4 className="text-base font-semibold text-gray-800">
+                                {manualMaterialMode === 'edit' ? 'Update Material Details' : 'Material Details'}
+                              </h4>
+                              <p className="text-sm text-gray-500">Required fields are marked with *</p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                Material / Category <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                value={manualMaterial.category}
+                                onChange={(e) => updateManualMaterial('category', e.target.value)}
+                                list="manual-material-categories"
+                                placeholder="Select or type material"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                              />
+                              <datalist id="manual-material-categories">
+                                {categories.map(category => (
+                                  <option key={category} value={category} />
+                                ))}
+                              </datalist>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sub Category</label>
+                              <input
+                                value={manualMaterial.subCategory}
+                                onChange={(e) => updateManualMaterial('subCategory', e.target.value)}
+                                list="manual-material-subcategories"
+                                placeholder="Select or type sub category"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                              />
+                              <datalist id="manual-material-subcategories">
+                                {getSubcategories(manualMaterial.category).map(option => (
+                                  <option key={option} value={option} />
+                                ))}
+                              </datalist>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sub Category 1</label>
+                              <input
+                                value={manualMaterial.subCategory1}
+                                onChange={(e) => updateManualMaterial('subCategory1', e.target.value)}
+                                list="manual-material-subcategory1"
+                                placeholder="Select or type sub category 1"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                              />
+                              <datalist id="manual-material-subcategory1">
+                                {getSubSubcategories(manualMaterial.category, manualMaterial.subCategory).map(option => (
+                                  <option key={option} value={option} />
+                                ))}
+                              </datalist>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sub Category 2</label>
+                              <input
+                                value={manualMaterial.subCategory2}
+                                onChange={(e) => updateManualMaterial('subCategory2', e.target.value)}
+                                list="manual-material-subcategory2"
+                                placeholder="Select or type sub category 2"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                              />
+                              <datalist id="manual-material-subcategory2">
+                                {getSubCategory2(manualMaterial.category, manualMaterial.subCategory, manualMaterial.subCategory1).map(option => (
+                                  <option key={option} value={option} />
+                                ))}
+                              </datalist>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                Quantity <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="number"
+                                min="1"
+                                value={manualMaterial.quantity}
+                                onChange={(e) => updateManualMaterial('quantity', e.target.value)}
+                                placeholder="Enter quantity"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Unit</label>
+                              <select
+                                value={manualMaterial.uom}
+                                onChange={(e) => updateManualMaterial('uom', e.target.value)}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 bg-white"
+                              >
+                                <option value="Nos">Nos</option>
+                                <option value="pcs">pcs</option>
+                                <option value="bags">bags</option>
+                                <option value="kg">kg</option>
+                                <option value="mtr">mtr</option>
+                                <option value="box">box</option>
+                                <option value="set">set</option>
+                              </select>
+                            </div>
+
+                            <div className="md:col-span-2">
+                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Vendor</label>
+                              <select
+                                value={manualMaterial.vendor}
+                                onChange={(e) => updateManualMaterial('vendor', e.target.value)}
+                                disabled={!vendors || vendors.length === 0}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 bg-white disabled:bg-gray-100"
+                              >
+                                <option value="">Select Vendor</option>
+                                {vendors && Array.isArray(vendors) && vendors.map(vendor => (
+                                  <option key={vendor._id} value={vendor._id}>
+                                    {vendor.companyName}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="md:col-span-2">
+                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Remarks / Specification</label>
+                              <textarea
+                                value={manualMaterial.remarks}
+                                onChange={(e) => updateManualMaterial('remarks', e.target.value)}
+                                rows={3}
+                                placeholder="Add size, brand, specification, or note"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 rounded-lg border border-gray-200 bg-white">
+                          <div className="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
+                            <h4 className="text-base font-semibold text-gray-800">
+                              Added Materials ({selectedIndent.materials?.length || 0})
+                            </h4>
+                          </div>
+                          {selectedIndent.materials && selectedIndent.materials.length > 0 ? (
+                            <div className="max-h-72 overflow-auto">
+                              {selectedIndent.materials.map((material, index) => {
+                                const rowKey = getMaterialRowKey(material, index);
+                                return (
+                                  <div
+                                    key={rowKey}
+                                    className={`border-b px-4 py-3 text-sm last:border-b-0 transition-colors ${
+                                      rowKey === lastAddedMaterialId ? 'bg-green-50 ring-1 ring-inset ring-green-200' : 'bg-white'
+                                    }`}
+                                  >
+                                    <div className="flex flex-wrap items-start justify-between gap-2">
+                                      <div>
+                                        <p className="font-semibold text-gray-900">{material.itemName || '-'}</p>
+                                        <p className="mt-1 text-xs text-gray-500">
+                                          {[material.category, material.subCategory, material.subCategory1, material.subCategory2]
+                                            .filter(Boolean)
+                                            .join(' / ') || 'No category details'}
+                                        </p>
+                                      </div>
+                                      <span className="rounded-full bg-orange-50 px-2 py-1 text-xs font-semibold text-orange-600">
+                                        {material.quantity || '-'} {material.uom || 'Nos'}
+                                      </span>
+                                    </div>
+                                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleEditManualMaterial(material)}
+                                        className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100"
+                                      >
+                                        <Edit2 size={14} />
+                                        Edit
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setMaterialToDelete(material)}
+                                        className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100"
+                                      >
+                                        <Trash2 size={14} />
+                                        Delete
+                                      </button>
+                                    </div>
+                                    <div className="mt-2 grid grid-cols-1 gap-2 text-xs text-gray-600 sm:grid-cols-2">
+                                      <span>Vendor: {material.vendor?.companyName || 'N/A'}</span>
+                                      <span>Added: {material.createdAt ? formatDate(material.createdAt) : formatDate(selectedIndent.updatedAt || selectedIndent.createdAt)}</span>
+                                    </div>
+                                    {material.remarks && (
+                                      <p className="mt-2 text-xs text-gray-600">{material.remarks}</p>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <p className="px-4 py-6 text-center text-sm text-gray-500">
+                              No materials added to this Intent PO yet.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="sticky bottom-0 flex flex-col gap-2 border-t bg-white px-4 py-3 sm:flex-row sm:justify-end">
+                        <button
+                          type="button"
+                          onClick={closeManualMaterialForm}
+                          className="rounded-lg bg-gray-200 px-4 py-2.5 font-medium text-gray-700 transition-colors hover:bg-gray-300"
+                          disabled={addingMaterial}
+                        >
+                          Cancel
+                        </button>
+                        {manualMaterialMode !== 'edit' && (
+                          <button
+                            type="button"
+                            onClick={() => handleSaveManualMaterial(true)}
+                            disabled={addingMaterial}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-50 px-4 py-2.5 font-semibold text-orange-600 ring-1 ring-orange-200 transition-colors hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {addingMaterial ? 'Saving...' : 'Save & Add Another'}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleSaveManualMaterial(false)}
+                          disabled={addingMaterial}
+                          className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-500 px-5 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {addingMaterial ? (
+                            <>
+                              <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Save size={16} />
+                              {manualMaterialMode === 'edit' ? 'Update Material' : 'Save Material'}
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {!showManualMaterialForm && (
+              <>
               {/* Materials List */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-3 pb-2 border-b-2 border-orange-200">
                   <h3 className="text-lg font-semibold text-gray-800">
-                    Materials ({editing ? formData.materials?.length : selectedIndent.materials?.length || 0} items)
+                    Added Materials ({editing ? formData.materials?.length : selectedIndent.materials?.length || 0} items)
                   </h3>
-                  {editing && (
-                    <button
-                      onClick={addMaterialRow}
-                      className="text-sm text-orange-600 hover:text-orange-700 font-medium"
-                    >
-                      + Add Material
-                    </button>
-                  )}
                 </div>
                 
                 {editing ? (
@@ -1087,10 +1834,13 @@ export default function AdminIntent() {
                           <tr>
                             <th className="border px-3 py-2 text-left font-medium text-gray-700">#</th>
                             <th className="border px-3 py-2 text-left font-medium text-gray-700">Item Name</th>
+                            <th className="border px-3 py-2 text-left font-medium text-gray-700">Category/Type</th>
                             <th className="border px-3 py-2 text-left font-medium text-gray-700">Quantity</th>
                             <th className="border px-3 py-2 text-left font-medium text-gray-700">UOM</th>
                             <th className="border px-3 py-2 text-left font-medium text-gray-700">VendorName</th>
                             <th className="border px-3 py-2 text-left font-medium text-gray-700">Remarks</th>
+                            <th className="border px-3 py-2 text-left font-medium text-gray-700">Added Date</th>
+                            <th className="border px-3 py-2 text-left font-medium text-gray-700">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1098,18 +1848,40 @@ export default function AdminIntent() {
                             <tr key={index} className="hover:bg-gray-50">
                               <td className="border px-3 py-2 text-gray-600">{index + 1}</td>
                               <td className="border px-3 py-2 font-medium">{material.itemName || '-'}</td>
+                              <td className="border px-3 py-2 text-gray-600">
+                                {[material.category, material.subCategory, material.subCategory1, material.subCategory2]
+                                  .filter(Boolean)
+                                  .join(' / ') || '-'}
+                              </td>
                               <td className="border px-3 py-2">{material.quantity || '-'}</td>
                               <td className="border px-3 py-2">{material.uom || '-'}</td>
                               <td className="border px-3 py-2 text-gray-600">
-                                {(() => {
-                                  console.log(`🔍 Material ${index + 1}:`, material.itemName);
-                                  console.log(`   Vendor object:`, material.vendor);
-                                  console.log(`   Vendor ID:`, material.vendor?._id);
-                                  console.log(`   Company Name:`, material.vendor?.companyName);
-                                  return material.vendor?.companyName || 'N/A';
-                                })()}
+                                {material.vendor?.companyName || 'N/A'}
                               </td>
                               <td className="border px-3 py-2 text-gray-600">{material.remarks || '-'}</td>
+                              <td className="border px-3 py-2 text-gray-600">
+                                {material.createdAt ? formatDate(material.createdAt) : formatDate(selectedIndent.updatedAt || selectedIndent.createdAt)}
+                              </td>
+                              <td className="border px-3 py-2">
+                                <div className="flex flex-wrap gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleEditManualMaterial(material)}
+                                    className="inline-flex items-center gap-1.5 rounded bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100"
+                                  >
+                                    <Edit2 size={14} />
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setMaterialToDelete(material)}
+                                    className="inline-flex items-center gap-1.5 rounded bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100"
+                                  >
+                                    <Trash2 size={14} />
+                                    Delete
+                                  </button>
+                                </div>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -1131,8 +1903,7 @@ export default function AdminIntent() {
                     {selectedIndent.attachments.map((attachment, index) => {
                       // ✅ Handle both old string format and new Cloudinary object format
                       const attachmentUrl = typeof attachment === 'string' ? attachment : attachment.url;
-                      const baseURL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5002';
-                      const fileURL = attachmentUrl.startsWith('http') ? attachmentUrl : `${baseURL}${attachmentUrl}`;
+                      const fileURL = resolveFileUrl(attachmentUrl);
                       const fileName = attachmentUrl.split('/').pop();
                       const isImage = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
                       
@@ -1215,10 +1986,13 @@ export default function AdminIntent() {
                   )}
                 </div>
               </div>
+              </>
+              )}
             </div>
 
             {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-white border-t-2 border-orange-100 px-6 py-4 flex justify-end gap-3 rounded-b-lg">
+            {!showManualMaterialForm && (
+              <div className="bg-white border-t-2 border-orange-100 px-6 py-4 flex justify-end gap-3 rounded-b-lg">
               {editing ? (
                 <>
                   <button
@@ -1263,6 +2037,49 @@ export default function AdminIntent() {
                   </button>
                 </>
               )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {materialToDelete && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white shadow-xl">
+            <div className="border-b border-red-100 px-5 py-4">
+              <h3 className="text-lg font-semibold text-gray-900">Delete Material</h3>
+              <p className="mt-1 text-sm text-gray-600">
+                Are you sure you want to delete this material?
+              </p>
+            </div>
+            <div className="px-5 py-4">
+              <div className="rounded-lg bg-red-50 px-4 py-3">
+                <p className="font-semibold text-gray-900">
+                  {materialToDelete.itemName || materialToDelete.category || 'Selected material'}
+                </p>
+                <p className="mt-1 text-sm text-gray-600">
+                  Only this material will be removed. The Intent PO and uploaded image will stay unchanged.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col-reverse gap-2 border-t bg-gray-50 px-5 py-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setMaterialToDelete(null)}
+                disabled={deletingMaterial}
+                className="rounded-lg bg-white px-4 py-2.5 font-semibold text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteManualMaterial}
+                disabled={deletingMaterial}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Trash2 size={16} />
+                {deletingMaterial ? 'Deleting...' : 'Delete Material'}
+              </button>
             </div>
           </div>
         </div>

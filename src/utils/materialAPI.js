@@ -149,6 +149,21 @@ export const indentAPI = {
     return response.data;
   },
 
+  addMaterial: async (id, data) => {
+    const response = await axios.post(`/indents/${id}/materials`, data);
+    return response.data;
+  },
+
+  updateMaterial: async (id, materialId, data) => {
+    const response = await axios.put(`/indents/${id}/materials/${materialId}`, data);
+    return response.data;
+  },
+
+  deleteMaterial: async (id, materialId) => {
+    const response = await axios.delete(`/indents/${id}/materials/${materialId}`);
+    return response.data;
+  },
+
   updateStatus: async (id, status, adminRemarks = '') => {
     const response = await axios.put(`/indents/${id}/status`, { status, adminRemarks });
     return response.data;

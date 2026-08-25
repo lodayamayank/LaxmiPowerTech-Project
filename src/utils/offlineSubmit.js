@@ -54,6 +54,7 @@ export function serializeFormData(formData) {
  * @param {string} [options.label]     – shown in the offline queue UI
  * @param {string} [options.capturedAt] – ISO time the user performed this; defaults to now
  * @param {Object} [options.meta]      – anything extra worth keeping with the queued entry
+ * @param {boolean} [options.retryServerErrors] – false keeps 5xx responses visible to the form
  * @returns {Promise<{ offline: boolean, queueId?: number, response?: any }>}
  * @throws  the axios error when the server actively rejects the request (4xx),
  *          so the form can show a validation message instead of silently queueing
@@ -68,6 +69,7 @@ export async function submitOffline({
   label,
   capturedAt,
   meta,
+  retryServerErrors,
 }) {
   if (!module || !endpoint) {
     throw new Error('submitOffline requires a module and an endpoint');
@@ -87,6 +89,7 @@ export async function submitOffline({
     label: label || `${actionType} ${module}`,
     capturedAt,
     meta,
+    retryServerErrors,
   });
 }
 

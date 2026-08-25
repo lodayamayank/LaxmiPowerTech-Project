@@ -258,6 +258,16 @@ const DashboardLayout = ({ children, title }) => {
     { label: "Settings", icon: <MdSettings />, path: "/dashboard/settings", disabled: true },
   ];
 
+  const materialQuickLinks = [
+    { label: "Upload", path: "/dashboard/material/uploadindent", icon: <FaFileUpload /> },
+    { label: "Intent PO", path: "/dashboard/material/intent", icon: <FaShoppingCart /> },
+    { label: "Transfers", path: "/dashboard/material/site-transfers", icon: <FaTruck /> },
+    { label: "Deliveries", path: "/dashboard/material/upcoming-deliveries", icon: <FaClipboardCheck /> },
+    { label: "GRN", path: "/dashboard/material/grn", icon: <FaClipboardList /> },
+  ];
+
+  const showMaterialQuickLinks = location.pathname.startsWith('/dashboard/material/');
+
   return (
     <div className="flex w-screen h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       {sidebarOpen && (
@@ -374,6 +384,27 @@ const DashboardLayout = ({ children, title }) => {
             </button>
           </div>
         </div>
+
+        {showMaterialQuickLinks && (
+          <div className="border-b border-orange-100 bg-white/95 px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800/95">
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {materialQuickLinks.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) => `inline-flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+                    isActive
+                      ? 'border-orange-500 bg-orange-500 text-white shadow-sm'
+                      : 'border-orange-200 bg-orange-50 text-orange-600 hover:bg-orange-100 dark:border-gray-600 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  <span className="text-sm">{item.icon}</span>
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Children (Main page content) */}
         <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-4 lg:p-6">

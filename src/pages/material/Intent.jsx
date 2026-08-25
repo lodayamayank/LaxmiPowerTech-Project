@@ -7,6 +7,15 @@ import AddIntentPopup from './AddIntentPopup';
 import axios from '../../utils/axios';
 import { getSelectedBranchId, getSelectedBranchName } from '../../utils/branchContext';
 
+const resolveFileUrl = (url) => {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  const apiBase = axios.defaults.baseURL || '';
+  const backendBase = apiBase.replace(/\/api\/?$/, '');
+  const normalizedPath = url.startsWith('/') ? url : `/${url}`;
+  return `${backendBase}${normalizedPath}`;
+};
+
 export default function Intent({ isTabView = false }) {
   const navigate = useNavigate();
   const [indents, setIndents] = useState([]); // Changed from purchaseOrders
@@ -391,7 +400,7 @@ export default function Intent({ isTabView = false }) {
                   {indent.hasImage && indent.imageUrl ? (
                     <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-orange-200 flex-shrink-0">
                       <img 
-                        src={`${axios.defaults.baseURL}${indent.imageUrl}`}
+                        src={resolveFileUrl(indent.imageUrl)}
                         alt="Intent"
                         className="w-full h-full object-cover"
                         onError={(e) => {

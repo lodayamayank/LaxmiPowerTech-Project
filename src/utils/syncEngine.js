@@ -43,6 +43,12 @@ function backoffFor(retries) {
   return Math.min(BASE_BACKOFF_MS * 2 ** retries, MAX_BACKOFF_MS);
 }
 
+function shouldRetryServerError(action) {
+  if (action.retryServerErrors === false) return false;
+  if (action.payload?.__multipart && action.endpoint === '/indents/upload-photo') return false;
+  return true;
+}
+
 class SyncEngine {
   constructor() {
     this._listeners = [];
@@ -253,7 +259,7 @@ class SyncEngine {
         // Park permanently when the server rejected it outright, or when it has
         // burned through its attempts. Auth failures never count as permanent —
         // they resolve when the user logs back in.
-        const permanent = (!retryable || outOfRetries) && reason !== 'auth';
+        const permanent = (!retryable || outOfRetries || (reason === 'server' && !shouldRetryServerError(action))) && reason !== 'auth';
 
         await offlineStorage.markActionFailed(action.id, err, {
           permanent,
@@ -373,8 +379,9 @@ class SyncEngine {
       const response = await this._processAction(enriched);
       return { offline: false, response };
     } catch (err) {
-      const { retryable } = classifyError(err);
-      if (retryable) {
+      const { retryable, reason } = classifyError(err);
+      const shouldQueue = retryable && (reason !== 'server' || shouldRetryServerError(enriched));
+      if (shouldQueue) {
         const queueId = await offlineStorage.enqueueAction(enriched);
         this._emit('queued', { queueId });
         return { offline: true, queueId };
