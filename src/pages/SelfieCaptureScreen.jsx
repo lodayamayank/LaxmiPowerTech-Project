@@ -1,8 +1,8 @@
 // src/screens/SelfieCaptureScreen.jsx
 import React, { useRef, useState } from "react";
-import Webcam from "react-webcam";
 import { useNavigate, useLocation } from "react-router-dom";
 import ConfirmModal from "../components/ConfirmModal";
+import FaceCamera from "../components/FaceCamera";
 import { submitOffline } from "../utils/offlineSubmit";
 import { markPunchedLocally } from "../utils/punchStatusCache";
 import { toast } from "react-toastify";
@@ -25,13 +25,19 @@ const SelfieCaptureScreen = () => {
 
   const [capturedImage, setCapturedImage] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [faceDetected, setFaceDetected] = useState(false);
+  const [faceStatus, setFaceStatus] = useState("idle");
+  const [faceMessage, setFaceMessage] = useState("Starting camera…");
 
   const navigate = useNavigate();
   const locationState = useLocation().state || {};
   const { punchType, location, branchId, timestamp } = locationState;
 
   const capture = () => {
+    if (!faceDetected) return;
+
     const imageSrc = webcamRef.current?.getScreenshot();
     if (!imageSrc) return;
     setCapturedImage(imageSrc);
@@ -160,8 +166,12 @@ const SelfieCaptureScreen = () => {
               <div className="flex items-center gap-3">
                 <FaUserCircle className="text-blue-600" size={32} />
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">Ready to capture</p>
-                  <p className="text-xs text-gray-600">Position your face in the circle</p>
+                  <p className="text-sm font-semibold text-gray-800">{faceMessage}</p>
+                  <p className="text-xs text-gray-600">
+                    {faceStatus === "holding"
+                      ? "You can capture your photo"
+                      : "Follow the instructions above"}
+                  </p>
                 </div>
               </div>
 
@@ -195,12 +205,14 @@ const SelfieCaptureScreen = () => {
 
               {/* Inner Ring */}
               <div className="absolute inset-2 rounded-full border-4 border-orange-500 shadow-2xl overflow-hidden">
-                <Webcam
-                  ref={webcamRef}
-                  audio={false}
-                  screenshotFormat="image/jpeg"
+                <FaceCamera
+                  webcamRef={webcamRef}
+                  onFaceDetected={(detected, ready, status, message) => {
+                    setFaceDetected(detected);
+                    setFaceStatus(status);
+                    setFaceMessage(message);
+                  }}
                   className="w-full h-full object-cover"
-                  videoConstraints={{ facingMode: "user" }}
                 />
               </div>
 
@@ -231,7 +243,7 @@ const SelfieCaptureScreen = () => {
           {/* Capture Button */}
           <button
             onClick={capture}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !faceDetected}
             className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all flex items-center justify-center gap-3 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FaCamera size={20} />
