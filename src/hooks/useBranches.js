@@ -8,9 +8,8 @@ export function useBranches() {
   useEffect(() => {
     const fetchBranches = async () => {
       try {
-        const API = import.meta.env.VITE_API_BASE_URL || '';
         const token = localStorage.getItem('token');
-        const res = await axios.get(`${API}/api/branches`, {
+        const res = await axios.get('/branches', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setBranches(res.data?.branches || res.data || []);
