@@ -204,8 +204,8 @@ export const upcomingDeliveryAPI = {
     return response.data;
   },
 
-  updateItems: async (id, items) => {
-    const response = await axios.put(`/material/upcoming-deliveries/${id}/items`, { items });
+  updateItems: async (id, items, options = {}) => {
+    const response = await axios.put(`/material/upcoming-deliveries/${id}/items`, { items, ...options });
     return response.data;
   },
 
