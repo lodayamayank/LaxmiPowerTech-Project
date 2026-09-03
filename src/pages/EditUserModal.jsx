@@ -19,10 +19,10 @@ import {
     FaUserTie,
     FaRupeeSign,
     FaMoneyBillWave,
+    FaKey,
+    FaLock,
 } from "react-icons/fa";
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 
 const EditUserModal = ({ user, onClose, onSave }) => {
     const token = localStorage.getItem("token");
@@ -30,6 +30,11 @@ const EditUserModal = ({ user, onClose, onSave }) => {
     const [form, setForm] = useState(user || {});
     const [branches, setBranches] = useState([]);
     const [projects, setProjects] = useState([]);
+    const [passwordForm, setPasswordForm] = useState({
+        newPassword: "",
+        confirmPassword: "",
+    });
+    const [passwordSaving, setPasswordSaving] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -113,7 +118,8 @@ const EditUserModal = ({ user, onClose, onSave }) => {
         e.preventDefault();
         try {
             // ✅ Create payload and exclude password
-            const { password, ...updatePayload } = form;
+            const updatePayload = { ...form };
+            delete updatePayload.password;
             
             console.log('🔍 [EditUserModal] Form state:', form);
             console.log('📤 [EditUserModal] Sending payload:', updatePayload);
@@ -143,6 +149,45 @@ const EditUserModal = ({ user, onClose, onSave }) => {
         } catch (err) {
             toast.error("Failed to update user");
             console.error('❌ [EditUserModal] Error:', err);
+        }
+    };
+
+    const handlePasswordSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!passwordForm.newPassword || !passwordForm.confirmPassword) {
+            toast.error("Please fill both password fields");
+            return;
+        }
+
+        if (passwordForm.newPassword.length < 6) {
+            toast.error("Password must be at least 6 characters");
+            return;
+        }
+
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            toast.error("Password and confirm password do not match");
+            return;
+        }
+
+        setPasswordSaving(true);
+        try {
+            await axios.put(`/users/${user._id}`, {
+                password: passwordForm.newPassword,
+            }, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            toast.success("Password updated successfully");
+            setPasswordForm({
+                newPassword: "",
+                confirmPassword: "",
+            });
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to update password");
+            console.error("Failed to update password", err);
+        } finally {
+            setPasswordSaving(false);
         }
     };
 
@@ -189,6 +234,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                     <TabButton id="basic" label="Basic Info" icon={<FaUser size={14} />} />
                     <TabButton id="personal" label="Personal" icon={<FaAddressCard size={14} />} />
                     <TabButton id="employee" label="Employment" icon={<FaBriefcase size={14} />} />
+                    <TabButton id="security" label="Security" icon={<FaKey size={14} />} />
                 </div>
 
                 {/* Form Content */}
@@ -656,6 +702,61 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        )}
+
+                        {activeTab === "security" && (
+                            <div className="space-y-5">
+                                <div className="rounded-xl border border-orange-100 bg-orange-50 p-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="mt-0.5 rounded-full bg-white p-2 text-orange-600 shadow-sm">
+                                            <FaLock size={16} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-base font-semibold text-gray-900">Password Access</h3>
+                                            <p className="mt-1 text-sm text-gray-600">
+                                                Current password is securely protected and cannot be viewed. Set a new password here if this user needs help logging in.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <InputField
+                                        label="New Password"
+                                        name="newPassword"
+                                        type="password"
+                                        icon={<FaLock size={14} />}
+                                        placeholder="Enter new password"
+                                        value={passwordForm.newPassword}
+                                        onChange={(e) => setPasswordForm((prev) => ({
+                                            ...prev,
+                                            newPassword: e.target.value,
+                                        }))}
+                                    />
+                                    <InputField
+                                        label="Confirm Password"
+                                        name="confirmPassword"
+                                        type="password"
+                                        icon={<FaLock size={14} />}
+                                        placeholder="Confirm new password"
+                                        value={passwordForm.confirmPassword}
+                                        onChange={(e) => setPasswordForm((prev) => ({
+                                            ...prev,
+                                            confirmPassword: e.target.value,
+                                        }))}
+                                    />
+                                </div>
+
+                                <Button
+                                    type="button"
+                                    onClick={handlePasswordSubmit}
+                                    disabled={passwordSaving}
+                                    className="bg-gray-900 hover:bg-gray-800 text-white shadow-md"
+                                >
+                                    <FaKey size={14} className="mr-2" />
+                                    {passwordSaving ? "Updating..." : "Set New Password"}
+                                </Button>
                             </div>
                         )}
                     </div>

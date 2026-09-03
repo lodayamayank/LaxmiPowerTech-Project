@@ -85,11 +85,11 @@ const MyReimbursements = () => {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
-            className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full h-auto"
+            className="absolute top-6 left-6 flex h-auto items-center gap-2 rounded-full border border-white/70 bg-white px-3 py-1.5 text-orange-600 shadow-sm hover:bg-orange-50 hover:text-orange-700"
             onClick={() => navigate(-1)}
           >
-            <FaArrowLeft className="text-orange-600" size={16} />
-            <span className="text-sm font-medium text-orange-600">Back</span>
+            <FaArrowLeft size={16} />
+            <span className="text-sm font-medium">Back</span>
           </Button>
 
           <div className="text-center pt-8">

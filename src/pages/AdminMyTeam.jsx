@@ -14,8 +14,7 @@ import {
 import EditUserModal from './EditUserModal';
 import Select from '../components/Select';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { toast } from 'react-toastify';
 
 const AdminMyTeam = () => {
   const [users, setUsers] = useState([]);
@@ -160,21 +159,6 @@ const AdminMyTeam = () => {
       console.error("Error submitting form", err?.response?.data || err.message);
       alert(`Error: ${err?.response?.data?.message || err.message}`);
     }
-  };
-
-  const handleEdit = (user) => {
-    setEditingUser(user);
-    setFormData({
-      name: user.name,
-      username: user.username,
-      password: '',
-      mobileNumber: user.mobileNumber || '', // ✅ Changed from contact
-      role: user.role,
-      assignedBranches: user.assignedBranches?.map((b) => b._id) || [],
-      project: user.project?._id || '',
-    });
-    setEditId(user._id);
-    setShowPasswordField(false);
   };
 
   const handleDelete = async (id) => {

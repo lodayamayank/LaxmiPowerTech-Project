@@ -31,6 +31,7 @@ import { BiUserCheck } from "react-icons/bi";
 import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { useState, useEffect } from 'react';
+import axios from "../utils/axios";
 
 const DashboardLayout = ({ children, title }) => {
   const today = new Date().toLocaleDateString("en-GB");
@@ -41,6 +42,75 @@ const DashboardLayout = ({ children, title }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [user, setUser] = useState(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+
+  const formatCurrency = (value) => `₹${(Number(value) || 0).toLocaleString('en-IN')}`;
+
+  const formatDate = (dateValue) => {
+    if (!dateValue) return 'N/A';
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return 'N/A';
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  const getRetentionNotification = (order) => {
+    if (!order?.isTriggered || !order.retentionAmount || !order.retentionDueDate) return null;
+
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
+    const dueDate = new Date(order.retentionDueDate);
+    dueDate.setHours(0, 0, 0, 0);
+    const reminderDate = new Date(order.retentionReminderDate || order.retentionDueDate);
+    reminderDate.setHours(0, 0, 0, 0);
+
+    if (todayDate < reminderDate) return null;
+
+    const overdue = todayDate > dueDate;
+    return {
+      id: order._id,
+      title: overdue ? 'Retention overdue' : 'Retention due soon',
+      message: `${order.project?.name || 'Project'} / ${order.workOrderNo}: pay ${formatCurrency(order.retentionAmount)} by ${formatDate(order.retentionDueDate)}.`,
+      color: overdue ? 'text-red-600 bg-red-50' : 'text-yellow-700 bg-yellow-50',
+    };
+  };
+
+  const loadNotifications = async () => {
+    setNotificationsLoading(true);
+    try {
+      const projectRes = await axios.get('/projects');
+      const projectList = Array.isArray(projectRes.data) ? projectRes.data : projectRes.data?.data || [];
+      const workOrderResults = await Promise.allSettled(
+        projectList.map((project) =>
+          axios.get('/work-orders', {
+            params: { project: project._id, status: 'triggered', limit: 100 },
+          })
+        )
+      );
+      const allOrders = workOrderResults.flatMap((result) =>
+        result.status === 'fulfilled' ? result.value.data?.data || [] : []
+      );
+      setNotifications(allOrders.map(getRetentionNotification).filter(Boolean));
+    } catch (err) {
+      console.error('Failed to load notifications', err);
+      setNotifications([]);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
+  const handleNotificationClick = () => {
+    const nextState = !showNotifications;
+    setShowNotifications(nextState);
+    if (nextState) {
+      loadNotifications();
+    }
+  };
 
   // Load dark mode preference and user data
   useEffect(() => {
@@ -365,9 +435,59 @@ const DashboardLayout = ({ children, title }) => {
             >
               {darkMode ? <FaSun /> : <FaMoon />}
             </button>
-            <button className="text-orange-500 dark:text-orange-400 text-lg lg:text-xl hover:text-orange-600 dark:hover:text-orange-300 transition-colors">
-              <FaBell />
-            </button>
+            <div className="relative">
+              <button
+                onClick={handleNotificationClick}
+                className="relative text-orange-500 dark:text-orange-400 text-lg lg:text-xl hover:text-orange-600 dark:hover:text-orange-300 transition-colors"
+                title="Notifications"
+              >
+                <FaBell />
+                {notifications.length > 0 && (
+                  <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="absolute right-0 top-9 z-50 w-80 rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
+                  <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</p>
+                    <button
+                      onClick={() => setShowNotifications(false)}
+                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                      title="Close notifications"
+                    >
+                      <FaTimes size={14} />
+                    </button>
+                  </div>
+
+                  <div className="max-h-80 overflow-y-auto p-3">
+                    {notificationsLoading ? (
+                      <div className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                        Loading notifications...
+                      </div>
+                    ) : notifications.length === 0 ? (
+                      <div className="py-8 text-center">
+                        <MdNotificationsActive className="mx-auto mb-2 text-3xl text-gray-300 dark:text-gray-500" />
+                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">No notifications</p>
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">You are all caught up.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {notifications.map((notification) => (
+                          <div
+                            key={notification.id}
+                            className={`rounded-lg px-3 py-2 ${notification.color}`}
+                          >
+                            <p className="text-sm font-semibold">{notification.title}</p>
+                            <p className="mt-1 text-xs leading-5">{notification.message}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             <button className="text-orange-500 dark:text-orange-400 text-lg lg:text-xl hover:text-orange-600 dark:hover:text-orange-300 transition-colors">
               <FaCalendarAlt />
             </button>

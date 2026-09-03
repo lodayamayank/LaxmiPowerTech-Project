@@ -32,8 +32,10 @@ export default function ManageWorkOrder() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showBillsModal, setShowBillsModal] = useState(false);
   const [showAddBillForm, setShowAddBillForm] = useState(false);
+  const [showTriggerModal, setShowTriggerModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedWorkOrder, setSelectedWorkOrder] = useState(null);
+  const [triggerWorkOrder, setTriggerWorkOrder] = useState(null);
   const [bills, setBills] = useState([]);
   const [loadingBills, setLoadingBills] = useState(false);
   const [filters, setFilters] = useState({
@@ -55,6 +57,65 @@ export default function ManageWorkOrder() {
     holdingAmount: "",
     notes: "",
   });
+  const [triggerFormData, setTriggerFormData] = useState({
+    retentionAmount: "",
+    retentionDueDate: "",
+    retentionNotes: "",
+  });
+
+  const formatCurrency = (value) => `₹${(Number(value) || 0).toLocaleString('en-IN')}`;
+
+  const formatDate = (dateValue) => {
+    if (!dateValue) return "N/A";
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return "N/A";
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  const subtractOneMonth = (dateValue) => {
+    const date = new Date(dateValue);
+    const originalDay = date.getDate();
+    date.setMonth(date.getMonth() - 1);
+    if (date.getDate() !== originalDay) {
+      date.setDate(0);
+    }
+    return date.toISOString().split('T')[0];
+  };
+
+  const getDateAfterMonths = (months) => {
+    const date = new Date();
+    const originalDay = date.getDate();
+    date.setMonth(date.getMonth() + months);
+    if (date.getDate() !== originalDay) {
+      date.setDate(0);
+    }
+    return date.toISOString().split('T')[0];
+  };
+
+  const getRetentionState = (order) => {
+    if (!order?.isTriggered || !order.retentionAmount || !order.retentionDueDate) {
+      return null;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dueDate = new Date(order.retentionDueDate);
+    dueDate.setHours(0, 0, 0, 0);
+    const reminderDate = new Date(order.retentionReminderDate || subtractOneMonth(order.retentionDueDate));
+    reminderDate.setHours(0, 0, 0, 0);
+
+    if (today > dueDate) {
+      return { label: "Retention Overdue", color: "bg-red-100 text-red-700", isNotifiable: true };
+    }
+    if (today >= reminderDate) {
+      return { label: "Retention Due Soon", color: "bg-yellow-100 text-yellow-700", isNotifiable: true };
+    }
+    return { label: "Reminder Scheduled", color: "bg-blue-100 text-blue-700", isNotifiable: false };
+  };
 
   // Fetch projects on mount
   useEffect(() => {
@@ -105,6 +166,18 @@ export default function ManageWorkOrder() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProject]);
+
+  useEffect(() => {
+    const notifiableOrders = workOrders.filter((order) => getRetentionState(order)?.isNotifiable);
+    notifiableOrders.slice(0, 3).forEach((order) => {
+      const retentionState = getRetentionState(order);
+      toast.warning(
+        `${order.workOrderName || order.workOrderNo}: ${retentionState.label}. Pay ${formatCurrency(order.retentionAmount)} by ${formatDate(order.retentionDueDate)}.`,
+        { toastId: `retention-${order._id}`, autoClose: 8000 }
+      );
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workOrders]);
 
   const handleAddWorkOrder = () => {
     if (!selectedProject) {
@@ -337,18 +410,61 @@ export default function ManageWorkOrder() {
     fetchWorkOrders(reset);
   };
 
-  const handleTriggerWorkOrder = async (order) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to TRIGGER Work Order "${order.workOrderNo}"?\n\nOnce triggered:\n- This Work Order will be LOCKED\n- No new bills can be added\n- No edits allowed\n\nThis action CANNOT be undone.`
-    );
-    if (!confirmed) return;
+  const openTriggerModal = (order) => {
+    setTriggerWorkOrder(order);
+    setTriggerFormData({
+      retentionAmount: "",
+      retentionDueDate: getDateAfterMonths(12),
+      retentionNotes: "",
+    });
+    setShowTriggerModal(true);
+  };
+
+  const closeTriggerModal = () => {
+    setShowTriggerModal(false);
+    setTriggerWorkOrder(null);
+    setTriggerFormData({
+      retentionAmount: "",
+      retentionDueDate: "",
+      retentionNotes: "",
+    });
+  };
+
+  const validateTriggerForm = () => {
+    const amount = Number(triggerFormData.retentionAmount);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error("Retention amount must be greater than 0");
+      return false;
+    }
+
+    if (!triggerFormData.retentionDueDate) {
+      toast.error("Retention due date is required");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleTriggerWorkOrder = async (e) => {
+    e.preventDefault();
+
+    if (!triggerWorkOrder || !validateTriggerForm()) return;
 
     try {
-      await axios.patch(`/work-orders/${order._id}/trigger`);
-      toast.success(`Work Order "${order.workOrderNo}" has been triggered and locked.`);
+      setSubmitting(true);
+      await axios.patch(`/work-orders/${triggerWorkOrder._id}/trigger`, {
+        retentionAmount: Number(triggerFormData.retentionAmount),
+        retentionDueDate: triggerFormData.retentionDueDate,
+        retentionNotes: triggerFormData.retentionNotes.trim(),
+      });
+      toast.success(`Work Order "${triggerWorkOrder.workOrderNo}" has been triggered and locked.`);
+      closeTriggerModal();
       fetchWorkOrders();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to trigger work order");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -439,6 +555,7 @@ export default function ManageWorkOrder() {
                   <option value="completed">Completed</option>
                   <option value="on-hold">On Hold</option>
                   <option value="cancelled">Cancelled</option>
+                  <option value="triggered">Triggered</option>
                 </select>
               </div>
 
@@ -498,6 +615,9 @@ export default function ManageWorkOrder() {
                       Number of Bills
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Retention Reminder
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -534,6 +654,24 @@ export default function ManageWorkOrder() {
                           {order.billsCount || 0}
                         </span>
                       </td>
+                      <td className="px-6 py-4 text-sm">
+                        {order.retentionAmount && order.retentionDueDate ? (
+                          <div className="space-y-1">
+                            <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${getRetentionState(order)?.color || 'bg-gray-100 text-gray-700'}`}>
+                              {getRetentionState(order)?.label || 'Scheduled'}
+                            </span>
+                            <p className="text-gray-900 font-semibold">{formatCurrency(order.retentionAmount)}</p>
+                            <p className="text-xs text-gray-500">
+                              Pay by {formatDate(order.retentionDueDate)}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              Notify from {formatDate(order.retentionReminderDate)}
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <StatusPill value={order.status} />
                       </td>
@@ -551,7 +689,7 @@ export default function ManageWorkOrder() {
                             </span>
                           ) : (
                             <button
-                              onClick={() => handleTriggerWorkOrder(order)}
+                              onClick={() => openTriggerModal(order)}
                               className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-xs"
                             >
                               Trigger WO
@@ -700,6 +838,126 @@ export default function ManageWorkOrder() {
           </div>
         )}
 
+        {/* Trigger Work Order Modal */}
+        {showTriggerModal && triggerWorkOrder && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-xl w-full">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800">Trigger Work Order</h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {triggerWorkOrder.workOrderNo} - {triggerWorkOrder.workOrderName}
+                  </p>
+                </div>
+                <button
+                  onClick={closeTriggerModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  disabled={submitting}
+                >
+                  <FaTimes size={24} />
+                </button>
+              </div>
+
+              <form onSubmit={handleTriggerWorkOrder} className="p-6">
+                <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 mb-5">
+                  <p className="text-sm font-semibold text-purple-800">This will lock the work order.</p>
+                  <p className="text-xs text-purple-700 mt-1">
+                    After triggering, no new bills can be added. The retention reminder starts one month before the due date.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Retention Amount (₹) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="Amount to pay to client"
+                      value={triggerFormData.retentionAmount}
+                      onChange={(e) => setTriggerFormData({ ...triggerFormData, retentionAmount: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                      min="1"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Retention Due Date <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {[
+                        { label: "After 6 Months", months: 6 },
+                        { label: "After 9 Months", months: 9 },
+                        { label: "After 1 Year", months: 12 },
+                      ].map((option) => (
+                        <button
+                          key={option.months}
+                          type="button"
+                          onClick={() => setTriggerFormData({
+                            ...triggerFormData,
+                            retentionDueDate: getDateAfterMonths(option.months),
+                          })}
+                          className={`px-3 py-1.5 rounded-md border text-xs font-semibold transition-colors ${
+                            triggerFormData.retentionDueDate === getDateAfterMonths(option.months)
+                              ? 'bg-purple-600 border-purple-600 text-white'
+                              : 'bg-white border-purple-200 text-purple-700 hover:bg-purple-50'
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                    <input
+                      type="date"
+                      value={triggerFormData.retentionDueDate}
+                      onChange={(e) => setTriggerFormData({ ...triggerFormData, retentionDueDate: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Reminder starts from {triggerFormData.retentionDueDate ? formatDate(subtractOneMonth(triggerFormData.retentionDueDate)) : 'one month before due date'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Notes
+                    </label>
+                    <textarea
+                      placeholder="Optional retention/payment note"
+                      value={triggerFormData.retentionNotes}
+                      onChange={(e) => setTriggerFormData({ ...triggerFormData, retentionNotes: e.target.value })}
+                      rows="3"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none resize-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={closeTriggerModal}
+                    className="flex-1 px-6 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={submitting}
+                  >
+                    {submitting ? "Triggering..." : "Trigger & Save Reminder"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* Bills Management Modal */}
         {showBillsModal && selectedWorkOrder && (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -726,7 +984,9 @@ export default function ManageWorkOrder() {
                   <span className="text-purple-700 text-lg">🔒</span>
                   <div>
                     <p className="text-sm font-semibold text-purple-800">This Work Order is Triggered and Locked</p>
-                    <p className="text-xs text-purple-600">No new bills can be added. All data is read-only.</p>
+                    <p className="text-xs text-purple-600">
+                      No new bills can be added. Retention payment: {formatCurrency(selectedWorkOrder.retentionAmount)} by {formatDate(selectedWorkOrder.retentionDueDate)}.
+                    </p>
                   </div>
                 </div>
               )}
@@ -763,6 +1023,27 @@ export default function ManageWorkOrder() {
                     </p>
                   </div>
                 </div>
+                {selectedWorkOrder.retentionAmount && selectedWorkOrder.retentionDueDate && (
+                  <div className="mt-4 rounded-lg border border-blue-200 bg-white p-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${getRetentionState(selectedWorkOrder)?.color || 'bg-gray-100 text-gray-700'}`}>
+                        {getRetentionState(selectedWorkOrder)?.label || 'Retention Reminder'}
+                      </span>
+                      <span className="text-sm font-semibold text-gray-900">
+                        {formatCurrency(selectedWorkOrder.retentionAmount)}
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        Pay by {formatDate(selectedWorkOrder.retentionDueDate)}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        Notify from {formatDate(selectedWorkOrder.retentionReminderDate)}
+                      </span>
+                    </div>
+                    {selectedWorkOrder.retentionNotes && (
+                      <p className="text-sm text-gray-600 mt-2">{selectedWorkOrder.retentionNotes}</p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Modal Body */}

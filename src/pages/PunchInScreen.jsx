@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { GoogleMap, MarkerF, CircleF, useJsApiLoader } from "@react-google-maps/api";
-import { formatIST } from "../utils/date";
 import { 
   FaArrowLeft, 
   FaClock, 
@@ -304,11 +303,11 @@ const PunchInScreen = () => {
         {/* Header with Gradient */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <button
-            className="absolute top-6 left-6 bg-white/90 flex items-center gap-2 hover:bg-white px-3 py-1.5 rounded-full transition-all"
+            className="absolute top-6 left-6 flex items-center gap-2 rounded-full border border-white/70 bg-white px-3 py-1.5 text-orange-600 shadow-sm transition-all hover:bg-orange-50 hover:text-orange-700"
             onClick={() => navigate(-1)}
           >
-            <FaArrowLeft className="text-orange-500" size={16} />
-            <span className="text-sm text-orange-500 font-medium">Back</span>
+            <FaArrowLeft size={16} />
+            <span className="text-sm font-medium">Back</span>
           </button>
 
           <div className="text-center pt-8">
