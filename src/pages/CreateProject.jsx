@@ -6,11 +6,18 @@ import {
   FaProjectDiagram,
   FaMapMarkerAlt,
   FaBuilding,
+  FaEye,
   FaEdit,
   FaTrash,
   FaPlus,
   FaTimes,
-  FaCheck
+  FaCheck,
+  FaTasks,
+  FaUsers,
+  FaLayerGroup,
+  FaCheckCircle,
+  FaClock,
+  FaChartLine
 } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,8 +35,12 @@ const CreateProject = () => {
   });
   const [projects, setProjects] = useState([]);
   const [branches, setBranches] = useState([]);
+  const [users, setUsers] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [detailsProject, setDetailsProject] = useState(null);
+  const [projectTasks, setProjectTasks] = useState([]);
+  const [detailsLoading, setDetailsLoading] = useState(false);
   const token = localStorage.getItem('token');
 
   // Google Places Autocomplete
@@ -82,6 +93,118 @@ const CreateProject = () => {
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get('/users', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUsers(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch users', err);
+    }
+  };
+
+  const getId = (value) => {
+    if (!value) return '';
+    return typeof value === 'object' ? value._id : value;
+  };
+
+  const getProjectTeam = (project) => {
+    const projectBranchIds = new Set((project?.branches || []).map(getId).filter(Boolean));
+
+    return users.filter((user) => {
+      if (!['supervisor', 'subcontractor'].includes(user.role)) return false;
+      if (getId(user.project) === project?._id) return true;
+      return (user.assignedBranches || []).some((branch) => projectBranchIds.has(getId(branch)));
+    });
+  };
+
+  const countProjectStructure = (project) => {
+    const buildings = project?.buildings || [];
+    let floors = 0;
+    let flats = 0;
+    let rooms = 0;
+
+    buildings.forEach((building) => {
+      (building.wings || []).forEach((wing) => {
+        floors += wing.floors?.length || 0;
+        (wing.floors || []).forEach((floor) => {
+          flats += floor.flats?.length || 0;
+          (floor.flats || []).forEach((flat) => {
+            rooms += flat.rooms?.length || 0;
+          });
+        });
+      });
+    });
+
+    return { buildings: buildings.length, floors, flats, rooms };
+  };
+
+  const getTaskProgress = (tasks) => {
+    const counts = {
+      pending: 0,
+      'in-progress': 0,
+      completed: 0,
+      verified: 0,
+      approved: 0,
+      rejected: 0,
+    };
+
+    tasks.forEach((task) => {
+      counts[task.status] = (counts[task.status] || 0) + 1;
+    });
+
+    const done = counts.completed + counts.verified + counts.approved;
+    const total = tasks.length;
+    return {
+      counts,
+      done,
+      total,
+      percent: total ? Math.round((done / total) * 100) : 0,
+    };
+  };
+
+  const groupTasksBy = (tasks, keyPath, fallback = 'Unassigned') => {
+    const groups = new Map();
+
+    tasks.forEach((task) => {
+      const key = keyPath.split('.').reduce((value, key) => value?.[key], task) || fallback;
+      const current = groups.get(key) || { name: key, total: 0, done: 0, pending: 0, inProgress: 0, rejected: 0 };
+      current.total += 1;
+      if (['completed', 'verified', 'approved'].includes(task.status)) current.done += 1;
+      if (task.status === 'pending') current.pending += 1;
+      if (task.status === 'in-progress') current.inProgress += 1;
+      if (task.status === 'rejected') current.rejected += 1;
+      groups.set(key, current);
+    });
+
+    return Array.from(groups.values()).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
+  };
+
+  const handleViewDetails = async (project) => {
+    setDetailsProject(project);
+    setProjectTasks([]);
+    setDetailsLoading(true);
+
+    try {
+      const res = await axios.get('/tasks', {
+        params: { project: project._id, limit: 1000 },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProjectTasks(res.data?.data || []);
+    } catch (err) {
+      console.error('Failed to fetch project tasks', err);
+      alert('Failed to fetch project details');
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  const closeDetails = () => {
+    setDetailsProject(null);
+    setProjectTasks([]);
+    setDetailsLoading(false);
+  };
 
   const handleSubmit = async () => {
     try {
@@ -176,9 +299,15 @@ const CreateProject = () => {
   useEffect(() => {
     fetchProjects();
     fetchBranches();
+    fetchUsers();
   }, []);
 
   const totalBranches = projects.reduce((acc, proj) => acc + (proj.branches?.length || 0), 0);
+  const detailStructure = countProjectStructure(detailsProject);
+  const detailProgress = getTaskProgress(projectTasks);
+  const detailTeam = detailsProject ? getProjectTeam(detailsProject) : [];
+  const buildingProgress = groupTasksBy(projectTasks, 'building.name');
+  const supervisorProgress = groupTasksBy(projectTasks, 'supervisor.name');
 
   return (
     <DashboardLayout title="Projects">
@@ -418,6 +547,14 @@ const CreateProject = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <button
+                            className="flex items-center gap-1 text-slate-600 hover:text-slate-800 font-medium transition-colors"
+                            onClick={() => handleViewDetails(proj)}
+                            title="View project details"
+                          >
+                            <FaEye size={14} />
+                            View
+                          </button>
+                          <button
                             className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium transition-colors"
                             onClick={() => handleEdit(proj)}
                             title="Edit"
@@ -442,6 +579,285 @@ const CreateProject = () => {
             </table>
           </div>
         </div>
+
+        {detailsProject && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+              <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-gray-100">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">{detailsProject.name}</h2>
+                  <p className="text-sm text-gray-500 mt-1">{detailsProject.address || 'No address added'}</p>
+                </div>
+                <button
+                  onClick={closeDetails}
+                  className="text-gray-400 hover:text-gray-700 transition-colors"
+                  title="Close"
+                >
+                  <FaTimes size={20} />
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-76px)] space-y-6">
+                {detailsLoading ? (
+                  <div className="py-16 text-center text-gray-500">Loading project details...</div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500 font-medium">Total Tasks</p>
+                              <p className="text-2xl font-bold text-gray-900 mt-1">{detailProgress.total}</p>
+                            </div>
+                            <FaTasks className="text-blue-600" size={22} />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500 font-medium">Work Done</p>
+                              <p className="text-2xl font-bold text-green-700 mt-1">{detailProgress.percent}%</p>
+                            </div>
+                            <FaChartLine className="text-green-600" size={22} />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500 font-medium">Assigned Team</p>
+                              <p className="text-2xl font-bold text-gray-900 mt-1">{detailTeam.length}</p>
+                            </div>
+                            <FaUsers className="text-purple-600" size={22} />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500 font-medium">Rooms Planned</p>
+                              <p className="text-2xl font-bold text-gray-900 mt-1">{detailStructure.rooms}</p>
+                            </div>
+                            <FaLayerGroup className="text-orange-600" size={22} />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    <div>
+                      <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-green-600 transition-all"
+                          style={{ width: `${detailProgress.percent}%` }}
+                        />
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {Object.entries(detailProgress.counts).map(([status, count]) => (
+                          <Badge key={status} variant="secondary" className="capitalize">
+                            {status.replace('-', ' ')}: {count}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div className="border border-gray-100 rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+                          <h3 className="font-semibold text-gray-900">Project Info</h3>
+                        </div>
+                        <div className="p-4 space-y-4">
+                          <div>
+                            <p className="text-xs font-semibold text-gray-500 uppercase">Branches</p>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {detailsProject.branches?.length > 0 ? (
+                                detailsProject.branches.map((branch) => (
+                                  <span
+                                    key={branch._id}
+                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium"
+                                  >
+                                    <FaMapMarkerAlt size={10} />
+                                    {branch.name}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-sm text-gray-400">No branches assigned</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div className="bg-gray-50 rounded-lg p-3">
+                              <p className="text-xs text-gray-500">Buildings</p>
+                              <p className="text-lg font-bold text-gray-900">{detailStructure.buildings}</p>
+                            </div>
+                            <div className="bg-gray-50 rounded-lg p-3">
+                              <p className="text-xs text-gray-500">Floors</p>
+                              <p className="text-lg font-bold text-gray-900">{detailStructure.floors}</p>
+                            </div>
+                            <div className="bg-gray-50 rounded-lg p-3">
+                              <p className="text-xs text-gray-500">Flats</p>
+                              <p className="text-lg font-bold text-gray-900">{detailStructure.flats}</p>
+                            </div>
+                            <div className="bg-gray-50 rounded-lg p-3">
+                              <p className="text-xs text-gray-500">Rooms</p>
+                              <p className="text-lg font-bold text-gray-900">{detailStructure.rooms}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="border border-gray-100 rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+                          <h3 className="font-semibold text-gray-900">Assigned Supervisors</h3>
+                        </div>
+                        <div className="p-4">
+                          {detailTeam.length > 0 ? (
+                            <div className="space-y-2">
+                              {detailTeam.map((member) => (
+                                <div key={member._id} className="flex items-center justify-between gap-3 py-2 border-b border-gray-100 last:border-b-0">
+                                  <div>
+                                    <p className="font-medium text-gray-900">{member.name}</p>
+                                    <p className="text-xs text-gray-500">@{member.username || 'user'}</p>
+                                  </div>
+                                  <Badge variant="secondary" className="capitalize">{member.role}</Badge>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-400">No supervisors assigned to this project</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div className="border border-gray-100 rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+                          <FaBuilding className="text-gray-500" />
+                          <h3 className="font-semibold text-gray-900">Work By Building</h3>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full text-sm">
+                            <thead className="bg-white text-gray-600">
+                              <tr>
+                                <th className="text-left px-4 py-2 font-semibold">Building</th>
+                                <th className="text-center px-4 py-2 font-semibold">Total</th>
+                                <th className="text-center px-4 py-2 font-semibold">Done</th>
+                                <th className="text-center px-4 py-2 font-semibold">Pending</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {buildingProgress.length > 0 ? (
+                                buildingProgress.map((row) => (
+                                  <tr key={row.name} className="border-t border-gray-100">
+                                    <td className="px-4 py-2 font-medium text-gray-900">{row.name}</td>
+                                    <td className="px-4 py-2 text-center">{row.total}</td>
+                                    <td className="px-4 py-2 text-center text-green-700">{row.done}</td>
+                                    <td className="px-4 py-2 text-center text-orange-600">{row.pending}</td>
+                                  </tr>
+                                ))
+                              ) : (
+                                <tr>
+                                  <td colSpan="4" className="px-4 py-6 text-center text-gray-400">No tasks created yet</td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      <div className="border border-gray-100 rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+                          <FaUsers className="text-gray-500" />
+                          <h3 className="font-semibold text-gray-900">Work By Supervisor</h3>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full text-sm">
+                            <thead className="bg-white text-gray-600">
+                              <tr>
+                                <th className="text-left px-4 py-2 font-semibold">Supervisor</th>
+                                <th className="text-center px-4 py-2 font-semibold">Total</th>
+                                <th className="text-center px-4 py-2 font-semibold">Done</th>
+                                <th className="text-center px-4 py-2 font-semibold">Open</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {supervisorProgress.length > 0 ? (
+                                supervisorProgress.map((row) => (
+                                  <tr key={row.name} className="border-t border-gray-100">
+                                    <td className="px-4 py-2 font-medium text-gray-900">{row.name}</td>
+                                    <td className="px-4 py-2 text-center">{row.total}</td>
+                                    <td className="px-4 py-2 text-center text-green-700">{row.done}</td>
+                                    <td className="px-4 py-2 text-center text-orange-600">{row.pending + row.inProgress}</td>
+                                  </tr>
+                                ))
+                              ) : (
+                                <tr>
+                                  <td colSpan="4" className="px-4 py-6 text-center text-gray-400">No tasks created yet</td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border border-gray-100 rounded-lg overflow-hidden">
+                      <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+                        <FaClock className="text-gray-500" />
+                        <h3 className="font-semibold text-gray-900">Recent Tasks</h3>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full text-sm">
+                          <thead className="bg-white text-gray-600">
+                            <tr>
+                              <th className="text-left px-4 py-2 font-semibold">Location</th>
+                              <th className="text-left px-4 py-2 font-semibold">Activity</th>
+                              <th className="text-left px-4 py-2 font-semibold">Supervisor</th>
+                              <th className="text-left px-4 py-2 font-semibold">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {projectTasks.slice(0, 8).map((task) => (
+                              <tr key={task._id} className="border-t border-gray-100">
+                                <td className="px-4 py-2 text-gray-900">
+                                  {[task.building?.name, task.floor?.name, task.flat?.name, task.room?.name].filter(Boolean).join(' / ')}
+                                </td>
+                                <td className="px-4 py-2 text-gray-600">{task.level3Activity?.name || '-'}</td>
+                                <td className="px-4 py-2 text-gray-900">{task.supervisor?.name || 'N/A'}</td>
+                                <td className="px-4 py-2">
+                                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
+                                    ['completed', 'verified', 'approved'].includes(task.status)
+                                      ? 'bg-green-100 text-green-700'
+                                      : task.status === 'rejected'
+                                        ? 'bg-red-100 text-red-700'
+                                        : 'bg-orange-100 text-orange-700'
+                                  }`}>
+                                    {['completed', 'verified', 'approved'].includes(task.status) ? <FaCheckCircle size={10} /> : <FaClock size={10} />}
+                                    {task.status?.replace('-', ' ') || 'pending'}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                            {projectTasks.length === 0 && (
+                              <tr>
+                                <td colSpan="4" className="px-4 py-6 text-center text-gray-400">No tasks created yet</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

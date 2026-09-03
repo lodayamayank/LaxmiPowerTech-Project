@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../utils/axios';
 import DashboardLayout from '../layouts/DashboardLayout';
@@ -53,6 +53,32 @@ const AdminTasks = () => {
   const emptyForm = { project: '', branch: '', supervisor: '', notes: '', photo: null };
   const [formData, setFormData] = useState(emptyForm);
 
+  const getId = (value) => {
+    if (!value) return '';
+    return typeof value === 'object' ? value._id : value;
+  };
+
+  const selectedProject = projects.find((project) => project._id === formData.project);
+
+  const formSupervisors = useMemo(() => {
+    if (!formData.project) return [];
+
+    const projectBranchIds = new Set(
+      (selectedProject?.branches || [])
+        .map((branch) => getId(branch))
+        .filter(Boolean)
+    );
+
+    return supervisors.filter((supervisor) => {
+      const supervisorProjectId = getId(supervisor.project);
+      if (supervisorProjectId === formData.project) return true;
+
+      return (supervisor.assignedBranches || []).some((branch) =>
+        projectBranchIds.has(getId(branch))
+      );
+    });
+  }, [formData.project, selectedProject, supervisors]);
+
   const getFloors = () => selectedBuilding?.wings?.[0]?.floors || [];
   const getFlats = () => selectedFloor?.flats || [];
   const getRooms = () => selectedFlat?.rooms || [];
@@ -72,6 +98,16 @@ const AdminTasks = () => {
     fetchProjects();
     fetchSupervisors();
   }, [currentPage, filters]);
+
+  useEffect(() => {
+    if (
+      formData.project &&
+      formData.supervisor &&
+      !formSupervisors.some((supervisor) => supervisor._id === formData.supervisor)
+    ) {
+      handleFormChange('supervisor', '');
+    }
+  }, [formData.project, formData.supervisor, formSupervisors]);
 
   const fetchTasks = async () => {
     try {
@@ -743,6 +779,7 @@ const AdminTasks = () => {
                         value={formData.project}
                         onChange={(e) => {
                           handleFormChange('project', e.target.value);
+                          handleFormChange('supervisor', '');
                           setSelectedBuilding(null);
                           setSelectedFloor(null);
                           setSelectedFlat(null);
@@ -769,10 +806,17 @@ const AdminTasks = () => {
                         value={formData.supervisor}
                         onChange={(e) => handleFormChange('supervisor', e.target.value)}
                         required
+                        disabled={!formData.project}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       >
-                        <option value="">Select Supervisor</option>
-                        {supervisors.map(s => (
+                        <option value="">
+                          {!formData.project
+                            ? 'Select project first'
+                            : formSupervisors.length === 0
+                              ? 'No assigned supervisors'
+                              : 'Select Supervisor'}
+                        </option>
+                        {formSupervisors.map(s => (
                           <option key={s._id} value={s._id}>{s.name} ({s.role})</option>
                         ))}
                       </select>
