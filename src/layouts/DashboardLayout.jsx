@@ -33,6 +33,14 @@ import logo from "../assets/logo.png";
 import { useState, useEffect } from 'react';
 import axios from "../utils/axios";
 
+const getMenuBranch = (key) => {
+  const parts = key.split('>');
+  return parts.reduce((branch, _part, index) => {
+    branch[parts.slice(0, index + 1).join('>')] = true;
+    return branch;
+  }, {});
+};
+
 const DashboardLayout = ({ children, title }) => {
   const today = new Date().toLocaleDateString("en-GB");
   const navigate = useNavigate();
@@ -151,20 +159,43 @@ const DashboardLayout = ({ children, title }) => {
     const isInventoryRoot = path.includes('/dashboard/inventory/');
     const isLabourInventory = path.includes('/dashboard/inventory/labour');
 
-    setOpenMenus((prev) => ({
-      ...prev,
-      Attendance: isAttendance,
-      Inventory: isMaterial || isInventoryRoot,
-      'Inventory>Material': isMaterial,
-      'Inventory>Labour': isLabourInventory,
-    }));
+    if (isAttendance) {
+      setOpenMenus(getMenuBranch('Attendance'));
+      return;
+    }
+
+    if (isMaterial) {
+      setOpenMenus(getMenuBranch('Inventory>Material'));
+      return;
+    }
+
+    if (isLabourInventory) {
+      setOpenMenus(getMenuBranch('Inventory>Labour'));
+      return;
+    }
+
+    if (isInventoryRoot) {
+      setOpenMenus(getMenuBranch('Inventory'));
+      return;
+    }
+
+    setOpenMenus({});
   }, [location.pathname]);
 
   const toggleMenu = (key) => {
-    setOpenMenus((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    setOpenMenus((prev) => {
+      if (!prev[key]) {
+        return getMenuBranch(key);
+      }
+
+      const next = { ...prev };
+      Object.keys(next).forEach((openKey) => {
+        if (openKey === key || openKey.startsWith(`${key}>`)) {
+          delete next[openKey];
+        }
+      });
+      return next;
+    });
   };
 
   const handleLogout = () => {

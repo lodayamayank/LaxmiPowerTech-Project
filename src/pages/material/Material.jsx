@@ -59,7 +59,7 @@ export default function Material({ activeTab }) {
         <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 px-4 pt-4 pb-3 shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <button
-              className="flex items-center gap-2 text-white hover:bg-white/20 px-3 py-2 rounded-lg transition-all"
+              className="mobile-back-button px-3 py-2"
               onClick={() => navigate('/dashboard')}
             >
               <ArrowLeft size={18} />

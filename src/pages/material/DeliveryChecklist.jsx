@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { upcomingDeliveryAPI } from "../../utils/materialAPI";
-import { ArrowLeft, AlertCircle, CheckCircle, Upload, Trash2, Image as ImageIcon } from "lucide-react";
+import { AlertCircle, CheckCircle, Upload, Trash2, Image as ImageIcon } from "lucide-react";
 import { FaArrowLeft } from 'react-icons/fa';
 
 export default function DeliveryChecklist() {
@@ -14,10 +14,9 @@ export default function DeliveryChecklist() {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const [validationErrors, setValidationErrors] = useState({});
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [pendingCheckbox, setPendingCheckbox] = useState(null);
     const [uploadingReceipt, setUploadingReceipt] = useState(false);
     const [deletingAttachment, setDeletingAttachment] = useState(null);
+    const [receiptAttachmentsForSubmission, setReceiptAttachmentsForSubmission] = useState([]);
     const fileInputRef = useRef(null);
 
     useEffect(() => {
@@ -31,7 +30,11 @@ export default function DeliveryChecklist() {
             const response = await upcomingDeliveryAPI.getById(id);
             if (response.success) {
                 setDelivery(response.data);
-                setItems(response.data.items.map(item => ({ ...item })));
+                setItems(response.data.items.map(item => ({
+                    ...item,
+                    currentReceivedQuantity: ''
+                })));
+                setReceiptAttachmentsForSubmission([]);
             }
         } catch (err) {
             // Error fetching delivery details
@@ -41,37 +44,68 @@ export default function DeliveryChecklist() {
         }
     };
 
+    const getRequestedQuantity = (item) => Number(item.quantity ?? item.st_quantity ?? 0);
+    const getPreviouslyReceivedQuantity = (item) => Number(item.received_quantity || 0);
+    const getRemainingQuantity = (item) => Math.max(getRequestedQuantity(item) - getPreviouslyReceivedQuantity(item), 0);
+    const getCurrentReceivedQuantity = (item) => {
+        if (item.currentReceivedQuantity === '' || item.currentReceivedQuantity === null || item.currentReceivedQuantity === undefined) {
+            return 0;
+        }
+        return Number(item.currentReceivedQuantity);
+    };
+
+    const formatQuantity = (value) => {
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue)) return 0;
+        return Number.isInteger(numericValue) ? numericValue : Number(numericValue.toFixed(2));
+    };
+
+    const getItemDisplayName = (item) => (
+        item.name ||
+        [item.category, item.sub_category, item.sub_category1, item.sub_category2].filter(Boolean).join(' - ') ||
+        item.itemId ||
+        'Material'
+    );
+
     const handleReceivedQuantityChange = (index, value) => {
         const updatedItems = [...items];
-        const qty = parseInt(value) || 0;
+        const remainingQty = getRemainingQuantity(updatedItems[index]);
+        const qty = value === '' ? '' : Number(value);
         
-        // Validate
         const errors = { ...validationErrors };
-        if (qty < 0) {
+        if (value === '') {
+            delete errors[index];
+        } else if (!Number.isFinite(qty)) {
+            errors[index] = "Enter a valid quantity";
+        } else if (qty < 0) {
             errors[index] = "Quantity must be >= 0";
-        } else if (qty > updatedItems[index].st_quantity) {
-            errors[index] = `Cannot exceed ST quantity (${updatedItems[index].st_quantity})`;
+        } else if (qty > remainingQty) {
+            errors[index] = `Cannot exceed remaining quantity (${formatQuantity(remainingQty)})`;
         } else {
             delete errors[index];
         }
         
         setValidationErrors(errors);
-        updatedItems[index].received_quantity = qty;
+        updatedItems[index].currentReceivedQuantity = value;
         setItems(updatedItems);
     };
 
     const handleCheckboxChange = (index, checked) => {
-        const item = items[index];
-        
-        // If checking and received_quantity < st_quantity, show confirmation
-        if (checked && item.received_quantity < item.st_quantity) {
-            setPendingCheckbox({ index, checked });
-            setShowConfirmModal(true);
+        const updatedItems = [...items];
+        const remainingQty = getRemainingQuantity(updatedItems[index]);
+
+        if (remainingQty <= 0) return;
+
+        if (checked) {
+            updatedItems[index].currentReceivedQuantity = String(formatQuantity(remainingQty));
+            const errors = { ...validationErrors };
+            delete errors[index];
+            setValidationErrors(errors);
         } else {
-            const updatedItems = [...items];
-            updatedItems[index].is_received = checked;
-            setItems(updatedItems);
+            updatedItems[index].currentReceivedQuantity = '';
         }
+
+        setItems(updatedItems);
     };
 
     // ✅ UPLOAD DELIVERY RECEIPT IMAGES
@@ -83,8 +117,12 @@ export default function DeliveryChecklist() {
             const response = await upcomingDeliveryAPI.uploadReceipts(id, Array.from(files));
             
             if (response.success) {
+                const previousCount = delivery?.attachments?.length || 0;
+                const latestAttachments = response.data.attachments || [];
+                const uploadedNow = latestAttachments.slice(previousCount);
                 // Update delivery data with new attachments
                 setDelivery(response.data);
+                setReceiptAttachmentsForSubmission(prev => [...prev, ...uploadedNow]);
                 showToast(`${files.length} receipt(s) uploaded successfully!`, 'success');
                 
                 // Clear file input
@@ -121,25 +159,6 @@ export default function DeliveryChecklist() {
         }
     };
 
-    const handleConfirmAutoFill = () => {
-        const { index } = pendingCheckbox;
-        const updatedItems = [...items];
-        updatedItems[index].received_quantity = updatedItems[index].st_quantity;
-        updatedItems[index].is_received = true;
-        setItems(updatedItems);
-        setShowConfirmModal(false);
-        setPendingCheckbox(null);
-    };
-
-    const handleCancelAutoFill = () => {
-        const { index } = pendingCheckbox;
-        const updatedItems = [...items];
-        updatedItems[index].is_received = true;
-        setItems(updatedItems);
-        setShowConfirmModal(false);
-        setPendingCheckbox(null);
-    };
-
     // Toast notification helper
     const showToast = (message, type = 'success') => {
         const toast = document.createElement('div');
@@ -156,13 +175,21 @@ export default function DeliveryChecklist() {
     };
 
     const handleSubmit = async () => {
-        // Validate all items
         const errors = {};
         items.forEach((item, index) => {
-            if (item.received_quantity < 0) {
+            const currentQty = getCurrentReceivedQuantity(item);
+            const remainingQty = getRemainingQuantity(item);
+
+            if (item.currentReceivedQuantity === '' || currentQty === 0) {
+                return;
+            }
+
+            if (!Number.isFinite(currentQty)) {
+                errors[index] = "Enter a valid quantity";
+            } else if (currentQty < 0) {
                 errors[index] = "Quantity must be >= 0";
-            } else if (item.received_quantity > item.st_quantity) {
-                errors[index] = `Cannot exceed ST quantity (${item.st_quantity})`;
+            } else if (currentQty > remainingQty) {
+                errors[index] = `Cannot exceed remaining quantity (${formatQuantity(remainingQty)})`;
             }
         });
 
@@ -172,15 +199,30 @@ export default function DeliveryChecklist() {
             return;
         }
 
+        const itemUpdates = items
+            .map(item => {
+                const currentQty = getCurrentReceivedQuantity(item);
+                const remainingQty = getRemainingQuantity(item);
+                return {
+                    itemId: item.itemId,
+                    currentReceivedQuantity: currentQty,
+                    received_now: currentQty,
+                    is_received: currentQty > 0 && currentQty >= remainingQty
+                };
+            })
+            .filter(item => item.currentReceivedQuantity > 0);
+
+        if (itemUpdates.length === 0) {
+            showToast("Enter received quantity for at least one material.", 'error');
+            return;
+        }
+
         try {
             setSubmitting(true);
-            const itemUpdates = items.map(item => ({
-                itemId: item.itemId,
-                received_quantity: item.received_quantity,
-                is_received: item.is_received
-            }));
 
-            const response = await upcomingDeliveryAPI.updateItems(id, itemUpdates);
+            const response = await upcomingDeliveryAPI.updateItems(id, itemUpdates, {
+                receiptAttachments: receiptAttachmentsForSubmission
+            });
             if (response.success) {
                 window.dispatchEvent(new Event('deliveryUpdated'));
                 window.dispatchEvent(new Event('upcomingDeliveryRefresh'));
@@ -190,7 +232,7 @@ export default function DeliveryChecklist() {
                 localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
                 localStorage.setItem('intentRefresh', Date.now().toString());
                 
-                showToast("Delivery updated successfully!", 'success');
+                showToast(response.message || "Delivery updated successfully!", 'success');
                 
                 setTimeout(() => {
                     navigate(-1);
@@ -204,13 +246,13 @@ export default function DeliveryChecklist() {
     };
 
     // Calculate summary
-    const totalSubmitted = items.reduce((sum, item) => sum + item.st_quantity, 0);
-    const totalReceived = items.reduce((sum, item) => sum + item.received_quantity, 0);
-    const missing = totalSubmitted - totalReceived;
+    const totalSubmitted = items.reduce((sum, item) => sum + getRequestedQuantity(item), 0);
+    const totalReceived = items.reduce((sum, item) => sum + getPreviouslyReceivedQuantity(item) + getCurrentReceivedQuantity(item), 0);
+    const missing = Math.max(totalSubmitted - totalReceived, 0);
 
     // Check if all transferred
     const allTransferred = items.every(item => 
-        item.is_received && item.received_quantity >= item.st_quantity
+        getPreviouslyReceivedQuantity(item) + getCurrentReceivedQuantity(item) >= getRequestedQuantity(item)
     );
 
     const formatDate = (dateString) => {
@@ -264,7 +306,7 @@ export default function DeliveryChecklist() {
                 {/* Header with Gradient */}
                 <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
                     <button
-                        className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
+                        className="mobile-back-button absolute top-6 left-6"
                         onClick={() => navigate(-1)}
                     >
                         <FaArrowLeft size={16} />
@@ -431,48 +473,69 @@ export default function DeliveryChecklist() {
 
                     {/* Items List - Fixed Colors */}
                     <div className="space-y-3">
-                {items.map((item, index) => (
+                {items.map((item, index) => {
+                    const requestedQty = getRequestedQuantity(item);
+                    const previouslyReceivedQty = getPreviouslyReceivedQuantity(item);
+                    const currentReceivedQty = getCurrentReceivedQuantity(item);
+                    const remainingQty = getRemainingQuantity(item);
+                    const projectedReceivedQty = previouslyReceivedQty + currentReceivedQty;
+                    const isComplete = remainingQty <= 0 || projectedReceivedQty >= requestedQty;
+
+                    return (
                     <div key={item.itemId || item._id} className="bg-white rounded-xl border-2 border-gray-200 p-4 shadow-md">
                         <div className="space-y-3">
                             {/* Item Info */}
                             <div className="flex items-start justify-between">
                                 <div className="flex-1">
-                                    <div className="text-sm font-bold text-gray-900">{item.category}</div>
+                                    <div className="text-sm font-bold text-gray-900">{getItemDisplayName(item)}</div>
                                     <div className="text-xs text-gray-600 mt-1 font-medium">
-                                        {item.sub_category} • {item.sub_category1}
+                                        Remaining: {formatQuantity(remainingQty)} {item.uom || item.unit || ''}
                                     </div>
                                 </div>
                                 <input
                                     type="checkbox"
-                                    checked={item.is_received}
+                                    checked={isComplete || currentReceivedQty > 0}
                                     onChange={(e) => handleCheckboxChange(index, e.target.checked)}
-                                    className="w-6 h-6 accent-orange-500 mt-1 cursor-pointer"
+                                    disabled={remainingQty <= 0}
+                                    className="w-6 h-6 accent-orange-500 mt-1 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                                    title={remainingQty <= 0 ? 'Already fully received' : 'Fill remaining quantity'}
                                 />
                             </div>
 
                             {/* Quantities */}
-                            <div className="flex items-center gap-3">
-                                <div className="flex-1">
-                                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">ST Quantity</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Requested</label>
                                     <div className="px-3 py-2.5 bg-gradient-to-r from-gray-100 to-gray-50 rounded-lg text-sm font-bold text-gray-900 border border-gray-300">
-                                        {item.st_quantity}
+                                        {formatQuantity(requestedQty)}
                                     </div>
                                 </div>
-                                <div className="flex-1">
-                                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Received Quantity</label>
+                                <div>
+                                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Previously Received</label>
+                                    <div className="px-3 py-2.5 bg-gradient-to-r from-green-50 to-white rounded-lg text-sm font-bold text-green-700 border border-green-200">
+                                        {formatQuantity(previouslyReceivedQty)}
+                                    </div>
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Received Now</label>
                                     <input
                                         type="number"
                                         min="0"
-                                        max={item.st_quantity}
-                                        value={item.received_quantity}
+                                        max={remainingQty}
+                                        value={item.currentReceivedQuantity}
                                         onChange={(e) => handleReceivedQuantityChange(index, e.target.value)}
+                                        disabled={remainingQty <= 0}
+                                        placeholder={remainingQty <= 0 ? 'Already complete' : `Max ${formatQuantity(remainingQty)}`}
                                         className={`w-full px-3 py-2.5 border-2 rounded-lg text-sm font-bold bg-white ${
                                             validationErrors[index] 
                                                 ? 'border-red-500 focus:ring-red-500 text-red-900' 
-                                                : 'border-gray-300 focus:ring-orange-500 text-gray-900'
+                                                : 'border-gray-300 focus:ring-orange-500 text-gray-900 disabled:bg-gray-100 disabled:text-gray-500'
                                         } focus:ring-2 focus:outline-none`}
                                         style={{ colorScheme: 'light' }}
                                     />
+                                </div>
+                                <div className="col-span-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100 text-xs font-semibold text-blue-700">
+                                    After submit total received: {formatQuantity(projectedReceivedQty)} / {formatQuantity(requestedQty)}
                                 </div>
                             </div>
 
@@ -485,7 +548,8 @@ export default function DeliveryChecklist() {
                             )}
                         </div>
                     </div>
-                    ))}
+                    );
+                })}
                     </div>
                 </div>
 
@@ -502,32 +566,6 @@ export default function DeliveryChecklist() {
                     </div>
                 </div>
 
-                {/* Confirmation Modal */}
-                {showConfirmModal && (
-                    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-lg shadow-xl max-w-sm w-full p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Mark as Fully Received?</h3>
-                            <p className="text-sm text-gray-600 mb-6">
-                                The received quantity is less than the ST quantity. Do you want to automatically set 
-                                received quantity equal to ST quantity?
-                            </p>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={handleCancelAutoFill}
-                                    className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
-                                >
-                                    No, Keep Current
-                                </button>
-                                <button
-                                    onClick={handleConfirmAutoFill}
-                                    className="flex-1 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
-                                >
-                                    Yes, Auto-fill
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

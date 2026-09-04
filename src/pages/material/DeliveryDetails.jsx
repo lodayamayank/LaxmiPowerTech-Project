@@ -281,7 +281,7 @@ export default function DeliveryDetails() {
             <div className="max-w-md mx-auto bg-white shadow-xl">
                 <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
                     <button
-                        className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
+                        className="mobile-back-button absolute top-6 left-6"
                         onClick={() => navigate(-1)}
                     >
                         <ArrowLeft size={16} />

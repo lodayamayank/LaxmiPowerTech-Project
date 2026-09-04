@@ -63,6 +63,26 @@
   }
 }
 
+@layer components {
+  .mobile-back-button {
+    @apply inline-flex h-auto items-center gap-2 rounded-full border border-white/70 bg-white px-3 py-1.5 text-sm font-medium text-orange-600 shadow-sm transition-all;
+  }
+
+  .mobile-back-button:hover {
+    @apply bg-orange-50 text-orange-700 shadow-md;
+  }
+
+  .mobile-back-button svg,
+  .mobile-back-button span {
+    color: #ea580c;
+  }
+
+  .mobile-back-button:hover svg,
+  .mobile-back-button:hover span {
+    color: #c2410c;
+  }
+}
+
 a {
   font-weight: 500;
   color: #646cff;

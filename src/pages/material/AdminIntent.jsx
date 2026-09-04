@@ -5,6 +5,8 @@ import MaterialLineItem from "./MaterialLineItem";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import axios from "../../utils/axios";
 
+const ITEMS_PER_PAGE = 20;
+
 const resolveFileUrl = (url) => {
   if (!url) return '';
   if (/^https?:\/\//i.test(url)) return url;
@@ -21,6 +23,7 @@ export default function AdminIntent() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [selectedIndent, setSelectedIndent] = useState(null); // Changed from selectedPO
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -115,8 +118,8 @@ export default function AdminIntent() {
       
       // Fetch both Indents (photo-based) and PurchaseOrders (manual form)
       const [indentResponse, poResponse] = await Promise.all([
-        indentAPI.getAll(currentPage, 20, search).catch(() => ({ success: false, data: [] })),
-        purchaseOrderAPI.getAll(currentPage, 20, search).catch(() => ({ success: false, data: [] }))
+        indentAPI.getAll(1, 1000, search).catch(() => ({ success: false, data: [] })),
+        purchaseOrderAPI.getAll(1, 1000, search).catch(() => ({ success: false, data: [] }))
       ]);
       
       // Merge both data sources
@@ -141,9 +144,9 @@ export default function AdminIntent() {
       
       console.log(`📊 Admin: Fetched ${indentsData.length} indents + ${posData.length} POs = ${combinedData.length} total`);
       
-      // ✅ CRITICAL: Filter out TRANSFERRED Intent POs (Admin should see Approved + Partial only)
+      // ✅ CRITICAL: Filter out completed Intent POs (they move into GRN flow)
       let filteredData = combinedData.filter(item => 
-        item.status?.toLowerCase() !== 'transferred'
+        !['transferred', 'delivered'].includes(item.status?.toLowerCase())
       );
       
       // Filter by site
@@ -180,14 +183,17 @@ export default function AdminIntent() {
         });
       }
       
-      setIndents(filteredData);
-      
-      // Use max total pages from both sources
-      const maxPages = Math.max(
-        indentResponse.pagination?.totalPages || 1,
-        poResponse.pagination?.totalPages || 1
-      );
-      setTotalPages(maxPages);
+      const nextTotalPages = Math.max(1, Math.ceil(filteredData.length / ITEMS_PER_PAGE));
+      const safePage = Math.min(currentPage, nextTotalPages);
+      const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
+
+      if (safePage !== currentPage) {
+        setCurrentPage(safePage);
+      }
+
+      setIndents(filteredData.slice(startIndex, startIndex + ITEMS_PER_PAGE));
+      setTotalRecords(filteredData.length);
+      setTotalPages(nextTotalPages);
     } catch (err) {
       console.error('❌ Admin: Error fetching data:', err);
       setError(err.response?.data?.message || 'Failed to load data. Please try again.');
@@ -246,7 +252,7 @@ export default function AdminIntent() {
         
         setSelectedIndent(normalizedData);
         setShowDetailsModal(true);
-        const shouldOpenMaterialForm = !!options.openMaterialForm && normalizedData.type === 'indent' && !!normalizedData.imageUrl;
+        const shouldOpenMaterialForm = !!options.openMaterialForm;
         setShowManualMaterialForm(shouldOpenMaterialForm);
         setImageZoom(100);
         setLastAddedMaterialId(null);
@@ -574,12 +580,53 @@ export default function AdminIntent() {
     }
   };
 
+  const handleApproveIntent = async (indent) => {
+    try {
+      setSaving(true);
+      const isPurchaseOrder = indent.type === 'purchaseOrder';
+      const response = isPurchaseOrder
+        ? await purchaseOrderAPI.approve(indent._id)
+        : await indentAPI.approve(indent._id);
+
+      if (response.success) {
+        const updatedResponse = isPurchaseOrder
+          ? await purchaseOrderAPI.getById(indent._id)
+          : await indentAPI.getById(indent._id);
+
+        const updatedIntent = updatedResponse.success
+          ? { ...updatedResponse.data, type: indent.type }
+          : { ...indent, status: 'approved' };
+
+        setIndents(prev => prev.map(item => (
+          item._id === indent._id ? updatedIntent : item
+        )));
+
+        if (selectedIndent?._id === indent._id) {
+          setSelectedIndent(updatedIntent);
+        }
+
+        window.dispatchEvent(new Event('intentCreated'));
+        window.dispatchEvent(new Event('upcomingDeliveryRefresh'));
+        localStorage.setItem('intentRefresh', Date.now().toString());
+        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+
+        showToast(response.message || `${isPurchaseOrder ? 'Purchase Order' : 'Intent'} approved successfully`, 'success');
+      }
+    } catch (err) {
+      console.error('❌ Error approving intent:', err);
+      showToast(err.response?.data?.message || 'Failed to approve intent', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const getStatusColor = (status) => {
     // Unified status colors matching Material Transfer
     const statusColors = {
       pending: 'bg-gray-100 text-gray-700',
       approved: 'bg-orange-100 text-orange-600',
       transferred: 'bg-green-100 text-green-600',
+      delivered: 'bg-green-100 text-green-600',
       cancelled: 'bg-red-100 text-red-600'
     };
     return statusColors[status?.toLowerCase()] || 'bg-gray-100 text-gray-600';
@@ -733,8 +780,8 @@ export default function AdminIntent() {
     resetManualMaterialForm();
   };
 
-  const applyUpdatedIndent = (data) => {
-    const normalizedData = normalizeIntentDetails(data, 'indent');
+  const applyUpdatedIntent = (data, type = selectedIndent?.type || 'indent') => {
+    const normalizedData = normalizeIntentDetails(data, type);
     setSelectedIndent(normalizedData);
     setIndents(prev => prev.map(item => (
       item._id === selectedIndent._id
@@ -744,9 +791,28 @@ export default function AdminIntent() {
     return normalizedData;
   };
 
+  const applyUpdatedIndent = (data) => applyUpdatedIntent(data, 'indent');
+
+  const buildPurchaseOrderMaterialsPayload = (materials) => (
+    (materials || []).map(material => ({
+      ...(material._id ? { _id: material._id } : {}),
+      itemName: material.itemName,
+      category: material.category || '',
+      subCategory: material.subCategory || '',
+      subCategory1: material.subCategory1 || '',
+      subCategory2: material.subCategory2 || '',
+      quantity: Number(material.quantity) || 0,
+      uom: material.uom || 'Nos',
+      vendor: getVendorId(material.vendor) || undefined,
+      remarks: material.remarks || '',
+      received_quantity: material.received_quantity || 0,
+      is_received: material.is_received || false
+    }))
+  );
+
   const handleSaveManualMaterial = async (addAnother = false) => {
-    if (!selectedIndent || selectedIndent.type !== 'indent') {
-      showToast('Manual material entry is available for uploaded Intent PO images only', 'error');
+    if (!selectedIndent) {
+      showToast('Intent PO details are not loaded yet', 'error');
       return;
     }
 
@@ -782,12 +848,41 @@ export default function AdminIntent() {
         remarks: manualMaterial.remarks
       };
 
-      const response = manualMaterialMode === 'edit'
-        ? await indentAPI.updateMaterial(selectedIndent._id, editingManualMaterialId, materialPayload)
-        : await indentAPI.addMaterial(selectedIndent._id, materialPayload);
+      let response;
+      let normalizedData;
+
+      if (selectedIndent.type === 'purchaseOrder') {
+        const existingMaterials = selectedIndent.materials || [];
+        const nextMaterials = manualMaterialMode === 'edit'
+          ? existingMaterials.map(material => (
+              material._id === editingManualMaterialId
+                ? { ...material, ...materialPayload, _id: material._id }
+                : material
+            ))
+          : [...existingMaterials, materialPayload];
+
+        response = await purchaseOrderAPI.update(selectedIndent._id, {
+          requestedBy: selectedIndent.requestedBy?.name || selectedIndent.requestedBy || '',
+          deliverySite: selectedIndent.deliverySite || '',
+          status: selectedIndent.status || 'pending',
+          remarks: selectedIndent.remarks || '',
+          materials: buildPurchaseOrderMaterialsPayload(nextMaterials)
+        });
+
+        if (response.success) {
+          normalizedData = applyUpdatedIntent(response.data, 'purchaseOrder');
+        }
+      } else {
+        response = manualMaterialMode === 'edit'
+          ? await indentAPI.updateMaterial(selectedIndent._id, editingManualMaterialId, materialPayload)
+          : await indentAPI.addMaterial(selectedIndent._id, materialPayload);
+
+        if (response.success) {
+          normalizedData = applyUpdatedIndent(response.data);
+        }
+      }
 
       if (response.success) {
-        const normalizedData = applyUpdatedIndent(response.data);
         const savedMaterials = normalizedData.materials || [];
         const updatedMaterial = manualMaterialMode === 'edit'
           ? savedMaterials.find(material => material._id === editingManualMaterialId)
@@ -831,10 +926,32 @@ export default function AdminIntent() {
 
     try {
       setDeletingMaterial(true);
-      const response = await indentAPI.deleteMaterial(selectedIndent._id, materialToDelete._id);
+      let response;
+
+      if (selectedIndent.type === 'purchaseOrder') {
+        const nextMaterials = (selectedIndent.materials || []).filter(
+          material => material._id !== materialToDelete._id
+        );
+        response = await purchaseOrderAPI.update(selectedIndent._id, {
+          requestedBy: selectedIndent.requestedBy?.name || selectedIndent.requestedBy || '',
+          deliverySite: selectedIndent.deliverySite || '',
+          status: selectedIndent.status || 'pending',
+          remarks: selectedIndent.remarks || '',
+          materials: buildPurchaseOrderMaterialsPayload(nextMaterials)
+        });
+
+        if (response.success) {
+          applyUpdatedIntent(response.data, 'purchaseOrder');
+        }
+      } else {
+        response = await indentAPI.deleteMaterial(selectedIndent._id, materialToDelete._id);
+
+        if (response.success) {
+          applyUpdatedIndent(response.data);
+        }
+      }
 
       if (response.success) {
-        applyUpdatedIndent(response.data);
         setMaterialToDelete(null);
         setLastAddedMaterialId(null);
         showToast('Material deleted successfully.', 'success');
@@ -978,7 +1095,7 @@ export default function AdminIntent() {
           <div className="mb-4">
             <div className="flex flex-col gap-3 mb-3 lg:flex-row lg:items-center lg:justify-between">
               <h2 className="text-lg font-semibold text-gray-700">
-                Purchase Orders Table ({indents.length} records)
+                Purchase Orders Table ({totalRecords} records)
               </h2>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="relative w-full sm:w-80">
@@ -987,12 +1104,18 @@ export default function AdminIntent() {
                     placeholder="Search by PO ID..."
                     className="w-full rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-sm focus:ring-2 focus:ring-orange-400"
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setCurrentPage(1);
+                    }}
                   />
                   {search && (
                     <button
                       type="button"
-                      onClick={() => setSearch('')}
+                      onClick={() => {
+                        setSearch('');
+                        setCurrentPage(1);
+                      }}
                       className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
                       title="Clear search"
                     >
@@ -1009,6 +1132,7 @@ export default function AdminIntent() {
                       setFilterStatus('');
                       setFilterDateFrom('');
                       setFilterDateTo('');
+                      setCurrentPage(1);
                     }}
                     className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-100"
                   >
@@ -1026,7 +1150,10 @@ export default function AdminIntent() {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Filter by Site</label>
                   <select
                     value={filterSite}
-                    onChange={(e) => setFilterSite(e.target.value)}
+                    onChange={(e) => {
+                      setFilterSite(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors cursor-pointer"
                   >
                     <option value="" className="text-gray-500">All Sites</option>
@@ -1041,13 +1168,15 @@ export default function AdminIntent() {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Filter by Status</label>
                   <select
                     value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
+                    onChange={(e) => {
+                      setFilterStatus(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors cursor-pointer"
                   >
                     <option value="" className="text-gray-500">All Status</option>
                     <option value="pending" className="text-gray-900">Pending</option>
                     <option value="approved" className="text-gray-900">Approved</option>
-                    <option value="transferred" className="text-gray-900">Transferred</option>
                     <option value="cancelled" className="text-gray-900">Cancelled</option>
                   </select>
                 </div>
@@ -1058,7 +1187,10 @@ export default function AdminIntent() {
                   <input
                     type="date"
                     value={filterDateFrom}
-                    onChange={(e) => setFilterDateFrom(e.target.value)}
+                    onChange={(e) => {
+                      setFilterDateFrom(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors"
                     style={{ colorScheme: 'light' }}
                   />
@@ -1070,7 +1202,10 @@ export default function AdminIntent() {
                   <input
                     type="date"
                     value={filterDateTo}
-                    onChange={(e) => setFilterDateTo(e.target.value)}
+                    onChange={(e) => {
+                      setFilterDateTo(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors"
                     style={{ colorScheme: 'light' }}
                   />
@@ -1083,6 +1218,7 @@ export default function AdminIntent() {
                     setFilterStatus('');
                     setFilterDateFrom('');
                     setFilterDateTo('');
+                    setCurrentPage(1);
                   }}
                   className="px-5 py-2.5 bg-white border-2 border-gray-300 hover:bg-gray-100 hover:border-gray-400 text-gray-700 text-sm font-semibold rounded-lg transition-all"
                 >
@@ -1115,7 +1251,7 @@ export default function AdminIntent() {
                       title="Double-click to open details"
                     >
                       <td className="border px-4 py-2 text-gray-600">
-                        {(currentPage - 1) * 20 + index + 1}
+                        {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
                       </td>
                       <td className="border px-4 py-2 font-medium text-gray-900">
                         {indent.indentId || 'N/A'}
@@ -1163,6 +1299,20 @@ export default function AdminIntent() {
                           >
                             <Eye size={18} />
                           </button>
+                          {indent.status?.toLowerCase() === 'pending' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleApproveIntent(indent);
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded bg-green-50 px-2.5 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-100 transition-colors disabled:opacity-50"
+                              title="Approve and send to Upcoming Deliveries"
+                              disabled={saving}
+                            >
+                              <CheckCircle size={14} />
+                              Approve
+                            </button>
+                          )}
                           {indent.type === 'indent' && indent.imageUrl && (
                             <button
                               onClick={(e) => {
@@ -1270,20 +1420,29 @@ export default function AdminIntent() {
                       Open Image
                     </a>
                   )}
-                  {selectedIndent.type === 'indent' && selectedIndent.imageUrl && !editing && (
+                  {selectedIndent.status?.toLowerCase() === 'pending' && (
                     <button
                       type="button"
-                      onClick={handleOpenManualMaterialForm}
-                      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-sm transition-colors ${
-                        showManualMaterialForm
-                          ? 'bg-white text-orange-600'
-                          : 'bg-white text-orange-600 hover:bg-orange-50'
-                      }`}
+                      onClick={() => handleApproveIntent(selectedIndent)}
+                      className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-orange-600 shadow-sm transition-colors hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={saving}
                     >
-                      <Plus size={16} />
-                      Add Material
+                      <CheckCircle size={16} />
+                      {saving ? 'Approving...' : 'Approve'}
                     </button>
                   )}
+                  <button
+                    type="button"
+                    onClick={handleOpenManualMaterialForm}
+                    className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-sm transition-colors ${
+                      showManualMaterialForm
+                        ? 'bg-white text-orange-600'
+                        : 'bg-white text-orange-600 hover:bg-orange-50'
+                    }`}
+                  >
+                    <Plus size={16} />
+                    Add Material
+                  </button>
                   <button
                     onClick={closeModal}
                     className="text-white hover:text-orange-100 transition-colors p-2 hover:bg-orange-600 rounded-lg"
@@ -1392,17 +1551,23 @@ export default function AdminIntent() {
                 </div>
               )}
 
-              {showManualMaterialForm && selectedIndent.imageUrl && (
+              {showManualMaterialForm && (
                 <div className="mb-6 overflow-hidden rounded-lg border border-orange-200 bg-white">
                   <div className="flex flex-col gap-3 border-b border-orange-200 bg-orange-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-800">
-                        {manualMaterialMode === 'edit' ? 'Edit Material' : 'Add Material From Uploaded Image'}
+                        {manualMaterialMode === 'edit'
+                          ? 'Edit Material'
+                          : selectedIndent.imageUrl
+                            ? 'Add Material From Uploaded Image'
+                            : 'Add Material'}
                       </h3>
                       <p className="text-sm text-gray-600">
                         {manualMaterialMode === 'edit'
                           ? `Update this material without creating a duplicate on ${selectedIndent.purchaseOrderId || selectedIndent.indentId}.`
-                          : `Keep the image visible while saving materials to ${selectedIndent.purchaseOrderId || selectedIndent.indentId}.`}
+                          : selectedIndent.imageUrl
+                            ? `Keep the image visible while saving materials to ${selectedIndent.purchaseOrderId || selectedIndent.indentId}.`
+                            : `Save materials directly to ${selectedIndent.purchaseOrderId || selectedIndent.indentId}.`}
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -1423,7 +1588,10 @@ export default function AdminIntent() {
                     </div>
                   </div>
 
-                  <div className="grid max-h-none grid-cols-1 lg:max-h-[calc(92vh-210px)] lg:grid-cols-[minmax(0,48%)_minmax(0,52%)]">
+                  <div className={`grid max-h-none grid-cols-1 ${
+                    selectedIndent.imageUrl ? 'lg:max-h-[calc(92vh-210px)] lg:grid-cols-[minmax(0,48%)_minmax(0,52%)]' : ''
+                  }`}>
+                    {selectedIndent.imageUrl && (
                     <div className="border-b border-orange-100 bg-gray-50 lg:border-b-0 lg:border-r">
                       <div className="flex h-full flex-col p-4">
                         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -1485,8 +1653,11 @@ export default function AdminIntent() {
                         </div>
                       </div>
                     </div>
+                    )}
 
-                    <div className="flex max-h-none flex-col overflow-hidden lg:max-h-[calc(92vh-210px)]">
+                    <div className={`flex max-h-none flex-col overflow-hidden ${
+                      selectedIndent.imageUrl ? 'lg:max-h-[calc(92vh-210px)]' : ''
+                    }`}>
                       <div className="flex-1 overflow-y-auto p-4">
                         <div className="rounded-lg border border-gray-200 bg-white p-4">
                           <div className="mb-4 flex items-center justify-between gap-3">

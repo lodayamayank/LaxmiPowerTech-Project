@@ -303,7 +303,7 @@ const PunchInScreen = () => {
         {/* Header with Gradient */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <button
-            className="absolute top-6 left-6 flex items-center gap-2 rounded-full border border-white/70 bg-white px-3 py-1.5 text-orange-600 shadow-sm transition-all hover:bg-orange-50 hover:text-orange-700"
+            className="mobile-back-button absolute top-6 left-6"
             onClick={() => navigate(-1)}
           >
             <FaArrowLeft size={16} />

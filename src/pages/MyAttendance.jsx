@@ -227,7 +227,7 @@ const MyAttendance = () => {
         {/* Header with Gradient */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
-            className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full h-auto"
+            className="mobile-back-button absolute top-6 left-6"
             variant="ghost"
             onClick={() => navigate(-1)}
           >

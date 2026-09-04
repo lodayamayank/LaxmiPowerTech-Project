@@ -185,7 +185,7 @@ const TaskSubmission = () => {
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
+              className="mobile-back-button px-4 py-2"
             >
               <FaArrowLeft size={14} />
               <span className="text-sm font-medium">Back</span>

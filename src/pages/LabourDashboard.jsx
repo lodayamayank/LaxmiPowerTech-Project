@@ -82,7 +82,7 @@ const LabourDashboard = () => {
               {isSupervisorVPSView && (
                 <button
                   onClick={() => navigate('/supervisor/projects')}
-                  className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
+                  className="mobile-back-button px-4 py-2"
                 >
                   <FaArrowLeft size={14} />
                   <span className="text-sm font-medium">Back</span>
@@ -90,7 +90,7 @@ const LabourDashboard = () => {
               )}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
+                className="mobile-back-button px-4 py-2"
               >
                 <FaSignOutAlt size={14} />
                 <span className="text-sm font-medium">Logout</span>

@@ -167,8 +167,11 @@ export default function Intent({ isTabView = false }) {
       let combinedData = [...indentsData, ...purchaseOrdersData]
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       
-      // ✅ CRITICAL: Filter out approved intents (they should only appear in Upcoming Deliveries)
-      combinedData = combinedData.filter(item => item.status !== 'approved');
+      // Completed PO/Intent records move out of Intent: approved goes to Upcoming,
+      // transferred/delivered goes to GRN.
+      combinedData = combinedData.filter(item => (
+        !['approved', 'transferred', 'delivered'].includes(item.status?.toLowerCase())
+      ));
       
       // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
       if (selectedBranchName && (user.role === 'supervisor' || user.role === 'subcontractor')) {
@@ -229,12 +232,20 @@ export default function Intent({ isTabView = false }) {
       }
       
       console.log(`✅ Fetched ${indentsData.length} indents + ${purchaseOrdersData.length} purchase orders = ${combinedData.length} total Intent PO records`);
-      setIndents(combinedData);
       
       // Calculate pagination based on combined data
       const itemsPerPage = 10;
       const totalItems = combinedData.length;
-      setTotalPages(Math.ceil(totalItems / itemsPerPage) || 1);
+      const nextTotalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+      const safePage = Math.min(currentPage, nextTotalPages);
+      const startIndex = (safePage - 1) * itemsPerPage;
+
+      if (safePage !== currentPage) {
+        setCurrentPage(safePage);
+      }
+
+      setIndents(combinedData.slice(startIndex, startIndex + itemsPerPage));
+      setTotalPages(nextTotalPages);
       
     } catch (err) {
       console.error('Error fetching Intent PO data:', err);
@@ -306,7 +317,10 @@ export default function Intent({ isTabView = false }) {
             <label className="block text-xs font-semibold text-gray-700 mb-1">Site</label>
             <select
               value={filterSite}
-              onChange={(e) => setFilterSite(e.target.value)}
+              onChange={(e) => {
+                setFilterSite(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full border border-gray-300 rounded-md px-2.5 py-2 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
             >
               <option value="" className="text-gray-500">All Sites</option>
@@ -321,13 +335,14 @@ export default function Intent({ isTabView = false }) {
             <label className="block text-xs font-semibold text-gray-700 mb-1">Status</label>
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              onChange={(e) => {
+                setFilterStatus(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full border border-gray-300 rounded-md px-2.5 py-2 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
             >
               <option value="" className="text-gray-500">All Status</option>
               <option value="pending" className="text-gray-900">Pending</option>
-              <option value="approved" className="text-gray-900">Approved</option>
-              <option value="transferred" className="text-gray-900">Transferred</option>
               <option value="cancelled" className="text-gray-900">Cancelled</option>
             </select>
           </div>
@@ -339,7 +354,10 @@ export default function Intent({ isTabView = false }) {
               <input
                 type="date"
                 value={filterDateFrom}
-                onChange={(e) => setFilterDateFrom(e.target.value)}
+                onChange={(e) => {
+                  setFilterDateFrom(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full border border-gray-300 rounded-md px-2.5 py-2 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
                 style={{ colorScheme: 'light' }}
               />
@@ -349,7 +367,10 @@ export default function Intent({ isTabView = false }) {
               <input
                 type="date"
                 value={filterDateTo}
-                onChange={(e) => setFilterDateTo(e.target.value)}
+                onChange={(e) => {
+                  setFilterDateTo(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full border border-gray-300 rounded-md px-2.5 py-2 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
                 style={{ colorScheme: 'light' }}
               />
@@ -363,6 +384,7 @@ export default function Intent({ isTabView = false }) {
               setFilterStatus('');
               setFilterDateFrom('');
               setFilterDateTo('');
+              setCurrentPage(1);
             }}
             className="w-full px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-md transition-colors"
           >
@@ -522,7 +544,7 @@ export default function Intent({ isTabView = false }) {
         {/* Header with Gradient */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <button
-            className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
+            className="mobile-back-button absolute top-6 left-6"
             onClick={() => navigate(-1)}
           >
             <FaArrowLeft size={16} />

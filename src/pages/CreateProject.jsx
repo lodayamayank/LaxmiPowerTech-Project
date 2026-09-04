@@ -214,25 +214,26 @@ const CreateProject = () => {
       }
 
       if (formData.buildings.length === 0) {
-        alert('Please add at least one tower with floors and flats');
+        alert('Please add at least one tower with floors and units');
         return;
       }
 
-      // Count total flats for validation
-      const totalFlats = formData.buildings.reduce((sum, tower) => {
+      // Count total generated units for validation. Residential flats and
+      // commercial shops/offices/godowns share the same persisted slot.
+      const totalUnits = formData.buildings.reduce((sum, tower) => {
         return sum + (tower.wings?.[0]?.floors?.reduce((fSum, floor) => 
           fSum + (floor.flats?.length || 0), 0) || 0);
       }, 0);
 
-      if (totalFlats === 0) {
-        alert('Please add at least one flat to your project structure');
+      if (totalUnits === 0) {
+        alert('Please add at least one unit to your project structure');
         return;
       }
 
       // Warn if structure is very large
-      if (totalFlats > 5000) {
+      if (totalUnits > 5000) {
         const confirmed = window.confirm(
-          `This project has ${totalFlats.toLocaleString()} flats. This is a large structure. Continue?`
+          `This project has ${totalUnits.toLocaleString()} units. This is a large structure. Continue?`
         );
         if (!confirmed) return;
       }

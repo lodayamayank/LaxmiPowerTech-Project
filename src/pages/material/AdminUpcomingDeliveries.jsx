@@ -4,6 +4,8 @@ import { Eye, Trash2, X, Edit2, Save, Upload, Image as ImageIcon } from "lucide-
 import DashboardLayout from "../../layouts/DashboardLayout";
 import axios from "../../utils/axios";
 
+const ITEMS_PER_PAGE = 20;
+
 export default function AdminUpcomingDeliveries() {
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -11,6 +13,7 @@ export default function AdminUpcomingDeliveries() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [selectedDelivery, setSelectedDelivery] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -59,7 +62,7 @@ export default function AdminUpcomingDeliveries() {
     try {
       setLoading(true);
       setError(null);
-      const response = await upcomingDeliveryAPI.getAll(currentPage, 20, search);
+      const response = await upcomingDeliveryAPI.getAll(1, 1000, search);
       if (response.success) {
         let sortedData = (response.data || []).sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -101,8 +104,17 @@ export default function AdminUpcomingDeliveries() {
           });
         }
         
-        setDeliveries(sortedData);
-        setTotalPages(response.pagination?.pages || 1);
+        const nextTotalPages = Math.max(1, Math.ceil(sortedData.length / ITEMS_PER_PAGE));
+        const safePage = Math.min(currentPage, nextTotalPages);
+        const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
+
+        if (safePage !== currentPage) {
+          setCurrentPage(safePage);
+        }
+
+        setDeliveries(sortedData.slice(startIndex, startIndex + ITEMS_PER_PAGE));
+        setTotalRecords(sortedData.length);
+        setTotalPages(nextTotalPages);
       } else {
         setError('Failed to fetch upcoming deliveries');
       }
@@ -288,6 +300,40 @@ export default function AdminUpcomingDeliveries() {
     });
   };
 
+  const toQuantity = (value) => {
+    const quantity = Number(value || 0);
+    return Number.isFinite(quantity) ? quantity : 0;
+  };
+
+  const formatQuantity = (value) => {
+    const quantity = toQuantity(value);
+    return Number.isInteger(quantity) ? quantity : Number(quantity.toFixed(2));
+  };
+
+  const getRequestedQuantity = (item = {}) => toQuantity(item.quantity ?? item.st_quantity);
+  const getReceivedQuantity = (item = {}, deliveryStatus = '') => {
+    const requestedQty = getRequestedQuantity(item);
+    const receivedQty = toQuantity(item.received_quantity);
+    return deliveryStatus === 'Transferred' && receivedQty === 0 ? requestedQty : receivedQty;
+  };
+
+  const getPendingQuantity = (item = {}, deliveryStatus = '') => (
+    Math.max(getRequestedQuantity(item) - getReceivedQuantity(item, deliveryStatus), 0)
+  );
+
+  const getDeliveryQuantitySummary = (delivery = {}) => {
+    const items = delivery.items || [];
+    const requested = items.reduce((sum, item) => sum + getRequestedQuantity(item), 0);
+    const received = items.reduce((sum, item) => sum + getReceivedQuantity(item, delivery.status), 0);
+    const pending = Math.max(requested - received, 0);
+
+    return {
+      requested: formatQuantity(requested),
+      received: formatQuantity(received),
+      pending: formatQuantity(pending)
+    };
+  };
+
   const getStatusBadge = (status) => {
     const statusColors = {
       'Pending': 'bg-gray-100 text-gray-600',
@@ -457,14 +503,17 @@ export default function AdminUpcomingDeliveries() {
           <div className="mb-4">
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-lg font-semibold text-gray-700">
-                Upcoming Deliveries ({deliveries.length} records)
+                Upcoming Deliveries ({totalRecords} records)
               </h2>
               <input
                 type="text"
                 placeholder="Search by Transfer Number..."
                 className="border border-gray-300 rounded p-2 w-80 focus:ring-2 focus:ring-orange-400 text-sm"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
             </div>
             
@@ -476,7 +525,10 @@ export default function AdminUpcomingDeliveries() {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Filter by Site</label>
                   <select
                     value={filterSite}
-                    onChange={(e) => setFilterSite(e.target.value)}
+                    onChange={(e) => {
+                      setFilterSite(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors cursor-pointer"
                   >
                     <option value="" className="text-gray-500">All Sites</option>
@@ -491,13 +543,15 @@ export default function AdminUpcomingDeliveries() {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Filter by Status</label>
                   <select
                     value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
+                    onChange={(e) => {
+                      setFilterStatus(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors cursor-pointer"
                   >
                     <option value="" className="text-gray-500">All Status</option>
                     <option value="Pending" className="text-gray-900">Pending</option>
                     <option value="Partial" className="text-gray-900">Partial</option>
-                    <option value="Transferred" className="text-gray-900">Transferred</option>
                   </select>
                 </div>
                 
@@ -507,7 +561,10 @@ export default function AdminUpcomingDeliveries() {
                   <input
                     type="date"
                     value={filterDateFrom}
-                    onChange={(e) => setFilterDateFrom(e.target.value)}
+                    onChange={(e) => {
+                      setFilterDateFrom(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors"
                     style={{ colorScheme: 'light' }}
                   />
@@ -519,7 +576,10 @@ export default function AdminUpcomingDeliveries() {
                   <input
                     type="date"
                     value={filterDateTo}
-                    onChange={(e) => setFilterDateTo(e.target.value)}
+                    onChange={(e) => {
+                      setFilterDateTo(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors"
                     style={{ colorScheme: 'light' }}
                   />
@@ -532,6 +592,7 @@ export default function AdminUpcomingDeliveries() {
                     setFilterStatus('');
                     setFilterDateFrom('');
                     setFilterDateTo('');
+                    setCurrentPage(1);
                   }}
                   className="px-5 py-2.5 bg-white border-2 border-gray-300 hover:bg-gray-100 hover:border-gray-400 text-gray-700 text-sm font-semibold rounded-lg transition-all"
                 >
@@ -556,7 +617,10 @@ export default function AdminUpcomingDeliveries() {
                   </tr>
                 </thead>
                 <tbody>
-                  {deliveries.map((delivery) => (
+                  {deliveries.map((delivery) => {
+                    const quantitySummary = getDeliveryQuantitySummary(delivery);
+
+                    return (
                     <tr key={delivery._id} className="hover:bg-gray-50">
                       <td className="border px-4 py-2 font-medium text-gray-900">{delivery.transfer_number}</td>
                       <td className="border px-4 py-2 text-gray-600">
@@ -565,9 +629,18 @@ export default function AdminUpcomingDeliveries() {
                       <td className="border px-4 py-2">{delivery.from}</td>
                       <td className="border px-4 py-2">{delivery.to}</td>
                       <td className="border px-4 py-2">
-                        <span className="text-gray-600">
-                          {delivery.items?.length || 0} items
-                        </span>
+                        <div className="space-y-1">
+                          <span className="block text-gray-700">
+                            {delivery.items?.length || 0} items
+                          </span>
+                          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+                            quantitySummary.pending > 0
+                              ? 'bg-orange-100 text-orange-700'
+                              : 'bg-green-100 text-green-700'
+                          }`}>
+                            Pending: {quantitySummary.pending}
+                          </span>
+                        </div>
                       </td>
                       <td className="border px-4 py-2">
                         {getStatusBadge(delivery.status)}
@@ -592,7 +665,8 @@ export default function AdminUpcomingDeliveries() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
 
@@ -723,18 +797,18 @@ export default function AdminUpcomingDeliveries() {
                           <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Sub Category 1</th>
                           <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider">Requested</th>
                           <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider">Received</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider">Pending</th>
                           <th className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">Status</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {(editing ? formData.items : selectedDelivery.items).map((item, index) => {
-                          // If status is Transferred but received_quantity is 0, use st_quantity
-                          const displayReceivedQty = (selectedDelivery.status === 'Transferred' && (!item.received_quantity || item.received_quantity === 0)) 
-                            ? item.st_quantity 
-                            : item.received_quantity;
+                          const requestedQty = getRequestedQuantity(item);
+                          const displayReceivedQty = getReceivedQuantity(item, selectedDelivery.status);
+                          const pendingQty = getPendingQuantity(item, selectedDelivery.status);
                           
-                          const isFullyReceived = displayReceivedQty >= item.st_quantity;
-                          const isPartiallyReceived = displayReceivedQty > 0 && displayReceivedQty < item.st_quantity;
+                          const isFullyReceived = pendingQty === 0 && requestedQty > 0;
+                          const isPartiallyReceived = displayReceivedQty > 0 && pendingQty > 0;
                           
                           return (
                             <tr key={item._id || index} className="hover:bg-orange-50 transition-colors">
@@ -746,7 +820,7 @@ export default function AdminUpcomingDeliveries() {
                               <td className="px-4 py-3 text-sm text-gray-700">{item.sub_category1 || '—'}</td>
                               <td className="px-4 py-3 text-sm text-right">
                                 <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                                  {item.st_quantity}
+                                  {formatQuantity(requestedQty)}
                                 </span>
                               </td>
                               <td className="px-4 py-3 text-sm text-right">
@@ -765,9 +839,16 @@ export default function AdminUpcomingDeliveries() {
                                     isPartiallyReceived ? 'bg-yellow-100 text-yellow-800' : 
                                     'bg-gray-100 text-gray-800'
                                   }`}>
-                                    {displayReceivedQty}
+                                    {formatQuantity(displayReceivedQty)}
                                   </span>
                                 )}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-right">
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                  pendingQty > 0 ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'
+                                }`}>
+                                  {formatQuantity(pendingQty)}
+                                </span>
                               </td>
                               <td className="px-4 py-3 text-center">
                                 {editing ? (

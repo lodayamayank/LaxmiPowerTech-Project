@@ -24,7 +24,7 @@ const ROOM_TYPES = [
   { value: 'terrace', label: 'Terrace' },
 ];
 
-const FLAT_TYPES = ['1RK', '1BHK', '2BHK', '3BHK', '4BHK', 'Studio', 'Penthouse', 'Duplex', 'Custom'];
+const FLAT_TYPES = ['1RK', '1BHK', '2BHK', '3BHK', '4BHK', 'Studio', 'Penthouse', 'Duplex', 'Office', 'Shop', 'Cafeteria', 'Godown', 'Showroom', 'Custom'];
 
 const LEVEL_3_ACTIVITIES = [
   'Slab Conduiting',
@@ -165,9 +165,16 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
   const handleFlatTypeChange = (towerIdx, wingIdx, floorIdx, flatIdx, flatType) => {
     const newBuildings = [...buildings];
     const flat = newBuildings[towerIdx].wings[wingIdx].floors[floorIdx].flats[flatIdx];
+    const commercialTypes = ['Office', 'Shop', 'Cafeteria', 'Godown', 'Showroom'];
+    const isCommercialType = commercialTypes.includes(flatType);
     
     // Update flat type
     flat.flatType = flatType;
+    flat.unitCategory = isCommercialType ? 'commercial' : 'residential';
+    if (!isCommercialType) {
+      flat.hasLivingRoom = true;
+      flat.hasKitchen = true;
+    }
     
     // Auto-fill bedroom and bathroom counts based on flat type
     switch(flatType) {
@@ -198,6 +205,18 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
       case 'Penthouse':
         flat.bedroomCount = 4;
         flat.bathroomCount = 4;
+        break;
+      case 'Office':
+      case 'Shop':
+      case 'Cafeteria':
+      case 'Godown':
+      case 'Showroom':
+        flat.bedroomCount = 0;
+        flat.bathroomCount = 1;
+        flat.balconyCount = 0;
+        flat.hasLivingRoom = false;
+        flat.hasKitchen = flatType === 'Office' || flatType === 'Cafeteria';
+        flat.variation = flatType;
         break;
       default:
         // For Duplex, Custom - keep existing values
@@ -657,8 +676,8 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
                                   onClick={() => addFlat(tIdx, wIdx, fIdx)}
                                   className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm flex items-center gap-1"
                                 >
-                                  <FaPlus /> Flat
-                                </button>
+	                                  <FaPlus /> Unit
+	                                </button>
                                 <button
                                   type="button"
                                   onClick={() => deleteFloor(tIdx, wIdx, fIdx)}
@@ -675,7 +694,7 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
                                 {floor.flats?.length === 0 ? (
                                   <div className="text-center py-6 bg-white rounded-lg border border-gray-200">
                                     <FaDoorOpen className="text-gray-400 text-2xl mx-auto mb-2" />
-                                    <p className="text-gray-500 text-sm">No flats added. Click "Add Flat" to add flats to this floor.</p>
+	                                    <p className="text-gray-500 text-sm">No units added. Click "Add Unit" to add units to this floor.</p>
                                   </div>
                                 ) : (
                                   <div className="space-y-2">
@@ -732,8 +751,8 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
                                                 {/* Flat Configuration */}
                                                 <div className="bg-white rounded-lg border-2 border-indigo-200 shadow-sm">
                                                   <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 px-4 py-3 border-b border-indigo-200">
-                                                    <h4 className="text-sm font-bold text-indigo-900">Flat Configuration</h4>
-                                                    <p className="text-xs text-indigo-600 mt-0.5">Configure bedroom, bathroom, and balcony counts</p>
+	                                                    <h4 className="text-sm font-bold text-indigo-900">Unit Configuration</h4>
+	                                                    <p className="text-xs text-indigo-600 mt-0.5">Configure bedroom, bathroom, balcony, and unit details</p>
                                                   </div>
                                                   <div className="p-4">
                                                     <div className="grid grid-cols-2 gap-4">

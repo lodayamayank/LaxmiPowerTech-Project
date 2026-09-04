@@ -88,14 +88,14 @@ const SupervisorProjectList = () => {
               <Button
                 variant="ghost"
                 onClick={() => navigate('/dashboard')}
-                className="flex h-auto items-center gap-2 rounded-full border border-white/70 bg-white px-4 py-2 text-orange-600 shadow-sm hover:bg-orange-50 hover:text-orange-700"
+                className="mobile-back-button px-4 py-2"
               >
                 <FaArrowLeft size={14} />
                 <span className="text-sm font-medium">Back</span>
               </Button>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 rounded-full border border-white/70 bg-white px-3 py-2 text-orange-600 shadow-sm transition-all duration-300 hover:bg-orange-50 hover:text-orange-700"
+                className="mobile-back-button px-3 py-2"
                 title="Logout"
               >
                 <FaSignOutAlt size={14} />

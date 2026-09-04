@@ -126,7 +126,7 @@ export default function Leaves() {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
-            className="absolute top-6 left-6 flex h-auto items-center gap-2 rounded-full border border-white/70 bg-white px-3 py-1.5 text-orange-600 shadow-sm hover:bg-orange-50 hover:text-orange-700"
+            className="mobile-back-button absolute top-6 left-6"
             onClick={() => navigate('/dashboard')}
           >
             <FaArrowLeft size={16} />
