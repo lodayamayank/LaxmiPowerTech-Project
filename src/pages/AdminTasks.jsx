@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../utils/axios';
 import DashboardLayout from '../layouts/DashboardLayout';
-import { FaFilter, FaSearch, FaEye, FaCalendarAlt, FaUserTie, FaBuilding, FaPlus, FaEdit, FaTrash, FaTimes } from 'react-icons/fa';
+import { FaFilter, FaSearch, FaEye, FaCalendarAlt, FaUserTie, FaBuilding, FaPlus, FaEdit, FaTrash, FaTimes, FaCheckCircle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -191,6 +191,17 @@ const AdminTasks = () => {
     });
   };
 
+  const isSupervisorSubmittedTask = (task) => (
+    Boolean(task?.photoUrl || task?.photoPublicId || task?.capturedAt || task?.syncedOffline)
+  );
+
+  const getReviewStatus = (task) => {
+    if (task?.status === 'approved') return { label: 'Approved', className: 'bg-green-100 text-green-700' };
+    if (task?.status === 'rejected') return { label: 'Rejected', className: 'bg-red-100 text-red-700' };
+    if (isSupervisorSubmittedTask(task)) return { label: 'Pending Approval', className: 'bg-orange-100 text-orange-700' };
+    return { label: task?.status?.replace('-', ' ') || 'pending', className: 'bg-gray-100 text-gray-700' };
+  };
+
   const openCreateModal = () => {
     setFormData(emptyForm);
     setHierarchy({ buildings: [] });
@@ -324,6 +335,25 @@ const AdminTasks = () => {
       fetchTasks();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to delete task');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleApproveTask = async (task) => {
+    if (!task) return;
+
+    try {
+      setSubmitting(true);
+      const res = await axios.patch(`/tasks/${task._id}/status`, { status: 'approved' });
+      const updatedTask = res.data?.data || { ...task, status: 'approved' };
+
+      setSelectedTask(updatedTask);
+      setTasks((prev) => prev.map((item) => (item._id === task._id ? updatedTask : item)));
+      toast.success('Task approved successfully');
+      fetchTasks();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to approve task');
     } finally {
       setSubmitting(false);
     }
@@ -656,6 +686,10 @@ const AdminTasks = () => {
 
         {/* Task Details Modal */}
         {showModal && selectedTask && (
+          (() => {
+            const reviewStatus = getReviewStatus(selectedTask);
+
+            return (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
@@ -723,6 +757,12 @@ const AdminTasks = () => {
                       <p className="text-sm font-semibold text-gray-600">Supervisor</p>
                       <p className="text-gray-900">{selectedTask.supervisor?.name || 'N/A'}</p>
                     </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600">Status</p>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold capitalize ${reviewStatus.className}`}>
+                        {reviewStatus.label}
+                      </span>
+                    </div>
                     <div className="col-span-2">
                       <p className="text-sm font-semibold text-gray-600">Submitted On</p>
                       <p className="text-gray-900">{formatDate(selectedTask.createdAt)}</p>
@@ -740,6 +780,16 @@ const AdminTasks = () => {
                   <Button variant="outline" onClick={() => setShowModal(false)}>
                     Close
                   </Button>
+                  {selectedTask.status !== 'approved' && selectedTask.status !== 'rejected' && (
+                    <Button
+                      className="bg-orange-500 hover:bg-orange-600 text-white"
+                      onClick={() => handleApproveTask(selectedTask)}
+                      disabled={submitting}
+                    >
+                      <FaCheckCircle className="mr-2" />
+                      {submitting ? 'Approving...' : 'Approve Task'}
+                    </Button>
+                  )}
                   <Button
                     className="bg-green-600 hover:bg-green-700 text-white"
                     onClick={() => { setShowModal(false); openEditModal(selectedTask); }}
@@ -750,6 +800,8 @@ const AdminTasks = () => {
               </div>
             </div>
           </div>
+            );
+          })()
         )}
 
         {/* Create / Edit Task Modal */}

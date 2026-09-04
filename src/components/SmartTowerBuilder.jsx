@@ -22,6 +22,73 @@ const ROOM_TYPES = [
 
 const FLAT_TYPES = ['1RK', '1BHK', '2BHK', '3BHK', '4BHK', 'Studio', 'Penthouse', 'Duplex', 'Custom'];
 
+const RESIDENTIAL_FLAT_TYPE_PRESETS = {
+  '1RK': {
+    bedroomCount: 0,
+    bathroomCount: 1,
+    balconyCount: 0,
+    hasLivingRoom: true,
+    hasKitchen: true,
+    additionalRooms: []
+  },
+  '1BHK': {
+    bedroomCount: 1,
+    bathroomCount: 1,
+    balconyCount: 1,
+    hasLivingRoom: true,
+    hasKitchen: true,
+    additionalRooms: []
+  },
+  '2BHK': {
+    bedroomCount: 2,
+    bathroomCount: 2,
+    balconyCount: 1,
+    hasLivingRoom: true,
+    hasKitchen: true,
+    additionalRooms: []
+  },
+  '3BHK': {
+    bedroomCount: 3,
+    bathroomCount: 3,
+    balconyCount: 2,
+    hasLivingRoom: true,
+    hasKitchen: true,
+    additionalRooms: ['dining']
+  },
+  '4BHK': {
+    bedroomCount: 4,
+    bathroomCount: 4,
+    balconyCount: 2,
+    hasLivingRoom: true,
+    hasKitchen: true,
+    additionalRooms: ['dining', 'utility']
+  },
+  Studio: {
+    bedroomCount: 0,
+    bathroomCount: 1,
+    balconyCount: 0,
+    hasLivingRoom: true,
+    hasKitchen: true,
+    additionalRooms: []
+  },
+  Penthouse: {
+    bedroomCount: 4,
+    bathroomCount: 4,
+    balconyCount: 3,
+    hasLivingRoom: true,
+    hasKitchen: true,
+    additionalRooms: ['dining', 'study', 'pooja', 'terrace', 'utility']
+  },
+  Duplex: {
+    bedroomCount: 3,
+    bathroomCount: 3,
+    balconyCount: 2,
+    hasLivingRoom: true,
+    hasKitchen: true,
+    additionalRooms: ['dining', 'study', 'utility']
+  }
+};
+
 const BUILDING_USE_OPTIONS = [
   { value: 'residential', label: 'Residential', hint: 'Flats, bedrooms, kitchen, balconies' },
   { value: 'commercial', label: 'Commercial', hint: 'Offices, shops, cafeteria, godowns' },
@@ -74,6 +141,36 @@ const parseNonNegativeInt = (value, fallback = 0) => {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
 };
 
+const getResidentialDefaultRooms = (preset) => {
+  const rooms = [];
+
+  if (preset.hasLivingRoom) rooms.push('living_room');
+  if (parseNonNegativeInt(preset.bedroomCount, 0) > 0) rooms.push('bedroom');
+  if (preset.hasKitchen) rooms.push('kitchen');
+  if (parseNonNegativeInt(preset.bathroomCount, 0) > 0) rooms.push('bathroom');
+  if (parseNonNegativeInt(preset.balconyCount, 0) > 0) rooms.push('balcony');
+
+  return Array.from(new Set([...rooms, ...(preset.additionalRooms || [])]));
+};
+
+const getResidentialFlatTypeDefaults = (flatType) => {
+  const preset = RESIDENTIAL_FLAT_TYPE_PRESETS[flatType];
+
+  if (!preset) {
+    return { defaultFlatType: flatType };
+  }
+
+  return {
+    defaultFlatType: flatType,
+    bedroomCount: preset.bedroomCount,
+    bathroomCount: preset.bathroomCount,
+    balconyCount: preset.balconyCount,
+    hasLivingRoom: preset.hasLivingRoom,
+    hasKitchen: preset.hasKitchen,
+    defaultRooms: getResidentialDefaultRooms(preset)
+  };
+};
+
 const getCommercialMixEntries = (mix) => {
   return COMMERCIAL_UNIT_TYPES
     .map((unit) => ({
@@ -116,13 +213,7 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
     basementPreset: 'storage',
     basementMix: { shop: 0, office: 1, cafeteria: 0, godown: 4, showroom: 0 },
     defaultFlatsPerFloor: 4,
-    defaultFlatType: '2BHK',
-    bedroomCount: 2,
-    bathroomCount: 2,
-    balconyCount: 1,
-    hasLivingRoom: true,
-    hasKitchen: true,
-    defaultRooms: ['living_room', 'bedroom', 'kitchen', 'bathroom', 'balcony']
+    ...getResidentialFlatTypeDefaults('2BHK')
   });
 
   /*
@@ -378,13 +469,7 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
       basementPreset: 'storage',
       basementMix: { shop: 0, office: 1, cafeteria: 0, godown: 4, showroom: 0 },
       defaultFlatsPerFloor: 4,
-      defaultFlatType: '2BHK',
-      bedroomCount: 2,
-      bathroomCount: 2,
-      balconyCount: 1,
-      hasLivingRoom: true,
-      hasKitchen: true,
-      defaultRooms: ['living_room', 'bedroom', 'kitchen', 'bathroom', 'balcony']
+      ...getResidentialFlatTypeDefaults('2BHK')
     });
     setShowConfigModal(true);
   };
@@ -441,6 +526,13 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
     setTowerConfig((prev) => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  const handleResidentialFlatTypeChange = (flatType) => {
+    setTowerConfig((prev) => ({
+      ...prev,
+      ...getResidentialFlatTypeDefaults(flatType)
     }));
   };
 
@@ -893,7 +985,7 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                 </label>
                 <select
                   value={towerConfig.defaultFlatType}
-                  onChange={(e) => setTowerConfig({ ...towerConfig, defaultFlatType: e.target.value })}
+                  onChange={(e) => handleResidentialFlatTypeChange(e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 font-medium"
                 >
                   {FLAT_TYPES.map(type => (

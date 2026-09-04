@@ -140,6 +140,22 @@ const CreateProject = () => {
     return { buildings: buildings.length, floors, flats, rooms };
   };
 
+  const isSupervisorUploadedTask = (task) => (
+    Boolean(task?.photoUrl || task?.photoPublicId || task?.capturedAt || task?.syncedOffline)
+  );
+
+  const isApprovedSupervisorTask = (task) => (
+    isSupervisorUploadedTask(task) && task?.status === 'approved'
+  );
+
+  const getEffectiveTaskStatus = (task) => {
+    if (task?.status === 'approved') {
+      return 'completed';
+    }
+
+    return task?.status || 'pending';
+  };
+
   const getTaskProgress = (tasks) => {
     const counts = {
       pending: 0,
@@ -151,7 +167,8 @@ const CreateProject = () => {
     };
 
     tasks.forEach((task) => {
-      counts[task.status] = (counts[task.status] || 0) + 1;
+      const status = getEffectiveTaskStatus(task);
+      counts[status] = (counts[status] || 0) + 1;
     });
 
     const done = counts.completed + counts.verified + counts.approved;
@@ -170,11 +187,12 @@ const CreateProject = () => {
     tasks.forEach((task) => {
       const key = keyPath.split('.').reduce((value, key) => value?.[key], task) || fallback;
       const current = groups.get(key) || { name: key, total: 0, done: 0, pending: 0, inProgress: 0, rejected: 0 };
+      const status = getEffectiveTaskStatus(task);
       current.total += 1;
-      if (['completed', 'verified', 'approved'].includes(task.status)) current.done += 1;
-      if (task.status === 'pending') current.pending += 1;
-      if (task.status === 'in-progress') current.inProgress += 1;
-      if (task.status === 'rejected') current.rejected += 1;
+      if (['completed', 'verified', 'approved'].includes(status)) current.done += 1;
+      if (status === 'pending') current.pending += 1;
+      if (status === 'in-progress') current.inProgress += 1;
+      if (status === 'rejected') current.rejected += 1;
       groups.set(key, current);
     });
 
@@ -305,10 +323,11 @@ const CreateProject = () => {
 
   const totalBranches = projects.reduce((acc, proj) => acc + (proj.branches?.length || 0), 0);
   const detailStructure = countProjectStructure(detailsProject);
-  const detailProgress = getTaskProgress(projectTasks);
+  const completedProjectTasks = projectTasks.filter(isApprovedSupervisorTask);
+  const detailProgress = getTaskProgress(completedProjectTasks);
   const detailTeam = detailsProject ? getProjectTeam(detailsProject) : [];
-  const buildingProgress = groupTasksBy(projectTasks, 'building.name');
-  const supervisorProgress = groupTasksBy(projectTasks, 'supervisor.name');
+  const buildingProgress = groupTasksBy(completedProjectTasks, 'building.name');
+  const supervisorProgress = groupTasksBy(completedProjectTasks, 'supervisor.name');
 
   return (
     <DashboardLayout title="Projects">
@@ -608,7 +627,7 @@ const CreateProject = () => {
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-sm text-gray-500 font-medium">Total Tasks</p>
+                              <p className="text-sm text-gray-500 font-medium">Completed Tasks</p>
                               <p className="text-2xl font-bold text-gray-900 mt-1">{detailProgress.total}</p>
                             </div>
                             <FaTasks className="text-blue-600" size={22} />
@@ -763,7 +782,7 @@ const CreateProject = () => {
                                 ))
                               ) : (
                                 <tr>
-                                  <td colSpan="4" className="px-4 py-6 text-center text-gray-400">No tasks created yet</td>
+                                  <td colSpan="4" className="px-4 py-6 text-center text-gray-400">No approved tasks yet</td>
                                 </tr>
                               )}
                             </tbody>
@@ -798,7 +817,7 @@ const CreateProject = () => {
                                 ))
                               ) : (
                                 <tr>
-                                  <td colSpan="4" className="px-4 py-6 text-center text-gray-400">No tasks created yet</td>
+                                  <td colSpan="4" className="px-4 py-6 text-center text-gray-400">No approved tasks yet</td>
                                 </tr>
                               )}
                             </tbody>
@@ -823,30 +842,35 @@ const CreateProject = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {projectTasks.slice(0, 8).map((task) => (
-                              <tr key={task._id} className="border-t border-gray-100">
-                                <td className="px-4 py-2 text-gray-900">
-                                  {[task.building?.name, task.floor?.name, task.flat?.name, task.room?.name].filter(Boolean).join(' / ')}
-                                </td>
-                                <td className="px-4 py-2 text-gray-600">{task.level3Activity?.name || '-'}</td>
-                                <td className="px-4 py-2 text-gray-900">{task.supervisor?.name || 'N/A'}</td>
-                                <td className="px-4 py-2">
-                                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
-                                    ['completed', 'verified', 'approved'].includes(task.status)
-                                      ? 'bg-green-100 text-green-700'
-                                      : task.status === 'rejected'
-                                        ? 'bg-red-100 text-red-700'
-                                        : 'bg-orange-100 text-orange-700'
-                                  }`}>
-                                    {['completed', 'verified', 'approved'].includes(task.status) ? <FaCheckCircle size={10} /> : <FaClock size={10} />}
-                                    {task.status?.replace('-', ' ') || 'pending'}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                            {projectTasks.length === 0 && (
+                            {completedProjectTasks.slice(0, 8).map((task) => {
+                              const status = getEffectiveTaskStatus(task);
+                              const isDone = ['completed', 'verified', 'approved'].includes(status);
+
+                              return (
+                                <tr key={task._id} className="border-t border-gray-100">
+                                  <td className="px-4 py-2 text-gray-900">
+                                    {[task.building?.name, task.floor?.name, task.flat?.name, task.room?.name].filter(Boolean).join(' / ')}
+                                  </td>
+                                  <td className="px-4 py-2 text-gray-600">{task.level3Activity?.name || '-'}</td>
+                                  <td className="px-4 py-2 text-gray-900">{task.supervisor?.name || 'N/A'}</td>
+                                  <td className="px-4 py-2">
+                                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
+                                      isDone
+                                        ? 'bg-green-100 text-green-700'
+                                        : status === 'rejected'
+                                          ? 'bg-red-100 text-red-700'
+                                          : 'bg-orange-100 text-orange-700'
+                                    }`}>
+                                      {isDone ? <FaCheckCircle size={10} /> : <FaClock size={10} />}
+                                      {status.replace('-', ' ')}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                            {completedProjectTasks.length === 0 && (
                               <tr>
-                                <td colSpan="4" className="px-4 py-6 text-center text-gray-400">No tasks created yet</td>
+                                <td colSpan="4" className="px-4 py-6 text-center text-gray-400">No approved tasks yet</td>
                               </tr>
                             )}
                           </tbody>
