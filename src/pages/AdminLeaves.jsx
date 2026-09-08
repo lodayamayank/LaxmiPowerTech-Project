@@ -267,35 +267,33 @@ export default function AdminLeaves() {
                                                     ? dayjs(r.approvedAt).format("DD MMM YYYY HH:mm")
                                                     : "—"}
                                             </td>
-                                            <td className="px-4 py-2 space-x-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="border-green-600 text-green-700"
-                                                    disabled={r.status === "approved"}
-                                                    onClick={() => handleAction(r._id, "approved")}
-                                                >
-                                                    Approve
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="border-red-600 text-red-700"
-                                                    disabled={r.status === "rejected"}
-                                                    onClick={() => handleAction(r._id, "rejected")}
-                                                >
-                                                    Reject
-                                                </Button>
-                                                {r.status !== "pending" && (
+                                            <td className="px-4 py-2">
+                                            {r.status === "pending" ? (
+                                                <div className="flex gap-2">
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => handleAction(r._id, "pending")}
+                                                        className="border-green-600 text-green-700"
+                                                        onClick={() => handleAction(r._id, "approved")}
                                                     >
-                                                        Mark Pending
+                                                        Approve
                                                     </Button>
-                                                )}
-                                            </td>
+                                                    
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="border-red-600 text-red-700"
+                                                        onClick={() => handleAction(r._id, "rejected")}
+                                                    >
+                                                        Reject
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <span className="text-sm text-gray-500 font-medium">
+                                                    Finalized
+                                                </span>
+                                            )}
+                                        </td>
                                         </tr>
                                     );
                                 })

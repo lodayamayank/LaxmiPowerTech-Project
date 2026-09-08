@@ -53,6 +53,8 @@ const DashboardLayout = ({ children, title }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
+  // NEW: tracks how many leave requests are pending, shown as a badge on the "Leaves" menu item
+  const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
 
   const formatCurrency = (value) => `₹${(Number(value) || 0).toLocaleString('en-IN')}`;
 
@@ -112,6 +114,17 @@ const DashboardLayout = ({ children, title }) => {
     }
   };
 
+  // NEW: fetches the count of pending leave requests for the sidebar badge
+  const loadPendingLeaveCount = async () => {
+    try {
+      const res = await axios.get("/leaves?status=pending&page=1&limit=1");
+      setPendingLeaveCount(res.data?.total || 0);
+    } catch (error) {
+      console.error("Failed to load pending leave count:", error);
+      setPendingLeaveCount(0);
+    }
+  };
+
   const handleNotificationClick = () => {
     const nextState = !showNotifications;
     setShowNotifications(nextState);
@@ -136,6 +149,8 @@ const DashboardLayout = ({ children, title }) => {
         console.error('Failed to parse user data', err);
       }
     }
+
+    loadPendingLeaveCount(); // NEW: fetch pending leave count on mount
   }, []);
 
   // Toggle dark mode
@@ -158,9 +173,16 @@ const DashboardLayout = ({ children, title }) => {
     const isMaterial = path.includes('/dashboard/material/') || path.includes('/material/');
     const isInventoryRoot = path.includes('/dashboard/inventory/');
     const isLabourInventory = path.includes('/dashboard/inventory/labour');
+    //keep the Salary menu expanded while on any salary/holiday/policy route
+    const isSalary = path.startsWith('/admin/salary') || path.startsWith('/admin/holidays') || path.startsWith('/admin/salary-policy');
 
     if (isAttendance) {
       setOpenMenus(getMenuBranch('Attendance'));
+      return;
+    }
+
+    if (isSalary) { 
+      setOpenMenus(getMenuBranch('Salary'));
       return;
     }
 
@@ -273,7 +295,15 @@ const DashboardLayout = ({ children, title }) => {
     return (
       <NavLink key={key} to={item.path} className={linkClasses} onClick={() => setSidebarOpen(false)}>
         {item.icon && <span className="text-sm">{item.icon}</span>}
-        <span>{item.label}</span>
+        {/*badge shows item.badge count when > 0 */}
+        <span className="flex items-center gap-2">
+          <span>{item.label}</span>
+          {item.badge > 0 && (
+            <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
+              {item.badge > 99 ? "99+" : item.badge}
+            </span>
+          )}
+        </span>
       </NavLink>
     );
   };
@@ -290,7 +320,7 @@ const DashboardLayout = ({ children, title }) => {
         { label: "Subcontractor", path: "/attendance/subcontractor" },
         { label: "Labour", path: "/attendance/labour" },
         { label: "Notes", path: "/attendance/notes" },
-        { label: "Leaves", path: "/attendance/leaves" },
+        { label: "Leaves", path: "/attendance/leaves", badge: pendingLeaveCount }, 
         { label: "Delete Records", path: "/admin/attendance/delete" },
       ],
     },
