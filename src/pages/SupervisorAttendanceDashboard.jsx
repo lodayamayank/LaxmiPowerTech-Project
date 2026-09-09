@@ -57,9 +57,9 @@ const LeaveBadge = ({ count, type }) => {
   return <Badge variant="outline" className={cls}>{label}: {count}</Badge>;
 };
 
-const StaffAttendanceDashboard = () => {
+const SupervisorAttendanceDashboard = () => {
   const [records, setRecords] = useState([]);
-  const [searchStaff, setSearchStaff] = useState('');
+  const [searchSupervisor, setSearchSupervisor] = useState('');
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(false);
@@ -76,11 +76,11 @@ const StaffAttendanceDashboard = () => {
         setLoading(true);
         const res = await axios.get('/attendance/summary', {
           headers: { Authorization: `Bearer ${token}` },
-          params: { role: 'staff', month, year },
+          params: { role: 'supervisor', month, year },
         });
         setRecords(res.data || []);
       } catch (err) {
-        console.error('Failed to fetch staff summary', err);
+        console.error('Failed to fetch supervisor summary', err);
       } finally {
         setLoading(false);
       }
@@ -89,7 +89,7 @@ const StaffAttendanceDashboard = () => {
   }, [token, month, year]);
 
   const filtered = records.filter((r) =>
-    r.name?.toLowerCase().includes(searchStaff.toLowerCase())
+    r.name?.toLowerCase().includes(searchSupervisor.toLowerCase())
   );
 
   // Calculate totals
@@ -112,7 +112,7 @@ const StaffAttendanceDashboard = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchStaff, itemsPerPage]);
+  }, [searchSupervisor, itemsPerPage]);
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -195,18 +195,18 @@ const StaffAttendanceDashboard = () => {
 
     const link = document.createElement("a");
     link.href = encodeURI(csvContent);
-    link.download = `Staff_Attendance_${month}_${year}.csv`;
+    link.download = `Supervisor_Attendance_${month}_${year}.csv`;
     link.click();
   };
 
   return (
-    <DashboardLayout title="Staff Attendance">
+    <DashboardLayout title="Supervisor Attendance">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            {/* <h1 className="text-2xl font-bold text-gray-800">Staff Attendance Summary</h1> */}
-            <p className="text-sm text-gray-500 mt-1">Monthly attendance overview for staff members</p>
+            {/* <h1 className="text-2xl font-bold text-gray-800">Supervisor Attendance Summary</h1> */}
+            <p className="text-sm text-gray-500 mt-1">Monthly attendance overview for supervisor members</p>
           </div>
           <Button
             onClick={exportToCSV}
@@ -223,7 +223,7 @@ const StaffAttendanceDashboard = () => {
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 font-medium">Total Staff</p>
+                  <p className="text-sm text-gray-500 font-medium">Total Supervisors</p>
                   <p className="text-3xl font-bold text-gray-800 mt-1">{filtered.length}</p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
@@ -282,7 +282,7 @@ const StaffAttendanceDashboard = () => {
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Filters</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Search Staff</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Search Supervisors</label>
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                   <FaSearch size={14} />
@@ -291,8 +291,8 @@ const StaffAttendanceDashboard = () => {
                   type="text"
                   className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                   placeholder="Search by name..."
-                  value={searchStaff}
-                  onChange={(e) => setSearchStaff(e.target.value)}
+                  value={searchSupervisor}
+                  onChange={(e) => setSearchSupervisor(e.target.value)}
                 />
               </div>
             </div>
@@ -485,4 +485,4 @@ const StaffAttendanceDashboard = () => {
   );
 };
 
-export default StaffAttendanceDashboard;
+export default SupervisorAttendanceDashboard;

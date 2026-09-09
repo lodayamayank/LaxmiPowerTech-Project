@@ -53,9 +53,9 @@ const DashboardLayout = ({ children, title }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
-  // NEW: tracks how many leave requests are pending, shown as a badge on the "Leaves" menu item
+  //tracks how many leave,reimbursements requests are pending, shown as a badge on the "Leaves" ,"Reimbursements" menu item
   const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
-
+  const [pendingReimbursementCount, setPendingReimbursementCount] = useState(0);
   const formatCurrency = (value) => `₹${(Number(value) || 0).toLocaleString('en-IN')}`;
 
   const formatDate = (dateValue) => {
@@ -125,6 +125,17 @@ const DashboardLayout = ({ children, title }) => {
     }
   };
 
+  // NEW: fetches the count of pending reimbursement requests for the sidebar badge
+  const loadPendingReimbursementCount = async () => {
+    try {
+      const res = await axios.get("/reimbursements?status=pending&page=1&limit=1");
+      setPendingReimbursementCount(res.data?.total || 0);
+    } catch (error) {
+      console.error("Failed to load pending reimbursement count:", error);
+      setPendingReimbursementCount(0);
+    }
+  };
+
   const handleNotificationClick = () => {
     const nextState = !showNotifications;
     setShowNotifications(nextState);
@@ -151,6 +162,7 @@ const DashboardLayout = ({ children, title }) => {
     }
 
     loadPendingLeaveCount(); // NEW: fetch pending leave count on mount
+    loadPendingReimbursementCount(); 
   }, []);
 
   // Toggle dark mode
@@ -169,7 +181,7 @@ const DashboardLayout = ({ children, title }) => {
   useEffect(() => {
     const path = location.pathname;
 
-    const isAttendance = path.includes('/attendance/') || path.includes('/live-attendance');
+    const isAttendance = path.includes('/attendance/') || path.includes('/live-attendance')|| path.startsWith('/admin/reimbursements');
     const isMaterial = path.includes('/dashboard/material/') || path.includes('/material/');
     const isInventoryRoot = path.includes('/dashboard/inventory/');
     const isLabourInventory = path.includes('/dashboard/inventory/labour');
@@ -316,11 +328,12 @@ const DashboardLayout = ({ children, title }) => {
       icon: <BiUserCheck />,
       children: [
         { label: "Live Dashboard", path: "/dashboard/live-attendance" },
-        { label: "Staff", path: "/attendance/staff" },
+        { label: "Supervisor", path: "/attendance/supervisor" },
         { label: "Subcontractor", path: "/attendance/subcontractor" },
         { label: "Labour", path: "/attendance/labour" },
         { label: "Notes", path: "/attendance/notes" },
         { label: "Leaves", path: "/attendance/leaves", badge: pendingLeaveCount }, 
+        { label: "Reimbursements", path: "/admin/reimbursements",badge: pendingReimbursementCount },
         { label: "Delete Records", path: "/admin/attendance/delete" },
       ],
     },
@@ -334,11 +347,7 @@ const DashboardLayout = ({ children, title }) => {
       icon: <FaTasks />,
       path: "/admin/tasks",
     },
-    {
-      label: "Reimbursements",
-      icon: <FaMoneyBillWave />,
-      path: "/admin/reimbursements",
-    },
+    
     {
       label: "Salary",
       icon: <FaMoneyBillWave />,
@@ -440,7 +449,7 @@ const DashboardLayout = ({ children, title }) => {
               {!sidebarCollapsed && (
                 <div>
                   <div className="text-sm font-semibold">{user.name || 'User'}</div>
-                  <div className="text-xs text-white/70 capitalize">{user.role || 'Staff'}</div>
+                  <div className="text-xs text-white/70 capitalize">{user.role || 'Supervisor'}</div>
                 </div>
               )}
             </div>
