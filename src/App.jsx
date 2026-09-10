@@ -26,7 +26,7 @@ const SelfieCaptureScreen = lazy(() => import('./pages/SelfieCaptureScreen'));
 const AdminBranches = lazy(() => import('./pages/AdminBranches'));
 const ProfileScreen = lazy(() => import('./pages/ProfileScreen'));
 const AdminLiveAttendance = lazy(() => import('./pages/AdminLiveAttendance'));
-const StaffAttendanceDashboard = lazy(() => import('./pages/StaffAttendanceDashboard'));
+const SupervisorAttendanceDashboard = lazy(() => import('./pages/SupervisorAttendanceDashboard'));
 const SubcontractorAttendanceDashboard = lazy(() => import('./pages/SubcontractorAttendanceDashboard'));
 const LabourAttendanceDashboard = lazy(() => import('./pages/LabourAttendanceDashboard'));
 const NotesDashboard = lazy(() => import('./pages/NotesDashboard'));
@@ -130,7 +130,7 @@ function App() {
         <Route path="/my-attendance" element={<MyAttendance />} />
         <Route path="/admin/my-team" element={<AdminMyTeam />} />
         <Route path="/admin/projects" element={<CreateProject />} />
-        <Route path="/admin/attendance/staff" element={<AdminAttendance role="staff" />} />
+        <Route path="/admin/attendance/Supervisor" element={<AdminAttendance role="supervisor" />} />
         <Route path="/admin/attendance/labour" element={<AdminAttendance role="labour" />} />
         <Route path="/admin/attendance/subcontractor" element={<AdminAttendance role="subcontractor" />} />
         <Route path="/admin/attendance/delete" element={<AdminDeleteAttendance />} />
@@ -171,7 +171,7 @@ function App() {
         />
         <Route path="/profile" element={<ProfileScreen />} />
         <Route path="/dashboard/live-attendance" element={<AdminLiveAttendance />} />
-        <Route path="/attendance/staff" element={<StaffAttendanceDashboard />} />
+        <Route path="/attendance/supervisor" element={<SupervisorAttendanceDashboard />} />
         <Route path="/attendance/subcontractor" element={<SubcontractorAttendanceDashboard />} />
         <Route path="/attendance/labour" element={<LabourAttendanceDashboard />} />
         <Route path="/attendance/notes" element={<NotesDashboard />} />
