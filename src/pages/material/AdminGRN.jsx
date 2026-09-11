@@ -1083,11 +1083,11 @@ export default function AdminGRN() {
 
   return (
     <DashboardLayout title="GRN (Goods Receipt Note)">
-      <div className="flex-1 p-6 bg-gray-50">
+      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-800">GRN (Goods Receipt Note)</h1>
-            <p className="text-sm text-gray-500">View all completed deliveries</p>
+            <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">GRN (Goods Receipt Note)</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">View all completed deliveries</p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -1155,45 +1155,45 @@ export default function AdminGRN() {
             </div>
 
             {/* Detailed Analytics Sections */}
-            <div className="bg-white rounded-lg shadow-md border border-gray-200">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
               {/* Site-wise Summary */}
               <div className="p-5">
                 <div className="flex items-center gap-2 mb-4">
                   <MapPin size={20} className="text-orange-600" />
-                  <h3 className="text-lg font-bold text-gray-800">Site-wise Summary</h3>
+                  <h3 className="text-lg font-bold text-gray-800 dark:text-white">Site-wise Summary</h3>
                 </div>
-                <p className="text-xs text-gray-600 mb-4 bg-orange-50 p-3 rounded-lg border border-orange-200">
+                <p className="text-xs text-gray-600 dark:text-gray-300 mb-4 bg-orange-50 dark:bg-orange-950/40 p-3 rounded-lg border border-orange-200 dark:border-orange-800">
                   💡 <strong>Note:</strong> Shows total materials delivered to each site, total GRN entries, total amount spent, and invoice count per site.
                 </p>
                 
                 {/* Table Layout */}
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
                           Site Name
                         </th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
                           Total Amount
                         </th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
                           GRN Count
                         </th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
                           Materials
                         </th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
                           Invoices
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                       {analytics.siteSummary.length > 0 ? (
                         analytics.siteSummary.slice(0, 10).map((site, idx) => (
-                          <tr key={idx} className="hover:bg-orange-50 transition-colors">
+                          <tr key={idx} className="hover:bg-orange-50 dark:hover:bg-gray-700 transition-colors">
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <span className="text-sm font-semibold text-gray-900">{site.siteName}</span>
+                              <span className="text-sm font-semibold text-gray-900 dark:text-white">{site.siteName}</span>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap text-right">
                               <span className="text-sm font-bold text-orange-600">₹{site.totalAmount.toLocaleString('en-IN')}</span>
@@ -1217,7 +1217,7 @@ export default function AdminGRN() {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="5" className="px-4 py-8 text-center text-sm text-gray-500">
+                          <td colSpan="5" className="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                             No sites found
                           </td>
                         </tr>
@@ -1236,17 +1236,17 @@ export default function AdminGRN() {
             <p className="text-gray-600 text-sm">Loading GRN records...</p>
           </div>
         ) : (
-          <div className="bg-white shadow rounded-lg py-3 px-2 overflow-x-auto">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg py-3 px-2 overflow-x-auto">
             <div className="mb-4">
               <div className="flex justify-between items-center mb-3">
-                <h2 className="text-lg font-semibold text-gray-700">
+                <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-100">
                   GRN Records ({filteredDeliveries.length} of {deliveries.length} records)
                 </h2>
                 <div className="flex gap-3 items-center">
                   <input
                     type="text"
                     placeholder="Search by ID, site..."
-                    className="border border-gray-300 rounded p-2 w-80 focus:ring-2 focus:ring-orange-400 text-sm"
+                    className="border border-gray-300 dark:border-gray-600 rounded p-2 w-80 bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-orange-400 text-sm"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
@@ -1262,20 +1262,20 @@ export default function AdminGRN() {
                     </button>
                     
                     {showExportMenu && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50">
                         <button
                           onClick={handleExportExcel}
-                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-green-50 transition-colors text-left border-b border-gray-100"
+                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-green-50 dark:hover:bg-gray-700 transition-colors text-left border-b border-gray-100 dark:border-gray-700"
                         >
                           <FileSpreadsheet size={18} className="text-green-600" />
-                          <span className="font-medium text-gray-700">Export as Excel</span>
+                          <span className="font-medium text-gray-700 dark:text-gray-200">Export as Excel</span>
                         </button>
                         <button
                           onClick={handleExportPDF}
-                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-left"
+                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 dark:hover:bg-gray-700 transition-colors text-left"
                         >
                           <FileText size={18} className="text-red-600" />
-                          <span className="font-medium text-gray-700">Export as PDF</span>
+                          <span className="font-medium text-gray-700 dark:text-gray-200">Export as PDF</span>
                         </button>
                       </div>
                     )}
@@ -1284,8 +1284,8 @@ export default function AdminGRN() {
               </div>
 
               {/* Filters Section - Advanced Filters */}
-              <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
-                <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+              <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 shadow-sm">
+                <h3 className="text-sm font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
                   <Search size={16} className="text-orange-600" />
                   Advanced Filters
                 </h3>
@@ -1294,11 +1294,11 @@ export default function AdminGRN() {
                 <div className="flex gap-4 items-end flex-wrap mb-3">
                   {/* Site Filter */}
                   <div className="flex-1 min-w-[180px]">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Site</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Site</label>
                     <select
                       value={filterSite}
                       onChange={(e) => setFilterSite(e.target.value)}
-                      className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors cursor-pointer"
+                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
                     >
                       <option value="">All Sites</option>
                       {sites.map(site => (
@@ -1309,11 +1309,11 @@ export default function AdminGRN() {
 
                   {/* ✅ Type Filter */}
                   <div className="flex-1 min-w-[180px]">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Type</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Type</label>
                     <select
                       value={filterType}
                       onChange={(e) => setFilterType(e.target.value)}
-                      className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors cursor-pointer"
+                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
                     >
                       <option value="">All Types</option>
                       <option value="Site Transfer">Site Transfer</option>
@@ -1323,22 +1323,22 @@ export default function AdminGRN() {
 
                   {/* Invoice Number Filter */}
                   <div className="flex-1 min-w-[180px]">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Invoice Number</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Invoice Number</label>
                     <input
                       type="text"
                       value={filterInvoiceNumber}
                       onChange={(e) => setFilterInvoiceNumber(e.target.value)}
                       placeholder="Search invoice..."
-                      className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors"
+                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder:text-muted-foreground font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
                     />
                   </div>
 
                   <div className="flex-1 min-w-[180px]">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Payment</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Payment</label>
                     <select
                       value={filterStatus}
                       onChange={(e) => setFilterStatus(e.target.value)}
-                      className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors cursor-pointer"
+                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
                     >
                       <option value="">All Payments</option>
                       <option value="pending">Pending Payment</option>
@@ -1349,23 +1349,23 @@ export default function AdminGRN() {
 
                   {/* Date From */}
                   <div className="flex-1 min-w-[160px]">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">From Date</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">From Date</label>
                     <input
                       type="date"
                       value={filterDateFrom}
                       onChange={(e) => setFilterDateFrom(e.target.value)}
-                      className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors"
+                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
                     />
                   </div>
 
                   {/* Date To */}
                   <div className="flex-1 min-w-[160px]">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">To Date</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">To Date</label>
                     <input
                       type="date"
                       value={filterDateTo}
                       onChange={(e) => setFilterDateTo(e.target.value)}
-                      className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors"
+                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
                     />
                   </div>
                 </div>
@@ -1395,26 +1395,26 @@ export default function AdminGRN() {
                 <p className="text-gray-500 text-sm">No completed deliveries found</p>
               </div>
             ) : (
-              <table className="min-w-full border-collapse border border-gray-200 text-xs">
-                <thead className="bg-gray-100">
+              <table className="min-w-full border-collapse border border-gray-200 dark:border-gray-700 text-xs">
+                <thead className="bg-gray-100 dark:bg-gray-700">
                   <tr>
-                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Sr No.</th>
-                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Invoice No</th>
-                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Date</th>
-                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Category</th>
-                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Category 1</th>
-                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Category 2</th>
-                    <th className="border px-2 py-2 text-center font-semibold text-gray-700">Quantity</th>
-                    <th className="border px-2 py-2 text-right font-semibold text-gray-700">Price (₹)</th>
-                    <th className="border px-2 py-2 text-right font-semibold text-gray-700">Amount (₹)</th>
-                    <th className="border px-2 py-2 text-right font-semibold text-gray-700">Discount</th>
-                    <th className="border px-2 py-2 text-right font-semibold text-gray-700 bg-green-50">Total (₹)</th>
-                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Payment</th>
-                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Project Name</th>
-                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Vendor Name</th>
-                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Remark</th>
-                    <th className="border px-2 py-2 text-left font-semibold text-gray-700">Company Name</th>
-                    <th className="border px-2 py-2 text-center font-semibold text-gray-700">Actions</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Sr No.</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Invoice No</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Date</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Category</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Category 1</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Category 2</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-center font-semibold text-gray-700 dark:text-gray-100">Quantity</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-right font-semibold text-gray-700 dark:text-gray-100">Price (₹)</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-right font-semibold text-gray-700 dark:text-gray-100">Amount (₹)</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-right font-semibold text-gray-700 dark:text-gray-100">Discount</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-right font-semibold text-gray-700 dark:text-gray-100 bg-green-50 dark:bg-green-950/40">Total (₹)</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Payment</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Project Name</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Vendor Name</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Remark</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Company Name</th>
+                    <th className="border dark:border-gray-600 px-2 py-2 text-center font-semibold text-gray-700 dark:text-gray-100">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1431,12 +1431,12 @@ export default function AdminGRN() {
                         const paymentSummary = getPaymentSummary(delivery.billing);
                         
                         return (
-                          <tr key={`${delivery._id}-${itemIndex}`} className="hover:bg-gray-50">
-                            <td className="border px-2 py-2 text-center text-gray-700">{srNo}</td>
-                            <td className="border px-2 py-2 font-medium text-gray-900">
+                          <tr key={`${delivery._id}-${itemIndex}`} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td className="border dark:border-gray-700 px-2 py-2 text-center text-gray-700 dark:text-gray-300">{srNo}</td>
+                            <td className="border dark:border-gray-700 px-2 py-2 font-medium text-gray-900 dark:text-gray-100">
                               {delivery.billing?.invoiceNumber || '-'}
                             </td>
-                            <td className="border px-2 py-2 text-gray-700">
+                            <td className="border dark:border-gray-700 px-2 py-2 text-gray-700 dark:text-gray-300">
                               {delivery.billing?.billDate 
                                 ? new Date(delivery.billing.billDate).toLocaleDateString('en-IN', { 
                                     year: 'numeric', 
@@ -1449,43 +1449,43 @@ export default function AdminGRN() {
                                     day: 'numeric' 
                                   })}
                             </td>
-                            <td className="border px-2 py-2 text-gray-900">{item.category || item.name || '-'}</td>
-                            <td className="border px-2 py-2 text-gray-700">{item.sub_category || '-'}</td>
-                            <td className="border px-2 py-2 text-gray-700">{item.sub_category1 || '-'}</td>
-                            <td className="border px-2 py-2 text-center font-medium text-gray-900">
+                            <td className="border dark:border-gray-700 px-2 py-2 text-gray-900 dark:text-gray-100">{item.category || item.name || '-'}</td>
+                            <td className="border dark:border-gray-700 px-2 py-2 text-gray-700 dark:text-gray-300">{item.sub_category || '-'}</td>
+                            <td className="border dark:border-gray-700 px-2 py-2 text-gray-700 dark:text-gray-300">{item.sub_category1 || '-'}</td>
+                            <td className="border dark:border-gray-700 px-2 py-2 text-center font-medium text-gray-900 dark:text-gray-100">
                               {quantity} {item.uom || ''}
                             </td>
-                            <td className="border px-2 py-2 text-right text-gray-900">
+                            <td className="border dark:border-gray-700 px-2 py-2 text-right text-gray-900 dark:text-gray-100">
                               {materialBilling?.price ? `₹${materialBilling.price.toLocaleString('en-IN')}` : '-'}
                             </td>
-                            <td className="border px-2 py-2 text-right font-medium text-gray-900">
+                            <td className="border dark:border-gray-700 px-2 py-2 text-right font-medium text-gray-900 dark:text-gray-100">
                               {grossAmount ? `₹${grossAmount.toLocaleString('en-IN')}` : '-'}
                             </td>
-                            <td className="border px-2 py-2 text-right text-red-600">
+                            <td className="border dark:border-gray-700 px-2 py-2 text-right text-red-600">
                               {materialBilling?.discount 
                                 ? materialBilling.discountType === 'percentage' 
                                   ? `${materialBilling.discount}%` 
                                   : `₹${materialBilling.discount.toLocaleString('en-IN')}`
                                 : '-'}
                             </td>
-                            <td className="border px-2 py-2 text-right font-bold text-green-700 bg-green-50">
+                            <td className="border dark:border-gray-700 px-2 py-2 text-right font-bold text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950/40">
                               {materialBilling?.totalAmount ? `₹${materialBilling.totalAmount.toLocaleString('en-IN')}` : '-'}
                             </td>
-                            <td className="border px-2 py-2">
+                            <td className="border dark:border-gray-700 px-2 py-2">
                               <div className="space-y-1">
                                 <span className={`inline-block px-2 py-1 rounded-full text-[11px] font-semibold ${getPaymentStatusColor(paymentSummary.paymentStatus)}`}>
                                   {getPaymentStatusLabel(paymentSummary.paymentStatus)}
                                 </span>
-                                <p className="text-[11px] text-gray-600">
+                                <p className="text-[11px] text-gray-600 dark:text-gray-300">
                                   Paid {formatCurrency(paymentSummary.paidAmount)}
                                 </p>
                               </div>
                             </td>
-                            <td className="border px-2 py-2 text-gray-900">{delivery.to || '-'}</td>
-                            <td className="border px-2 py-2 text-gray-900">{delivery.from || delivery.vendor || '-'}</td>
-                            <td className="border px-2 py-2 text-gray-700">{item.remarks || '-'}</td>
-                            <td className="border px-2 py-2 font-medium text-gray-900">Laxmi Powertech Private Limited</td>
-                            <td className="border px-2 py-2 text-center">
+                            <td className="border dark:border-gray-700 px-2 py-2 text-gray-900 dark:text-gray-100">{delivery.to || '-'}</td>
+                            <td className="border dark:border-gray-700 px-2 py-2 text-gray-900 dark:text-gray-100">{delivery.from || delivery.vendor || '-'}</td>
+                            <td className="border dark:border-gray-700 px-2 py-2 text-gray-700 dark:text-gray-300">{item.remarks || '-'}</td>
+                            <td className="border dark:border-gray-700 px-2 py-2 font-medium text-gray-900 dark:text-gray-100">Laxmi Powertech Private Limited</td>
+                            <td className="border dark:border-gray-700 px-2 py-2 text-center">
                               {itemIndex === 0 && (
                                 <button
                                   onClick={() => handleViewDetails(delivery)}
@@ -1500,7 +1500,7 @@ export default function AdminGRN() {
                         );
                       })
                     ) : (
-                      <tr key={delivery._id} className="hover:bg-gray-50">
+                      <tr key={delivery._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="border px-2 py-2 text-center text-gray-700">{deliveryIndex + 1}</td>
                         <td className="border px-2 py-2 font-medium text-gray-900">
                           {delivery.billing?.invoiceNumber || '-'}
@@ -1693,8 +1693,7 @@ export default function AdminGRN() {
                         type="date"
                         value={billingData.billDate || ''}
                         onChange={(e) => setBillingData({ ...billingData, billDate: e.target.value })}
-                        className="w-full bg-white border-2 border-orange-300 rounded px-3 py-2 text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                        style={{ colorScheme: 'light' }}
+                        className="w-full bg-white dark:bg-gray-800 border-2 border-orange-300 dark:border-orange-700 rounded px-3 py-2 text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       />
                     ) : (
                       <div className="bg-white border-2 border-orange-300 rounded px-3 py-2">
@@ -1795,7 +1794,7 @@ export default function AdminGRN() {
                     </thead>
                     <tbody>
                       {billingData.materialBilling.map((material) => (
-                        <tr key={material.materialId} className="hover:bg-gray-50">
+                        <tr key={material.materialId} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                           <td className="border px-4 py-3 font-medium text-gray-900">{material.materialName}</td>
                           <td className="border px-4 py-3 text-center font-semibold text-gray-900">
                             {safeNumber(material.quantity)}
@@ -1887,7 +1886,7 @@ export default function AdminGRN() {
                         const isFullyReceived = receivedQty >= approvedQty;
                         
                         return (
-                          <tr key={index} className="hover:bg-gray-50">
+                          <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                             <td className="border px-3 py-2 text-sm text-gray-900">
                               {item.category || item.name || 'N/A'}
                             </td>

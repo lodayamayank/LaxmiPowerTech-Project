@@ -119,8 +119,8 @@ const AdminDeleteAttendance = () => {
     <DashboardLayout title="Delete Attendance">
       <div className="space-y-6 max-w-2xl">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Delete Attendance Records</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Delete Attendance Records</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Permanently remove attendance records — and their selfies on Cloudinary — for a
             specific date or date range. This cannot be undone.
           </p>
@@ -130,30 +130,30 @@ const AdminDeleteAttendance = () => {
           <CardContent className="p-6 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
                   Start Date <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 bg-background text-foreground text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   value={startDate}
                   max={todayStr()}
                   onChange={(e) => setStartDate(e.target.value)}
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
                   End Date <span className="text-gray-400 font-normal">(optional)</span>
                 </label>
                 <input
                   type="date"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 bg-background text-foreground text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   value={endDate}
                   min={startDate}
                   max={todayStr()}
                   onChange={(e) => setEndDate(e.target.value)}
                 />
-                <p className="text-xs text-gray-400 mt-1">Leave blank to target a single day</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Leave blank to target a single day</p>
               </div>
             </div>
 
@@ -165,7 +165,7 @@ const AdminDeleteAttendance = () => {
               <div
                 className={`rounded-lg border p-4 text-sm ${
                   preview.count === 0
-                    ? 'border-gray-200 bg-gray-50 text-gray-600'
+                    ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
                     : 'border-orange-200 bg-orange-50 text-orange-800'
                 }`}
               >
@@ -188,15 +188,15 @@ const AdminDeleteAttendance = () => {
             )}
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
                 Delete from
               </label>
               <div className="flex flex-col sm:flex-row gap-3">
                 <label
                   className={`flex items-center gap-2 text-sm rounded-lg px-3 py-2.5 flex-1 cursor-pointer border ${
                     deleteMode === 'cloudinary'
-                      ? 'border-red-400 bg-red-50 text-gray-900'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      ? 'border-red-400 bg-red-50 dark:bg-red-950/40 text-gray-900 dark:text-gray-100'
+                      : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
                   <input
@@ -211,8 +211,8 @@ const AdminDeleteAttendance = () => {
                 <label
                   className={`flex items-center gap-2 text-sm rounded-lg px-3 py-2.5 flex-1 cursor-pointer border ${
                     deleteMode === 'both'
-                      ? 'border-red-400 bg-red-50 text-gray-900'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      ? 'border-red-400 bg-red-50 dark:bg-red-950/40 text-gray-900 dark:text-gray-100'
+                      : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
                   <input
@@ -225,7 +225,7 @@ const AdminDeleteAttendance = () => {
                   Delete from Cloudinary + Database
                 </label>
               </div>
-              <p className="text-xs text-gray-400 mt-1.5">
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
                 {deleteMode === 'cloudinary'
                   ? 'Only the selfie images are removed from Cloudinary — the attendance records stay in the database.'
                   : 'The selfie images and the attendance records themselves are both permanently removed.'}

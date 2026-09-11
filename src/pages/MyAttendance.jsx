@@ -19,10 +19,100 @@ import {
   FaCalendarDay,
   FaEdit,
 } from "react-icons/fa";
+import {
+  ComposedChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
 const MINUTES_HALF_DAY = 240;
 const MINUTES_FULL_DAY = 480;
 const WEEK_OFF_DAYS = [0]; // Sunday
+const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+// --- Pure helper: computes day-by-day status for ANY month/year.
+// Extracted out of the component so both the monthly view and the
+// yearly graph can reuse the exact same attendance logic.
+function computeDailyStatuses(records, month, year) {
+  const keyOf = (iso) => {
+    const d = new Date(iso);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+      d.getDate()
+    ).padStart(2, "0")}`;
+  };
+
+  const byDay = new Map();
+  for (const p of records) {
+    const ts = p.createdAt;
+    if (!ts) continue;
+    const k = keyOf(ts);
+    if (!byDay.has(k)) byDay.set(k, []);
+    byDay.get(k).push(p);
+  }
+
+  const start = new Date(year, month, 1);
+  const end = new Date(year, month + 1, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const out = [];
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const key = keyOf(d);
+    const punches = byDay.get(key) || [];
+    const dow = d.getDay();
+
+    let status;
+    let firstIn = null, lastOut = null, minutes = 0;
+
+    if (d > today) {
+      status = "Future";
+    } else if (punches.some((p) => p.punchType === "leave")) {
+      const leavePunch = punches.find((p) => p.punchType === "leave");
+      const type = leavePunch?.leaveId?.type || "unpaid";
+      status =
+        type === "paid" ? "Paid Leave"
+        : type === "unpaid" ? "Unpaid Leave"
+        : type === "sick" ? "Sick Leave"
+        : "Casual Leave";
+    } else if (
+      punches.some((p) => p.punchType === "in") &&
+      punches.some((p) => p.punchType === "out")
+    ) {
+      const ins = punches.filter((p) => p.punchType === "in").map((x) => new Date(x.createdAt));
+      const outs = punches.filter((p) => p.punchType === "out").map((x) => new Date(x.createdAt));
+      firstIn = new Date(Math.min(...ins.map((x) => x.getTime())));
+      lastOut = new Date(Math.max(...outs.map((x) => x.getTime())));
+      minutes = Math.max(0, Math.round((lastOut - firstIn) / 60000));
+
+      if (!WEEK_OFF_DAYS.includes(dow)) {
+        status =
+          minutes >= MINUTES_FULL_DAY ? "Present"
+          : minutes >= MINUTES_HALF_DAY ? "Half Day"
+          : "Absent";
+      } else {
+        status = "Week Off";
+      }
+    } else if (punches.length && !WEEK_OFF_DAYS.includes(dow)) {
+      status = "Half Day";
+    } else if (WEEK_OFF_DAYS.includes(dow)) {
+      status = "Week Off";
+    } else {
+      status = "Absent";
+    }
+
+    out.push({ date: key, status, minutes, firstIn, lastOut, punches });
+  }
+
+  return out;
+}
 
 const MyAttendance = () => {
   const [records, setRecords] = useState([]);
@@ -30,7 +120,7 @@ const MyAttendance = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("all");
-  const [view, setView] = useState("calendar"); // calendar | summary | list
+  const [view, setView] = useState("calendar"); // calendar | summary | list | graph
   const [selectedDay, setSelectedDay] = useState(null);
   const [month, setMonth] = useState(new Date().getMonth());
   const [year, setYear] = useState(new Date().getFullYear());
@@ -84,85 +174,11 @@ const MyAttendance = () => {
     });
   }, [records, filter]);
 
-  // --- daily aggregation
-  const dailySummary = useMemo(() => {
-    const keyOf = (iso) => {
-      const d = new Date(iso);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-        d.getDate()
-      ).padStart(2, "0")}`;
-    };
-  
-    const byDay = new Map();
-    for (const p of records) {
-      const ts = p.createdAt;
-      if (!ts) continue;
-      const k = keyOf(ts);
-      if (!byDay.has(k)) byDay.set(k, []);
-      byDay.get(k).push(p);
-    }
-  
-    const start = new Date(year, month, 1);
-    const end = new Date(year, month + 1, 0);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-  
-    const out = [];
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const key = keyOf(d);
-      const punches = byDay.get(key) || [];
-      const dow = d.getDay();
-  
-      let status;
-      let firstIn = null, lastOut = null, minutes = 0;
-  
-      if (d > today) {
-        status = "Future";
-      } else if (punches.some((p) => p.punchType === "leave")) {
-        const leavePunch = punches.find((p) => p.punchType === "leave");
-        const type = leavePunch?.leaveId?.type || "unpaid";
-        status =
-          type === "paid"
-            ? "Paid Leave"
-            : type === "unpaid"
-            ? "Unpaid Leave"
-            : type === "sick"
-            ? "Sick Leave"
-            : "Casual Leave";
-      } else if (
-        punches.some((p) => p.punchType === "in") &&
-        punches.some((p) => p.punchType === "out")
-      ) {
-        const ins = punches.filter((p) => p.punchType === "in").map((x) => new Date(x.createdAt));
-        const outs = punches.filter((p) => p.punchType === "out").map((x) => new Date(x.createdAt));
-        firstIn = new Date(Math.min(...ins.map((x) => x.getTime())));
-        lastOut = new Date(Math.max(...outs.map((x) => x.getTime())));
-        minutes = Math.max(0, Math.round((lastOut - firstIn) / 60000));
-  
-        if (!WEEK_OFF_DAYS.includes(dow)) {
-          status =
-            minutes >= MINUTES_FULL_DAY
-              ? "Present"
-              : minutes >= MINUTES_HALF_DAY
-              ? "Half Day"
-              : "Absent";
-        } else {
-          status = "Week Off";
-        }
-      } else if (punches.length && !WEEK_OFF_DAYS.includes(dow)) {
-        status = "Half Day";
-      } else if (WEEK_OFF_DAYS.includes(dow)) {
-        status = "Week Off";
-      } else {
-        status = "Absent";
-      }
-  
-      out.push({ date: key, status, minutes, firstIn, lastOut, punches });
-    }
-  
-    return out;
-  }, [records, month, year]);
-  
+  // --- daily aggregation for the currently selected month
+  const dailySummary = useMemo(
+    () => computeDailyStatuses(records, month, year),
+    [records, month, year]
+  );
 
   // summary counts
   const counts = useMemo(
@@ -175,6 +191,45 @@ const MyAttendance = () => {
     }),
     [dailySummary]
   );
+
+  // --- yearly aggregation (12 months) for the "Year Graph" bar + trend line
+  const yearlySummary = useMemo(() => {
+    return MONTHS_SHORT.map((label, m) => {
+      const days = computeDailyStatuses(records, m, year);
+      const present = days.filter((d) => d.status === "Present").length;
+      const half = days.filter((d) => d.status === "Half Day").length;
+      const absent = days.filter((d) => d.status === "Absent").length;
+      const workingDays = days.filter(
+        (d) => !["Week Off", "Future"].includes(d.status)
+      ).length;
+      const pct = workingDays
+        ? Math.round(((present + half * 0.5) / workingDays) * 100)
+        : 0;
+      return { month: label, present, half, absent, pct };
+    });
+  }, [records, year]);
+
+  const overallYearPct = useMemo(() => {
+    const withData = yearlySummary.filter((m) => m.pct > 0 || m.present + m.absent > 0);
+    if (!withData.length) return 0;
+    return Math.round(withData.reduce((a, b) => a + b.pct, 0) / withData.length);
+  }, [yearlySummary]);
+
+  // --- donut data for the currently selected month ("Month Graph")
+  const monthDonutData = useMemo(() => {
+    const present = dailySummary.filter((d) => d.status === "Present").length;
+    const other = dailySummary.filter(
+      (d) => !["Present", "Week Off", "Future"].includes(d.status)
+    ).length;
+    return [
+      { name: "Present", value: present },
+      { name: "Absent/Other", value: other },
+    ];
+  }, [dailySummary]);
+
+  const totalTrackedDays = dailySummary.filter(
+    (d) => !["Week Off", "Future"].includes(d.status)
+  ).length;
   
 
   const openDayDetail = async (day) => {
@@ -340,46 +395,123 @@ const MyAttendance = () => {
 
           {/* Summary view */}
           {view === "summary" && (
-            <div className="space-y-3">
-              {dailySummary.map((d) => (
-                <div
-                  key={d.date}
-                  className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer"
-                  onClick={() => openDayDetail(d)}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
-                        <div className="text-center">
-                          <div className="text-xs text-orange-600 font-medium">
-                            {new Date(d.date).toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
-                          </div>
-                          <div className="text-lg font-bold text-orange-600">
-                            {new Date(d.date).getDate()}
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="font-semibold text-gray-800">
-                          {new Date(d.date).toLocaleDateString('en-US', { weekday: 'long' })}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          {d.firstIn && d.lastOut
-                            ? `${fmt(d.firstIn)} - ${fmt(d.lastOut)}`
-                            : "No punch data"}
-                        </div>
-                      </div>
-                    </div>
-                    <StatusBadge status={d.status} />
+            <div className="space-y-6">
+              {/* Year Graph: bar + trend line, per month attendance % */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold text-gray-700">Year Graph</p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setYear(year - 1)}
+                    >
+                      <FaChevronLeft className="text-gray-600" size={12} />
+                    </Button>
+                    <span className="text-sm font-medium text-gray-700 w-12 text-center">{year}</span>
+                    <Button
+                      className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setYear(year + 1)}
+                    >
+                      <FaChevronRight className="text-gray-600" size={12} />
+                    </Button>
                   </div>
-                  {d.minutes > 0 && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mt-2 pt-2 border-t border-gray-200">
-                      <FaClock size={12} />
-                      <span>{Math.floor(d.minutes / 60)}h {d.minutes % 60}m worked</span>
-                    </div>
-                  )}
                 </div>
-              ))}
+                <ResponsiveContainer width="100%" height={220}>
+                  <ComposedChart data={yearlySummary} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={{ stroke: "#e5e7eb" }} />
+                    <YAxis
+                      domain={[0, 100]}
+                      tickFormatter={(v) => `${v}%`}
+                      tick={{ fontSize: 11, fill: "#6b7280" }}
+                      axisLine={false}
+                    />
+                    <Tooltip content={<YearGraphTooltip />} />
+                    <Bar dataKey="pct" name="Attendance %" radius={[6, 6, 0, 0]} barSize={22}>
+                      {yearlySummary.map((entry, i) => (
+                        <Cell key={i} fill={i % 2 === 0 ? "#1e293b" : "#f97316"} />
+                      ))}
+                    </Bar>
+                    <Line type="monotone" dataKey="pct" stroke="#ef4444" strokeWidth={2} dot={false} legendType="none" />
+                  </ComposedChart>
+                </ResponsiveContainer>
+                <p className="text-center text-sm text-gray-600 mt-2">
+                  Over all percentage{" "}
+                  <span className="font-bold text-gray-800">{overallYearPct}%</span>
+                </p>
+              </div>
+
+              {/* Month Graph: donut for a chosen month, with its own month nav */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold text-gray-700">Month Graph</p>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        if (month === 0) { setMonth(11); setYear(year - 1); }
+                        else setMonth(month - 1);
+                      }}
+                    >
+                      <FaChevronLeft className="text-gray-600" size={12} />
+                    </Button>
+                    <span className="text-sm font-medium text-gray-700 w-24 text-center">
+                      {months[month]} {year}
+                    </span>
+                    <Button
+                      className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        if (month === 11) { setMonth(0); setYear(year + 1); }
+                        else setMonth(month + 1);
+                      }}
+                    >
+                      <FaChevronRight className="text-gray-600" size={12} />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <ResponsiveContainer width={140} height={140}>
+                    <PieChart>
+                      <Pie
+                        data={monthDonutData}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={45}
+                        outerRadius={65}
+                        startAngle={90}
+                        endAngle={-270}
+                        stroke="none"
+                      >
+                        <Cell fill="#f97316" />
+                        <Cell fill="#1e293b" />
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="text-sm text-gray-700 space-y-1.5 flex-1">
+                    <p className="flex justify-between">
+                      <span className="text-gray-500">Total Days</span>
+                      <span className="font-semibold">{totalTrackedDays}</span>
+                    </p>
+                    <p className="flex justify-between">
+                      <span className="text-gray-500">Present days</span>
+                      <span className="font-semibold text-green-600">{counts.present}</span>
+                    </p>
+                    <p className="flex justify-between">
+                      <span className="text-gray-500">Absent days</span>
+                      <span className="font-semibold text-red-600">{counts.absent}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -418,6 +550,7 @@ const MyAttendance = () => {
               </table>
             </div>
           )}
+
         </div>
       </div>
 
@@ -620,6 +753,25 @@ function Legend() {
 
 function fmt(d) {
   return new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+// Custom tooltip for the Year Graph. The bar and the trend line both plot
+// the same "pct" field, so the default recharts tooltip lists it twice
+// (once per series). This renders a single, more useful breakdown instead.
+function YearGraphTooltip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) return null;
+  const data = payload[0].payload;
+  return (
+    <div className="bg-white rounded-lg shadow-lg border border-gray-200 px-3 py-2 text-xs space-y-0.5">
+      <p className="font-semibold text-gray-800">{label}</p>
+      <p className="text-gray-600">
+        Attendance: <span className="font-semibold text-gray-800">{data.pct}%</span>
+      </p>
+      <p className="text-green-600">Present: <span className="font-semibold">{data.present}</span></p>
+      <p className="text-yellow-600">Half Day: <span className="font-semibold">{data.half}</span></p>
+      <p className="text-red-600">Absent: <span className="font-semibold">{data.absent}</span></p>
+    </div>
+  );
 }
 
 export default MyAttendance;

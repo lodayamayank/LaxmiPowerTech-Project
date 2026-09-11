@@ -513,15 +513,15 @@ const CreateProject = () => {
         </div>
 
         {/* Projects List */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-lg font-semibold text-gray-800">Projects List</h2>
-            <p className="text-sm text-gray-500 mt-1">Manage your existing projects</p>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Projects List</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage your existing projects</p>
           </div>
 
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="bg-gray-50 text-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-100">
                 <tr>
                   <th className="text-left px-6 py-3 font-semibold">Project Name</th>
                   <th className="text-left px-6 py-3 font-semibold">Address</th>
@@ -532,21 +532,21 @@ const CreateProject = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="4" className="px-6 py-6 text-center text-gray-500">
+                    <td colSpan="4" className="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
                       Loading projects...
                     </td>
                   </tr>
                 ) : projects.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="px-6 py-6 text-center text-gray-500">
+                    <td colSpan="4" className="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
                       No projects found. Create your first project above.
                     </td>
                   </tr>
                 ) : (
                   projects.map((proj) => (
-                    <tr key={proj._id} className="border-t border-gray-100 hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-gray-900">{proj.name}</td>
-                      <td className="px-6 py-4 text-gray-600">{proj.address}</td>
+                    <tr key={proj._id} className="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                      <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">{proj.name}</td>
+                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{proj.address}</td>
                       <td className="px-6 py-4">
                         {proj.branches?.length > 0 ? (
                           <div className="flex flex-wrap gap-1">

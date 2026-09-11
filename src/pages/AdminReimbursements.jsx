@@ -188,12 +188,12 @@ const AdminReimbursements = () => {
         {/* Filters */}
         <form
           onSubmit={onSearch}
-          className="grid grid-cols-1 md:grid-cols-5 gap-3 bg-white p-4 rounded-xl shadow"
+          className="grid grid-cols-1 md:grid-cols-5 gap-3 bg-white dark:bg-gray-800 p-4 rounded-xl shadow"
         >
           <select
             value={filters.status}
             onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-            className="border rounded-lg px-3 py-2"
+            className="border rounded-lg px-3 py-2 bg-background text-foreground"
           >
             <option value="">All Status</option>
             <option value="pending">Pending</option>
@@ -205,7 +205,7 @@ const AdminReimbursements = () => {
           <select
             value={filters.role}
             onChange={(e) => setFilters({ ...filters, role: e.target.value })}
-            className="border rounded-lg px-3 py-2"
+            className="border rounded-lg px-3 py-2 bg-background text-foreground"
           >
             <option value="">All Roles</option>
             <option value="labour">Labour</option>
@@ -218,7 +218,7 @@ const AdminReimbursements = () => {
             type="date"
             value={filters.from}
             onChange={(e) => setFilters({ ...filters, from: e.target.value })}
-            className="border rounded-lg px-3 py-2"
+            className="border rounded-lg px-3 py-2 bg-background text-foreground"
             placeholder="From"
           />
 
@@ -226,7 +226,7 @@ const AdminReimbursements = () => {
             type="date"
             value={filters.to}
             onChange={(e) => setFilters({ ...filters, to: e.target.value })}
-            className="border rounded-lg px-3 py-2"
+            className="border rounded-lg px-3 py-2 bg-background text-foreground"
             placeholder="To"
           />
 
@@ -236,9 +236,9 @@ const AdminReimbursements = () => {
         </form>
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow overflow-x-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 text-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-100">
               <tr>
                 <th className="text-left px-4 py-2">User</th>
                 <th className="text-left px-4 py-2">Role</th>
@@ -262,13 +262,13 @@ const AdminReimbursements = () => {
                 </tr>
               ) : reimbursements.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-6 text-center text-gray-500" colSpan={8}>
+                  <td className="px-4 py-6 text-center text-gray-500 dark:text-gray-400" colSpan={8}>
                     No records found
                   </td>
                 </tr>
               ) : (
                 reimbursements.map((reimb) => (
-                  <tr key={reimb._id} className="border-t hover:bg-gray-50">
+                  <tr key={reimb._id} className="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-4 py-2 font-medium">
                       {reimb.user?.name || "Unknown"}
                     </td>
@@ -290,7 +290,7 @@ const AdminReimbursements = () => {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => viewDetails(reimb._id)}
-                          className="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                           title="View Details"
                         >
                           <FaEye size={14} />
@@ -333,8 +333,8 @@ const AdminReimbursements = () => {
 
         {/* Pagination */}
         {!loading && total > 0 && (
-          <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl shadow">
-            <div className="text-sm text-gray-600">
+          <div className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow">
+            <div className="text-sm text-gray-600 dark:text-gray-300">
               Page {page} of {totalPages} · {total} records
             </div>
             <div className="flex items-center gap-2">
@@ -344,7 +344,7 @@ const AdminReimbursements = () => {
                   setLimit(Number(e.target.value));
                   setPage(1);
                 }}
-                className="border rounded-lg px-2 py-1"
+                className="border rounded-lg px-2 py-1 bg-background text-foreground"
               >
                 {[10, 20, 50, 100].map((n) => (
                   <option key={n} value={n}>

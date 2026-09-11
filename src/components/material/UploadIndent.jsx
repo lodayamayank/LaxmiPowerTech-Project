@@ -72,13 +72,13 @@ const uploadToServer = async (file, parsedData) => {
 
   return (
     <DashboardLayout title="Upload Indent List">
-    <div className="flex-1 p-6 bg-gray-50">
+    <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-800">
+          <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">
             Upload an Indent List / See Existing Indent List 1
           </h1>
-          <p className="text-sm text-gray-500">Supported file: .xlsx</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Supported file: .xlsx</p>
         </div>
 
         <div>
@@ -102,9 +102,9 @@ const uploadToServer = async (file, parsedData) => {
       {Object.keys(excelData).length > 0 && (
         <>
           <div className="flex items-center gap-4 mb-4">
-            <label className="font-medium text-gray-700">Select Category:</label>
+            <label className="font-medium text-gray-700 dark:text-gray-200">Select Category:</label>
             <select
-              className="border rounded p-2 focus:ring-2 focus:ring-orange-400"
+              className="border rounded p-2 bg-background text-foreground focus:ring-2 focus:ring-orange-400"
               style={{ maxHeight: '200px' }}
               value={selectedSheet}
               onChange={(e) => setSelectedSheet(e.target.value)}

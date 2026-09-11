@@ -27,15 +27,15 @@ const PunchTypeBadge = ({ type }) => {
     unpaidleave: "unpaid leave",
   };
   switch (type) {
-    case "in": cls += "bg-green-50 text-green-700 border-green-200"; break;
-    case "out": cls += "bg-gray-100 text-gray-700 border-gray-300"; break;
-    case "half": cls += "bg-yellow-50 text-yellow-700 border-yellow-200"; break;
-    case "absent": cls += "bg-red-50 text-red-700 border-red-200"; break;
-    case "weekoff": cls += "bg-blue-50 text-blue-700 border-blue-200"; break;
-    case "paidleave": cls += "bg-purple-50 text-purple-700 border-purple-200"; break;
-    case "unpaidleave": cls += "bg-pink-50 text-pink-700 border-pink-200"; break;
-    case "overtime": cls += "bg-orange-50 text-orange-700 border-orange-200"; break;
-    default: cls += "bg-gray-100 text-gray-600 border-gray-200";
+    case "in": cls += "bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800"; break;
+    case "out": cls += "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600"; break;
+    case "half": cls += "bg-yellow-50 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800"; break;
+    case "absent": cls += "bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800"; break;
+    case "weekoff": cls += "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"; break;
+    case "paidleave": cls += "bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800"; break;
+    case "unpaidleave": cls += "bg-pink-50 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-800"; break;
+    case "overtime": cls += "bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800"; break;
+    default: cls += "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600";
   }
   return <Badge variant={variant} className={cls}>{labelMap[type] || type}</Badge>;
 };
@@ -286,13 +286,13 @@ useEffect(() => {
             <form onSubmit={onSearch} className="space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                 <div className="lg:col-span-3">
-                  <label className="block text-xs font-medium text-gray-600 mb-1.5">Search</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Search</label>
                   <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
                       <FaSearch size={14} />
                     </div>
                     <input
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                       placeholder="Search staff..."
                       value={searchStaff}
                       onChange={(e) => setSearchStaff(e.target.value)}
@@ -301,7 +301,7 @@ useEffect(() => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1.5">Role</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Role</label>
                   <Select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
@@ -319,7 +319,7 @@ useEffect(() => {
                 {!startDate && !endDate ? (
                   <>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1.5">Month</label>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Month</label>
                       <Select
                         value={month}
                         onChange={(e) => setMonth(e.target.value)}
@@ -332,7 +332,7 @@ useEffect(() => {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1.5">Year</label>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Year</label>
                       <Select
                         value={year}
                         onChange={(e) => setYear(e.target.value)}
@@ -349,27 +349,27 @@ useEffect(() => {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1.5">Start Date</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Start Date</label>
                   <input
                     type="date"
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                    className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1.5">End Date</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">End Date</label>
                   <input
                     type="date"
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                    className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
                 <Button type="button" variant="outline" onClick={resetFilters}>
                   Reset
                 </Button>
@@ -385,17 +385,17 @@ useEffect(() => {
         {!loading && filtered.length > 0 && (
           <Card>
             <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-3">
-            <div className="text-sm text-gray-600">
-              Showing <span className="font-semibold text-gray-900">{startIndex + 1}</span> to{' '}
-              <span className="font-semibold text-gray-900">{Math.min(endIndex, totalItems)}</span> of{' '}
-              <span className="font-semibold text-gray-900">{totalItems}</span> records
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              Showing <span className="font-semibold text-gray-900 dark:text-white">{startIndex + 1}</span> to{' '}
+              <span className="font-semibold text-gray-900 dark:text-white">{Math.min(endIndex, totalItems)}</span> of{' '}
+              <span className="font-semibold text-gray-900 dark:text-white">{totalItems}</span> records
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">Rows per page:</label>
+              <label className="text-sm text-gray-600 dark:text-gray-300">Rows per page:</label>
               <select
                 value={itemsPerPage}
                 onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
                 <option value={25}>25</option>
                 <option value={50}>50</option>
@@ -412,15 +412,15 @@ useEffect(() => {
           <CardContent className="p-0">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Branch</TableHead>
-                  <TableHead>Selfie</TableHead>
-                  <TableHead>Note</TableHead>
+                <TableRow className="dark:border-gray-700">
+                  <TableHead className="text-gray-600 dark:text-gray-300">Name</TableHead>
+                  <TableHead className="text-gray-600 dark:text-gray-300">Role</TableHead>
+                  <TableHead className="text-gray-600 dark:text-gray-300">Type</TableHead>
+                  <TableHead className="text-gray-600 dark:text-gray-300">Date</TableHead>
+                  <TableHead className="text-gray-600 dark:text-gray-300">Time</TableHead>
+                  <TableHead className="text-gray-600 dark:text-gray-300">Branch</TableHead>
+                  <TableHead className="text-gray-600 dark:text-gray-300">Selfie</TableHead>
+                  <TableHead className="text-gray-600 dark:text-gray-300">Note</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -441,10 +441,10 @@ useEffect(() => {
                   </TableRow>
                 ) : (
                   currentItems.map((item) => (
-                    <TableRow key={item._id}>
-                      <TableCell className="font-medium">{item.user?.name || 'N/A'}</TableCell>
-                      <TableCell className="capitalize">{item.user?.role || '-'}</TableCell>
-                      <TableCell>
+                    <TableRow key={item._id} className="dark:border-gray-700 dark:hover:bg-gray-700/60">
+                        <TableCell className="font-medium text-gray-900 dark:text-gray-100">{item.user?.name || 'N/A'}</TableCell>
+                        <TableCell className="capitalize text-gray-700 dark:text-gray-300">{item.user?.role || '-'}</TableCell>
+                      <TableCell className="text-gray-700 dark:text-gray-300">
                         <div className="flex flex-col items-start gap-1">
                           {item.punchTypes.length > 0 ? (
                             item.punchTypes.map((type) => (
@@ -455,11 +455,11 @@ useEffect(() => {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-gray-700 dark:text-gray-300">
                         {new Date(item.createdAt).toLocaleDateString()}
                       </TableCell>
-                      <TableCell>
-                        <div className="space-y-1 text-sm">
+                      <TableCell className="text-gray-700 dark:text-gray-300">
+                        <div className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
                           {item.punchIn ? (
                             <div>In: {new Date(item.punchIn).toLocaleTimeString()}</div>
                           ) : null}
@@ -473,12 +473,12 @@ useEffect(() => {
                       </TableCell>
                       <TableCell>
                         {item.branch ? (
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 gap-1">
+                          <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 gap-1">
                             <FaMapMarkerAlt size={10} />
                             {item.branch}
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="bg-gray-100 text-gray-600 border-gray-300 gap-1">
+                          <Badge variant="outline" className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 gap-1">
                             <FaMapMarkerAlt size={10} />
                             Outside Assigned Branch
                           </Badge>
@@ -506,7 +506,7 @@ useEffect(() => {
                           <span className="text-sm text-muted-foreground">N/A</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-muted-foreground italic">
+                      <TableCell className="text-muted-foreground dark:text-gray-400 italic">
                         {item.note || '-'}
                       </TableCell>
                     </TableRow>
@@ -521,9 +521,9 @@ useEffect(() => {
         {!loading && filtered.length > 0 && totalPages > 1 && (
           <Card>
             <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 py-3">
-            <div className="text-sm text-gray-600">
-              Page <span className="font-semibold text-gray-900">{currentPage}</span> of{' '}
-              <span className="font-semibold text-gray-900">{totalPages}</span>
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              Page <span className="font-semibold text-gray-900 dark:text-white">{currentPage}</span> of{' '}
+              <span className="font-semibold text-gray-900 dark:text-white">{totalPages}</span>
             </div>
             
             <div className="flex items-center gap-2">

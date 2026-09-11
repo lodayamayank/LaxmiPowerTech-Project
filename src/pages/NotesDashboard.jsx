@@ -201,7 +201,7 @@ const NotesDashboard = () => {
                 <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                 <input
                   type="text"
-                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
+                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-foreground placeholder:text-muted-foreground text-sm focus:ring-2 focus:ring-orange-500"
                   placeholder="Search notes, users, branches..."
                   value={search}
                   onChange={(e) => {
@@ -213,7 +213,7 @@ const NotesDashboard = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Role</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Role</label>
               <Select
                 value={role}
                 onChange={(e) => {
@@ -232,7 +232,7 @@ const NotesDashboard = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Branch</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Branch</label>
               <Select
                 value={branch}
                 onChange={(e) => {
@@ -249,19 +249,19 @@ const NotesDashboard = () => {
 
         {/* Results Info */}
         {!loading && notes.length > 0 && (
-          <div className="bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-100">
-            <div className="text-sm text-gray-600">
-              Showing <span className="font-semibold text-gray-900">{(page - 1) * limit + 1}</span> to{' '}
-              <span className="font-semibold text-gray-900">{Math.min(page * limit, total)}</span> of{' '}
-              <span className="font-semibold text-gray-900">{total}</span> notes
+          <div className="bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              Showing <span className="font-semibold text-gray-900 dark:text-white">{(page - 1) * limit + 1}</span> to{' '}
+              <span className="font-semibold text-gray-900 dark:text-white">{Math.min(page * limit, total)}</span> of{' '}
+              <span className="font-semibold text-gray-900 dark:text-white">{total}</span> notes
             </div>
           </div>
         )}
 
         {/* Notes Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 text-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-100">
               <tr>
                 <th className="text-left px-4 py-3 font-semibold">User</th>
                 <th className="text-left px-4 py-3 font-semibold">Role</th>
@@ -273,29 +273,29 @@ const NotesDashboard = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="px-4 py-6 text-center text-gray-500">
+                  <td colSpan="5" className="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
                     Loading...
                   </td>
                 </tr>
               ) : notes.length > 0 ? (
                 notes.map((n) => (
-                  <tr key={n._id} className="border-t border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-gray-900">{n.userName || "N/A"}</td>
+                  <tr key={n._id} className="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{n.userName || "N/A"}</td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium capitalize">
+                      <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full text-xs font-medium capitalize">
                         {n.role || "N/A"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{n.branch || "N/A"}</td>
-                    <td className="px-4 py-3 text-gray-600">{n.date}</td>
-                    <td className="px-4 py-3 text-gray-900 max-w-md">
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{n.branch || "N/A"}</td>
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{n.date}</td>
+                    <td className="px-4 py-3 text-gray-900 dark:text-white max-w-md">
                       <p className="truncate">{n.note}</p>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="px-4 py-6 text-center text-gray-500">
+                  <td colSpan="5" className="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
                     No notes found
                   </td>
                 </tr>
@@ -306,10 +306,10 @@ const NotesDashboard = () => {
 
         {/* Pagination Controls */}
         {!loading && notes.length > 0 && totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-100">
-            <div className="text-sm text-gray-600">
-              Page <span className="font-semibold text-gray-900">{page}</span> of{' '}
-              <span className="font-semibold text-gray-900">{totalPages}</span>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              Page <span className="font-semibold text-gray-900 dark:text-white">{page}</span> of{' '}
+              <span className="font-semibold text-gray-900 dark:text-white">{totalPages}</span>
             </div>
 
             <div className="flex items-center gap-2">

@@ -499,16 +499,16 @@ export default function AdminUpcomingDeliveries() {
           <p className="text-gray-600 text-sm">Loading upcoming deliveries...</p>
         </div>
       ) : (
-        <div className="bg-white shadow rounded-lg p-4 overflow-x-auto">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 overflow-x-auto">
           <div className="mb-4">
             <div className="flex justify-between items-center mb-3">
-              <h2 className="text-lg font-semibold text-gray-700">
+              <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-100">
                 Upcoming Deliveries ({totalRecords} records)
               </h2>
               <input
                 type="text"
                 placeholder="Search by Transfer Number..."
-                className="border border-gray-300 rounded p-2 w-80 focus:ring-2 focus:ring-orange-400 text-sm"
+                className="border border-gray-300 dark:border-gray-600 rounded p-2 w-80 bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-orange-400 text-sm"
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -518,18 +518,18 @@ export default function AdminUpcomingDeliveries() {
             </div>
             
             {/* ✅ Filters Section */}
-            <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
+            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 shadow-sm">
               <div className="flex gap-4 items-end flex-wrap">
                 {/* Site Filter */}
                 <div className="flex-1 min-w-[200px]">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Filter by Site</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Filter by Site</label>
                   <select
                     value={filterSite}
                     onChange={(e) => {
                       setFilterSite(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors cursor-pointer"
+                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
                   >
                     <option value="" className="text-gray-500">All Sites</option>
                     {sites.map(site => (
@@ -540,14 +540,14 @@ export default function AdminUpcomingDeliveries() {
                 
                 {/* Status Filter */}
                 <div className="flex-1 min-w-[180px]">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Filter by Status</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Filter by Status</label>
                   <select
                     value={filterStatus}
                     onChange={(e) => {
                       setFilterStatus(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors cursor-pointer"
+                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
                   >
                     <option value="" className="text-gray-500">All Status</option>
                     <option value="Pending" className="text-gray-900">Pending</option>
@@ -557,7 +557,7 @@ export default function AdminUpcomingDeliveries() {
                 
                 {/* Date From */}
                 <div className="flex-1 min-w-[160px]">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">From Date</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">From Date</label>
                   <input
                     type="date"
                     value={filterDateFrom}
@@ -565,14 +565,13 @@ export default function AdminUpcomingDeliveries() {
                       setFilterDateFrom(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors"
-                    style={{ colorScheme: 'light' }}
+                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
                   />
                 </div>
                 
                 {/* Date To */}
                 <div className="flex-1 min-w-[160px]">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">To Date</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">To Date</label>
                   <input
                     type="date"
                     value={filterDateTo}
@@ -580,8 +579,7 @@ export default function AdminUpcomingDeliveries() {
                       setFilterDateTo(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors"
-                    style={{ colorScheme: 'light' }}
+                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
                   />
                 </div>
                 
@@ -594,7 +592,7 @@ export default function AdminUpcomingDeliveries() {
                     setFilterDateTo('');
                     setCurrentPage(1);
                   }}
-                  className="px-5 py-2.5 bg-white border-2 border-gray-300 hover:bg-gray-100 hover:border-gray-400 text-gray-700 text-sm font-semibold rounded-lg transition-all"
+                  className="px-5 py-2.5 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-all"
                 >
                   Clear Filters
                 </button>
@@ -605,15 +603,15 @@ export default function AdminUpcomingDeliveries() {
           {deliveries.length > 0 ? (
             <>
               <table className="min-w-full border text-sm">
-                <thead className="bg-orange-100">
+                <thead className="bg-orange-100 dark:bg-gray-700">
                   <tr>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">Transfer No</th>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">Date</th>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">From</th>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">To</th>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">Items</th>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">Status</th>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">Actions</th>
+                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Transfer No</th>
+                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Date</th>
+                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">From</th>
+                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">To</th>
+                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Items</th>
+                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Status</th>
+                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -621,7 +619,7 @@ export default function AdminUpcomingDeliveries() {
                     const quantitySummary = getDeliveryQuantitySummary(delivery);
 
                     return (
-                    <tr key={delivery._id} className="hover:bg-gray-50">
+                    <tr key={delivery._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td className="border px-4 py-2 font-medium text-gray-900">{delivery.transfer_number}</td>
                       <td className="border px-4 py-2 text-gray-600">
                         {formatDate(delivery.date)}

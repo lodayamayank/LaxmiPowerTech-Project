@@ -428,10 +428,10 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
       </div>
 
       {buildings.length === 0 ? (
-        <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-dashed border-gray-300">
-          <FaBuilding className="text-gray-400 text-5xl mx-auto mb-4" />
-          <p className="text-gray-500 font-medium">No towers added yet</p>
-          <p className="text-gray-400 text-sm mt-1">Click "Add Tower" to start building your project structure</p>
+        <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600">
+          <FaBuilding className="text-gray-400 dark:text-gray-500 text-5xl mx-auto mb-4" />
+          <p className="text-gray-500 dark:text-gray-300 font-medium">No towers added yet</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Click "Add Tower" to start building your project structure</p>
         </div>
       ) : (
         <div className="space-y-4">

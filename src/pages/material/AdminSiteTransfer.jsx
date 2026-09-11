@@ -536,7 +536,7 @@ export default function AdminSiteTransfer() {
   // ==================== RENDER ====================
   return (
     <DashboardLayout title="Site Transfers">
-      <div className="flex-1 p-6 bg-gray-50">
+      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -576,7 +576,7 @@ export default function AdminSiteTransfer() {
             <p className="text-gray-600 text-sm">Loading site transfers...</p>
           </div>
         ) : (
-          <div className="bg-white shadow rounded-lg p-4 overflow-x-auto">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 overflow-x-auto">
             <div className="mb-4">
               <div className="flex justify-between items-center mb-3">
                 <h2 className="text-lg font-semibold text-gray-700">
@@ -592,15 +592,15 @@ export default function AdminSiteTransfer() {
               </div>
               
               {/* ✅ Filters Section */}
-              <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
+              <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 shadow-sm">
                 <div className="flex gap-4 items-end flex-wrap">
                   {/* Site Filter */}
                   <div className="flex-1 min-w-[200px]">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Filter by Site</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Filter by Site</label>
                     <select
                       value={filterSite}
                       onChange={(e) => setFilterSite(e.target.value)}
-                      className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors cursor-pointer"
+                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
                     >
                       <option value="" className="text-gray-500">All Sites</option>
                       {sites.map(site => (
@@ -632,8 +632,7 @@ export default function AdminSiteTransfer() {
                       type="date"
                       value={filterDateFrom}
                       onChange={(e) => setFilterDateFrom(e.target.value)}
-                      className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors"
-                      style={{ colorScheme: 'light' }}
+                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
                     />
                   </div>
                   
@@ -644,8 +643,7 @@ export default function AdminSiteTransfer() {
                       type="date"
                       value={filterDateTo}
                       onChange={(e) => setFilterDateTo(e.target.value)}
-                      className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors"
-                      style={{ colorScheme: 'light' }}
+                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
                     />
                   </div>
                   
@@ -657,7 +655,7 @@ export default function AdminSiteTransfer() {
                       setFilterDateFrom('');
                       setFilterDateTo('');
                     }}
-                    className="px-5 py-2.5 bg-white border-2 border-gray-300 hover:bg-gray-100 hover:border-gray-400 text-gray-700 text-sm font-semibold rounded-lg transition-all"
+                    className="px-5 py-2.5 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-all"
                   >
                     Clear Filters
                   </button>
@@ -669,21 +667,21 @@ export default function AdminSiteTransfer() {
             {filteredTransfers.length > 0 ? (
               <>
                 <table className="min-w-full border text-sm">
-                  <thead className="bg-orange-100">
+                  <thead className="bg-orange-100 dark:bg-gray-700">
                     <tr>
-                      <th className="border px-4 py-2 text-left font-medium text-gray-700">Site Transfer ID</th>
-                      <th className="border px-4 py-2 text-left font-medium text-gray-700">From Site</th>
-                      <th className="border px-4 py-2 text-left font-medium text-gray-700">To Site</th>
-                      <th className="border px-4 py-2 text-left font-medium text-gray-700">Requested By</th>
-                      <th className="border px-4 py-2 text-left font-medium text-gray-700">Materials</th>
-                      <th className="border px-4 py-2 text-left font-medium text-gray-700">Status</th>
-                      <th className="border px-4 py-2 text-left font-medium text-gray-700">Date</th>
-                      <th className="border px-4 py-2 text-left font-medium text-gray-700">Actions</th>
+                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Site Transfer ID</th>
+                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">From Site</th>
+                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">To Site</th>
+                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Requested By</th>
+                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Materials</th>
+                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Status</th>
+                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Date</th>
+                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredTransfers.map((transfer) => (
-                      <tr key={transfer._id} className="hover:bg-gray-50">
+                      <tr key={transfer._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="border px-4 py-2 font-medium text-gray-900">
                           {transfer.siteTransferId}
                         </td>
@@ -797,13 +795,12 @@ export default function AdminSiteTransfer() {
                         <select
                           value={formData.status}
                           onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                          className="mt-1 w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white text-gray-900"
-                          style={{ color: '#111827' }}
+                          className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                         >
-                          <option value="pending" style={{ color: '#111827', backgroundColor: '#FFFFFF' }}>Pending</option>
-                          <option value="approved" style={{ color: '#111827', backgroundColor: '#FFFFFF' }}>Approved</option>
-                          <option value="transferred" style={{ color: '#111827', backgroundColor: '#FFFFFF' }}>Transferred</option>
-                          <option value="cancelled" style={{ color: '#111827', backgroundColor: '#FFFFFF' }}>Cancelled</option>
+                          <option value="pending">Pending</option>
+                          <option value="approved">Approved</option>
+                          <option value="transferred">Transferred</option>
+                          <option value="cancelled">Cancelled</option>
                         </select>
                       ) : (
                         <div className="mt-1">{getStatusBadge(selectedTransfer.status)}</div>
@@ -952,7 +949,7 @@ export default function AdminSiteTransfer() {
                         const isImage = attachmentURL.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
                         
                         return (
-                          <div key={index} className="border rounded-lg overflow-hidden bg-white">
+                          <div key={index} className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
                             <div className="flex items-center gap-4 p-4">
                               {/* Image Thumbnail */}
                               <div className="flex-shrink-0">
@@ -1016,7 +1013,7 @@ export default function AdminSiteTransfer() {
                 )}
 
                 {/* Timestamps */}
-                <div className="bg-gray-50 rounded p-4">
+                <div className="bg-gray-50 dark:bg-gray-700 rounded p-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-gray-500">Created At</p>
@@ -1033,7 +1030,7 @@ export default function AdminSiteTransfer() {
               </div>
 
               {/* Modal Footer */}
-              <div className="sticky bottom-0 bg-white border-t-2 border-orange-100 px-6 py-4 flex justify-end gap-3 rounded-b-lg">
+              <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t-2 border-orange-100 dark:border-gray-700 px-6 py-4 flex justify-end gap-3 rounded-b-lg">
                 {editing ? (
                   <>
                     <button

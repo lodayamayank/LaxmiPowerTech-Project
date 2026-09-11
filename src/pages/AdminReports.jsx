@@ -310,7 +310,7 @@ const AdminReports = () => {
   const renderReportBody = () => {
     if (!reportData) {
       return (
-        <div className="rounded-xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-500">
+        <div className="rounded-xl border border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-10 text-center text-gray-500 dark:text-gray-400">
           {selectedProject
             ? 'Select a report type to view detailed analytics.'
             : 'Choose a project and period to generate reports.'}
@@ -337,53 +337,53 @@ const AdminReports = () => {
             </div>
           ) : (
             rows.map((wo, index) => (
-              <div key={wo.id || index} className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                <div className="bg-gradient-to-r from-orange-50 to-white px-6 py-4 border-b border-gray-100">
-                  <h3 className="text-base font-bold text-gray-800">
+              <div key={wo.id || index} className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-orange-50 to-white dark:from-gray-800 dark:to-gray-900 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                  <h3 className="text-base font-bold text-gray-800 dark:text-gray-100">
                     Work Order: {wo.workOrderNo || index + 1}
-                    <span className="ml-2 text-gray-500 font-normal">|</span>
+                    <span className="ml-2 text-gray-500 dark:text-gray-400 font-normal">|</span>
                     <span className="ml-2 font-semibold text-orange-600">Total Value: {formatCurrency(wo.totalValue)}</span>
                   </h3>
-                  {wo.name && <p className="text-sm text-gray-500 mt-1">{wo.name}</p>}
+                  {wo.name && <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{wo.name}</p>}
                 </div>
 
                 <div className="p-6 space-y-4">
                   <div className="grid gap-4 sm:grid-cols-3">
-                    <div className="rounded-lg border border-gray-100 p-3 text-center">
-                      <p className="text-xs uppercase text-gray-400">Total Bill</p>
-                      <p className="text-lg font-semibold text-gray-800">{formatCurrency(wo.billedInPeriod)}</p>
+                    <div className="rounded-lg border border-gray-100 dark:border-gray-700 p-3 text-center">
+                      <p className="text-xs uppercase text-gray-400 dark:text-gray-500">Total Bill</p>
+                      <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{formatCurrency(wo.billedInPeriod)}</p>
                     </div>
-                    <div className="rounded-lg border border-gray-100 p-3 text-center">
-                      <p className="text-xs uppercase text-gray-400">Total Retention</p>
-                      <p className="text-lg font-semibold text-gray-800">{formatCurrency(wo.retentionInPeriod)}</p>
+                    <div className="rounded-lg border border-gray-100 dark:border-gray-700 p-3 text-center">
+                      <p className="text-xs uppercase text-gray-400 dark:text-gray-500">Total Retention</p>
+                      <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{formatCurrency(wo.retentionInPeriod)}</p>
                     </div>
-                    <div className="rounded-lg border border-gray-100 p-3 text-center">
-                      <p className="text-xs uppercase text-gray-400">Total Holding</p>
-                      <p className="text-lg font-semibold text-gray-800">{formatCurrency(wo.holdingInPeriod)}</p>
+                    <div className="rounded-lg border border-gray-100 dark:border-gray-700 p-3 text-center">
+                      <p className="text-xs uppercase text-gray-400 dark:text-gray-500">Total Holding</p>
+                      <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{formatCurrency(wo.holdingInPeriod)}</p>
                     </div>
                   </div>
 
                   {wo.bills && wo.bills.length > 0 && (
                     <div className="overflow-x-auto">
-                      <p className="text-sm font-semibold text-gray-600 mb-2">Bill Details</p>
-                      <table className="min-w-full divide-y divide-gray-200 text-sm border border-gray-200 rounded-lg">
-                        <thead className="bg-gray-50">
+                      <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2">Bill Details</p>
+                      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <thead className="bg-gray-50 dark:bg-gray-700">
                           <tr>
-                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">Invoice No.</th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">Date</th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">Total</th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">Retention</th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500">Holding</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-200">Invoice No.</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-200">Date</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-200">Total</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-200">Retention</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-200">Holding</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                           {wo.bills.map((bill) => (
-                            <tr key={bill.id} className="hover:bg-orange-50/40">
-                              <td className="px-4 py-2 text-gray-700">{bill.billNo || '-'}</td>
-                              <td className="px-4 py-2 text-gray-700">{formatDate(bill.billDate)}</td>
-                              <td className="px-4 py-2 text-gray-700">{formatCurrency(bill.totalBillValue)}</td>
-                              <td className="px-4 py-2 text-gray-700">{formatCurrency(bill.retentionAmount)}</td>
-                              <td className="px-4 py-2 text-gray-700">{formatCurrency(bill.holdingAmount)}</td>
+                            <tr key={bill.id} className="hover:bg-orange-50/40 dark:hover:bg-gray-700">
+                              <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{bill.billNo || '-'}</td>
+                              <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{formatDate(bill.billDate)}</td>
+                              <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{formatCurrency(bill.totalBillValue)}</td>
+                              <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{formatCurrency(bill.retentionAmount)}</td>
+                              <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{formatCurrency(bill.holdingAmount)}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -391,9 +391,9 @@ const AdminReports = () => {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-sm">
-                    <span className="text-gray-500">Lifetime Billed: <strong className="text-gray-800">{formatCurrency(wo.lifetimeBilled)}</strong></span>
-                    <span className="text-gray-500">Outstanding: <strong className="text-orange-600">{formatCurrency(wo.outstandingLifetime)}</strong></span>
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700 text-sm">
+                    <span className="text-gray-500 dark:text-gray-400">Lifetime Billed: <strong className="text-gray-800 dark:text-gray-100">{formatCurrency(wo.lifetimeBilled)}</strong></span>
+                    <span className="text-gray-500 dark:text-gray-400">Outstanding: <strong className="text-orange-600">{formatCurrency(wo.outstandingLifetime)}</strong></span>
                     <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${wo.status === 'active' ? 'bg-green-100 text-green-700' : wo.status === 'completed' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
                       {wo.status || 'N/A'}
                     </span>
@@ -491,15 +491,15 @@ const AdminReports = () => {
       <div className="flex flex-col gap-6">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Project Reports</h1>
-            <p className="text-sm text-gray-500">Generate project-wise financial and operational insights.</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Project Reports</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Generate project-wise financial and operational insights.</p>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <select
               value={selectedProject}
               onChange={(event) => setSelectedProject(event.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 sm:w-64"
+              className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-700 dark:text-gray-100 shadow-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 sm:w-64"
             >
               <option value="">Select Project</option>
               {projects.map((project) => (
@@ -513,7 +513,7 @@ const AdminReports = () => {
               type="month"
               value={selectedMonth}
               onChange={(event) => setSelectedMonth(event.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 sm:w-40"
+              className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-700 dark:text-gray-100 shadow-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 sm:w-40"
             />
 
             {reportData && (
@@ -542,24 +542,24 @@ const AdminReports = () => {
         </header>
 
         {reportData?.projectName && (
-          <section className="grid gap-4 rounded-2xl bg-gradient-to-r from-orange-50 to-white p-6 shadow-sm sm:grid-cols-2 lg:grid-cols-5">
+          <section className="grid gap-4 rounded-2xl bg-gradient-to-r from-orange-50 to-white dark:from-gray-800 dark:to-gray-900 p-6 shadow-sm sm:grid-cols-2 lg:grid-cols-5">
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-400">Project</p>
-              <p className="text-lg font-semibold text-gray-800">{reportData.projectName}</p>
+              <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">Project</p>
+              <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{reportData.projectName}</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-400">Billing (Period)</p>
-              <p className="text-lg font-semibold text-gray-800">{formatCurrency(summaryCard?.billing)}</p>
+              <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">Billing (Period)</p>
+              <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{formatCurrency(summaryCard?.billing)}</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-400">Expenses (Material + Labour)</p>
-              <p className="text-lg font-semibold text-gray-800">{formatCurrency(summaryCard?.expenses)}</p>
+              <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">Expenses (Material + Labour)</p>
+              <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{formatCurrency(summaryCard?.expenses)}</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-400">Outstanding</p>
-              <p className="text-lg font-semibold text-gray-800">{formatCurrency(summaryCard?.outstanding)}</p>
+              <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">Outstanding</p>
+              <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{formatCurrency(summaryCard?.outstanding)}</p>
             </div>
-            <div className="rounded-xl border border-dashed border-orange-200 bg-white/70 p-4 text-sm font-semibold text-gray-700 shadow-inner">
+            <div className="rounded-xl border border-dashed border-orange-200 dark:border-orange-800 bg-white/70 dark:bg-gray-800/70 p-4 text-sm font-semibold text-gray-700 dark:text-gray-200 shadow-inner">
               <p className="text-xs uppercase tracking-wide text-orange-500">Profit / Loss</p>
               <p
                 className={`text-xl font-bold ${
@@ -580,8 +580,8 @@ const AdminReports = () => {
                 key={type.key}
                 type="button"
                 onClick={() => setActiveReportType(type.key)}
-                className={`flex h-full flex-col rounded-2xl border bg-white p-5 text-left shadow-sm transition-all hover:-translate-y-1 hover:shadow-md ${
-                  isActive ? 'border-orange-400 ring-2 ring-orange-100' : 'border-gray-200'
+                className={`flex h-full flex-col rounded-2xl border bg-white dark:bg-gray-800 p-5 text-left shadow-sm transition-all hover:-translate-y-1 hover:shadow-md ${
+                  isActive ? 'border-orange-400 ring-2 ring-orange-100' : 'border-gray-200 dark:border-gray-700'
                 }`}
               >
                 <div
@@ -591,8 +591,8 @@ const AdminReports = () => {
                 >
                   {type.icon}
                 </div>
-                <h2 className="mb-2 text-lg font-semibold text-gray-900">{type.label}</h2>
-                <p className="text-sm text-gray-500">{type.description}</p>
+                <h2 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">{type.label}</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{type.description}</p>
               </button>
             );
           })}
@@ -613,8 +613,8 @@ const AdminReports = () => {
         {!loading && !error && renderReportBody()}
 
         {reportData && (
-          <section className="mt-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">Final Summary</h3>
+          <section className="mt-4 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-sm">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Final Summary</h3>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <SummaryTile title="Total Billing" value={formatCurrency(summaryCard?.billing)} />
               <SummaryTile title="Material Cost" value={formatCurrency(summaryCard?.materialCost)} />
@@ -634,46 +634,46 @@ const AdminReports = () => {
 };
 
 const SummaryTile = ({ title, value, valueClass }) => (
-  <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-    <p className="text-xs uppercase tracking-wide text-gray-400">{title}</p>
-    <p className={`mt-2 text-lg font-semibold text-gray-800 ${valueClass || ''}`}>{value}</p>
+  <div className="rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm">
+    <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">{title}</p>
+    <p className={`mt-2 text-lg font-semibold text-gray-800 dark:text-gray-100 ${valueClass || ''}`}>{value}</p>
   </div>
 );
 
 const ReportTable = ({ columns, rows, emptyMessage }) => {
   if (!rows?.length) {
     return (
-      <div className="rounded-xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-500">
+      <div className="rounded-xl border border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-10 text-center text-gray-500 dark:text-gray-400">
         {emptyMessage}
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+          <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
-                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-200"
                 >
                   {column.label}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-gray-800">
             {rows.map((row) => (
-              <tr key={row.id || row._id} className="hover:bg-orange-50/40">
+              <tr key={row.id || row._id} className="hover:bg-orange-50/40 dark:hover:bg-gray-700">
                 {columns.map((column) => {
                   const rawValue = row[column.key];
                   const content = column.render ? column.render(rawValue, row) : rawValue ?? '-';
                   return (
-                    <td key={column.key} className="px-4 py-3 text-sm text-gray-700">
+                    <td key={column.key} className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                       {content === '' ? '-' : content}
                     </td>
                   );

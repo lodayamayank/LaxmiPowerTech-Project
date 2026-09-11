@@ -112,7 +112,7 @@ export default function AdminLeaves() {
                         onChange={(e) =>
                             setFilters((f) => ({ ...f, role: e.target.value }))
                         }
-                        className="border rounded-lg px-3 py-2"
+                        className="border rounded-lg px-3 py-2 bg-background text-foreground"
                     >
                         <option value="">All Roles</option>
                         <option value="admin">Admin</option>
@@ -128,7 +128,7 @@ export default function AdminLeaves() {
                         onChange={(e) =>
                             setFilters((f) => ({ ...f, branchId: e.target.value }))
                         }
-                        className="border rounded-lg px-3 py-2"
+                        className="border rounded-lg px-3 py-2 bg-background text-foreground"
                     >
                         <option value="">All Branches</option>
                         {branches.map((b) => (
@@ -143,7 +143,7 @@ export default function AdminLeaves() {
                         onChange={(e) =>
                             setFilters((f) => ({ ...f, status: e.target.value }))
                         }
-                        className="border rounded-lg px-3 py-2"
+                        className="border rounded-lg px-3 py-2 bg-background text-foreground"
                     >
                         <option value="">All Status</option>
                         <option value="pending">Pending</option>
@@ -156,7 +156,7 @@ export default function AdminLeaves() {
                         onChange={(e) =>
                             setFilters((f) => ({ ...f, type: e.target.value }))
                         }
-                        className="border rounded-lg px-3 py-2"
+                        className="border rounded-lg px-3 py-2 bg-background text-foreground"
                     >
                         <option value="">All Types</option>
                         <option value="paid">Paid</option>
@@ -171,7 +171,7 @@ export default function AdminLeaves() {
                         onChange={(e) =>
                             setFilters((f) => ({ ...f, from: e.target.value }))
                         }
-                        className="border rounded-lg px-3 py-2"
+                        className="border rounded-lg px-3 py-2 bg-background text-foreground"
                     />
 
                     <input
@@ -180,7 +180,7 @@ export default function AdminLeaves() {
                         onChange={(e) =>
                             setFilters((f) => ({ ...f, to: e.target.value }))
                         }
-                        className="border rounded-lg px-3 py-2"
+                        className="border rounded-lg px-3 py-2 bg-background text-foreground"
                     />
 
                     <div className="flex gap-2">
@@ -191,7 +191,7 @@ export default function AdminLeaves() {
                             onChange={(e) =>
                                 setFilters((f) => ({ ...f, search: e.target.value }))
                             }
-                            className="border rounded-lg px-3 py-2 w-full"
+                            className="border rounded-lg px-3 py-2 w-full bg-background text-foreground placeholder:text-muted-foreground"
                         />
                         <Button type="submit">
                             Filter
@@ -202,7 +202,7 @@ export default function AdminLeaves() {
                 {/* Table */}
                 <Card><CardContent className="p-0 overflow-x-auto">
                     <table className="min-w-full text-sm">
-                        <thead className="bg-gray-50 text-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-100">
                             <tr>
                                 <th className="text-left px-4 py-2">User</th>
                                 <th className="text-left px-4 py-2">Role</th>
@@ -237,7 +237,7 @@ export default function AdminLeaves() {
                                         (1000 * 60 * 60 * 24) +
                                         1;
                                     return (
-                                        <tr key={r._id} className="border-t">
+                                        <tr key={r._id} className="border-t dark:border-gray-700">
                                             <td className="px-4 py-2 font-medium">
                                                 {r.user?.username}
                                             </td>
@@ -289,7 +289,7 @@ export default function AdminLeaves() {
                                                     </Button>
                                                 </div>
                                             ) : (
-                                                <span className="text-sm text-gray-500 font-medium">
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
                                                     Finalized
                                                 </span>
                                             )}
@@ -304,7 +304,7 @@ export default function AdminLeaves() {
 
                 {/* Pagination */}
                 <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
                         Page {page} of {totalPages} · {total} records
                     </div>
                     <div className="flex items-center gap-2">
@@ -314,7 +314,7 @@ export default function AdminLeaves() {
                                 setLimit(Number(e.target.value));
                                 setPage(1);
                             }}
-                            className="border rounded-lg px-2 py-1"
+                            className="border rounded-lg px-2 py-1 bg-background text-foreground"
                         >
                             {[10, 20, 50, 100].map((n) => (
                                 <option key={n} value={n}>
