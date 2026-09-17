@@ -1091,10 +1091,10 @@ export default function AdminIntent() {
           <p className="text-gray-600 text-sm">Loading indents...</p>
         </div>
       ) : (
-        <div className="bg-white shadow rounded-lg p-4 overflow-x-auto">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 overflow-x-auto">
           <div className="mb-4">
             <div className="flex flex-col gap-3 mb-3 lg:flex-row lg:items-center lg:justify-between">
-              <h2 className="text-lg font-semibold text-gray-700">
+              <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-100">
                 Purchase Orders Table ({totalRecords} records)
               </h2>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -1102,7 +1102,7 @@ export default function AdminIntent() {
                   <input
                     type="text"
                     placeholder="Search by PO ID..."
-                    className="w-full rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-sm focus:ring-2 focus:ring-orange-400"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-background text-foreground placeholder:text-muted-foreground py-2 pl-3 pr-10 text-sm focus:ring-2 focus:ring-orange-400"
                     value={search}
                     onChange={(e) => {
                       setSearch(e.target.value);
@@ -1143,18 +1143,18 @@ export default function AdminIntent() {
             </div>
             
             {/* ✅ Filters Section */}
-            <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
+            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 shadow-sm">
               <div className="flex gap-4 items-end flex-wrap">
                 {/* Site Filter */}
                 <div className="flex-1 min-w-[200px]">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Filter by Site</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Filter by Site</label>
                   <select
                     value={filterSite}
                     onChange={(e) => {
                       setFilterSite(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors cursor-pointer"
+                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
                   >
                     <option value="" className="text-gray-500">All Sites</option>
                     {sites.map(site => (
@@ -1165,14 +1165,14 @@ export default function AdminIntent() {
                 
                 {/* Status Filter */}
                 <div className="flex-1 min-w-[180px]">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Filter by Status</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Filter by Status</label>
                   <select
                     value={filterStatus}
                     onChange={(e) => {
                       setFilterStatus(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors cursor-pointer"
+                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
                   >
                     <option value="" className="text-gray-500">All Status</option>
                     <option value="pending" className="text-gray-900">Pending</option>
@@ -1183,7 +1183,7 @@ export default function AdminIntent() {
                 
                 {/* Date From */}
                 <div className="flex-1 min-w-[160px]">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">From Date</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">From Date</label>
                   <input
                     type="date"
                     value={filterDateFrom}
@@ -1191,14 +1191,13 @@ export default function AdminIntent() {
                       setFilterDateFrom(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors"
-                    style={{ colorScheme: 'light' }}
+                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
                   />
                 </div>
                 
                 {/* Date To */}
                 <div className="flex-1 min-w-[160px]">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">To Date</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">To Date</label>
                   <input
                     type="date"
                     value={filterDateTo}
@@ -1206,8 +1205,7 @@ export default function AdminIntent() {
                       setFilterDateTo(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors"
-                    style={{ colorScheme: 'light' }}
+                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
                   />
                 </div>
                 
@@ -1220,7 +1218,7 @@ export default function AdminIntent() {
                     setFilterDateTo('');
                     setCurrentPage(1);
                   }}
-                  className="px-5 py-2.5 bg-white border-2 border-gray-300 hover:bg-gray-100 hover:border-gray-400 text-gray-700 text-sm font-semibold rounded-lg transition-all"
+                  className="px-5 py-2.5 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-all"
                 >
                   Clear Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
                 </button>
@@ -1230,23 +1228,23 @@ export default function AdminIntent() {
           {indents.length > 0 ? (
             <>
               <table className="min-w-full border text-sm">
-                <thead className="bg-orange-100">
+                <thead className="bg-orange-100 dark:bg-gray-700">
                   <tr>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">#</th>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">PO-ID</th>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">Image</th>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">Site</th>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">Requested By</th>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">Status</th>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">Date</th>
-                    <th className="border px-4 py-2 text-left font-medium text-gray-700">Actions</th>
+                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">#</th>
+                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">PO-ID</th>
+                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Image</th>
+                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Site</th>
+                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Requested By</th>
+                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Status</th>
+                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Date</th>
+                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {indents.map((indent, index) => (
                     <tr
                       key={indent._id}
-                      className="cursor-pointer hover:bg-orange-50/40"
+                      className="cursor-pointer hover:bg-orange-50/40 dark:hover:bg-gray-700"
                       onDoubleClick={() => handleViewDetails(indent._id)}
                       title="Double-click to open details"
                     >

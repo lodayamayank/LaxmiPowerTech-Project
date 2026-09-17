@@ -112,7 +112,7 @@ const AdminLiveAttendance = () => {
         {/* Header with Stats */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <p className="text-sm text-gray-500 mt-1">Real-time attendance tracking • Auto-refreshes every 30s</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Real-time attendance tracking • Auto-refreshes every 30s</p>
           </div>
           <Button onClick={downloadCSV} className="bg-orange-500 hover:bg-orange-600 text-white shadow-md">
             <FaDownload size={14} />
@@ -122,22 +122,22 @@ const AdminLiveAttendance = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-medium">Total Staff</p>
-                <p className="text-3xl font-bold text-gray-800 mt-1">{staffData.length}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Staff</p>
+                <p className="text-3xl font-bold text-gray-800 dark:text-white mt-1">{staffData.length}</p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                <FaUser className="text-gray-600" size={20} />
+              <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                <FaUser className="text-gray-600 dark:text-gray-300" size={20} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-medium">Punched In</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Punched In</p>
                 <p className="text-3xl font-bold text-green-600 mt-1">{statusCounts.in || 0}</p>
               </div>
               <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -146,10 +146,10 @@ const AdminLiveAttendance = () => {
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-medium">Punched Out</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Punched Out</p>
                 <p className="text-3xl font-bold text-yellow-600 mt-1">{statusCounts.out || 0}</p>
               </div>
               <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
@@ -158,10 +158,10 @@ const AdminLiveAttendance = () => {
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-medium">No Punch In</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">No Punch In</p>
                 <p className="text-3xl font-bold text-red-600 mt-1">{statusCounts.no_punch || 0}</p>
               </div>
               <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -172,11 +172,11 @@ const AdminLiveAttendance = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Filters</h3>
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-100 mb-3">Filters</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Role</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Role</label>
               <Select
                 value={filters.role}
                 onChange={(e) => setFilters({ ...filters, role: e.target.value })}
@@ -192,7 +192,7 @@ const AdminLiveAttendance = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Branch</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Branch</label>
               <Select
                 value={filters.branch}
                 onChange={(e) => setFilters({ ...filters, branch: e.target.value })}
@@ -203,9 +203,9 @@ const AdminLiveAttendance = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Search</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Search</label>
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
                   <FaSearch size={14} />
                 </div>
                 <input
@@ -213,7 +213,7 @@ const AdminLiveAttendance = () => {
                   placeholder="Search by name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
@@ -235,14 +235,14 @@ const AdminLiveAttendance = () => {
                     : tab.color === "yellow"
                     ? "bg-yellow-500 text-white border-yellow-500 shadow-md"
                     : "bg-red-500 text-white border-red-500 shadow-md"
-                  : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               {tab.icon}
               <span>{tab.label}</span>
               {tab.value !== "all" && (
                 <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
-                  statusFilter === tab.value ? "bg-white/20" : "bg-gray-100"
+                  statusFilter === tab.value ? "bg-white/20" : "bg-gray-100 dark:bg-gray-700"
                 }`}>
                   {statusCounts[tab.value] || 0}
                 </span>
@@ -254,40 +254,40 @@ const AdminLiveAttendance = () => {
         {/* Staff List */}
         <div className="space-y-3">
           {filteredData.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-              <FaUserCircle className="mx-auto text-gray-300 mb-4" size={64} />
-              <p className="text-gray-500 text-lg font-medium">No staff found</p>
-              <p className="text-gray-400 text-sm mt-1">Try adjusting your filters or search query</p>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-12 text-center">
+              <FaUserCircle className="mx-auto text-gray-300 dark:text-gray-600 mb-4" size={64} />
+              <p className="text-gray-500 dark:text-gray-300 text-lg font-medium">No staff found</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Try adjusting your filters or search query</p>
             </div>
           ) : (
             filteredData.map((user) => (
               <div
                 key={user._id}
-                className="flex items-center justify-between p-5 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                className="flex items-center justify-between p-5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center gap-4">
                   {user.avatar ? (
                     <img
                       src={user.avatar}
                       alt="avatar"
-                      className="w-14 h-14 rounded-full object-cover border-2 border-gray-200"
+                      className="w-14 h-14 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
                     />
                   ) : (
-                    <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center">
-                      <FaUserCircle className="w-10 h-10 text-gray-400" />
+                    <div className="w-14 h-14 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                      <FaUserCircle className="w-10 h-10 text-gray-400 dark:text-gray-500" />
                     </div>
                   )}
 
                   <div>
-                    <p className="font-semibold text-gray-900 text-lg">{user.name}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white text-lg">{user.name}</p>
                     <div className="flex items-center gap-3 mt-1">
                       {user.role && (
-                        <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full font-medium capitalize">
+                        <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 rounded-full font-medium capitalize">
                           {user.role}
                         </span>
                       )}
                       {user.location && (
-                        <span className="flex items-center gap-1 text-xs text-gray-500">
+                        <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                           <FaMapMarkerAlt size={10} />
                           {user.location}
                         </span>
@@ -303,7 +303,7 @@ const AdminLiveAttendance = () => {
                         <FaCheckCircle size={12} />
                         Punched In
                       </span>
-                      <div className="text-sm text-gray-600 font-medium">{user.punchTime}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">{user.punchTime}</div>
                     </div>
                   ) : user.status === "out" ? (
                     <div className="space-y-1">
@@ -311,7 +311,7 @@ const AdminLiveAttendance = () => {
                         <FaUserClock size={12} />
                         Punched Out
                       </span>
-                      <div className="text-sm text-gray-600 font-medium">{user.punchTime}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">{user.punchTime}</div>
                     </div>
                   ) : (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-red-100 text-red-700 border border-red-200">
@@ -327,7 +327,7 @@ const AdminLiveAttendance = () => {
 
         {/* Results count */}
         {filteredData.length > 0 && (
-          <div className="text-center text-sm text-gray-500">
+          <div className="text-center text-sm text-gray-500 dark:text-gray-400"> 
             Showing {filteredData.length} of {staffData.length} staff members
           </div>
         )}

@@ -12,9 +12,16 @@ import {
   FaAngleDoubleRight
 } from "react-icons/fa";
 import EditUserModal from './EditUserModal';
+import AttendanceGraphModal from "../components/AttendanceGraphModal";
 import Select from '../components/Select';
 import { Button } from '@/components/ui/button';
 import { toast } from 'react-toastify';
+
+const roleLabel = (r) => {
+  const role = typeof r === 'string' ? r : r?.role || '';
+  return role.charAt(0).toUpperCase() + role.slice(1);
+};
+const roleValue = (r) => (typeof r === 'string' ? r : r?.role || '');
 
 const AdminMyTeam = () => {
   const [users, setUsers] = useState([]);
@@ -26,7 +33,10 @@ const AdminMyTeam = () => {
   const [showPasswordField, setShowPasswordField] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+
+// Start with loading=true so "Loading users..." shows while users are being fetched.
+  const [loading, setLoading] = useState(true);
+  const [attendanceUser, setAttendanceUser] = useState(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -58,8 +68,8 @@ const AdminMyTeam = () => {
       setUsers(res.data);
     } catch (err) {
       console.error('Failed to fetch users', err);
-    }
-    finally {
+      toast.error('Failed to load users');
+    } finally {
       setLoading(false);
     }
   };
@@ -103,7 +113,7 @@ const AdminMyTeam = () => {
   const handleSubmit = async () => {
     try {
       if (!formData.name || !formData.username || !formData.role) {
-        alert("Please fill required fields (name, username, role)");
+        toast.error("Please fill required fields (name, username, role)");
         return;
       }
 
@@ -124,27 +134,27 @@ const AdminMyTeam = () => {
         }
       }
 
-      // ✅ Remove project field if not set
+      // Remove project field if not set
       if (!payload.project || payload.project === '') {
         delete payload.project;
       }
 
-      console.log('📤 Sending payload:', payload); // Debug log
+       console.log('📤 Sending payload:', payload); // Debug log
 
       if (editId) {
         await axios.put(`/users/${editId}`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setEditId(null);
-        alert('User updated successfully!');
+        toast.success('User updated successfully!');
       } else {
         await axios.post(`/users/register`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        alert('User registered successfully!');
+        toast.success('User registered successfully!');
       }
 
-      // ✅ Reset form with default password
+      // Reset form with default password
       setFormData({
         name: "",
         username: "",
@@ -157,7 +167,7 @@ const AdminMyTeam = () => {
       fetchUsers();
     } catch (err) {
       console.error("Error submitting form", err?.response?.data || err.message);
-      alert(`Error: ${err?.response?.data?.message || err.message}`);
+      toast.error(`Error: ${err?.response?.data?.message || err.message}`);
     }
   };
 
@@ -168,7 +178,7 @@ const AdminMyTeam = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success('User deleted successfully!');
-      
+
       fetchUsers();
     } catch (err) {
       console.error('Failed to delete user', err);
@@ -204,7 +214,7 @@ const AdminMyTeam = () => {
   const getPageNumbers = () => {
     const pages = [];
     const maxPagesToShow = 5;
-    
+
     if (totalPages <= maxPagesToShow) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -232,7 +242,7 @@ const AdminMyTeam = () => {
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -242,22 +252,22 @@ const AdminMyTeam = () => {
       await axios.post(`/users/reset-password/${username}`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert(`Password reset for ${username} to default123`);
+      toast.success(`Password reset for ${username} to default123`);
     } catch (err) {
       console.error('Failed to reset password', err);
-      alert('Error resetting password');
+      toast.error('Error resetting password');
     }
   };
 
   const handleUserUpdated = (updatedUser) => {
-    // Update the users list
+     // Update the users list
     setUsers((prev) =>
         prev.map((u) => (u._id === updatedUser._id ? updatedUser : u))
     );
-    
-    // ✅ Update editingUser so if modal stays open, it shows updated data
+
+     // ✅ Update editingUser so if modal stays open, it shows updated data
     setEditingUser(updatedUser);
-    
+
     // ✅ Optionally close modal after a brief delay to show success
     setTimeout(() => {
         setEditingUser(null);
@@ -265,27 +275,27 @@ const AdminMyTeam = () => {
 };
 
   if (loading) {
-    return <p className="p-4 text-gray-500">Loading users...</p>;
+    return <p className="p-4 text-gray-500 dark:text-gray-400">Loading users...</p>;
   }
 
   return (
     <DashboardLayout title="My Team">
       <div className="space-y-4">
         {/* Add/Edit User Form */}
-        <div className="bg-white p-4 rounded-xl shadow space-y-4">
-          <h2 className="text-lg font-semibold text-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow space-y-4">
+          <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-100">
             {editId ? 'Edit User' : 'Add New User'}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <input
-              className="border rounded-lg px-3 py-2"
+              className="border rounded-lg px-3 py-2 bg-background text-foreground placeholder:text-muted-foreground"
               placeholder="Name *"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             />
             <input
-              className="border rounded-lg px-3 py-2"
+              className="border rounded-lg px-3 py-2 bg-background text-foreground placeholder:text-muted-foreground"
               placeholder="Username *"
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -293,7 +303,7 @@ const AdminMyTeam = () => {
 
             {editId ? (
               <div className="flex flex-col">
-                <label className="text-sm mb-1 text-gray-700">
+                <label className="text-sm mb-1 text-gray-700 dark:text-gray-200">
                   <input
                     type="checkbox"
                     checked={showPasswordField}
@@ -306,7 +316,7 @@ const AdminMyTeam = () => {
                 {showPasswordField && (
                   <div className="relative">
                     <input
-                      className="border rounded-lg px-3 py-2 w-full pr-10"
+                      className="border rounded-lg px-3 py-2 w-full pr-10 bg-background text-foreground placeholder:text-muted-foreground"
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter new password"
                       value={formData.password}
@@ -316,7 +326,7 @@ const AdminMyTeam = () => {
                     />
                     <button
                       type="button"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400"
                       onClick={() => setShowPassword((prev) => !prev)}
                     >
                       {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -327,7 +337,7 @@ const AdminMyTeam = () => {
             ) : (
               <div className="relative">
                 <input
-                  className="border rounded-lg px-3 py-2 w-full pr-10"
+                  className="border rounded-lg px-3 py-2 w-full pr-10 bg-background text-foreground placeholder:text-muted-foreground"
                   type={showPassword ? "text" : "password"}
                   placeholder="Password (default: default123)"
                   value={formData.password}
@@ -337,7 +347,7 @@ const AdminMyTeam = () => {
                 />
                 <button
                   type="button"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400"
                   onClick={() => setShowPassword((prev) => !prev)}
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -346,7 +356,7 @@ const AdminMyTeam = () => {
             )}
 
             <input
-              className="border rounded-lg px-3 py-2"
+              className="border rounded-lg px-3 py-2 bg-background text-foreground placeholder:text-muted-foreground"
               placeholder="Mobile Number"
               value={formData.mobileNumber} // ✅ Changed from contact
               onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })} // ✅ Changed
@@ -355,19 +365,16 @@ const AdminMyTeam = () => {
             <Select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              options={Array.isArray(roleOptions) ? roleOptions.map((r) => {
-                const role = typeof r === 'string' ? r : r.role || '';
-                return {
-                  value: role,
-                  label: role.charAt(0).toUpperCase() + role.slice(1)
-                };
-              }) : []}
+              options={Array.isArray(roleOptions) ? roleOptions.map((r) => ({
+                value: roleValue(r),
+                label: roleLabel(r),
+              })) : []}
               icon={<FaUserTag size={14} />}
             />
 
             {formData.role !== 'admin' && (
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Branches</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Branches</label>
                 <select
                   multiple
                   value={formData.assignedBranches}
@@ -377,7 +384,7 @@ const AdminMyTeam = () => {
                       assignedBranches: Array.from(e.target.selectedOptions, (opt) => opt.value),
                     })
                   }
-                  className="w-full border rounded-lg px-3 py-2 h-40"
+                  className="w-full border rounded-lg px-3 py-2 h-40 bg-background text-foreground"
                 >
                   {branches.map((b) => (
                     <option key={b._id} value={b._id}>
@@ -385,7 +392,7 @@ const AdminMyTeam = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-gray-500 mt-1">Hold Ctrl (Cmd on Mac) to select multiple.</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Hold Ctrl (Cmd on Mac) to select multiple.</p>
               </div>
             )}
           </div>
@@ -420,22 +427,22 @@ const AdminMyTeam = () => {
         </div>
 
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-white p-4 rounded-xl shadow">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-white dark:bg-gray-800 p-4 rounded-xl shadow">
           <Select
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
             placeholder="All Roles"
-            options={roleOptions.map((role) => ({
-              value: role,
-              label: role.charAt(0).toUpperCase() + role.slice(1)
-            }))}
+            options={Array.isArray(roleOptions) ? roleOptions.map((r) => ({
+              value: roleValue(r),
+              label: roleLabel(r),
+            })) : []}
             icon={<FaUser size={14} />}
           />
 
           <input
             type="text"
             placeholder="Search by name or username"
-            className="border rounded-lg px-3 py-2"
+            className="border rounded-lg px-3 py-2 bg-background text-foreground placeholder:text-muted-foreground"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -443,18 +450,18 @@ const AdminMyTeam = () => {
 
         {/* Results Info & Items Per Page */}
         {filteredUsers.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white px-4 py-3 rounded-xl shadow">
-            <div className="text-sm text-gray-600">
-              Showing <span className="font-semibold text-gray-900">{startIndex + 1}</span> to{' '}
-              <span className="font-semibold text-gray-900">{Math.min(endIndex, totalItems)}</span> of{' '}
-              <span className="font-semibold text-gray-900">{totalItems}</span> users
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow">
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              Showing <span className="font-semibold text-gray-900 dark:text-white">{startIndex + 1}</span> to{' '}
+              <span className="font-semibold text-gray-900 dark:text-white">{Math.min(endIndex, totalItems)}</span> of{' '}
+              <span className="font-semibold text-gray-900 dark:text-white">{totalItems}</span> users
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">Rows per page:</label>
+              <label className="text-sm text-gray-600 dark:text-gray-300">Rows per page:</label>
               <select
                 value={itemsPerPage}
                 onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
                 <option value={10}>10</option>
                 <option value={25}>25</option>
@@ -466,9 +473,9 @@ const AdminMyTeam = () => {
         )}
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow overflow-x-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 text-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-100">
               <tr>
                 <th className="text-left px-4 py-2">Name</th>
                 <th className="text-left px-4 py-2">Username</th>
@@ -486,7 +493,7 @@ const AdminMyTeam = () => {
                 </tr>
               ) : (
                 currentItems.map((user) => (
-                  <tr key={user._id} className="border-t">
+                  <tr key={user._id} className="border-t dark:border-gray-700">
                     <td className="px-4 py-2 font-medium">{user.name}</td>
                     <td className="px-4 py-2">{user.username}</td>
                     <td className="px-4 py-2">{user.mobileNumber || '—'}</td>
@@ -502,6 +509,14 @@ const AdminMyTeam = () => {
                         <Button variant="ghost" size="sm" className="text-orange-600" onClick={() => handleResetPassword(user.username)}>
                           Reset
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-green-600"
+                          onClick={() => setAttendanceUser(user)}
+                        >
+                          Attendance Graph
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -513,28 +528,28 @@ const AdminMyTeam = () => {
 
         {/* Pagination Controls */}
         {filteredUsers.length > 0 && totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white px-4 py-3 rounded-xl shadow">
-            <div className="text-sm text-gray-600">
-              Page <span className="font-semibold text-gray-900">{currentPage}</span> of{' '}
-              <span className="font-semibold text-gray-900">{totalPages}</span>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow">
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              Page <span className="font-semibold text-gray-900 dark:text-white">{currentPage}</span> of{' '}
+              <span className="font-semibold text-gray-900 dark:text-white">{totalPages}</span>
             </div>
-            
+
             <div className="flex items-center gap-2">
-              {/* First Page */}
+                {/* First Page */}
               <Button variant="outline" size="icon" onClick={() => goToPage(1)} disabled={currentPage === 1} title="First Page" className="h-9 w-9">
                 <FaAngleDoubleLeft size={14} />
               </Button>
 
-              {/* Previous Page */}
+               {/* Previous Page */}
               <Button variant="outline" size="icon" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1} title="Previous Page" className="h-9 w-9">
                 <FaChevronLeft size={14} />
               </Button>
 
-              {/* Page Numbers */}
+               {/* Page Numbers */}
               <div className="flex items-center gap-1">
                 {getPageNumbers().map((page, index) => (
                   page === '...' ? (
-                    <span key={`ellipsis-${index}`} className="px-3 py-1 text-gray-500">
+                    <span key={`ellipsis-${index}`} className="px-3 py-1 text-gray-500 dark:text-gray-400">
                       ...
                     </span>
                   ) : (
@@ -544,7 +559,7 @@ const AdminMyTeam = () => {
                       className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                         currentPage === page
                           ? 'bg-orange-500 text-white shadow-md'
-                          : 'border border-gray-300 hover:bg-gray-50 text-gray-700'
+                          : 'border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200'
                       }`}
                     >
                       {page}
@@ -553,6 +568,7 @@ const AdminMyTeam = () => {
                 ))}
               </div>
 
+              
               {/* Next Page */}
               <Button variant="outline" size="icon" onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages} title="Next Page" className="h-9 w-9">
                 <FaChevronRight size={14} />
@@ -573,6 +589,13 @@ const AdminMyTeam = () => {
             projects={projects}
             onClose={() => setEditingUser(null)}
             onSave={handleUserUpdated}
+          />
+        )}
+
+        {attendanceUser && (
+          <AttendanceGraphModal
+            user={attendanceUser}
+            onClose={() => setAttendanceUser(null)}
           />
         )}
       </div>

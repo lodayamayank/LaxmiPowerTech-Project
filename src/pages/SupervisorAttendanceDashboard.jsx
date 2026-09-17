@@ -206,7 +206,7 @@ const SupervisorAttendanceDashboard = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             {/* <h1 className="text-2xl font-bold text-gray-800">Supervisor Attendance Summary</h1> */}
-            <p className="text-sm text-gray-500 mt-1">Monthly attendance overview for supervisor members</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Monthly attendance overview for supervisor members</p>
           </div>
           <Button
             onClick={exportToCSV}
@@ -223,11 +223,11 @@ const SupervisorAttendanceDashboard = () => {
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 font-medium">Total Supervisors</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">{filtered.length}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Supervisors</p>
+                  <p className="text-3xl font-bold text-gray-800 dark:text-white mt-1">{filtered.length}</p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                  <FaUser className="text-gray-600" size={20} />
+                <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                  <FaUser className="text-gray-600 dark:text-gray-300" size={20} />
                 </div>
               </div>
             </CardContent>
@@ -237,7 +237,7 @@ const SupervisorAttendanceDashboard = () => {
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 font-medium">Total Present</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Present</p>
                   <p className="text-3xl font-bold text-green-600 mt-1">{totals.present}</p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -251,7 +251,7 @@ const SupervisorAttendanceDashboard = () => {
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 font-medium">Total Absent</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Absent</p>
                   <p className="text-3xl font-bold text-red-600 mt-1">{totals.absent}</p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -265,7 +265,7 @@ const SupervisorAttendanceDashboard = () => {
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 font-medium">Total Overtime</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Overtime</p>
                   <p className="text-3xl font-bold text-orange-600 mt-1">{totals.overtime}</p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
@@ -279,17 +279,17 @@ const SupervisorAttendanceDashboard = () => {
         {/* Filters */}
         <Card>
           <CardContent className="p-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Filters</h3>
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-100 mb-3">Filters</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Search Supervisors</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Search Supervisors</label>
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
                   <FaSearch size={14} />
                 </div>
                 <input
                   type="text"
-                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                   placeholder="Search by name..."
                   value={searchSupervisor}
                   onChange={(e) => setSearchSupervisor(e.target.value)}
