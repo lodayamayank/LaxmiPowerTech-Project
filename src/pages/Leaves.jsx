@@ -1,7 +1,8 @@
 // src/pages/Leaves.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "../utils/axios";
 import { submitOffline } from "../utils/offlineSubmit";
+import Webcam from "react-webcam";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
@@ -56,6 +57,7 @@ const StatusBadge = ({ status }) => {
 
 export default function Leaves() {
     const navigate = useNavigate();
+  const webcamRef = useRef(null);
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -64,6 +66,40 @@ export default function Leaves() {
     endDate: "",
     reason: "",
   });
+  const [sickProof, setSickProof] = useState(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraError, setCameraError] = useState("");
+
+  const setProofFile = (file) => {
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (file && (!allowedTypes.includes(file.type) || file.size > 10 * 1024 * 1024)) {
+      toast.error("Please select an image file smaller than 10 MB");
+      setSickProof(null);
+      return;
+    }
+    setSickProof(file || null);
+  };
+
+// Validate sick-proof image type and size before storing it.
+  const handleProofChange = (event) => {
+    setProofFile(event.target.files?.[0] || null);
+  };
+
+  const captureProof = () => {
+    const imageData = webcamRef.current?.getScreenshot();
+    if (!imageData) {
+      toast.error("The camera is not ready yet. Please try again.");
+      return;
+    }
+
+    fetch(imageData)
+      .then((response) => response.blob())
+      .then((blob) => {
+        setProofFile(new File([blob], `sick-proof-${Date.now()}.jpg`, { type: "image/jpeg" }));
+        setCameraOpen(false);
+      })
+      .catch(() => toast.error("Could not capture the image. Please try again."));
+  };
 
   const loadLeaves = async () => {
     setLoading(true);
@@ -80,11 +116,20 @@ export default function Leaves() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (form.type === "sick" && !sickProof) {
+      toast.error("Please upload or capture a medical proof image for sick leave");
+      return;
+    }
+
     try {
+      const formData = new FormData();
+      Object.entries(form).forEach(([key, value]) => formData.append(key, value));
+      if (form.type === "sick") formData.append("proof", sickProof);
+
       const result = await submitOffline({
         module: "leave",
         endpoint: "/leaves",
-        data: form,
+        formData,
         label: `Leave request (${form.type})`,
       });
 
@@ -95,6 +140,7 @@ export default function Leaves() {
       }
 
       setForm({ type: "paid", startDate: "", endDate: "", reason: "" });
+    setSickProof(null);
       // Nothing new to list until the queued request actually reaches the server.
       if (!result.offline) loadLeaves();
     } catch (err) {
@@ -163,9 +209,12 @@ export default function Leaves() {
                 </label>
                 <select
                   value={form.type}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, type: e.target.value }))
-                  }
+                  // Update leave type and clear sick proof when not using sick leave.
+                  onChange={(e) => {
+                    const type = e.target.value;
+                    setForm((f) => ({ ...f, type }));
+                    if (type !== "sick") setSickProof(null);
+                  }}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                   required
                 >
@@ -175,6 +224,66 @@ export default function Leaves() {
                   <option value="casual">Casual Leave</option>
                 </select>
               </div>
+
+              {form.type === "sick" && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <FaClipboardList className="text-gray-400" size={14} />
+                      <span>Medical Proof Image *</span>
+                    </div>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="cursor-pointer rounded-lg border border-orange-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-orange-600 hover:bg-orange-50">
+                      Upload Image
+                      <input
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp"
+                        onChange={handleProofChange}
+                        className="hidden"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCameraError("");
+                        setCameraOpen(true);
+                      }}
+                      className="rounded-lg border border-orange-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-orange-600 hover:bg-orange-50"
+                    >
+                      Capture Image
+                    </button>
+                  </div>
+                  {cameraOpen && (
+                    <div className="mt-3 rounded-xl border border-orange-200 bg-white p-3">
+                      {cameraError ? (
+                        <p className="text-sm text-red-600">{cameraError}</p>
+                      ) : (
+                        <Webcam
+                          ref={webcamRef}
+                          audio={false}
+                          screenshotFormat="image/jpeg"
+                          screenshotQuality={0.8}
+                          onUserMediaError={() => setCameraError("Camera access was denied or is unavailable. Please allow camera access and try again.")}
+                          videoConstraints={{ facingMode: { ideal: "environment" } }}
+                          className="w-full rounded-lg object-cover"
+                        />
+                      )}
+                      <div className="mt-2 flex gap-2">
+                        <Button type="button" onClick={captureProof} disabled={Boolean(cameraError)} className="flex-1 bg-orange-500 text-white">
+                          Take Photo
+                        </Button>
+                        <Button type="button" variant="outline" onClick={() => setCameraOpen(false)} className="flex-1">
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  <p className="mt-1.5 text-xs text-gray-500">
+                    {sickProof ? sickProof.name : "Upload or capture an image to continue"}
+                  </p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">

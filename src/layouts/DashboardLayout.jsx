@@ -194,7 +194,7 @@ const DashboardLayout = ({ children, title }) => {
     }
 
     if (isSalary) { 
-      setOpenMenus(getMenuBranch('Salary'));
+      setOpenMenus(getMenuBranch('Attendance>Salary'));
       return;
     }
 
@@ -325,19 +325,31 @@ const DashboardLayout = ({ children, title }) => {
     { label: "Dashboard", icon: <FaClipboardList />, path: "/dashboard" },
     { label: "My Team", icon: <FaUsers />, path: "/admin/my-team" },
     {
-      label: "Attendance",
-      icon: <BiUserCheck />,
+  label: "Attendance",
+  icon: <BiUserCheck />,
+  children: [
+    { label: "Live Dashboard", path: "/dashboard/live-attendance" },
+    { label: "Supervisor", path: "/attendance/supervisor" },
+    { label: "Subcontractor", path: "/attendance/subcontractor" },
+    { label: "Labour", path: "/attendance/labour" },
+    { label: "Notes", path: "/attendance/notes" },
+    { label: "Leaves", path: "/attendance/leaves", badge: pendingLeaveCount },
+    { label: "Reimbursements", path: "/admin/reimbursements", badge: pendingReimbursementCount },
+    { label: "Delete Records", path: "/admin/attendance/delete" },
+
+    // Salary moved inside Attendance
+    {
+      label: "Salary",
+      icon: <FaMoneyBillWave />,
       children: [
-        { label: "Live Dashboard", path: "/dashboard/live-attendance" },
-        { label: "Supervisor", path: "/attendance/supervisor" },
-        { label: "Subcontractor", path: "/attendance/subcontractor" },
-        { label: "Labour", path: "/attendance/labour" },
-        { label: "Notes", path: "/attendance/notes" },
-        { label: "Leaves", path: "/attendance/leaves", badge: pendingLeaveCount }, 
-        { label: "Reimbursements", path: "/admin/reimbursements",badge: pendingReimbursementCount },
-        { label: "Delete Records", path: "/admin/attendance/delete" },
+        { label: "Dashboard", path: "/admin/salary" },
+        { label: "History", path: "/admin/salary-history" },
+        { label: "Holidays", path: "/admin/holidays" },
+        { label: "Policy", path: "/admin/salary-policy" },
       ],
     },
+  ],
+},
     {
       label: "Projects",
       icon: <FaClipboardList />,
@@ -349,16 +361,6 @@ const DashboardLayout = ({ children, title }) => {
       path: "/admin/tasks",
     },
     
-    {
-      label: "Salary",
-      icon: <FaMoneyBillWave />,
-      children: [
-        { label: "Dashboard", path: "/admin/salary" },
-        { label: "History", path: "/admin/salary-history" },
-        { label: "Holidays", path: "/admin/holidays" },
-        { label: "Policy", path: "/admin/salary-policy" },
-      ],
-    },
     {
       label: "Inventory",
       icon: <FaBoxes />,

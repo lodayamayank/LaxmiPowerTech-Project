@@ -12,9 +12,16 @@ import {
   FaAngleDoubleRight
 } from "react-icons/fa";
 import EditUserModal from './EditUserModal';
+import AttendanceGraphModal from "../components/AttendanceGraphModal";
 import Select from '../components/Select';
 import { Button } from '@/components/ui/button';
 import { toast } from 'react-toastify';
+
+const roleLabel = (r) => {
+  const role = typeof r === 'string' ? r : r?.role || '';
+  return role.charAt(0).toUpperCase() + role.slice(1);
+};
+const roleValue = (r) => (typeof r === 'string' ? r : r?.role || '');
 
 const AdminMyTeam = () => {
   const [users, setUsers] = useState([]);
@@ -26,7 +33,10 @@ const AdminMyTeam = () => {
   const [showPasswordField, setShowPasswordField] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+
+// Start with loading=true so "Loading users..." shows while users are being fetched.
+  const [loading, setLoading] = useState(true);
+  const [attendanceUser, setAttendanceUser] = useState(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -58,8 +68,8 @@ const AdminMyTeam = () => {
       setUsers(res.data);
     } catch (err) {
       console.error('Failed to fetch users', err);
-    }
-    finally {
+      toast.error('Failed to load users');
+    } finally {
       setLoading(false);
     }
   };
@@ -103,7 +113,7 @@ const AdminMyTeam = () => {
   const handleSubmit = async () => {
     try {
       if (!formData.name || !formData.username || !formData.role) {
-        alert("Please fill required fields (name, username, role)");
+        toast.error("Please fill required fields (name, username, role)");
         return;
       }
 
@@ -124,27 +134,27 @@ const AdminMyTeam = () => {
         }
       }
 
-      // ✅ Remove project field if not set
+      // Remove project field if not set
       if (!payload.project || payload.project === '') {
         delete payload.project;
       }
 
-      console.log('📤 Sending payload:', payload); // Debug log
+       console.log('📤 Sending payload:', payload); // Debug log
 
       if (editId) {
         await axios.put(`/users/${editId}`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setEditId(null);
-        alert('User updated successfully!');
+        toast.success('User updated successfully!');
       } else {
         await axios.post(`/users/register`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        alert('User registered successfully!');
+        toast.success('User registered successfully!');
       }
 
-      // ✅ Reset form with default password
+      // Reset form with default password
       setFormData({
         name: "",
         username: "",
@@ -157,7 +167,7 @@ const AdminMyTeam = () => {
       fetchUsers();
     } catch (err) {
       console.error("Error submitting form", err?.response?.data || err.message);
-      alert(`Error: ${err?.response?.data?.message || err.message}`);
+      toast.error(`Error: ${err?.response?.data?.message || err.message}`);
     }
   };
 
@@ -168,7 +178,7 @@ const AdminMyTeam = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success('User deleted successfully!');
-      
+
       fetchUsers();
     } catch (err) {
       console.error('Failed to delete user', err);
@@ -204,7 +214,7 @@ const AdminMyTeam = () => {
   const getPageNumbers = () => {
     const pages = [];
     const maxPagesToShow = 5;
-    
+
     if (totalPages <= maxPagesToShow) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -232,7 +242,7 @@ const AdminMyTeam = () => {
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -242,22 +252,22 @@ const AdminMyTeam = () => {
       await axios.post(`/users/reset-password/${username}`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert(`Password reset for ${username} to default123`);
+      toast.success(`Password reset for ${username} to default123`);
     } catch (err) {
       console.error('Failed to reset password', err);
-      alert('Error resetting password');
+      toast.error('Error resetting password');
     }
   };
 
   const handleUserUpdated = (updatedUser) => {
-    // Update the users list
+     // Update the users list
     setUsers((prev) =>
         prev.map((u) => (u._id === updatedUser._id ? updatedUser : u))
     );
-    
-    // ✅ Update editingUser so if modal stays open, it shows updated data
+
+     // ✅ Update editingUser so if modal stays open, it shows updated data
     setEditingUser(updatedUser);
-    
+
     // ✅ Optionally close modal after a brief delay to show success
     setTimeout(() => {
         setEditingUser(null);
@@ -355,13 +365,10 @@ const AdminMyTeam = () => {
             <Select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              options={Array.isArray(roleOptions) ? roleOptions.map((r) => {
-                const role = typeof r === 'string' ? r : r.role || '';
-                return {
-                  value: role,
-                  label: role.charAt(0).toUpperCase() + role.slice(1)
-                };
-              }) : []}
+              options={Array.isArray(roleOptions) ? roleOptions.map((r) => ({
+                value: roleValue(r),
+                label: roleLabel(r),
+              })) : []}
               icon={<FaUserTag size={14} />}
             />
 
@@ -425,10 +432,10 @@ const AdminMyTeam = () => {
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
             placeholder="All Roles"
-            options={roleOptions.map((role) => ({
-              value: role,
-              label: role.charAt(0).toUpperCase() + role.slice(1)
-            }))}
+            options={Array.isArray(roleOptions) ? roleOptions.map((r) => ({
+              value: roleValue(r),
+              label: roleLabel(r),
+            })) : []}
             icon={<FaUser size={14} />}
           />
 
@@ -502,6 +509,14 @@ const AdminMyTeam = () => {
                         <Button variant="ghost" size="sm" className="text-orange-600" onClick={() => handleResetPassword(user.username)}>
                           Reset
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-green-600"
+                          onClick={() => setAttendanceUser(user)}
+                        >
+                          Attendance Graph
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -518,19 +533,19 @@ const AdminMyTeam = () => {
               Page <span className="font-semibold text-gray-900 dark:text-white">{currentPage}</span> of{' '}
               <span className="font-semibold text-gray-900 dark:text-white">{totalPages}</span>
             </div>
-            
+
             <div className="flex items-center gap-2">
-              {/* First Page */}
+                {/* First Page */}
               <Button variant="outline" size="icon" onClick={() => goToPage(1)} disabled={currentPage === 1} title="First Page" className="h-9 w-9">
                 <FaAngleDoubleLeft size={14} />
               </Button>
 
-              {/* Previous Page */}
+               {/* Previous Page */}
               <Button variant="outline" size="icon" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1} title="Previous Page" className="h-9 w-9">
                 <FaChevronLeft size={14} />
               </Button>
 
-              {/* Page Numbers */}
+               {/* Page Numbers */}
               <div className="flex items-center gap-1">
                 {getPageNumbers().map((page, index) => (
                   page === '...' ? (
@@ -553,6 +568,7 @@ const AdminMyTeam = () => {
                 ))}
               </div>
 
+              
               {/* Next Page */}
               <Button variant="outline" size="icon" onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages} title="Next Page" className="h-9 w-9">
                 <FaChevronRight size={14} />
@@ -573,6 +589,13 @@ const AdminMyTeam = () => {
             projects={projects}
             onClose={() => setEditingUser(null)}
             onSave={handleUserUpdated}
+          />
+        )}
+
+        {attendanceUser && (
+          <AttendanceGraphModal
+            user={attendanceUser}
+            onClose={() => setAttendanceUser(null)}
           />
         )}
       </div>

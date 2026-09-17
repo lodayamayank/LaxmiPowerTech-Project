@@ -24,6 +24,13 @@ const StatusBadge = ({ status }) => {
     );
 };
 
+const getProofUrl = (proofUrl) => {
+    if (!proofUrl) return "";
+    if (/^https?:\/\//i.test(proofUrl)) return proofUrl;
+    const backendUrl = (axios.defaults.baseURL || window.location.origin).replace(/\/api\/?$/, "");
+    return `${backendUrl}${proofUrl}`;
+};
+
 export default function AdminLeaves() {
     const [filters, setFilters] = useState({
         role: "",
@@ -211,6 +218,7 @@ export default function AdminLeaves() {
                                 <th className="text-left px-4 py-2">Dates</th>
                                 <th className="text-left px-4 py-2">Days</th>
                                 <th className="text-left px-4 py-2">Reason</th>
+                                <th className="text-left px-4 py-2">Proof</th>
                                 <th className="text-left px-4 py-2">Status</th>
                                 <th className="text-left px-4 py-2">Approver</th>
                                 <th className="text-left px-4 py-2">Approved At</th>
@@ -220,13 +228,13 @@ export default function AdminLeaves() {
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td className="px-4 py-6" colSpan={11}>
+                                    <td className="px-4 py-6" colSpan={12}>
                                         Loading…
                                     </td>
                                 </tr>
                             ) : rows.length === 0 ? (
                                 <tr>
-                                    <td className="px-4 py-6" colSpan={11}>
+                                    <td className="px-4 py-6" colSpan={12}>
                                         No records
                                     </td>
                                 </tr>
@@ -255,6 +263,22 @@ export default function AdminLeaves() {
                                             <td className="px-4 py-2">{Math.max(1, days)}</td>
                                             <td className="px-4 py-2 max-w-xs whitespace-pre-wrap">
                                                 {r.reason || "—"}
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                {r.proofUrl ? (
+                                                    <a
+                                                        href={getProofUrl(r.proofUrl)}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        title="Open medical proof"
+                                                    >
+                                                        <img
+                                                            src={getProofUrl(r.proofUrl)}
+                                                            alt="Medical proof"
+                                                            className="h-12 w-12 rounded-md border object-cover"
+                                                        />
+                                                    </a>
+                                                ) : "—"}
                                             </td>
                                             <td className="px-4 py-2">
                                                 <StatusBadge status={r.status} />
