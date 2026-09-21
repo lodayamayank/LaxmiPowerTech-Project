@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "../utils/axios";
 import { useNavigate } from "react-router-dom";
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { toast } from 'react-toastify';
+import { computeDailyStatuses } from "../utils/attendanceCalculations";
 import {
   FaArrowLeft,
   FaCalendarAlt,
@@ -15,28 +15,39 @@ import {
   FaTimesCircle,
   FaClock,
   FaUmbrellaBeach,
-  FaNotesMedical,
-  FaCalendarDay,
   FaEdit,
 } from "react-icons/fa";
-
-const MINUTES_HALF_DAY = 240;
-const MINUTES_FULL_DAY = 480;
-const WEEK_OFF_DAYS = [0]; // Sunday
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import {
+  CalendarGrid,
+  Legend,
+  StatusBadge,
+  YearAttendanceChart,
+  buildYearlySummary,
+} from "../components/AttendanceVisuals";
 
 const MyAttendance = () => {
   const [records, setRecords] = useState([]);
-  const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filter, setFilter] = useState("all");
   const [view, setView] = useState("calendar"); // calendar | summary | list
   const [selectedDay, setSelectedDay] = useState(null);
+  const [savingNote, setSavingNote] = useState(false);
   const [month, setMonth] = useState(new Date().getMonth());
   const [year, setYear] = useState(new Date().getFullYear());
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user"));
+
+  // localStorage can legitimately be empty (logged-out state, cleared
+  // storage, etc.) — guard against JSON.parse(null) blowing up downstream
+  // whenever user._id is read.
+  const user = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user")) || {};
+    } catch {
+      return {};
+    }
+  }, []);
 
   const months = [
     "January","February","March","April","May","June",
@@ -57,112 +68,19 @@ const MyAttendance = () => {
         setLoading(false);
       }
     };
-  
+
     fetchData();
-  
+
     const refresh = () => fetchData();
     window.addEventListener("leave-updated", refresh);
     return () => window.removeEventListener("leave-updated", refresh);
   }, [token]);
-  
 
-  // --- filter punches
-  const filteredRecords = useMemo(() => {
-    const now = new Date();
-    const sevenDaysAgo = new Date(now);
-    sevenDaysAgo.setDate(now.getDate() - 6);
-
-    return (records || []).filter((rec) => {
-      const ts = new Date(rec.createdAt);
-      if (Number.isNaN(ts.getTime())) return false;
-
-      if (filter === "today") return ts.toDateString() === now.toDateString();
-      if (filter === "week") return ts >= new Date(sevenDaysAgo.setHours(0, 0, 0, 0));
-      if (filter === "month")
-        return ts.getMonth() === now.getMonth() && ts.getFullYear() === now.getFullYear();
-      return true;
-    });
-  }, [records, filter]);
-
-  // --- daily aggregation
-  const dailySummary = useMemo(() => {
-    const keyOf = (iso) => {
-      const d = new Date(iso);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-        d.getDate()
-      ).padStart(2, "0")}`;
-    };
-  
-    const byDay = new Map();
-    for (const p of records) {
-      const ts = p.createdAt;
-      if (!ts) continue;
-      const k = keyOf(ts);
-      if (!byDay.has(k)) byDay.set(k, []);
-      byDay.get(k).push(p);
-    }
-  
-    const start = new Date(year, month, 1);
-    const end = new Date(year, month + 1, 0);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-  
-    const out = [];
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const key = keyOf(d);
-      const punches = byDay.get(key) || [];
-      const dow = d.getDay();
-  
-      let status;
-      let firstIn = null, lastOut = null, minutes = 0;
-  
-      if (d > today) {
-        status = "Future";
-      } else if (punches.some((p) => p.punchType === "leave")) {
-        const leavePunch = punches.find((p) => p.punchType === "leave");
-        const type = leavePunch?.leaveId?.type || "unpaid";
-        status =
-          type === "paid"
-            ? "Paid Leave"
-            : type === "unpaid"
-            ? "Unpaid Leave"
-            : type === "sick"
-            ? "Sick Leave"
-            : "Casual Leave";
-      } else if (
-        punches.some((p) => p.punchType === "in") &&
-        punches.some((p) => p.punchType === "out")
-      ) {
-        const ins = punches.filter((p) => p.punchType === "in").map((x) => new Date(x.createdAt));
-        const outs = punches.filter((p) => p.punchType === "out").map((x) => new Date(x.createdAt));
-        firstIn = new Date(Math.min(...ins.map((x) => x.getTime())));
-        lastOut = new Date(Math.max(...outs.map((x) => x.getTime())));
-        minutes = Math.max(0, Math.round((lastOut - firstIn) / 60000));
-  
-        if (!WEEK_OFF_DAYS.includes(dow)) {
-          status =
-            minutes >= MINUTES_FULL_DAY
-              ? "Present"
-              : minutes >= MINUTES_HALF_DAY
-              ? "Half Day"
-              : "Absent";
-        } else {
-          status = "Week Off";
-        }
-      } else if (punches.length && !WEEK_OFF_DAYS.includes(dow)) {
-        status = "Half Day";
-      } else if (WEEK_OFF_DAYS.includes(dow)) {
-        status = "Week Off";
-      } else {
-        status = "Absent";
-      }
-  
-      out.push({ date: key, status, minutes, firstIn, lastOut, punches });
-    }
-  
-    return out;
-  }, [records, month, year]);
-  
+  // --- daily aggregation for the currently selected month
+  const dailySummary = useMemo(
+    () => computeDailyStatuses(records, month, year),
+    [records, month, year]
+  );
 
   // summary counts
   const counts = useMemo(
@@ -175,9 +93,40 @@ const MyAttendance = () => {
     }),
     [dailySummary]
   );
-  
+
+  // --- yearly aggregation (12 months) for the "Year Graph" bar + trend line
+  const yearlySummary = useMemo(
+    () => buildYearlySummary(computeDailyStatuses, records, year),
+    [records, year]
+  );
+
+  const overallYearPct = useMemo(() => {
+    const withData = yearlySummary.filter((m) => m.pct > 0 || m.present + m.absent > 0);
+    if (!withData.length) return 0;
+    return Math.round(withData.reduce((a, b) => a + b.pct, 0) / withData.length);
+  }, [yearlySummary]);
+
+  // --- donut data for the currently selected month ("Month Graph")
+  const monthDonutData = useMemo(() => {
+    const present = dailySummary.filter((d) => d.status === "Present").length;
+    const other = dailySummary.filter(
+      (d) => !["Present", "Week Off", "Future", "Pending"].includes(d.status)
+    ).length;
+    return [
+      { name: "Present", value: present },
+      { name: "Absent/Other", value: other },
+    ];
+  }, [dailySummary]);
+
+  const totalTrackedDays = dailySummary.filter(
+    (d) => !["Week Off", "Future", "Pending"].includes(d.status)
+  ).length;
 
   const openDayDetail = async (day) => {
+    if (!user?._id) {
+      setSelectedDay({ ...day, note: "" });
+      return;
+    }
     try {
       const res = await axios.get(`/attendance/notes/${user._id}/${day.date}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -189,13 +138,24 @@ const MyAttendance = () => {
   };
 
   const saveNote = async () => {
-    if (!selectedDay) return;
-    await axios.post(
-      `/attendance/notes/${user._id}/${selectedDay.date}`,
-      { note: selectedDay.note },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    setSelectedDay(null);
+    if (!selectedDay || !user?._id) {
+      setSelectedDay(null);
+      return;
+    }
+    setSavingNote(true);
+    try {
+      await axios.post(
+        `/attendance/notes/${user._id}/${selectedDay.date}`,
+        { note: selectedDay.note },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSelectedDay(null);
+    } catch (err) {
+      console.error("Failed to save note", err);
+      toast.error("Failed to save note");
+    } finally {
+      setSavingNote(false);
+    }
   };
 
   if (loading) {
@@ -222,7 +182,6 @@ const MyAttendance = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      {/* Container with consistent mobile width */}
       <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
         {/* Header with Gradient */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
@@ -330,56 +289,116 @@ const MyAttendance = () => {
                 ))}
               </div>
 
-              {/* Calendar Grid */}
-              <CalendarGrid dailySummary={dailySummary} openDayDetail={openDayDetail} month={month} year={year} />
+              {/* Calendar Grid (shared with the admin attendance modal) */}
+              <div className="mb-6">
+                <CalendarGrid dailySummary={dailySummary} onDayClick={openDayDetail} month={month} year={year} />
+              </div>
 
-              {/* Legend */}
               <Legend />
             </div>
           )}
 
           {/* Summary view */}
           {view === "summary" && (
-            <div className="space-y-3">
-              {dailySummary.map((d) => (
-                <div
-                  key={d.date}
-                  className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer"
-                  onClick={() => openDayDetail(d)}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
-                        <div className="text-center">
-                          <div className="text-xs text-orange-600 font-medium">
-                            {new Date(d.date).toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
-                          </div>
-                          <div className="text-lg font-bold text-orange-600">
-                            {new Date(d.date).getDate()}
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="font-semibold text-gray-800">
-                          {new Date(d.date).toLocaleDateString('en-US', { weekday: 'long' })}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          {d.firstIn && d.lastOut
-                            ? `${fmt(d.firstIn)} - ${fmt(d.lastOut)}`
-                            : "No punch data"}
-                        </div>
-                      </div>
-                    </div>
-                    <StatusBadge status={d.status} />
+            <div className="space-y-6">
+              {/* Year Graph: bar + trend line, per month attendance % */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold text-gray-700">Year Graph</p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setYear(year - 1)}
+                    >
+                      <FaChevronLeft className="text-gray-600" size={12} />
+                    </Button>
+                    <span className="text-sm font-medium text-gray-700 w-12 text-center">{year}</span>
+                    <Button
+                      className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setYear(year + 1)}
+                    >
+                      <FaChevronRight className="text-gray-600" size={12} />
+                    </Button>
                   </div>
-                  {d.minutes > 0 && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mt-2 pt-2 border-t border-gray-200">
-                      <FaClock size={12} />
-                      <span>{Math.floor(d.minutes / 60)}h {d.minutes % 60}m worked</span>
-                    </div>
-                  )}
                 </div>
-              ))}
+                <YearAttendanceChart yearlySummary={yearlySummary} />
+                <p className="text-center text-sm text-gray-600 mt-2">
+                  Over all percentage{" "}
+                  <span className="font-bold text-gray-800">{overallYearPct}%</span>
+                </p>
+              </div>
+
+              {/* Month Graph: donut for a chosen month, with its own month nav */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold text-gray-700">Month Graph</p>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        if (month === 0) { setMonth(11); setYear(year - 1); }
+                        else setMonth(month - 1);
+                      }}
+                    >
+                      <FaChevronLeft className="text-gray-600" size={12} />
+                    </Button>
+                    <span className="text-sm font-medium text-gray-700 w-24 text-center">
+                      {months[month]} {year}
+                    </span>
+                    <Button
+                      className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        if (month === 11) { setMonth(0); setYear(year + 1); }
+                        else setMonth(month + 1);
+                      }}
+                    >
+                      <FaChevronRight className="text-gray-600" size={12} />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <ResponsiveContainer width={140} height={140}>
+                    <PieChart>
+                      <Pie
+                        data={monthDonutData}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={45}
+                        outerRadius={65}
+                        startAngle={90}
+                        endAngle={-270}
+                        stroke="none"
+                      >
+                        <Cell fill="#f97316" />
+                        <Cell fill="#1e293b" />
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="text-sm text-gray-700 space-y-1.5 flex-1">
+                    <p className="flex justify-between">
+                      <span className="text-gray-500">Total Days</span>
+                      <span className="font-semibold">{totalTrackedDays}</span>
+                    </p>
+                    <p className="flex justify-between">
+                      <span className="text-gray-500">Present days</span>
+                      <span className="font-semibold text-green-600">{counts.present}</span>
+                    </p>
+                    <p className="flex justify-between">
+                      <span className="text-gray-500">Absent days</span>
+                      <span className="font-semibold text-red-600">{counts.absent}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -398,16 +417,24 @@ const MyAttendance = () => {
                   {dailySummary.map((d, idx) => (
                     <tr
                       key={d.date}
+                      role="button"
+                      tabIndex={0}
                       className={`border-t border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer ${
                         idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
                       }`}
                       onClick={() => openDayDetail(d)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          openDayDetail(d);
+                        }
+                      }}
                     >
                       <td className="p-3 text-sm text-gray-800 font-medium">
-                        {new Date(d.date).getDate()} {new Date(d.date).toLocaleDateString('en-US', { month: 'short' })}
+                        {new Date(`${d.date}T00:00:00`).getDate()} {new Date(`${d.date}T00:00:00`).toLocaleDateString('en-US', { month: 'short' })}
                       </td>
                       <td className="p-3 text-sm text-gray-600">
-                        {new Date(d.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                        {new Date(`${d.date}T00:00:00`).toLocaleDateString('en-US', { weekday: 'short' })}
                       </td>
                       <td className="p-3">
                         <StatusBadge status={d.status} />
@@ -418,6 +445,7 @@ const MyAttendance = () => {
               </table>
             </div>
           )}
+
         </div>
       </div>
 
@@ -430,7 +458,7 @@ const MyAttendance = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-white">
-                    {new Date(selectedDay.date).toLocaleDateString('en-US', { weekday: 'long' })}
+                    {new Date(`${selectedDay.date}T00:00:00`).toLocaleDateString('en-US', { weekday: 'long' })}
                   </h2>
                   <p className="text-white/80 text-sm">{selectedDay.date}</p>
                 </div>
@@ -497,9 +525,10 @@ const MyAttendance = () => {
               </Button>
               <Button
                 onClick={saveNote}
-                className="flex-1 px-4 py-3 h-auto rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold hover:from-orange-600 hover:to-orange-700 shadow-lg"
+                disabled={savingNote}
+                className="flex-1 px-4 py-3 h-auto rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold hover:from-orange-600 hover:to-orange-700 shadow-lg disabled:opacity-60"
               >
-                Save Note
+                {savingNote ? "Saving..." : "Save Note"}
               </Button>
             </div>
           </div>
@@ -529,90 +558,6 @@ function StatCard({ icon: Icon, label, count, color }) {
           <p className="text-2xl font-bold text-gray-800">{count}</p>
           <p className="text-xs text-gray-600">{label}</p>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function CalendarGrid({ dailySummary, openDayDetail, month, year }) {
-  const firstDay = new Date(year, month, 1).getDay();
-  const offset = (firstDay + 6) % 7;
-  
-  return (
-    <div className="grid grid-cols-7 gap-2 mb-6">
-      {Array.from({ length: offset }).map((_, i) => (
-        <div key={`blank-${i}`} className="h-14"></div>
-      ))}
-      {dailySummary.map((d) => (
-        <div
-          key={d.date}
-          className={`h-14 flex items-center justify-center rounded-xl cursor-pointer font-semibold text-sm transition-all hover:scale-105 active:scale-95 shadow-sm ${statusColor(d.status)}`}
-          onClick={() => openDayDetail(d)}
-        >
-          {new Date(d.date).getDate()}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function StatusBadge({ status }) {
-  const config = {
-    Present: { bg: "bg-green-500", icon: FaCheckCircle },
-    "Half Day": { bg: "bg-yellow-500", icon: FaClock },
-    Absent: { bg: "bg-red-500", icon: FaTimesCircle },
-    "Week Off": { bg: "bg-gray-500", icon: FaUmbrellaBeach },
-    "Future": { bg: "bg-gray-200 text-gray-500", icon: FaCalendarDay },
-    "Paid Leave": { bg: "bg-blue-500", icon: FaUmbrellaBeach },
-    "Unpaid Leave": { bg: "bg-purple-500", icon: FaUmbrellaBeach },
-    "Sick Leave": { bg: "bg-orange-500", icon: FaNotesMedical },
-    "Casual Leave": { bg: "bg-pink-500", icon: FaUmbrellaBeach },
-  };
-
-  const { bg, icon: Icon } = config[status] || { bg: "bg-gray-200", icon: FaCalendarDay };
-  
-  return (
-    <Badge className={`${bg} text-xs font-semibold text-white flex items-center gap-1.5 shadow-sm border-transparent`}>
-      <Icon size={10} />
-      {status}
-    </Badge>
-  );
-}
-
-function statusColor(status) {
-  return {
-    Present: "bg-gradient-to-br from-green-400 to-green-500 text-white",
-    "Half Day": "bg-gradient-to-br from-yellow-400 to-yellow-500 text-white",
-    Absent: "bg-gradient-to-br from-red-400 to-red-500 text-white",
-    "Week Off": "bg-gradient-to-br from-gray-300 to-gray-400 text-white",
-    Future: "bg-gray-100 text-gray-400 border-2 border-gray-200",
-    "Paid Leave": "bg-gradient-to-br from-blue-400 to-blue-500 text-white",
-    "Unpaid Leave": "bg-gradient-to-br from-purple-400 to-purple-500 text-white",
-    "Sick Leave": "bg-gradient-to-br from-orange-400 to-orange-500 text-white",
-    "Casual Leave": "bg-gradient-to-br from-pink-400 to-pink-500 text-white",
-  }[status] || "bg-gray-100";
-}
-
-function Legend() {
-  const items = [
-    { label: "Present", color: "from-green-400 to-green-500" },
-    { label: "Half Day", color: "from-yellow-400 to-yellow-500" },
-    { label: "Absent", color: "from-red-400 to-red-500" },
-    { label: "Week Off", color: "from-gray-300 to-gray-400" },
-    { label: "Paid Leave", color: "from-blue-400 to-blue-500" },
-    { label: "Sick Leave", color: "from-orange-400 to-orange-500" },
-  ];
-  
-  return (
-    <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-4 border border-gray-200">
-      <p className="text-xs font-semibold text-gray-700 mb-3">Legend</p>
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        {items.map((i) => (
-          <div key={i.label} className="flex items-center gap-2">
-            <span className={`w-4 h-4 rounded bg-gradient-to-br ${i.color} shadow-sm`}></span>
-            <span className="text-gray-700">{i.label}</span>
-          </div>
-        ))}
       </div>
     </div>
   );

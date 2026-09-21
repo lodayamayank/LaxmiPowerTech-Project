@@ -83,6 +83,52 @@
   }
 }
 
+@layer utilities {
+  /*
+   * A number of legacy pages use light-only Tailwind utilities instead of
+   * semantic theme tokens. Keep those pages readable when the root dark class
+   * is enabled, including the material and attendance screens.
+   */
+  .dark .bg-white {
+    background-color: hsl(var(--card)) !important;
+  }
+
+  .dark .bg-gray-50 {
+    background-color: hsl(var(--muted)) !important;
+  }
+
+  .dark .bg-gray-100 {
+    background-color: hsl(var(--secondary)) !important;
+  }
+
+  .dark .text-gray-900,
+  .dark .text-gray-800,
+  .dark .text-gray-700 {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .dark .text-gray-600,
+  .dark .text-gray-500 {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .dark .text-gray-400 {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .dark .border-gray-100,
+  .dark .border-gray-200,
+  .dark .border-gray-300 {
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .dark input,
+  .dark select,
+  .dark textarea {
+    color-scheme: dark;
+  }
+}
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -147,9 +193,4 @@ h1 {
 
 .animate-shake {
   animation: shake 0.5s ease-in-out;
-}
-
-/* Admin table styling - black text for all table cells */
-table td {
-  color: #000000 !important;
 }

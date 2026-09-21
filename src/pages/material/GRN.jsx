@@ -184,7 +184,7 @@ export default function GRN({ isTabView = false }) {
             placeholder="Search by GRN ID, site, or name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white text-gray-900"
+            className="w-full px-4 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-muted-foreground"
           />
           <Search size={18} className="absolute left-3 top-3 text-gray-400" />
         </div>
@@ -214,7 +214,7 @@ export default function GRN({ isTabView = false }) {
               <select
                 value={filterSite}
                 onChange={(e) => setFilterSite(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-2.5 py-2 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-800"
               >
                 <option value="" className="text-gray-500">All Sites</option>
                 {sites.map(site => (
@@ -231,8 +231,7 @@ export default function GRN({ isTabView = false }) {
                   type="date"
                   value={filterDateFrom}
                   onChange={(e) => setFilterDateFrom(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-2.5 py-2 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
-                  style={{ colorScheme: 'light' }}
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-xs text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-800"
                 />
               </div>
               <div>
@@ -241,8 +240,7 @@ export default function GRN({ isTabView = false }) {
                   type="date"
                   value={filterDateTo}
                   onChange={(e) => setFilterDateTo(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-2.5 py-2 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
-                  style={{ colorScheme: 'light' }}
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-xs text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-800"
                 />
               </div>
             </div>
@@ -285,7 +283,7 @@ export default function GRN({ isTabView = false }) {
             <div
               key={delivery._id}
               onClick={() => handleViewDetails(delivery)}
-              className="bg-gradient-to-r from-gray-50 to-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
+              className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
             >
               {/* Header */}
               <div className="flex justify-between items-start mb-4">
@@ -354,7 +352,7 @@ export default function GRN({ isTabView = false }) {
 
   // Standalone mode with full page layout
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       {/* Container with consistent mobile width */}
       <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
         {/* Header with Gradient */}

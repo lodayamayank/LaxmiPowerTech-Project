@@ -358,8 +358,7 @@ export default function Intent({ isTabView = false }) {
                   setFilterDateFrom(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full border border-gray-300 rounded-md px-2.5 py-2 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
-                style={{ colorScheme: 'light' }}
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-xs text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800"
               />
             </div>
             <div>
@@ -371,8 +370,7 @@ export default function Intent({ isTabView = false }) {
                   setFilterDateTo(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full border border-gray-300 rounded-md px-2.5 py-2 text-xs text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
-                style={{ colorScheme: 'light' }}
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-xs text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800"
               />
             </div>
           </div>
@@ -414,7 +412,7 @@ export default function Intent({ isTabView = false }) {
                 // Navigate to intent detail page
                 navigate(`/material/intent-details/${indent._id}`);
               }}
-              className="bg-gradient-to-r from-gray-50 to-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
+              className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
             >
               {/* Header with Image Thumbnail */}
               <div className="flex justify-between items-start mb-4">
@@ -538,7 +536,7 @@ export default function Intent({ isTabView = false }) {
 
   // Standalone mode with full page layout
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       {/* Container with consistent mobile width */}
       <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
         {/* Header with Gradient */}
