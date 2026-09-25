@@ -137,6 +137,8 @@ useEffect(() => {
           punchOut: null,
           selfieIn: null,
           selfieOut: null,
+          markedByIn: null,
+          markedByOut: null,
           punchTypes: [],
         };
       }
@@ -148,9 +150,11 @@ useEffect(() => {
       if (record.punchType === 'in') {
         groups[key].punchIn = record.createdAt;
         groups[key].selfieIn = record.selfieUrl;
+        groups[key].markedByIn = record.markedBy;
       } else if (record.punchType === 'out') {
         groups[key].punchOut = record.createdAt;
         groups[key].selfieOut = record.selfieUrl;
+        groups[key].markedByOut = record.markedBy;
       }
     });
     
@@ -503,7 +507,9 @@ useEffect(() => {
                             ) : null}
                           </div>
                         ) : (
-                          <span className="text-sm text-muted-foreground">N/A</span>
+                          <span className="text-sm text-muted-foreground">
+                            {item.markedByIn || item.markedByOut || 'N/A'}
+                          </span>
                         )}
                       </TableCell>
                       <TableCell className="text-muted-foreground dark:text-gray-400 italic">

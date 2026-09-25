@@ -252,11 +252,11 @@ const DashboardLayout = ({ children, title }) => {
 
     if (hasChildren) {
       return (
-        <div key={key} className={`${paddingLeft} mb-1`}>
+        <div key={key} className={`${paddingLeft}`}>
           <button
             className={`flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-4'} w-full py-3 text-sm text-left transition-all rounded-lg ${
               depth === 0
-                ? "my-1 text-white bg-white/20 hover:bg-white/20"
+                ? "text-white bg-white/20 hover:bg-white/20"
                 : "text-white/90 bg-white/10 hover:bg-white/20"
             } ${isOpen ? "font-semibold" : ""}`}
             onClick={() => toggleMenu(key)}
@@ -269,7 +269,7 @@ const DashboardLayout = ({ children, title }) => {
             {!sidebarCollapsed && <ButtonIcon className="text-xs" />}
           </button>
           {isOpen && !sidebarCollapsed && (
-            <div className={`mt-1 ${depth === 0 ? "ml-3" : "ml-4"}`}>
+            <div className={`mt-1 space-y-1 ${depth === 0 ? "ml-3" : "ml-4"}`}>
               {item.children.map((child) => renderMenuItem(child, depth + 1, key))}
             </div>
           )}
@@ -291,7 +291,7 @@ const DashboardLayout = ({ children, title }) => {
     }
 
     const linkClasses = ({ isActive }) => {
-      const base = `${sidebarCollapsed ? 'justify-center px-2' : 'gap-3'} ${paddingLeft} flex items-center transition-all rounded-lg my-1`;
+      const base = `${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-4'} ${paddingLeft} flex items-center transition-all rounded-lg`;
       if (depth === 0) {
         return `${base} py-3 text-sm ${
           isActive
@@ -459,12 +459,12 @@ const DashboardLayout = ({ children, title }) => {
           </div>
         )}
 
-        <nav className="flex flex-col flex-1 overflow-x-hidden overflow-y-auto px-2">
+        <nav className="flex flex-col flex-1 gap-1 overflow-x-hidden overflow-y-auto px-2">
           {menuItems.map((item) => renderMenuItem(item))}
 
           <button
             onClick={handleLogout}
-            className={`flex items-center px-4 py-3 text-sm text-white bg-orange-500 hover:bg-white/10 transition-all rounded-lg mt-auto my-1 mx-2 ${
+            className={`flex items-center px-4 py-3 text-sm text-white bg-orange-500 hover:bg-white/10 transition-all rounded-lg mt-auto mx-2 ${
               sidebarCollapsed ? 'justify-center px-2' : 'gap-3'
             }`}
             title={sidebarCollapsed ? 'Logout' : ''}
