@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from '../utils/axios';
 import fingerprint from '../assets/fingerprint.png';
 import layer2 from '../assets/calendar.png';
 import logo from '../assets/logo.png';
@@ -8,13 +9,33 @@ import leaves from '../assets/leave.png';
 import money from '../assets/salary.png';
 import { FaSignOutAlt, FaChevronRight, FaServer } from 'react-icons/fa';
 import { MdFolder } from 'react-icons/md';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 
 const SupervisorDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user'));
   const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+  const [attendanceCodes, setAttendanceCodes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchAttendanceCodes = async () => {
+      try {
+        const response = await axios.get('/attendance/supervisor-codes', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setAttendanceCodes(response.data?.codes || []);
+      } catch (fetchError) {
+        console.error('Failed to load attendance codes:', fetchError);
+        setError('Unable to load attendance codes.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAttendanceCodes();
+  }, [token]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -33,7 +54,7 @@ const SupervisorDashboard = () => {
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
             <button
               onClick={handleLogout}
-              className="mobile-back-button px-4 py-2"
+              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
             >
               <FaSignOutAlt size={14} />
               <span className="text-sm font-medium">Logout</span>
@@ -55,6 +76,59 @@ const SupervisorDashboard = () => {
 
         {/* Main Content */}
         <div className="px-6 py-6 -mt-4">
+          {/* Today's Attendance Codes */}
+          <Card className="mb-6 border-orange-200 bg-gradient-to-r from-orange-50 via-white to-amber-50 shadow-sm">
+            <CardContent className="p-5">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-orange-500 text-lg text-white">
+                  <span aria-hidden="true">🔐</span>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-800">
+                    Today's Attendance Codes
+                  </h3>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Share this code with workers who are unable to complete selfie verification.
+                  </p>
+                </div>
+              </div>
+
+              <div className="my-4 space-y-3">
+                {loading ? (
+                  <p className="rounded-xl border border-orange-200 bg-white px-4 py-3 text-center text-sm text-gray-500 shadow-sm">
+                    Loading attendance codes...
+                  </p>
+                ) : error ? (
+                  <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
+                    {error}
+                  </p>
+                ) : attendanceCodes.length === 0 ? (
+                  <p className="rounded-xl border border-orange-200 bg-white px-4 py-3 text-center text-sm text-gray-500 shadow-sm">
+                    No attendance codes available.
+                  </p>
+                ) : (
+                  attendanceCodes.map((attendance) => (
+                    <div
+                      key={attendance.branchId}
+                      className="rounded-xl border border-orange-200 bg-white px-4 py-3 text-center shadow-sm"
+                    >
+                      <p className="text-sm font-semibold text-gray-700">
+                        {attendance.branchName || 'Assigned Branch'}
+                      </p>
+                      <p className="mt-1 text-3xl font-bold tracking-[0.35em] text-orange-700">
+                        {attendance.code}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <p className="text-center text-xs font-medium text-orange-700">
+                Valid for today only
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Quick Actions Title */}
           <div className="mb-4">
             <h3 className="text-lg font-bold text-gray-800">Quick Actions</h3>
