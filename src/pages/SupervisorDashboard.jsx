@@ -21,17 +21,46 @@ const SupervisorDashboard = () => {
 
   useEffect(() => {
     const fetchAttendanceCodes = async () => {
-      try {
-        const response = await axios.get('/attendance/supervisor-codes', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setAttendanceCodes(response.data?.codes || []);
-      } catch (fetchError) {
-        console.error('Failed to load attendance codes:', fetchError);
-        setError('Unable to load attendance codes.');
-      } finally {
+      if (!navigator.geolocation) {
+        setError('Location access is required to retrieve the branch attendance code.');
         setLoading(false);
+        return;
       }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            const response = await axios.get('/attendance/supervisor-codes', {
+              params: { lat: latitude, lng: longitude },
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            setAttendanceCodes(response.data?.codes || []);
+            setError(response.data?.message || '');
+          } catch (fetchError) {
+            console.error('Failed to load attendance codes:', fetchError);
+            setError(
+              fetchError?.response?.data?.message ||
+              'Location access is required to retrieve the branch attendance code.'
+            );
+            setAttendanceCodes([]);
+          } finally {
+            setLoading(false);
+          }
+        },
+        (geoError) => {
+          console.error('Geolocation error:', geoError);
+          setError('Location access is required to retrieve the branch attendance code.');
+          setAttendanceCodes([]);
+          setLoading(false);
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 60000,
+          timeout: 20000,
+        }
+      );
     };
 
     fetchAttendanceCodes();
