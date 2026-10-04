@@ -1,14 +1,14 @@
 import DashboardLayout from '../layouts/DashboardLayout';
 import React, { useEffect, useState } from 'react';
 import axios from '../utils/axios';
-import Select from '../components/Select';
+import DateRangeFilter from '../components/DateRangeFilter';
+import { getCurrentMonthDateRange } from '../utils/dateRange';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import {
   FaUser,
-  FaCalendarAlt,
   FaChevronLeft,
   FaChevronRight,
   FaAngleDoubleLeft,
@@ -60,8 +60,7 @@ const LeaveBadge = ({ count, type }) => {
 const SupervisorAttendanceDashboard = () => {
   const [records, setRecords] = useState([]);
   const [searchSupervisor, setSearchSupervisor] = useState('');
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [dateRange, setDateRange] = useState(getCurrentMonthDateRange);
   const [loading, setLoading] = useState(false);
 
   // Pagination state
@@ -76,7 +75,7 @@ const SupervisorAttendanceDashboard = () => {
         setLoading(true);
         const res = await axios.get('/attendance/summary', {
           headers: { Authorization: `Bearer ${token}` },
-          params: { role: 'supervisor', month, year },
+          params: { role: 'supervisor', ...dateRange },
         });
         setRecords(res.data || []);
       } catch (err) {
@@ -86,7 +85,7 @@ const SupervisorAttendanceDashboard = () => {
       }
     };
     fetchData();
-  }, [token, month, year]);
+  }, [token, dateRange]);
 
   const filtered = records.filter((r) =>
     r.name?.toLowerCase().includes(searchSupervisor.toLowerCase())
@@ -112,7 +111,7 @@ const SupervisorAttendanceDashboard = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchSupervisor, itemsPerPage]);
+  }, [searchSupervisor, itemsPerPage, dateRange]);
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -195,7 +194,7 @@ const SupervisorAttendanceDashboard = () => {
 
     const link = document.createElement("a");
     link.href = encodeURI(csvContent);
-    link.download = `Supervisor_Attendance_${month}_${year}.csv`;
+    link.download = `Supervisor_Attendance_${dateRange.startDate}_to_${dateRange.endDate}.csv`;
     link.click();
   };
 
@@ -206,7 +205,7 @@ const SupervisorAttendanceDashboard = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             {/* <h1 className="text-2xl font-bold text-gray-800">Supervisor Attendance Summary</h1> */}
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Monthly attendance overview for supervisor members</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Attendance overview for supervisor members</p>
           </div>
           <Button
             onClick={exportToCSV}
@@ -297,31 +296,7 @@ const SupervisorAttendanceDashboard = () => {
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Month</label>
-              <Select
-                value={month}
-                onChange={(e) => setMonth(e.target.value)}
-                options={[...Array(12).keys()].map((m) => ({
-                  value: m + 1,
-                  label: new Date(0, m).toLocaleString('default', { month: 'long' })
-                }))}
-                icon={<FaCalendarAlt size={14} />}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Year</label>
-              <Select
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                options={Array.from({ length: 5 }, (_, i) => {
-                  const y = new Date().getFullYear() - i;
-                  return { value: y, label: y.toString() };
-                })}
-                icon={<FaCalendarAlt size={14} />}
-              />
-            </div>
+            <DateRangeFilter value={dateRange} onApply={setDateRange} />
             </div>
           </CardContent>
         </Card>

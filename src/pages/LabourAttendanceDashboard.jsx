@@ -1,20 +1,20 @@
 import DashboardLayout from '../layouts/DashboardLayout';
 import React, { useEffect, useState } from 'react';
 import axios from '../utils/axios';
-import Select from '../components/Select';
+import DateRangeFilter from '../components/DateRangeFilter';
+import { getCurrentMonthDateRange } from '../utils/dateRange';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import {
-  FaUser, FaCalendarAlt, FaChevronLeft, FaChevronRight, FaAngleDoubleLeft,
+  FaUser, FaChevronLeft, FaChevronRight, FaAngleDoubleLeft,
   FaAngleDoubleRight, FaDownload, FaSearch, FaCheckCircle, FaTimesCircle, FaClock
 } from 'react-icons/fa';
 
 const LabourAttendanceDashboard = () => {
   const [records, setRecords] = useState([]);
   const [searchStaff, setSearchStaff] = useState('');
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [dateRange, setDateRange] = useState(getCurrentMonthDateRange);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
@@ -26,7 +26,7 @@ const LabourAttendanceDashboard = () => {
         setLoading(true);
         const res = await axios.get('/attendance/summary', {
           headers: { Authorization: `Bearer ${token}` },
-          params: { role: 'labour', month, year },
+          params: { role: 'labour', ...dateRange },
         });
         setRecords(res.data || []);
       } catch (err) {
@@ -36,7 +36,7 @@ const LabourAttendanceDashboard = () => {
       }
     };
     fetchData();
-  }, [token, month, year]);
+  }, [token, dateRange]);
 
   const filtered = records.filter((r) =>
     r.name?.toLowerCase().includes(searchStaff.toLowerCase())
@@ -54,7 +54,7 @@ const LabourAttendanceDashboard = () => {
   const endIndex = startIndex + itemsPerPage;
   const currentItems = filtered.slice(startIndex, endIndex);
 
-  useEffect(() => { setCurrentPage(1); }, [searchStaff, itemsPerPage]);
+  useEffect(() => { setCurrentPage(1); }, [searchStaff, itemsPerPage, dateRange]);
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
@@ -85,7 +85,7 @@ const LabourAttendanceDashboard = () => {
     const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map((e) => e.join(",")).join("\n");
     const link = document.createElement("a");
     link.href = encodeURI(csvContent);
-    link.download = `Labour_Attendance_${month}_${year}.csv`;
+    link.download = `Labour_Attendance_${dateRange.startDate}_to_${dateRange.endDate}.csv`;
     link.click();
   };
 
@@ -93,7 +93,7 @@ const LabourAttendanceDashboard = () => {
     <DashboardLayout title="Labour Attendance">
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <p className="text-sm text-gray-500">Monthly attendance overview for labour workers</p>
+          <p className="text-sm text-gray-500">Attendance overview for labour workers</p>
           <Button onClick={exportToCSV} className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600">
             <FaDownload size={14} />Export CSV
           </Button>
@@ -133,14 +133,7 @@ const LabourAttendanceDashboard = () => {
                 <input type="text" className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500" placeholder="Search by name..." value={searchStaff} onChange={(e) => setSearchStaff(e.target.value)} />
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Month</label>
-              <Select value={month} onChange={(e) => setMonth(e.target.value)} options={[...Array(12).keys()].map((m) => ({ value: m + 1, label: new Date(0, m).toLocaleString('default', { month: 'long' }) }))} icon={<FaCalendarAlt size={14} />} />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Year</label>
-              <Select value={year} onChange={(e) => setYear(e.target.value)} options={Array.from({ length: 5 }, (_, i) => ({ value: new Date().getFullYear() - i, label: (new Date().getFullYear() - i).toString() }))} icon={<FaCalendarAlt size={14} />} />
-            </div>
+            <DateRangeFilter value={dateRange} onApply={setDateRange} />
           </div>
           </CardContent>
         </Card>

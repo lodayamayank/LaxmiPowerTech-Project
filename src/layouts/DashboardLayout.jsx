@@ -91,28 +91,17 @@ const DashboardLayout = ({ children, title }) => {
   };
 
   const loadNotifications = async () => {
-    setNotificationsLoading(true);
-    try {
-      const projectRes = await axios.get('/projects');
-      const projectList = Array.isArray(projectRes.data) ? projectRes.data : projectRes.data?.data || [];
-      const workOrderResults = await Promise.allSettled(
-        projectList.map((project) =>
-          axios.get('/work-orders', {
-            params: { project: project._id, status: 'triggered', limit: 100 },
-          })
-        )
-      );
-      const allOrders = workOrderResults.flatMap((result) =>
-        result.status === 'fulfilled' ? result.value.data?.data || [] : []
-      );
-      setNotifications(allOrders.map(getRetentionNotification).filter(Boolean));
-    } catch (err) {
-      console.error('Failed to load notifications', err);
-      setNotifications([]);
-    } finally {
-      setNotificationsLoading(false);
-    }
-  };
+  setNotificationsLoading(true);
+  try {
+    const res = await axios.get('/work-orders/retention-notifications');
+    const orders = res.data?.data || [];
+    setNotifications(orders.map(getRetentionNotification).filter(Boolean));
+  } catch (err) {
+    console.error('Failed to load notifications', err);
+  } finally {
+    setNotificationsLoading(false);
+  }
+};
 
   // NEW: fetches the count of pending leave requests for the sidebar badge
   const loadPendingLeaveCount = async () => {
@@ -534,7 +523,7 @@ const DashboardLayout = ({ children, title }) => {
                   </div>
 
                   <div className="max-h-80 overflow-y-auto p-3">
-                    {notificationsLoading ? (
+                    {notificationsLoading && notifications.length === 0 ? (
                       <div className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                         Loading notifications...
                       </div>
