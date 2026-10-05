@@ -6,6 +6,9 @@ import Select from '../components/Select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { 
   FaUser, 
@@ -290,13 +293,13 @@ useEffect(() => {
             <form onSubmit={onSearch} className="space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                 <div className="lg:col-span-3">
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Search</label>
+                  <Label className="block text-xs mb-1.5 text-gray-600 dark:text-gray-300">Search</Label>
                   <div className="relative">
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
                       <FaSearch size={14} />
                     </div>
-                    <input
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                    <Input
+                      className="pl-3"
                       placeholder="Search staff..."
                       value={searchStaff}
                       onChange={(e) => setSearchStaff(e.target.value)}
@@ -305,7 +308,7 @@ useEffect(() => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Role</label>
+                  <Label className="block text-xs mb-1.5 text-gray-600 dark:text-gray-300">Role</Label>
                   <Select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
@@ -323,7 +326,7 @@ useEffect(() => {
                 {!startDate && !endDate ? (
                   <>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Month</label>
+                      <Label className="block text-xs mb-1.5 text-gray-600 dark:text-gray-300">Month</Label>
                       <Select
                         value={month}
                         onChange={(e) => setMonth(e.target.value)}
@@ -336,7 +339,7 @@ useEffect(() => {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Year</label>
+                      <Label className="block text-xs mb-1.5 text-gray-600 dark:text-gray-300">Year</Label>
                       <Select
                         value={year}
                         onChange={(e) => setYear(e.target.value)}
@@ -353,20 +356,18 @@ useEffect(() => {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Start Date</label>
-                  <input
+                  <Label className="block text-xs mb-1.5 text-gray-600 dark:text-gray-300">Start Date</Label>
+                  <Input
                     type="date"
-                    className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">End Date</label>
-                  <input
+                  <Label className="block text-xs mb-1.5 text-gray-600 dark:text-gray-300">End Date</Label>
+                  <Input
                     type="date"
-                    className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                   />
@@ -429,14 +430,18 @@ useEffect(() => {
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-6">
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                        <span className="ml-3">Loading...</span>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={`skeleton-${i}`}>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-28 rounded-full" /></TableCell>
+                      <TableCell><Skeleton className="h-10 w-10 rounded" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                    </TableRow>
+                  ))
                 ) : filtered.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center text-muted-foreground py-6">

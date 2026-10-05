@@ -20,6 +20,7 @@ import {
 	YAxis,
 } from "recharts";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 
 // Single source of truth for status -> color, used for chart fills, badges
 // and calendar cells across the whole attendance feature.
@@ -163,20 +164,22 @@ export function Legend({ items }) {
 	const list = items || defaultItems;
 
 	return (
-		<div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-4 border border-gray-200">
-			<p className="text-xs font-semibold text-gray-700 mb-3">Legend</p>
-			<div className="grid grid-cols-2 gap-2 text-xs">
-				{list.map((item) => (
-					<div key={item.label} className="flex items-center gap-2">
-						<span
-							className="w-4 h-4 rounded shadow-sm"
-							style={{ backgroundColor: STATUS_COLORS[item.status] }}
-						></span>
-						<span className="text-gray-700">{item.label}</span>
-					</div>
-				))}
-			</div>
-		</div>
+		<Card className="bg-gradient-to-r from-gray-50 to-white rounded-2xl border-gray-200">
+			<CardContent className="p-4">
+				<p className="text-xs font-semibold text-gray-700 mb-3">Legend</p>
+				<div className="grid grid-cols-2 gap-2 text-xs">
+					{list.map((item) => (
+						<div key={item.label} className="flex items-center gap-2">
+							<span
+								className="w-4 h-4 rounded shadow-sm"
+								style={{ backgroundColor: STATUS_COLORS[item.status] }}
+							></span>
+							<span className="text-gray-700">{item.label}</span>
+						</div>
+					))}
+				</div>
+			</CardContent>
+		</Card>
 	);
 }
 

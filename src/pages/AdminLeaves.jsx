@@ -7,6 +7,9 @@ import { toast } from "react-toastify";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 //import "react-toastify/dist/ReactToastify.css";
 
 
@@ -110,260 +113,279 @@ export default function AdminLeaves() {
         <DashboardLayout title="Leave Management">
             <div className="space-y-4">
                 {/* Filters */}
-                <Card><CardContent className="pt-6"><form
-                    onSubmit={onSearch}
-                    className="grid grid-cols-1 md:grid-cols-7 gap-3 p-4"
-                >
-                    <select
-                        value={filters.role}
-                        onChange={(e) =>
-                            setFilters((f) => ({ ...f, role: e.target.value }))
-                        }
-                        className="border rounded-lg px-3 py-2 bg-background text-foreground"
-                    >
-                        <option value="">All Roles</option>
-                        <option value="admin">Admin</option>
-                        <option value="staff">Staff</option>
-                        <option value="supervisor">Supervisor</option>
-                        <option value="subcontractor">Subcontractor</option>
-                        <option value="labour">Labour</option>
-                    </select>
+                <Card>
+                    <CardContent className="pt-6">
+                        <form
+                            onSubmit={onSearch}
+                            className="grid grid-cols-1 md:grid-cols-7 gap-3"
+                        >
+                            <select
+                                value={filters.role}
+                                onChange={(e) =>
+                                    setFilters((f) => ({ ...f, role: e.target.value }))
+                                }
+                                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            >
+                                <option value="">All Roles</option>
+                                <option value="admin">Admin</option>
+                                <option value="staff">Staff</option>
+                                <option value="supervisor">Supervisor</option>
+                                <option value="subcontractor">Subcontractor</option>
+                                <option value="labour">Labour</option>
+                            </select>
 
-                    {/* 🔹 Branch dropdown */}
-                    <select
-                        value={filters.branchId}
-                        onChange={(e) =>
-                            setFilters((f) => ({ ...f, branchId: e.target.value }))
-                        }
-                        className="border rounded-lg px-3 py-2 bg-background text-foreground"
-                    >
-                        <option value="">All Branches</option>
-                        {branches.map((b) => (
-                            <option key={b._id} value={b._id}>
-                                {b.name}
-                            </option>
-                        ))}
-                    </select>
+                            {/* 🔹 Branch dropdown */}
+                            <select
+                                value={filters.branchId}
+                                onChange={(e) =>
+                                    setFilters((f) => ({ ...f, branchId: e.target.value }))
+                                }
+                                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            >
+                                <option value="">All Branches</option>
+                                {branches.map((b) => (
+                                    <option key={b._id} value={b._id}>
+                                        {b.name}
+                                    </option>
+                                ))}
+                            </select>
 
-                    <select
-                        value={filters.status}
-                        onChange={(e) =>
-                            setFilters((f) => ({ ...f, status: e.target.value }))
-                        }
-                        className="border rounded-lg px-3 py-2 bg-background text-foreground"
-                    >
-                        <option value="">All Status</option>
-                        <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
+                            <select
+                                value={filters.status}
+                                onChange={(e) =>
+                                    setFilters((f) => ({ ...f, status: e.target.value }))
+                                }
+                                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            >
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
 
-                    <select
-                        value={filters.type}
-                        onChange={(e) =>
-                            setFilters((f) => ({ ...f, type: e.target.value }))
-                        }
-                        className="border rounded-lg px-3 py-2 bg-background text-foreground"
-                    >
-                        <option value="">All Types</option>
-                        <option value="paid">Paid</option>
-                        <option value="unpaid">Unpaid</option>
-                        <option value="sick">Sick</option>
-                        <option value="casual">Casual</option>
-                    </select>
+                            <select
+                                value={filters.type}
+                                onChange={(e) =>
+                                    setFilters((f) => ({ ...f, type: e.target.value }))
+                                }
+                                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            >
+                                <option value="">All Types</option>
+                                <option value="paid">Paid</option>
+                                <option value="unpaid">Unpaid</option>
+                                <option value="sick">Sick</option>
+                                <option value="casual">Casual</option>
+                            </select>
 
-                    <input
-                        type="date"
-                        value={filters.from}
-                        onChange={(e) =>
-                            setFilters((f) => ({ ...f, from: e.target.value }))
-                        }
-                        className="border rounded-lg px-3 py-2 bg-background text-foreground"
-                    />
+                            <Input
+                                type="date"
+                                value={filters.from}
+                                onChange={(e) =>
+                                    setFilters((f) => ({ ...f, from: e.target.value }))
+                                }
+                            />
 
-                    <input
-                        type="date"
-                        value={filters.to}
-                        onChange={(e) =>
-                            setFilters((f) => ({ ...f, to: e.target.value }))
-                        }
-                        className="border rounded-lg px-3 py-2 bg-background text-foreground"
-                    />
+                            <Input
+                                type="date"
+                                value={filters.to}
+                                onChange={(e) =>
+                                    setFilters((f) => ({ ...f, to: e.target.value }))
+                                }
+                            />
 
-                    <div className="flex gap-2">
-                        <input
-                            type="text"
-                            placeholder="Search reason/username"
-                            value={filters.search}
-                            onChange={(e) =>
-                                setFilters((f) => ({ ...f, search: e.target.value }))
-                            }
-                            className="border rounded-lg px-3 py-2 w-full bg-background text-foreground placeholder:text-muted-foreground"
-                        />
-                        <Button type="submit">
-                            Filter
-                        </Button>
-                    </div>
-                </form></CardContent></Card>
+                            <div className="flex gap-2">
+                                <Input
+                                    type="text"
+                                    placeholder="Search reason/username"
+                                    value={filters.search}
+                                    onChange={(e) =>
+                                        setFilters((f) => ({ ...f, search: e.target.value }))
+                                    }
+                                    className="w-full"
+                                />
+                                <Button type="submit">
+                                    Filter
+                                </Button>
+                            </div>
+                        </form>
+                    </CardContent>
+                </Card>
 
                 {/* Table */}
-                <Card><CardContent className="p-0 overflow-x-auto">
-                    <table className="min-w-full text-sm">
-                        <thead className="bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-100">
-                            <tr>
-                                <th className="text-left px-4 py-2">User</th>
-                                <th className="text-left px-4 py-2">Role</th>
-                                <th className="text-left px-4 py-2">Branches</th>
-                                <th className="text-left px-4 py-2">Type</th>
-                                <th className="text-left px-4 py-2">Dates</th>
-                                <th className="text-left px-4 py-2">Days</th>
-                                <th className="text-left px-4 py-2">Reason</th>
-                                <th className="text-left px-4 py-2">Proof</th>
-                                <th className="text-left px-4 py-2">Status</th>
-                                <th className="text-left px-4 py-2">Approver</th>
-                                <th className="text-left px-4 py-2">Approved At</th>
-                                <th className="text-left px-4 py-2">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr>
-                                    <td className="px-4 py-6" colSpan={12}>
-                                        Loading…
-                                    </td>
-                                </tr>
-                            ) : rows.length === 0 ? (
-                                <tr>
-                                    <td className="px-4 py-6" colSpan={12}>
-                                        No records
-                                    </td>
-                                </tr>
-                            ) : (
-                                rows.map((r) => {
-                                    const days =
-                                        (new Date(r.endDate) - new Date(r.startDate)) /
-                                        (1000 * 60 * 60 * 24) +
-                                        1;
-                                    return (
-                                        <tr key={r._id} className="border-t dark:border-gray-700">
-                                            <td className="px-4 py-2 font-medium">
-                                                {r.user?.username}
-                                            </td>
-                                            <td className="px-4 py-2">{r.user?.role}</td>
-                                            <td className="px-4 py-2">
-                                                {Array.isArray(r.user?.assignedBranches) && r.user.assignedBranches.length
-                                                    ? r.user.assignedBranches.map((b) => b?.name || "—").join(", ")
-                                                    : "—"}
-                                            </td>
-                                            <td className="px-4 py-2 capitalize">{r.type || "—"}</td>
-                                            <td className="px-4 py-2">
-                                                {dayjs(r.startDate).format("DD MMM YYYY")} →{" "}
-                                                {dayjs(r.endDate).format("DD MMM YYYY")}
-                                            </td>
-                                            <td className="px-4 py-2">{Math.max(1, days)}</td>
-                                            <td className="px-4 py-2 max-w-xs whitespace-pre-wrap">
-                                                {r.reason || "—"}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {r.proofUrl ? (
-                                                    <a
-                                                        href={getProofUrl(r.proofUrl)}
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                        title="Open medical proof"
-                                                    >
-                                                        <img
-                                                            src={getProofUrl(r.proofUrl)}
-                                                            alt="Medical proof"
-                                                            className="h-12 w-12 rounded-md border object-cover"
-                                                        />
-                                                    </a>
-                                                ) : "—"}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                <StatusBadge status={r.status} />
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {r.approver?.username || "—"}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {r.approvedAt
-                                                    ? dayjs(r.approvedAt).format("DD MMM YYYY HH:mm")
-                                                    : "—"}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                            {r.status === "pending" ? (
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="border-green-600 text-green-700"
-                                                        onClick={() => handleAction(r._id, "approved")}
-                                                    >
-                                                        Approve
-                                                    </Button>
-                                                    
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="border-red-600 text-red-700"
-                                                        onClick={() => handleAction(r._id, "rejected")}
-                                                    >
-                                                        Reject
-                                                    </Button>
-                                                </div>
-                                            ) : (
-                                                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                                                    Finalized
-                                                </span>
-                                            )}
-                                        </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
-                </CardContent></Card>
+                <Card className="overflow-x-auto">
+                    <CardContent className="p-0">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="dark:border-gray-700">
+                                    <TableHead className="text-gray-600 dark:text-gray-300">User</TableHead>
+                                    <TableHead className="text-gray-600 dark:text-gray-300">Role</TableHead>
+                                    <TableHead className="text-gray-600 dark:text-gray-300">Branches</TableHead>
+                                    <TableHead className="text-gray-600 dark:text-gray-300">Type</TableHead>
+                                    <TableHead className="text-gray-600 dark:text-gray-300">Dates</TableHead>
+                                    <TableHead className="text-gray-600 dark:text-gray-300">Days</TableHead>
+                                    <TableHead className="text-gray-600 dark:text-gray-300">Reason</TableHead>
+                                    <TableHead className="text-gray-600 dark:text-gray-300">Proof</TableHead>
+                                    <TableHead className="text-gray-600 dark:text-gray-300">Status</TableHead>
+                                    <TableHead className="text-gray-600 dark:text-gray-300">Approver</TableHead>
+                                    <TableHead className="text-gray-600 dark:text-gray-300">Approved At</TableHead>
+                                    <TableHead className="text-gray-600 dark:text-gray-300">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {loading ? (
+                                    Array.from({ length: 5 }).map((_, i) => (
+                                        <TableRow key={`skeleton-${i}`}>
+                                            <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                            <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                                            <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                            <TableCell><Skeleton className="h-4 w-14" /></TableCell>
+                                            <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                                            <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                                            <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                            <TableCell><Skeleton className="h-10 w-10 rounded-md" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
+                                            <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                                            <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                            <TableCell><Skeleton className="h-8 w-28" /></TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : rows.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={12} className="text-center text-muted-foreground py-6">
+                                            No records
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    rows.map((r) => {
+                                        const days =
+                                            (new Date(r.endDate) - new Date(r.startDate)) /
+                                            (1000 * 60 * 60 * 24) +
+                                            1;
+                                        return (
+                                            <TableRow key={r._id} className="dark:border-gray-700 dark:hover:bg-gray-700/60">
+                                                <TableCell className="font-medium text-gray-900 dark:text-gray-100">
+                                                    {r.user?.username}
+                                                </TableCell>
+                                                <TableCell className="text-gray-700 dark:text-gray-300 capitalize">{r.user?.role}</TableCell>
+                                                <TableCell className="text-gray-700 dark:text-gray-300">
+                                                    {Array.isArray(r.user?.assignedBranches) && r.user.assignedBranches.length
+                                                        ? r.user.assignedBranches.map((b) => b?.name || "—").join(", ")
+                                                        : "—"}
+                                                </TableCell>
+                                                <TableCell className="capitalize text-gray-700 dark:text-gray-300">{r.type || "—"}</TableCell>
+                                                <TableCell className="text-gray-700 dark:text-gray-300">
+                                                    {dayjs(r.startDate).format("DD MMM YYYY")} →{" "}
+                                                    {dayjs(r.endDate).format("DD MMM YYYY")}
+                                                </TableCell>
+                                                <TableCell className="text-gray-700 dark:text-gray-300">{Math.max(1, days)}</TableCell>
+                                                <TableCell className="max-w-xs whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                                                    {r.reason || "—"}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {r.proofUrl ? (
+                                                        <a
+                                                            href={getProofUrl(r.proofUrl)}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            title="Open medical proof"
+                                                        >
+                                                            <img
+                                                                src={getProofUrl(r.proofUrl)}
+                                                                alt="Medical proof"
+                                                                className="h-12 w-12 rounded-md border object-cover"
+                                                            />
+                                                        </a>
+                                                    ) : "—"}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <StatusBadge status={r.status} />
+                                                </TableCell>
+                                                <TableCell className="text-gray-700 dark:text-gray-300">
+                                                    {r.approver?.username || "—"}
+                                                </TableCell>
+                                                <TableCell className="text-gray-700 dark:text-gray-300">
+                                                    {r.approvedAt
+                                                        ? dayjs(r.approvedAt).format("DD MMM YYYY HH:mm")
+                                                        : "—"}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {r.status === "pending" ? (
+                                                        <div className="flex gap-2">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="border-green-600 text-green-700 hover:bg-green-50 dark:hover:bg-green-950/40"
+                                                                onClick={() => handleAction(r._id, "approved")}
+                                                            >
+                                                                Approve
+                                                            </Button>
+                                                            
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="border-red-600 text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40"
+                                                                onClick={() => handleAction(r._id, "rejected")}
+                                                            >
+                                                                Reject
+                                                            </Button>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                                                            Finalized
+                                                        </span>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
 
                 {/* Pagination */}
-                <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-600 dark:text-gray-300">
-                        Page {page} of {totalPages} · {total} records
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <select
-                            value={limit}
-                            onChange={(e) => {
-                                setLimit(Number(e.target.value));
-                                setPage(1);
-                            }}
-                            className="border rounded-lg px-2 py-1 bg-background text-foreground"
-                        >
-                            {[10, 20, 50, 100].map((n) => (
-                                <option key={n} value={n}>
-                                    {n} / page
-                                </option>
-                            ))}
-                        </select>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={page <= 1}
-                            onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        >
-                            Prev
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={page >= totalPages}
-                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                        >
-                            Next
-                        </Button>
-                    </div>
-                </div>
+                <Card>
+                    <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 py-3">
+                        <div className="text-sm text-gray-600 dark:text-gray-300">
+                            Page <span className="font-semibold text-gray-900 dark:text-white">{page}</span> of{" "}
+                            <span className="font-semibold text-gray-900 dark:text-white">{totalPages}</span> ·{" "}
+                            <span className="font-semibold text-gray-900 dark:text-white">{total}</span> records
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <select
+                                value={limit}
+                                onChange={(e) => {
+                                    setLimit(Number(e.target.value));
+                                    setPage(1);
+                                }}
+                                className="border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            >
+                                {[10, 20, 50, 100].map((n) => (
+                                    <option key={n} value={n}>
+                                        {n} / page
+                                    </option>
+                                ))}
+                            </select>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={page <= 1}
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            >
+                                Prev
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={page >= totalPages}
+                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </DashboardLayout>
     );

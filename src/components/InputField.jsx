@@ -1,5 +1,6 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
 const InputField = ({ 
@@ -19,10 +20,10 @@ const InputField = ({
   return (
     <div className={className}>
       {label && (
-        <label className="block text-sm font-medium mb-1.5">
+        <Label className="block mb-1.5">
           {label}
           {required && <span className="text-destructive ml-1">*</span>}
-        </label>
+        </Label>
       )}
       <div className="relative">
         {icon && (
@@ -38,7 +39,7 @@ const InputField = ({
           placeholder={placeholder}
           disabled={disabled}
           className={cn(
-            icon && "pl-10",
+            icon && "pl-8",
             error && "border-destructive focus-visible:ring-destructive"
           )}
           {...props}

@@ -15,6 +15,12 @@ import EditUserModal from './EditUserModal';
 import AttendanceGraphModal from "../components/AttendanceGraphModal";
 import Select from '../components/Select';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'react-toastify';
 
 const roleLabel = (r) => {
@@ -275,311 +281,335 @@ const AdminMyTeam = () => {
 };
 
   if (loading) {
-    return <p className="p-4 text-gray-500 dark:text-gray-400">Loading users...</p>;
+    return (
+      <DashboardLayout title="My Team">
+        <div className="space-y-4">
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (
     <DashboardLayout title="My Team">
       <div className="space-y-4">
         {/* Add/Edit User Form */}
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow space-y-4">
-          <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-100">
-            {editId ? 'Edit User' : 'Add New User'}
-          </h2>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold">
+              {editId ? 'Edit User' : 'Add New User'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Input
+                placeholder="Name *"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+              <Input
+                placeholder="Username *"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <input
-              className="border rounded-lg px-3 py-2 bg-background text-foreground placeholder:text-muted-foreground"
-              placeholder="Name *"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            />
-            <input
-              className="border rounded-lg px-3 py-2 bg-background text-foreground placeholder:text-muted-foreground"
-              placeholder="Username *"
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-            />
-
-            {editId ? (
-              <div className="flex flex-col">
-                <label className="text-sm mb-1 text-gray-700 dark:text-gray-200">
-                  <input
-                    type="checkbox"
-                    checked={showPasswordField}
-                    onChange={() => setShowPasswordField(!showPasswordField)}
-                    className="mr-2"
-                  />
-                  Change Password
-                </label>
-
-                {showPasswordField && (
-                  <div className="relative">
+              {editId ? (
+                <div className="flex flex-col">
+                  <label className="text-sm mb-1 text-gray-700 dark:text-gray-200">
                     <input
-                      className="border rounded-lg px-3 py-2 w-full pr-10 bg-background text-foreground placeholder:text-muted-foreground"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter new password"
-                      value={formData.password}
-                      onChange={(e) =>
-                        setFormData({ ...formData, password: e.target.value })
-                      }
+                      type="checkbox"
+                      checked={showPasswordField}
+                      onChange={() => setShowPasswordField(!showPasswordField)}
+                      className="mr-2"
                     />
-                    <button
-                      type="button"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                    >
-                      {showPassword ? <FaEyeSlash /> : <FaEye />}
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="relative">
-                <input
-                  className="border rounded-lg px-3 py-2 w-full pr-10 bg-background text-foreground placeholder:text-muted-foreground"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password (default: default123)"
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                />
-                <button
-                  type="button"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </div>
-            )}
+                    Change Password
+                  </label>
 
-            <input
-              className="border rounded-lg px-3 py-2 bg-background text-foreground placeholder:text-muted-foreground"
-              placeholder="Mobile Number"
-              value={formData.mobileNumber} // ✅ Changed from contact
-              onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })} // ✅ Changed
-            />
+                  {showPasswordField && (
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter new password"
+                        value={formData.password}
+                        className="pr-10"
+                        onChange={(e) =>
+                          setFormData({ ...formData, password: e.target.value })
+                        }
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full px-3 text-gray-500 dark:text-gray-400"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                      >
+                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password (default: default123)"
+                    value={formData.password}
+                    className="pr-10"
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 text-gray-500 dark:text-gray-400"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </Button>
+                </div>
+              )}
 
+              <Input
+                placeholder="Mobile Number"
+                value={formData.mobileNumber}
+                onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
+              />
+
+              <Select
+                value={formData.role}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                options={Array.isArray(roleOptions) ? roleOptions.map((r) => ({
+                  value: roleValue(r),
+                  label: roleLabel(r),
+                })) : []}
+                icon={<FaUserTag size={14} />}
+              />
+
+              {formData.role !== 'admin' && (
+                <div className="md:col-span-2">
+                  <Label className="block mb-1">Branches</Label>
+                  <select
+                    multiple
+                    value={formData.assignedBranches}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        assignedBranches: Array.from(e.target.selectedOptions, (opt) => opt.value),
+                      })
+                    }
+                    className="w-full border rounded-lg px-3 py-2 h-40 bg-background text-foreground"
+                  >
+                    {branches.map((b) => (
+                      <option key={b._id} value={b._id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Hold Ctrl (Cmd on Mac) to select multiple.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={handleSubmit}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                {editId ? 'Update User' : 'Add User'}
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setEditId(null);
+                  setFormData({
+                    name: '',
+                    username: '',
+                    password: 'default123',
+                    mobileNumber: '',
+                    role: 'labour',
+                    assignedBranches: [],
+                  });
+                  setShowPasswordField(false);
+                  setShowPassword(false);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Filters */}
+        <Card>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-4">
             <Select
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              value={filterRole}
+              onChange={(e) => setFilterRole(e.target.value)}
+              placeholder="All Roles"
               options={Array.isArray(roleOptions) ? roleOptions.map((r) => ({
                 value: roleValue(r),
                 label: roleLabel(r),
               })) : []}
-              icon={<FaUserTag size={14} />}
+              icon={<FaUser size={14} />}
             />
 
-            {formData.role !== 'admin' && (
-              <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Branches</label>
-                <select
-                  multiple
-                  value={formData.assignedBranches}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      assignedBranches: Array.from(e.target.selectedOptions, (opt) => opt.value),
-                    })
-                  }
-                  className="w-full border rounded-lg px-3 py-2 h-40 bg-background text-foreground"
-                >
-                  {branches.map((b) => (
-                    <option key={b._id} value={b._id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Hold Ctrl (Cmd on Mac) to select multiple.</p>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={handleSubmit}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              {editId ? 'Update User' : 'Add User'}
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={() => {
-                setEditId(null);
-                setFormData({
-                  name: '',
-                  username: '',
-                  password: 'default123', // ✅ Reset to default
-                  mobileNumber: '', // ✅ Changed from contact
-                  role: 'labour',
-                  assignedBranches: [],
-                });
-                setShowPasswordField(false);
-                setShowPassword(false);
-              }}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-white dark:bg-gray-800 p-4 rounded-xl shadow">
-          <Select
-            value={filterRole}
-            onChange={(e) => setFilterRole(e.target.value)}
-            placeholder="All Roles"
-            options={Array.isArray(roleOptions) ? roleOptions.map((r) => ({
-              value: roleValue(r),
-              label: roleLabel(r),
-            })) : []}
-            icon={<FaUser size={14} />}
-          />
-
-          <input
-            type="text"
-            placeholder="Search by name or username"
-            className="border rounded-lg px-3 py-2 bg-background text-foreground placeholder:text-muted-foreground"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+            <Input
+              type="text"
+              placeholder="Search by name or username"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </CardContent>
+        </Card>
 
         {/* Results Info & Items Per Page */}
         {filteredUsers.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow">
-            <div className="text-sm text-gray-600 dark:text-gray-300">
-              Showing <span className="font-semibold text-gray-900 dark:text-white">{startIndex + 1}</span> to{' '}
-              <span className="font-semibold text-gray-900 dark:text-white">{Math.min(endIndex, totalItems)}</span> of{' '}
-              <span className="font-semibold text-gray-900 dark:text-white">{totalItems}</span> users
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600 dark:text-gray-300">Rows per page:</label>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-            </div>
-          </div>
+          <Card>
+            <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-3">
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                Showing <span className="font-semibold text-gray-900 dark:text-white">{startIndex + 1}</span> to{' '}
+                <span className="font-semibold text-gray-900 dark:text-white">{Math.min(endIndex, totalItems)}</span> of{' '}
+                <span className="font-semibold text-gray-900 dark:text-white">{totalItems}</span> users
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-sm">Rows per page:</Label>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-100">
-              <tr>
-                <th className="text-left px-4 py-2">Name</th>
-                <th className="text-left px-4 py-2">Username</th>
-                <th className="text-left px-4 py-2">Mobile</th>
-                <th className="text-left px-4 py-2">Role</th>
-                <th className="text-left px-4 py-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.length === 0 ? (
-                <tr>
-                  <td className="px-4 py-6" colSpan={5}>
-                    No users found
-                  </td>
-                </tr>
-              ) : (
-                currentItems.map((user) => (
-                  <tr key={user._id} className="border-t dark:border-gray-700">
-                    <td className="px-4 py-2 font-medium">{user.name}</td>
-                    <td className="px-4 py-2">{user.username}</td>
-                    <td className="px-4 py-2">{user.mobileNumber || '—'}</td>
-                    <td className="px-4 py-2 capitalize">{user.role}</td>
-                    <td className="px-4 py-2">
-                      <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" className="text-blue-600" onClick={() => setEditingUser(user)}>
-                          View/Edit
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-red-600" onClick={() => handleDelete(user._id)}>
-                          Delete
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-orange-600" onClick={() => handleResetPassword(user.username)}>
-                          Reset
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-green-600"
-                          onClick={() => setAttendanceUser(user)}
-                        >
-                          Attendance Graph
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <Card className="overflow-x-auto">
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="dark:border-gray-700">
+                  <TableHead className="text-gray-600 dark:text-gray-300">Name</TableHead>
+                  <TableHead className="text-gray-600 dark:text-gray-300">Username</TableHead>
+                  <TableHead className="text-gray-600 dark:text-gray-300">Mobile</TableHead>
+                  <TableHead className="text-gray-600 dark:text-gray-300">Role</TableHead>
+                  <TableHead className="text-gray-600 dark:text-gray-300">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-6">
+                      No users found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  currentItems.map((user) => (
+                    <TableRow key={user._id} className="dark:border-gray-700 dark:hover:bg-gray-700/60">
+                      <TableCell className="font-medium text-gray-900 dark:text-gray-100">{user.name}</TableCell>
+                      <TableCell className="text-gray-700 dark:text-gray-300">{user.username}</TableCell>
+                      <TableCell className="text-gray-700 dark:text-gray-300">{user.mobileNumber || '—'}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="capitalize text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600">
+                          {user.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button variant="ghost" size="sm" className="text-blue-600" onClick={() => setEditingUser(user)}>
+                            View/Edit
+                          </Button>
+                          <Button variant="ghost" size="sm" className="text-red-600" onClick={() => handleDelete(user._id)}>
+                            Delete
+                          </Button>
+                          <Button variant="ghost" size="sm" className="text-orange-600" onClick={() => handleResetPassword(user.username)}>
+                            Reset
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-green-600"
+                            onClick={() => setAttendanceUser(user)}
+                          >
+                            Attendance Graph
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
 
         {/* Pagination Controls */}
         {filteredUsers.length > 0 && totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow">
-            <div className="text-sm text-gray-600 dark:text-gray-300">
-              Page <span className="font-semibold text-gray-900 dark:text-white">{currentPage}</span> of{' '}
-              <span className="font-semibold text-gray-900 dark:text-white">{totalPages}</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-                {/* First Page */}
-              <Button variant="outline" size="icon" onClick={() => goToPage(1)} disabled={currentPage === 1} title="First Page" className="h-9 w-9">
-                <FaAngleDoubleLeft size={14} />
-              </Button>
-
-               {/* Previous Page */}
-              <Button variant="outline" size="icon" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1} title="Previous Page" className="h-9 w-9">
-                <FaChevronLeft size={14} />
-              </Button>
-
-               {/* Page Numbers */}
-              <div className="flex items-center gap-1">
-                {getPageNumbers().map((page, index) => (
-                  page === '...' ? (
-                    <span key={`ellipsis-${index}`} className="px-3 py-1 text-gray-500 dark:text-gray-400">
-                      ...
-                    </span>
-                  ) : (
-                    <button
-                      key={page}
-                      onClick={() => goToPage(page)}
-                      className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                        currentPage === page
-                          ? 'bg-orange-500 text-white shadow-md'
-                          : 'border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  )
-                ))}
+          <Card>
+            <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 py-3">
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                Page <span className="font-semibold text-gray-900 dark:text-white">{currentPage}</span> of{' '}
+                <span className="font-semibold text-gray-900 dark:text-white">{totalPages}</span>
               </div>
 
-              
-              {/* Next Page */}
-              <Button variant="outline" size="icon" onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages} title="Next Page" className="h-9 w-9">
-                <FaChevronRight size={14} />
-              </Button>
+              <div className="flex items-center gap-2">
+                {/* First Page */}
+                <Button variant="outline" size="icon" onClick={() => goToPage(1)} disabled={currentPage === 1} title="First Page" className="h-9 w-9">
+                  <FaAngleDoubleLeft size={14} />
+                </Button>
 
-              {/* Last Page */}
-              <Button variant="outline" size="icon" onClick={() => goToPage(totalPages)} disabled={currentPage === totalPages} title="Last Page" className="h-9 w-9">
-                <FaAngleDoubleRight size={14} />
-              </Button>
-            </div>
-          </div>
+                {/* Previous Page */}
+                <Button variant="outline" size="icon" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1} title="Previous Page" className="h-9 w-9">
+                  <FaChevronLeft size={14} />
+                </Button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1">
+                  {getPageNumbers().map((page, index) => (
+                    page === '...' ? (
+                      <span key={`ellipsis-${index}`} className="px-3 py-1 text-muted-foreground">
+                        ...
+                      </span>
+                    ) : (
+                      <Button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        className={currentPage === page ? "bg-orange-500 hover:bg-orange-600" : ""}
+                      >
+                        {page}
+                      </Button>
+                    )
+                  ))}
+                </div>
+
+                {/* Next Page */}
+                <Button variant="outline" size="icon" onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages} title="Next Page" className="h-9 w-9">
+                  <FaChevronRight size={14} />
+                </Button>
+
+                {/* Last Page */}
+                <Button variant="outline" size="icon" onClick={() => goToPage(totalPages)} disabled={currentPage === totalPages} title="Last Page" className="h-9 w-9">
+                  <FaAngleDoubleRight size={14} />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {editingUser && (

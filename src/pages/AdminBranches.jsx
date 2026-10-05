@@ -21,8 +21,12 @@ import {
   FaSearchLocation
 } from "react-icons/fa";
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
 const MAP_STYLE = { height: "400px", width: "100%" };
 const DEFAULT_CENTER = { lat: -33.8688, lng: 151.2093 };
@@ -208,257 +212,270 @@ const AdminBranches = () => {
 
         {/* Stats Card */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Total Branches</p>
-                <p className="text-3xl font-bold text-gray-800 mt-1">{branches.length}</p>
+          <Card>
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground font-medium">Total Branches</p>
+                  <p className="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-1">{branches.length}</p>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-950/40 flex items-center justify-center">
+                  <FaBuilding className="text-orange-600 dark:text-orange-400" size={20} />
+                </div>
               </div>
-              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-                <FaBuilding className="text-orange-600" size={20} />
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
+            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100">
               {editingId ? "Edit Branch" : "Add New Branch"}
-            </h2>
+            </CardTitle>
             {editingId && (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={handleCancelEdit}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 title="Cancel"
               >
-                <FaTimes size={18} />
-              </button>
+                <FaTimes size={16} />
+              </Button>
             )}
-          </div>
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Branch Name <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <FaBuilding className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                  <input
-                    type="text"
-                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="Enter branch name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Radius (meters) <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <FaRulerCombined className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                  <input
-                    type="number"
-                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="Enter radius"
-                    value={formData.radius}
-                    onChange={(e) =>
-                      setFormData({ ...formData, radius: parseInt(e.target.value || "0", 10) })
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Address</label>
-              <div className="relative">
-                <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                <input
-                  type="text"
-                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-sm"
-                  readOnly
-                  value={formData.address || "Select location on map or search below"}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Search Location <span className="text-red-500">*</span>
-              </label>
-              {isLoaded ? (
-                <Autocomplete
-                  onLoad={(ac) => (autocompleteRef.current = ac)}
-                  onPlaceChanged={onPlaceChanged}
-                >
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="block mb-1.5 font-semibold">
+                    Branch Name <span className="text-destructive">*</span>
+                  </Label>
                   <div className="relative">
-                    <FaSearchLocation className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                    <input
+                    <FaBuilding className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
+                    <Input
                       type="text"
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="Search for a place or address"
-                      value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
+                      className="pl-10"
+                      placeholder="Enter branch name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     />
                   </div>
-                </Autocomplete>
-              ) : (
-                <input
-                  type="text"
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-gray-50"
-                  placeholder="Loading Google Maps..."
-                  disabled
-                />
-              )}
-              <p className="text-xs text-gray-500 mt-1.5">
-                💡 Tip: Try searching "Mahim Mumbai" or a PIN code if the full address fails.
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Select Location on Map
-              </label>
-              {isLoaded && (
-                <div className="rounded-lg overflow-hidden border border-gray-300">
-                  <GoogleMap
-                    mapContainerStyle={MAP_STYLE}
-                    center={
-                      formData.lat && formData.lng
-                        ? { lat: formData.lat, lng: formData.lng }
-                        : DEFAULT_CENTER
-                    }
-                    zoom={formData.lat ? 15 : DEFAULT_ZOOM}
-                    options={{ disableDefaultUI: true, zoomControl: true, clickableIcons: false }}
-                    onLoad={onMapLoad}
-                    onClick={handleMapClick}
-                  >
-                    {formData.lat && formData.lng && (
-                      <>
-                        <MarkerF position={{ lat: formData.lat, lng: formData.lng }} />
-                        <CircleF
-                          center={{ lat: formData.lat, lng: formData.lng }}
-                          radius={Number(formData.radius) || 0}
-                          options={{ 
-                            fillColor: "#ff6b35",
-                            fillOpacity: 0.15, 
-                            strokeColor: "#ff6b35",
-                            strokeOpacity: 0.6, 
-                            strokeWeight: 2 
-                          }}
-                        />
-                      </>
-                    )}
-                  </GoogleMap>
                 </div>
-              )}
-            </div>
-          </div>
 
-          <div className="flex items-center gap-3 mt-6">
-            <button
-              type="submit"
-              className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium transition-colors shadow-md hover:shadow-lg"
-            >
-              {editingId ? (
-                <>
-                  <FaCheck size={14} />
-                  Update Branch
-                </>
-              ) : (
-                <>
-                  <FaPlus size={14} />
-                  Save Branch
-                </>
-              )}
-            </button>
+                <div>
+                  <Label className="block mb-1.5 font-semibold">
+                    Radius (meters) <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="relative">
+                    <FaRulerCombined className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
+                    <Input
+                      type="number"
+                      className="pl-10"
+                      placeholder="Enter radius"
+                      value={formData.radius}
+                      onChange={(e) =>
+                        setFormData({ ...formData, radius: parseInt(e.target.value || "0", 10) })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
 
-            {editingId && (
-              <button
-                type="button"
-                onClick={handleCancelEdit}
-                className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
-              >
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
+              <div>
+                <Label className="block mb-1.5 font-semibold">Address</Label>
+                <div className="relative">
+                  <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
+                  <Input
+                    type="text"
+                    className="pl-10 bg-gray-50 dark:bg-gray-800"
+                    readOnly
+                    value={formData.address || "Select location on map or search below"}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label className="block mb-1.5 font-semibold">
+                  Search Location <span className="text-destructive">*</span>
+                </Label>
+                {isLoaded ? (
+                  <Autocomplete
+                    onLoad={(ac) => (autocompleteRef.current = ac)}
+                    onPlaceChanged={onPlaceChanged}
+                  >
+                    <div className="relative">
+                      <FaSearchLocation className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
+                      <Input
+                        type="text"
+                        className="pl-10"
+                        placeholder="Search for a place or address"
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                      />
+                    </div>
+                  </Autocomplete>
+                ) : (
+                  <Input
+                    type="text"
+                    className="bg-gray-50 dark:bg-gray-800"
+                    placeholder="Loading Google Maps..."
+                    disabled
+                  />
+                )}
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  💡 Tip: Try searching "Mahim Mumbai" or a PIN code if the full address fails.
+                </p>
+              </div>
+
+              <div>
+                <Label className="block mb-1.5 font-semibold">
+                  Select Location on Map
+                </Label>
+                {isLoaded && (
+                  <div className="rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
+                    <GoogleMap
+                      mapContainerStyle={MAP_STYLE}
+                      center={
+                        formData.lat && formData.lng
+                          ? { lat: formData.lat, lng: formData.lng }
+                          : DEFAULT_CENTER
+                      }
+                      zoom={formData.lat ? 15 : DEFAULT_ZOOM}
+                      options={{ disableDefaultUI: true, zoomControl: true, clickableIcons: false }}
+                      onLoad={onMapLoad}
+                      onClick={handleMapClick}
+                    >
+                      {formData.lat && formData.lng && (
+                        <>
+                          <MarkerF position={{ lat: formData.lat, lng: formData.lng }} />
+                          <CircleF
+                            center={{ lat: formData.lat, lng: formData.lng }}
+                            radius={Number(formData.radius) || 0}
+                            options={{ 
+                              fillColor: "#ff6b35",
+                              fillOpacity: 0.15, 
+                              strokeColor: "#ff6b35",
+                              strokeOpacity: 0.6, 
+                              strokeWeight: 2 
+                            }}
+                          />
+                        </>
+                      )}
+                    </GoogleMap>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <Button
+                  type="submit"
+                  className="bg-orange-500 hover:bg-orange-600 text-white gap-2"
+                >
+                  {editingId ? (
+                    <>
+                      <FaCheck size={14} />
+                      Update Branch
+                    </>
+                  ) : (
+                    <>
+                      <FaPlus size={14} />
+                      Save Branch
+                    </>
+                  )}
+                </Button>
+
+                {editingId && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCancelEdit}
+                  >
+                    Cancel
+                  </Button>
+                )}
+              </div>
+            </form>
+          </CardContent>
+        </Card>
 
         {/* Branches Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-lg font-semibold text-gray-800">Branches List</h2>
-            <p className="text-sm text-gray-500 mt-1">Manage your existing branches</p>
-          </div>
+        <Card>
+          <CardHeader className="border-b border-gray-100 dark:border-gray-700">
+            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100">Branches List</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">Manage your existing branches</p>
+          </CardHeader>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50 text-gray-700">
-                <tr>
-                  <th className="text-left px-6 py-3 font-semibold">Name</th>
-                  <th className="text-left px-6 py-3 font-semibold">Address</th>
-                  <th className="text-left px-6 py-3 font-semibold">Radius (m)</th>
-                  <th className="text-left px-6 py-3 font-semibold">Coordinates</th>
-                  <th className="text-left px-6 py-3 font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="dark:border-gray-700">
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Name</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Address</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Radius (m)</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Coordinates</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {loading ? (
-                  <tr>
-                    <td colSpan="5" className="px-6 py-6 text-center text-gray-500">
-                      Loading branches...
-                    </td>
-                  </tr>
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <TableRow key={`skeleton-${i}`}>
+                      <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-24" /></TableCell>
+                    </TableRow>
+                  ))
                 ) : branches.length === 0 ? (
-                  <tr>
-                    <td colSpan="5" className="px-6 py-6 text-center text-gray-500">
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-6">
                       No branches found. Add your first branch above.
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   branches.map((b) => (
-                    <tr key={b._id} className="border-t border-gray-100 hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-gray-900">{b.name}</td>
-                      <td className="px-6 py-4 text-gray-600 max-w-xs truncate">
+                    <TableRow key={b._id} className="dark:border-gray-700 dark:hover:bg-gray-700/60">
+                      <TableCell className="font-medium text-gray-900 dark:text-gray-100">{b.name}</TableCell>
+                      <TableCell className="text-muted-foreground max-w-xs truncate">
                         {b.address || "—"}
-                      </td>
-                      <td className="px-6 py-4 text-gray-600">{b.radius}</td>
-                      <td className="px-6 py-4 text-gray-600 text-xs">
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{b.radius}</TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-xs">
                         {b.lat?.toFixed(6)}, {b.lng?.toFixed(6)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <button
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleEdit(b)}
-                            className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 gap-1 font-medium"
                           >
                             <FaEdit size={14} />
                             Edit
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleDelete(b._id)}
-                            className="flex items-center gap-1 text-red-600 hover:text-red-700 font-medium transition-colors"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 gap-1 font-medium"
                           >
                             <FaTrash size={14} />
                             Delete
-                          </button>
+                          </Button>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))
                 )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );

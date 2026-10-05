@@ -1,10 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 import axios from "../utils/axios";
 import { Button } from "@/components/ui/button";
-import { FaChevronLeft, FaChevronRight, FaTimes } from "react-icons/fa";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { computeDailyStatuses } from "../utils/attendanceCalculations";
-import DateRangeFilter from "../components/DateRangeFilter";
 import {
   CalendarGrid,
   Legend,
@@ -15,11 +22,17 @@ import {
 
 const PERIODS = ["weekly", "monthly", "yearly", "custom"];
 
+// ── Date utility functions ────────────────────────────────────────────────────
 const toDateKey = (date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+};
+
+const parseDateKey = (key) => {
+  const [year, month, day] = key.split("-").map(Number);
+  return new Date(year, month - 1, day);
 };
 
 const startOfWeek = (date) => {
@@ -84,6 +97,8 @@ const movePeriod = (date, period, amount) => {
   if (period === "yearly") {
     next.setFullYear(next.getFullYear() + amount);
   } else if (period === "monthly") {
+    // Pin to day 1 so e.g. Jan 31 + 1 month doesn't skip February
+    next.setDate(1);
     next.setMonth(next.getMonth() + amount);
   } else {
     next.setDate(next.getDate() + amount * 7);
@@ -95,42 +110,29 @@ const movePeriod = (date, period, amount) => {
 const getUserId = (user) =>
   String(typeof user === "string" ? user : user?._id || user?.id || "");
 
+// ── AttendanceGraphModal ──────────────────────────────────────────────────────
+// Props: user, onClose
 const AttendanceGraphModal = ({ user, onClose }) => {
   const [period, setPeriod] = useState("monthly");
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [customStart, setCustomStart] = useState(() => toDateKey(startOfWeek(new Date())));
+  const [customEnd, setCustomEnd] = useState(() => toDateKey(new Date()));
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const [customRange, setCustomRange] = useState({
-    startDate: "",
-    endDate: "",
-  });
-
   const token = localStorage.getItem("token");
+  const userId = getUserId(user);
 
   const range = useMemo(() => {
     if (period === "custom") {
-      if (!customRange.startDate || !customRange.endDate) {
-        return null;
-      }
-
-      return {
-        start: new Date(`${customRange.startDate}T00:00:00`),
-        end: new Date(`${customRange.endDate}T00:00:00`),
-      };
+      const start = parseDateKey(customStart);
+      const end = parseDateKey(customEnd);
+      return { start, end: end < start ? start : end };
     }
-
     return getRange(period, selectedDate);
-  }, [period, selectedDate, customRange]);
+  }, [period, selectedDate, customStart, customEnd]);
 
   useEffect(() => {
-    if (!range) {
-      setRecords([]);
-      setLoading(false);
-      return undefined;
-    }
-
     let ignore = false;
 
     const fetchAttendance = async () => {
@@ -147,19 +149,10 @@ const AttendanceGraphModal = ({ user, onClose }) => {
         });
 
         if (ignore) return;
-
-        const rows = Array.isArray(response.data)
-          ? response.data
-          : response.data?.rows || [];
-
-        const userId = getUserId(user);
-
-        setRecords(
-          rows.filter((record) => getUserId(record.user) === userId)
-        );
+        const rows = Array.isArray(response.data) ? response.data : response.data?.rows || [];
+        setRecords(rows.filter((record) => getUserId(record.user) === userId));
       } catch (requestError) {
         if (ignore) return;
-
         console.error("Failed to load attendance graph", requestError);
         setError("Failed to load attendance data");
         setRecords([]);
@@ -173,48 +166,25 @@ const AttendanceGraphModal = ({ user, onClose }) => {
     return () => {
       ignore = true;
     };
-  }, [range, token, user]);
+  }, [range, token, userId]);
 
   const dailyStatuses = useMemo(() => {
-    if (!range || period === "yearly") return [];
-
+    if (period === "yearly") return [];
     const statuses = [];
-    const cursor = new Date(range.start);
-
-    cursor.setDate(1);
-
+    const cursor = new Date(range.start.getFullYear(), range.start.getMonth(), 1);
     while (cursor <= range.end) {
-      statuses.push(
-        ...computeDailyStatuses(
-          records,
-          cursor.getMonth(),
-          cursor.getFullYear()
-        )
-      );
-
+      statuses.push(...computeDailyStatuses(records, cursor.getMonth(), cursor.getFullYear()));
       cursor.setMonth(cursor.getMonth() + 1);
     }
-
     return statuses
-      .filter(
-        (day) =>
-          day.date >= toDateKey(range.start) &&
-          day.date <= toDateKey(range.end)
-      )
-      .filter(
-        (day, index, allDays) =>
-          allDays.findIndex((item) => item.date === day.date) === index
-      );
-  }, [period, range, records]);
+      .filter((day) => day.date >= toDateKey(range.start) && day.date <= toDateKey(range.end))
+      .filter((day, index, allDays) => allDays.findIndex((item) => item.date === day.date) === index);
+  }, [period, range.end, range.start, records]);
 
   const yearlySummary = useMemo(() => {
     if (period !== "yearly") return [];
 
-    return buildYearlySummary(
-      computeDailyStatuses,
-      records,
-      selectedDate.getFullYear()
-    );
+    return buildYearlySummary(computeDailyStatuses, records, selectedDate.getFullYear());
   }, [period, records, selectedDate]);
 
   const overallYearPct = useMemo(() => {
@@ -224,10 +194,7 @@ const AttendanceGraphModal = ({ user, onClose }) => {
 
     if (!withData.length) return 0;
 
-    return Math.round(
-      withData.reduce((total, month) => total + month.pct, 0) /
-        withData.length
-    );
+    return Math.round(withData.reduce((total, month) => total + month.pct, 0) / withData.length);
   }, [yearlySummary]);
 
   const counts = dailyStatuses.reduce((summary, day) => {
@@ -235,122 +202,105 @@ const AttendanceGraphModal = ({ user, onClose }) => {
     return summary;
   }, {});
 
-  return createPortal(
-    <div
-      className="fixed !inset-0 z-[100] m-0 flex items-center justify-center bg-black/50 p-4"
-      onMouseDown={onClose}
-    >
-      <div
-        className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-2xl dark:bg-gray-800"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b px-5 py-4 dark:border-gray-700">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Attendance Graph
-            </h2>
-
-            <p className="text-sm text-gray-500 dark:text-gray-300">
-              {user?.name || user?.username}
-            </p>
-          </div>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            aria-label="Close attendance graph"
-          >
-            <FaTimes />
-          </Button>
-        </div>
+  return (
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-h-[90vh] w-full max-w-3xl gap-0 overflow-y-auto p-0 dark:bg-gray-800">
+        <DialogHeader className="border-b px-5 py-4 text-left dark:border-gray-700">
+          <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-white">
+            Attendance Graph
+          </DialogTitle>
+          <DialogDescription className="text-sm text-gray-500 dark:text-gray-300">
+            {user?.name || user?.username}
+          </DialogDescription>
+        </DialogHeader>
 
         <div className="space-y-5 p-5">
-          <div className="flex flex-wrap gap-2">
-            {PERIODS.map((option) => (
-              <Button
-                key={option}
-                variant={period === option ? "default" : "outline"}
-                className={`${
-                  period === option
-                    ? "bg-orange-500 hover:bg-orange-600"
-                    : ""
-                } capitalize text-sm font-medium`}
-                onClick={() => setPeriod(option)}
-              >
-                {option}
-              </Button>
-            ))}
+          {/* Period tabs */}
+          <Tabs value={period} onValueChange={setPeriod}>
+            <TabsList>
+              {PERIODS.map((option) => (
+                <TabsTrigger
+                  key={option}
+                  value={option}
+                  className="capitalize text-sm font-medium data-[state=active]:bg-orange-500 data-[state=active]:text-white"
+                >
+                  {option}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+
+          {/* Period navigation (custom uses date pickers instead) */}
+          {period !== "custom" ? (
+          <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSelectedDate(movePeriod(selectedDate, period, -1))}
+              aria-label="Previous period"
+            >
+              <FaChevronLeft />
+            </Button>
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-100">
+              {formatRange(period, selectedDate)}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSelectedDate(movePeriod(selectedDate, period, 1))}
+              aria-label="Next period"
+            >
+              <FaChevronRight />
+            </Button>
           </div>
-
-          {period === "custom" && (
-            <DateRangeFilter
-              value={customRange}
-              onApply={setCustomRange}
-            />
-          )}
-
-          {period !== "custom" && (
-            <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() =>
-                  setSelectedDate(movePeriod(selectedDate, period, -1))
-                }
-                aria-label="Previous period"
-              >
-                <FaChevronLeft />
-              </Button>
-
-              <span className="text-sm font-semibold text-gray-700 dark:text-gray-100">
-                {formatRange(period, selectedDate)}
-              </span>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() =>
-                  setSelectedDate(movePeriod(selectedDate, period, 1))
-                }
-                aria-label="Next period"
-              >
-                <FaChevronRight />
-              </Button>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 rounded-lg bg-gray-50 px-3 py-3 sm:grid-cols-2 dark:bg-gray-700">
+              <label className="space-y-1 text-xs font-semibold text-gray-600 dark:text-gray-300">
+                From
+                <Input
+                  type="date"
+                  value={customStart}
+                  max={customEnd}
+                  onChange={(event) => {
+                    if (event.target.value) setCustomStart(event.target.value);
+                  }}
+                />
+              </label>
+              <label className="space-y-1 text-xs font-semibold text-gray-600 dark:text-gray-300">
+                To
+                <Input
+                  type="date"
+                  value={customEnd}
+                  min={customStart}
+                  onChange={(event) => {
+                    if (event.target.value) setCustomEnd(event.target.value);
+                  }}
+                />
+              </label>
             </div>
           )}
 
-          {period === "custom" && !range ? (
-            <div className="py-10 text-center text-sm text-gray-500 dark:text-gray-300">
-              Select a start date and end date to view attendance.
-            </div>
-          ) : loading ? (
+          {loading ? (
             <div className="py-16 text-center text-sm text-gray-500 dark:text-gray-300">
               Loading attendance...
             </div>
           ) : error ? (
-            <div className="py-16 text-center text-sm text-red-600 dark:text-red-400">
-              {error}
-            </div>
+            <div className="py-16 text-center text-sm text-red-600 dark:text-red-400">{error}</div>
           ) : (
             <>
-              {period === "weekly" && (
-                <WeekStrip dailySummary={dailyStatuses} />
-              )}
+              {period === "weekly" && <WeekStrip dailySummary={dailyStatuses} />}
 
               {period === "monthly" && (
                 <>
-                  <div className="grid grid-cols-7 gap-2 mb-1">
-                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                      (day) => (
-                        <div
-                          key={day}
-                          className="text-center text-xs font-semibold text-gray-500 dark:text-gray-300"
-                        >
-                          {day}
-                        </div>
-                      )
-                    )}
+                  <div className="mb-1 grid grid-cols-7 gap-2">
+                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                      <div
+                        key={day}
+                        className="text-center text-xs font-semibold text-gray-500 dark:text-gray-300"
+                      >
+                        {day}
+                      </div>
+                    ))}
                   </div>
 
                   <CalendarGrid
@@ -386,11 +336,9 @@ const AttendanceGraphModal = ({ user, onClose }) => {
                 <div>
                   <YearAttendanceChart yearlySummary={yearlySummary} />
 
-                  <p className="text-center text-sm text-gray-600 dark:text-gray-300 mt-2">
+                  <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-300">
                     Overall percentage{" "}
-                    <span className="font-bold text-gray-800 dark:text-white">
-                      {overallYearPct}%
-                    </span>
+                    <span className="font-bold text-gray-800 dark:text-white">{overallYearPct}%</span>
                   </p>
                 </div>
               )}
@@ -401,22 +349,20 @@ const AttendanceGraphModal = ({ user, onClose }) => {
                     {Object.entries(counts).map(([status, count]) => (
                       <span
                         key={status}
-                        className="rounded-full px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+                        className="rounded-full bg-gray-100 px-3 py-1 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
                       >
                         {status}: {count}
                       </span>
                     ))}
                   </div>
-
                   <Legend />
                 </>
               )}
             </>
           )}
         </div>
-      </div>
-    </div>,
-    document.body
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -20,9 +20,15 @@ import {
   FaChartLine
 } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Autocomplete, useJsApiLoader } from '@react-google-maps/api';
+import StatCard from '@/components/common/StatCard';
 
 const GOOGLE_LIBS = ['places'];
 
@@ -342,284 +348,269 @@ const CreateProject = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Total Projects</p>
-                <p className="text-3xl font-bold text-gray-800 mt-1">{projects.length}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-                <FaProjectDiagram className="text-orange-600" size={20} />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Total Branches</p>
-                <p className="text-3xl font-bold text-blue-600 mt-1">{totalBranches}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                <FaBuilding className="text-blue-600" size={20} />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Available Branches</p>
-                <p className="text-3xl font-bold text-green-600 mt-1">{branches.length}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                <FaMapMarkerAlt className="text-green-600" size={20} />
-              </div>
-            </div>
-          </div>
+          <StatCard title="Total Projects" value={projects.length} icon={FaProjectDiagram} color="orange" />
+          <StatCard title="Total Branches" value={totalBranches} icon={FaBuilding} color="blue" />
+          <StatCard title="Available Branches" value={branches.length} icon={FaMapMarkerAlt} color="green" />
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
+            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100">
               {editingId ? 'Edit Project' : 'Create New Project'}
-            </h2>
+            </CardTitle>
             {editingId && (
-              <button
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
                 onClick={handleCancel}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 title="Cancel"
               >
-                <FaTimes size={18} />
-              </button>
+                <FaTimes size={16} />
+              </Button>
             )}
-          </div>
+          </CardHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Project Name <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  <FaProjectDiagram size={14} />
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="block mb-1.5 font-semibold">
+                  Project Name <span className="text-destructive">*</span>
+                </Label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    <FaProjectDiagram size={14} />
+                  </div>
+                  <Input
+                    className="pl-10"
+                    placeholder="Enter project name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
                 </div>
-                <input
-                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                  placeholder="Enter project name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Address <span className="text-red-500">*</span>
-              </label>
-              {mapsLoaded ? (
-                <Autocomplete
-                  onLoad={onAutocompleteLoad}
-                  onPlaceChanged={onPlaceChanged}
-                  options={{ componentRestrictions: { country: 'in' } }}
-                >
+              <div>
+                <Label className="block mb-1.5 font-semibold">
+                  Address <span className="text-destructive">*</span>
+                </Label>
+                {mapsLoaded ? (
+                  <Autocomplete
+                    onLoad={onAutocompleteLoad}
+                    onPlaceChanged={onPlaceChanged}
+                    options={{ componentRestrictions: { country: 'in' } }}
+                  >
+                    <div className="relative">
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">
+                        <FaMapMarkerAlt size={14} />
+                      </div>
+                      <Input
+                        className="pl-10"
+                        placeholder="Enter project address"
+                        value={formData.address}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      />
+                    </div>
+                  </Autocomplete>
+                ) : (
                   <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">
                       <FaMapMarkerAlt size={14} />
                     </div>
-                    <input
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                    <Input
+                      className="pl-10"
                       placeholder="Enter project address"
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     />
                   </div>
-                </Autocomplete>
-              ) : (
-                <div className="relative">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10">
-                    <FaMapMarkerAlt size={14} />
-                  </div>
-                  <input
-                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                    placeholder="Enter project address"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  />
-                </div>
-              )}
+                )}
+              </div>
+
+              <div className="md:col-span-2">
+                <Label className="block mb-1.5 font-semibold">
+                  Assign Branches
+                </Label>
+                <select
+                  multiple
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 h-40 text-sm bg-background text-foreground focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                  value={formData.branches}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      branches: Array.from(e.target.selectedOptions, (opt) => opt.value),
+                    })
+                  }
+                >
+                  {branches.map((b) => (
+                    <option key={b._id} value={b._id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  Hold Ctrl (Cmd on Mac) to select multiple branches
+                </p>
+              </div>
             </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Assign Branches
-              </label>
-              <select
-                multiple
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 h-40 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                value={formData.branches}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    branches: Array.from(e.target.selectedOptions, (opt) => opt.value),
-                  })
-                }
+            {/* Smart Tower Builder */}
+            <div className="mt-6">
+              <SmartTowerBuilder
+                buildings={formData.buildings}
+                onChange={(buildings) => setFormData({ ...formData, buildings })}
+              />
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <Button
+                onClick={handleSubmit}
+                className="bg-orange-500 hover:bg-orange-600 text-white shadow-md"
               >
-                {branches.map((b) => (
-                  <option key={b._id} value={b._id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-500 mt-1.5">
-                Hold Ctrl (Cmd on Mac) to select multiple branches
-              </p>
-            </div>
-          </div>
-
-          {/* Smart Tower Builder */}
-          <div className="mt-6">
-            <SmartTowerBuilder
-              buildings={formData.buildings}
-              onChange={(buildings) => setFormData({ ...formData, buildings })}
-            />
-          </div>
-
-          <div className="flex items-center gap-3 mt-6">
-            <Button
-              onClick={handleSubmit}
-              className="bg-orange-500 hover:bg-orange-600 text-white shadow-md"
-            >
-              {editingId ? (
-                <>
-                  <FaCheck size={14} />
-                  Update Project
-                </>
-              ) : (
-                <>
-                  <FaPlus size={14} />
-                  Create Project
-                </>
-              )}
-            </Button>
-
-            {editingId && (
-              <Button variant="outline" onClick={handleCancel}>
-                Cancel
+                {editingId ? (
+                  <>
+                    <FaCheck size={14} className="mr-1" />
+                    Update Project
+                  </>
+                ) : (
+                  <>
+                    <FaPlus size={14} className="mr-1" />
+                    Create Project
+                  </>
+                )}
               </Button>
-            )}
-          </div>
-        </div>
+
+              {editingId && (
+                <Button variant="outline" onClick={handleCancel}>
+                  Cancel
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Projects List */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Projects List</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage your existing projects</p>
-          </div>
+        <Card>
+          <CardHeader className="border-b border-gray-100 dark:border-gray-700">
+            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100">Projects List</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">Manage your existing projects</p>
+          </CardHeader>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-100">
-                <tr>
-                  <th className="text-left px-6 py-3 font-semibold">Project Name</th>
-                  <th className="text-left px-6 py-3 font-semibold">Address</th>
-                  <th className="text-left px-6 py-3 font-semibold">Branches</th>
-                  <th className="text-left px-6 py-3 font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="dark:border-gray-700">
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Project Name</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Address</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Branches</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {loading ? (
-                  <tr>
-                    <td colSpan="4" className="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
-                      Loading projects...
-                    </td>
-                  </tr>
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <TableRow key={`skeleton-${i}`}>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-24 rounded-full" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-28" /></TableCell>
+                    </TableRow>
+                  ))
                 ) : projects.length === 0 ? (
-                  <tr>
-                    <td colSpan="4" className="px-6 py-6 text-center text-gray-500 dark:text-gray-400">
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-6">
                       No projects found. Create your first project above.
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   projects.map((proj) => (
-                    <tr key={proj._id} className="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                      <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">{proj.name}</td>
-                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{proj.address}</td>
-                      <td className="px-6 py-4">
+                    <TableRow key={proj._id} className="dark:border-gray-700 dark:hover:bg-gray-700/60">
+                      <TableCell className="font-medium text-gray-900 dark:text-gray-100">{proj.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{proj.address}</TableCell>
+                      <TableCell>
                         {proj.branches?.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
                             {proj.branches.map((b, idx) => (
-                              <span
+                              <Badge
                                 key={idx}
-                                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium"
+                                variant="outline"
+                                className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800 gap-1 text-xs font-medium"
                               >
                                 <FaMapMarkerAlt size={10} />
                                 {b.name}
-                              </span>
+                              </Badge>
                             ))}
                           </div>
                         ) : (
-                          <span className="text-gray-400">N/A</span>
+                          <span className="text-muted-foreground">N/A</span>
                         )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <button
-                            className="flex items-center gap-1 text-slate-600 hover:text-slate-800 font-medium transition-colors"
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-slate-600 hover:text-slate-800 hover:bg-slate-50 dark:text-slate-300 dark:hover:text-slate-100 dark:hover:bg-slate-800 gap-1 font-medium"
                             onClick={() => handleViewDetails(proj)}
                             title="View project details"
                           >
                             <FaEye size={14} />
                             View
-                          </button>
-                          <button
-                            className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 gap-1 font-medium"
                             onClick={() => handleEdit(proj)}
                             title="Edit"
                           >
                             <FaEdit size={14} />
                             Edit
-                          </button>
-                          <button
-                            className="flex items-center gap-1 text-red-600 hover:text-red-700 font-medium transition-colors"
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 gap-1 font-medium"
                             onClick={() => handleDelete(proj._id)}
                             title="Delete"
                           >
                             <FaTrash size={14} />
                             Delete
-                          </button>
+                          </Button>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))
                 )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
 
         {detailsProject && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
-              <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-gray-100">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+              <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">{detailsProject.name}</h2>
-                  <p className="text-sm text-gray-500 mt-1">{detailsProject.address || 'No address added'}</p>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{detailsProject.name}</h2>
+                  <p className="text-sm text-muted-foreground mt-1">{detailsProject.address || 'No address added'}</p>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={closeDetails}
-                  className="text-gray-400 hover:text-gray-700 transition-colors"
+                  className="text-gray-400 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
                   title="Close"
                 >
-                  <FaTimes size={20} />
-                </button>
+                  <FaTimes size={18} />
+                </Button>
               </div>
 
               <div className="p-6 overflow-y-auto max-h-[calc(90vh-76px)] space-y-6">
                 {detailsLoading ? (
-                  <div className="py-16 text-center text-gray-500">Loading project details...</div>
+                  <div className="py-16 text-center text-muted-foreground">Loading project details...</div>
                 ) : (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -627,10 +618,10 @@ const CreateProject = () => {
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-sm text-gray-500 font-medium">Completed Tasks</p>
-                              <p className="text-2xl font-bold text-gray-900 mt-1">{detailProgress.total}</p>
+                              <p className="text-sm text-muted-foreground font-medium">Completed Tasks</p>
+                              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{detailProgress.total}</p>
                             </div>
-                            <FaTasks className="text-blue-600" size={22} />
+                            <FaTasks className="text-blue-600 dark:text-blue-400" size={22} />
                           </div>
                         </CardContent>
                       </Card>
@@ -638,10 +629,10 @@ const CreateProject = () => {
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-sm text-gray-500 font-medium">Work Done</p>
-                              <p className="text-2xl font-bold text-green-700 mt-1">{detailProgress.percent}%</p>
+                              <p className="text-sm text-muted-foreground font-medium">Work Done</p>
+                              <p className="text-2xl font-bold text-green-700 dark:text-green-400 mt-1">{detailProgress.percent}%</p>
                             </div>
-                            <FaChartLine className="text-green-600" size={22} />
+                            <FaChartLine className="text-green-600 dark:text-green-400" size={22} />
                           </div>
                         </CardContent>
                       </Card>
@@ -649,10 +640,10 @@ const CreateProject = () => {
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-sm text-gray-500 font-medium">Assigned Team</p>
-                              <p className="text-2xl font-bold text-gray-900 mt-1">{detailTeam.length}</p>
+                              <p className="text-sm text-muted-foreground font-medium">Assigned Team</p>
+                              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{detailTeam.length}</p>
                             </div>
-                            <FaUsers className="text-purple-600" size={22} />
+                            <FaUsers className="text-purple-600 dark:text-purple-400" size={22} />
                           </div>
                         </CardContent>
                       </Card>
@@ -660,22 +651,17 @@ const CreateProject = () => {
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-sm text-gray-500 font-medium">Rooms Planned</p>
-                              <p className="text-2xl font-bold text-gray-900 mt-1">{detailStructure.rooms}</p>
+                              <p className="text-sm text-muted-foreground font-medium">Rooms Planned</p>
+                              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{detailStructure.rooms}</p>
                             </div>
-                            <FaLayerGroup className="text-orange-600" size={22} />
+                            <FaLayerGroup className="text-orange-600 dark:text-orange-400" size={22} />
                           </div>
                         </CardContent>
                       </Card>
                     </div>
 
                     <div>
-                      <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-green-600 transition-all"
-                          style={{ width: `${detailProgress.percent}%` }}
-                        />
-                      </div>
+                      <Progress value={detailProgress.percent} className="h-3 [&>div]:bg-green-600" />
                       <div className="flex flex-wrap gap-2 mt-3">
                         {Object.entries(detailProgress.counts).map(([status, count]) => (
                           <Badge key={status} variant="secondary" className="capitalize">
@@ -686,195 +672,199 @@ const CreateProject = () => {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <div className="border border-gray-100 rounded-lg overflow-hidden">
-                        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-                          <h3 className="font-semibold text-gray-900">Project Info</h3>
+                      <div className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">Project Info</h3>
                         </div>
                         <div className="p-4 space-y-4">
                           <div>
-                            <p className="text-xs font-semibold text-gray-500 uppercase">Branches</p>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase">Branches</p>
                             <div className="flex flex-wrap gap-2 mt-2">
                               {detailsProject.branches?.length > 0 ? (
                                 detailsProject.branches.map((branch) => (
-                                  <span
+                                  <Badge
                                     key={branch._id}
-                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium"
+                                    variant="outline"
+                                    className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800 gap-1 text-xs font-medium"
                                   >
                                     <FaMapMarkerAlt size={10} />
                                     {branch.name}
-                                  </span>
+                                  </Badge>
                                 ))
                               ) : (
-                                <span className="text-sm text-gray-400">No branches assigned</span>
+                                <span className="text-sm text-muted-foreground">No branches assigned</span>
                               )}
                             </div>
                           </div>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            <div className="bg-gray-50 rounded-lg p-3">
-                              <p className="text-xs text-gray-500">Buildings</p>
-                              <p className="text-lg font-bold text-gray-900">{detailStructure.buildings}</p>
+                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                              <p className="text-xs text-muted-foreground">Buildings</p>
+                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{detailStructure.buildings}</p>
                             </div>
-                            <div className="bg-gray-50 rounded-lg p-3">
-                              <p className="text-xs text-gray-500">Floors</p>
-                              <p className="text-lg font-bold text-gray-900">{detailStructure.floors}</p>
+                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                              <p className="text-xs text-muted-foreground">Floors</p>
+                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{detailStructure.floors}</p>
                             </div>
-                            <div className="bg-gray-50 rounded-lg p-3">
-                              <p className="text-xs text-gray-500">Flats</p>
-                              <p className="text-lg font-bold text-gray-900">{detailStructure.flats}</p>
+                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                              <p className="text-xs text-muted-foreground">Flats</p>
+                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{detailStructure.flats}</p>
                             </div>
-                            <div className="bg-gray-50 rounded-lg p-3">
-                              <p className="text-xs text-gray-500">Rooms</p>
-                              <p className="text-lg font-bold text-gray-900">{detailStructure.rooms}</p>
+                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                              <p className="text-xs text-muted-foreground">Rooms</p>
+                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{detailStructure.rooms}</p>
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      <div className="border border-gray-100 rounded-lg overflow-hidden">
-                        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-                          <h3 className="font-semibold text-gray-900">Assigned Supervisors</h3>
+                      <div className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">Assigned Supervisors</h3>
                         </div>
                         <div className="p-4">
                           {detailTeam.length > 0 ? (
                             <div className="space-y-2">
                               {detailTeam.map((member) => (
-                                <div key={member._id} className="flex items-center justify-between gap-3 py-2 border-b border-gray-100 last:border-b-0">
+                                <div key={member._id} className="flex items-center justify-between gap-3 py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
                                   <div>
-                                    <p className="font-medium text-gray-900">{member.name}</p>
-                                    <p className="text-xs text-gray-500">@{member.username || 'user'}</p>
+                                    <p className="font-medium text-gray-900 dark:text-gray-100">{member.name}</p>
+                                    <p className="text-xs text-muted-foreground">@{member.username || 'user'}</p>
                                   </div>
                                   <Badge variant="secondary" className="capitalize">{member.role}</Badge>
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <p className="text-sm text-gray-400">No supervisors assigned to this project</p>
+                            <p className="text-sm text-muted-foreground">No supervisors assigned to this project</p>
                           )}
                         </div>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <div className="border border-gray-100 rounded-lg overflow-hidden">
-                        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+                      <div className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
                           <FaBuilding className="text-gray-500" />
-                          <h3 className="font-semibold text-gray-900">Work By Building</h3>
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">Work By Building</h3>
                         </div>
                         <div className="overflow-x-auto">
-                          <table className="min-w-full text-sm">
-                            <thead className="bg-white text-gray-600">
-                              <tr>
-                                <th className="text-left px-4 py-2 font-semibold">Building</th>
-                                <th className="text-center px-4 py-2 font-semibold">Total</th>
-                                <th className="text-center px-4 py-2 font-semibold">Done</th>
-                                <th className="text-center px-4 py-2 font-semibold">Pending</th>
-                              </tr>
-                            </thead>
-                            <tbody>
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="dark:border-gray-700">
+                                <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Building</TableHead>
+                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">Total</TableHead>
+                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">Done</TableHead>
+                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">Pending</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
                               {buildingProgress.length > 0 ? (
                                 buildingProgress.map((row) => (
-                                  <tr key={row.name} className="border-t border-gray-100">
-                                    <td className="px-4 py-2 font-medium text-gray-900">{row.name}</td>
-                                    <td className="px-4 py-2 text-center">{row.total}</td>
-                                    <td className="px-4 py-2 text-center text-green-700">{row.done}</td>
-                                    <td className="px-4 py-2 text-center text-orange-600">{row.pending}</td>
-                                  </tr>
+                                  <TableRow key={row.name} className="dark:border-gray-700">
+                                    <TableCell className="font-medium text-gray-900 dark:text-gray-100">{row.name}</TableCell>
+                                    <TableCell className="text-center">{row.total}</TableCell>
+                                    <TableCell className="text-center text-green-700 dark:text-green-400 font-medium">{row.done}</TableCell>
+                                    <TableCell className="text-center text-orange-600 dark:text-orange-400 font-medium">{row.pending}</TableCell>
+                                  </TableRow>
                                 ))
                               ) : (
-                                <tr>
-                                  <td colSpan="4" className="px-4 py-6 text-center text-gray-400">No approved tasks yet</td>
-                                </tr>
+                                <TableRow>
+                                  <TableCell colSpan={4} className="text-center text-muted-foreground py-6">No approved tasks yet</TableCell>
+                                </TableRow>
                               )}
-                            </tbody>
-                          </table>
+                            </TableBody>
+                          </Table>
                         </div>
                       </div>
 
-                      <div className="border border-gray-100 rounded-lg overflow-hidden">
-                        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+                      <div className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
                           <FaUsers className="text-gray-500" />
-                          <h3 className="font-semibold text-gray-900">Work By Supervisor</h3>
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">Work By Supervisor</h3>
                         </div>
                         <div className="overflow-x-auto">
-                          <table className="min-w-full text-sm">
-                            <thead className="bg-white text-gray-600">
-                              <tr>
-                                <th className="text-left px-4 py-2 font-semibold">Supervisor</th>
-                                <th className="text-center px-4 py-2 font-semibold">Total</th>
-                                <th className="text-center px-4 py-2 font-semibold">Done</th>
-                                <th className="text-center px-4 py-2 font-semibold">Open</th>
-                              </tr>
-                            </thead>
-                            <tbody>
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="dark:border-gray-700">
+                                <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Supervisor</TableHead>
+                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">Total</TableHead>
+                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">Done</TableHead>
+                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">Open</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
                               {supervisorProgress.length > 0 ? (
                                 supervisorProgress.map((row) => (
-                                  <tr key={row.name} className="border-t border-gray-100">
-                                    <td className="px-4 py-2 font-medium text-gray-900">{row.name}</td>
-                                    <td className="px-4 py-2 text-center">{row.total}</td>
-                                    <td className="px-4 py-2 text-center text-green-700">{row.done}</td>
-                                    <td className="px-4 py-2 text-center text-orange-600">{row.pending + row.inProgress}</td>
-                                  </tr>
+                                  <TableRow key={row.name} className="dark:border-gray-700">
+                                    <TableCell className="font-medium text-gray-900 dark:text-gray-100">{row.name}</TableCell>
+                                    <TableCell className="text-center">{row.total}</TableCell>
+                                    <TableCell className="text-center text-green-700 dark:text-green-400 font-medium">{row.done}</TableCell>
+                                    <TableCell className="text-center text-orange-600 dark:text-orange-400 font-medium">{row.pending + row.inProgress}</TableCell>
+                                  </TableRow>
                                 ))
                               ) : (
-                                <tr>
-                                  <td colSpan="4" className="px-4 py-6 text-center text-gray-400">No approved tasks yet</td>
-                                </tr>
+                                <TableRow>
+                                  <TableCell colSpan={4} className="text-center text-muted-foreground py-6">No approved tasks yet</TableCell>
+                                </TableRow>
                               )}
-                            </tbody>
-                          </table>
+                            </TableBody>
+                          </Table>
                         </div>
                       </div>
                     </div>
 
-                    <div className="border border-gray-100 rounded-lg overflow-hidden">
-                      <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+                    <div className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden">
+                      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
                         <FaClock className="text-gray-500" />
-                        <h3 className="font-semibold text-gray-900">Recent Tasks</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Recent Tasks</h3>
                       </div>
                       <div className="overflow-x-auto">
-                        <table className="min-w-full text-sm">
-                          <thead className="bg-white text-gray-600">
-                            <tr>
-                              <th className="text-left px-4 py-2 font-semibold">Location</th>
-                              <th className="text-left px-4 py-2 font-semibold">Activity</th>
-                              <th className="text-left px-4 py-2 font-semibold">Supervisor</th>
-                              <th className="text-left px-4 py-2 font-semibold">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="dark:border-gray-700">
+                              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Location</TableHead>
+                              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Activity</TableHead>
+                              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Supervisor</TableHead>
+                              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
                             {completedProjectTasks.slice(0, 8).map((task) => {
                               const status = getEffectiveTaskStatus(task);
                               const isDone = ['completed', 'verified', 'approved'].includes(status);
 
                               return (
-                                <tr key={task._id} className="border-t border-gray-100">
-                                  <td className="px-4 py-2 text-gray-900">
+                                <TableRow key={task._id} className="dark:border-gray-700">
+                                  <TableCell className="text-gray-900 dark:text-gray-100">
                                     {[task.building?.name, task.floor?.name, task.flat?.name, task.room?.name].filter(Boolean).join(' / ')}
-                                  </td>
-                                  <td className="px-4 py-2 text-gray-600">{task.level3Activity?.name || '-'}</td>
-                                  <td className="px-4 py-2 text-gray-900">{task.supervisor?.name || 'N/A'}</td>
-                                  <td className="px-4 py-2">
-                                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
-                                      isDone
-                                        ? 'bg-green-100 text-green-700'
-                                        : status === 'rejected'
-                                          ? 'bg-red-100 text-red-700'
-                                          : 'bg-orange-100 text-orange-700'
-                                    }`}>
+                                  </TableCell>
+                                  <TableCell className="text-muted-foreground">{task.level3Activity?.name || '-'}</TableCell>
+                                  <TableCell className="text-gray-900 dark:text-gray-100">{task.supervisor?.name || 'N/A'}</TableCell>
+                                  <TableCell>
+                                    <Badge
+                                      variant="outline"
+                                      className={`gap-1 capitalize font-semibold ${
+                                        isDone
+                                          ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800'
+                                          : status === 'rejected'
+                                            ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800'
+                                            : 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800'
+                                      }`}
+                                    >
                                       {isDone ? <FaCheckCircle size={10} /> : <FaClock size={10} />}
                                       {status.replace('-', ' ')}
-                                    </span>
-                                  </td>
-                                </tr>
+                                    </Badge>
+                                  </TableCell>
+                                </TableRow>
                               );
                             })}
                             {completedProjectTasks.length === 0 && (
-                              <tr>
-                                <td colSpan="4" className="px-4 py-6 text-center text-gray-400">No approved tasks yet</td>
-                              </tr>
+                              <TableRow>
+                                <TableCell colSpan={4} className="text-center text-muted-foreground py-6">No approved tasks yet</TableCell>
+                              </TableRow>
                             )}
-                          </tbody>
-                        </table>
+                          </TableBody>
+                        </Table>
                       </div>
                     </div>
                   </>
