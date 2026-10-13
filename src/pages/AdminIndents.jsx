@@ -5,8 +5,12 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import Select from '../components/Select';
 
 const StatusPill = ({ value }) => {
   const map = {
@@ -16,9 +20,12 @@ const StatusPill = ({ value }) => {
     issued: "bg-green-100 text-green-700",
   };
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${map[value] || "bg-gray-100 text-gray-700"}`}>
+    <Badge
+      variant="outline"
+      className={`border-0 rounded-full px-2 py-1 text-xs font-medium ${map[value] || "bg-gray-100 text-gray-700"}`}
+    >
       {value}
-    </span>
+    </Badge>
   );
 };
 
@@ -128,68 +135,60 @@ export default function AdminIndents() {
     <DashboardLayout title="Indents">
       {/* Filters */}
       <form onSubmit={onSearch} className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
-        <select
-          className="border rounded px-2 py-2"
+        <Select
           value={filters.status}
           onChange={(e) => setFilters((s) => ({ ...s, status: e.target.value }))}
-        >
-          <option value="">Status: All</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
-          <option value="issued">Issued</option>
-        </select>
+          options={[
+            { value: '', label: 'Status: All' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'approved', label: 'Approved' },
+            { value: 'rejected', label: 'Rejected' },
+            { value: 'issued', label: 'Issued' },
+          ]}
+          placeholder="Status: All"
+        />
 
-        <select
-          className="border rounded px-2 py-2"
+        <Select
           value={filters.projectId}
           onChange={(e) => setFilters((s) => ({ ...s, projectId: e.target.value }))}
-        >
-          <option value="">Project: All</option>
-          {projects.map((p) => (
-            <option key={p._id} value={p._id}>{p.name}</option>
-          ))}
-        </select>
+          options={[{ value: '', label: 'Project: All' }, ...projects.map((p) => ({ value: p._id, label: p.name }))]}
+          placeholder="Project: All"
+        />
 
-        <select
-          className="border rounded px-2 py-2"
+        <Select
           value={filters.branchId}
           onChange={(e) => setFilters((s) => ({ ...s, branchId: e.target.value }))}
-        >
-          <option value="">Branch: All</option>
-          {branches.map((b) => (
-            <option key={b._id} value={b._id}>{b.name}</option>
-          ))}
-        </select>
+          options={[{ value: '', label: 'Branch: All' }, ...branches.map((b) => ({ value: b._id, label: b.name }))]}
+          placeholder="Branch: All"
+        />
 
-        <select
-          className="border rounded px-2 py-2"
+        <Select
           value={filters.role}
           onChange={(e) => setFilters((s) => ({ ...s, role: e.target.value }))}
-        >
-          <option value="">Role: All</option>
-          <option value="labour">Labour</option>
-          <option value="staff">Staff</option>
-          <option value="subcontractor">Subcontractor</option>
-          <option value="supervisor">Supervisor</option>
-        </select>
+          options={[
+            { value: '', label: 'Role: All' },
+            { value: 'labour', label: 'Labour' },
+            { value: 'staff', label: 'Staff' },
+            { value: 'subcontractor', label: 'Subcontractor' },
+            { value: 'supervisor', label: 'Supervisor' },
+          ]}
+          placeholder="Role: All"
+        />
 
-        <input
+        <Input
           type="date"
-          className="border rounded px-2 py-2"
           value={filters.from}
           onChange={(e) => setFilters((s) => ({ ...s, from: e.target.value }))}
         />
-        <input
+        <Input
           type="date"
-          className="border rounded px-2 py-2"
           value={filters.to}
           onChange={(e) => setFilters((s) => ({ ...s, to: e.target.value }))}
         />
 
-        <input
+        <Input
           type="text"
-          className="border rounded px-2 py-2 md:col-span-2"
+          className="md:col-span-2"
           placeholder="Search (purpose or username)"
           value={filters.search}
           onChange={(e) => setFilters((s) => ({ ...s, search: e.target.value }))}
@@ -203,53 +202,57 @@ export default function AdminIndents() {
       {/* Table */}
       <div className="bg-white rounded-xl shadow">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-left">
-              <tr>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Requester</th>
-                <th className="px-4 py-3">Role</th>
-                <th className="px-4 py-3">Project</th>
-                <th className="px-4 py-3">Branch</th>
-                <th className="px-4 py-3">Items</th>
-                <th className="px-4 py-3">Purpose</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="w-full text-sm">
+            <TableHeader className="bg-gray-50 text-left [&_tr]:border-b-0">
+              <TableRow className="border-b-0 hover:bg-transparent">
+                <TableHead className="h-auto px-4 py-3 font-bold text-inherit">Date</TableHead>
+                <TableHead className="h-auto px-4 py-3 font-bold text-inherit">Requester</TableHead>
+                <TableHead className="h-auto px-4 py-3 font-bold text-inherit">Role</TableHead>
+                <TableHead className="h-auto px-4 py-3 font-bold text-inherit">Project</TableHead>
+                <TableHead className="h-auto px-4 py-3 font-bold text-inherit">Branch</TableHead>
+                <TableHead className="h-auto px-4 py-3 font-bold text-inherit">Items</TableHead>
+                <TableHead className="h-auto px-4 py-3 font-bold text-inherit">Purpose</TableHead>
+                <TableHead className="h-auto px-4 py-3 font-bold text-inherit">Status</TableHead>
+                <TableHead className="h-auto px-4 py-3 font-bold text-inherit">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="[&_tr:last-child]:border-t">
               {loading ? (
-                <tr><td className="px-4 py-6 text-center" colSpan={9}>Loading...</td></tr>
+                <TableRow className="border-t border-b-0 hover:bg-transparent">
+                  <TableCell className="px-4 py-6 text-center" colSpan={9}>Loading...</TableCell>
+                </TableRow>
               ) : data.length === 0 ? (
-                <tr><td className="px-4 py-6 text-center" colSpan={9}>No indents</td></tr>
+                <TableRow className="border-t border-b-0 hover:bg-transparent">
+                  <TableCell className="px-4 py-6 text-center" colSpan={9}>No indents</TableCell>
+                </TableRow>
               ) : data.map((row) => (
-                <tr key={row._id} className="border-t">
-                  <td className="px-4 py-3">{dayjs(row.requestedAt || row.createdAt).format("DD MMM YYYY")}</td>
-                  <td className="px-4 py-3">{row.requester?.username || row.user?.username || "—"}</td>
-                  <td className="px-4 py-3">{row.requester?.role || "—"}</td>
-                  <td className="px-4 py-3">{row.project?.name || "—"}</td>
-                  <td className="px-4 py-3">{row.branch?.name || "—"}</td>
-                  <td className="px-4 py-3">{row.items?.length || 0}</td>
-                  <td className="px-4 py-3 truncate max-w-[220px]">{row.purpose || "—"}</td>
-                  <td className="px-4 py-3"><StatusPill value={row.status} /></td>
-                  <td className="px-4 py-3">
+                <TableRow key={row._id} className="border-t border-b-0 hover:bg-transparent">
+                  <TableCell className="px-4 py-3">{dayjs(row.requestedAt || row.createdAt).format("DD MMM YYYY")}</TableCell>
+                  <TableCell className="px-4 py-3">{row.requester?.username || row.user?.username || "—"}</TableCell>
+                  <TableCell className="px-4 py-3">{row.requester?.role || "—"}</TableCell>
+                  <TableCell className="px-4 py-3">{row.project?.name || "—"}</TableCell>
+                  <TableCell className="px-4 py-3">{row.branch?.name || "—"}</TableCell>
+                  <TableCell className="px-4 py-3">{row.items?.length || 0}</TableCell>
+                  <TableCell className="px-4 py-3 truncate max-w-[220px]">{row.purpose || "—"}</TableCell>
+                  <TableCell className="px-4 py-3"><StatusPill value={row.status} /></TableCell>
+                  <TableCell className="px-4 py-3">
                     <div className="flex gap-2">
-                      <button className="text-blue-600" onClick={() => openDrawer(row)}>View</button>
+                      <Button variant="outline" size="sm" onClick={() => openDrawer(row)}>View</Button>
                       {row.status === "pending" && (
                         <>
-                          <button className="text-green-600" onClick={() => actionCall(row._id, "approve")}>Approve</button>
-                          <button className="text-red-600" onClick={() => actionCall(row._id, "reject")}>Reject</button>
+                          <Button variant="outline" size="sm" className="border-green-600 text-green-700 hover:bg-green-50" onClick={() => actionCall(row._id, "approve")}>Approve</Button>
+                          <Button variant="outline" size="sm" className="border-red-600 text-red-700 hover:bg-red-50" onClick={() => actionCall(row._id, "reject")}>Reject</Button>
                         </>
                       )}
                       {row.status === "approved" && (
-                        <button className="text-emerald-700" onClick={() => actionCall(row._id, "issue")}>Mark Issued</button>
+                        <Button variant="outline" size="sm" className="border-emerald-600 text-emerald-700 hover:bg-emerald-50" onClick={() => actionCall(row._id, "issue")}>Mark Issued</Button>
                       )}
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         {/* Pagination */}
@@ -269,14 +272,18 @@ export default function AdminIndents() {
       </div>
 
       {/* Drawer */}
-      {drawerOpen && active && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40">
-          <div className="absolute inset-0 bg-black/30" onClick={() => setDrawerOpen(false)} />
-          <div className="absolute right-0 top-0 h-full w-full sm:w-[460px] bg-white shadow-xl p-5 overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Indent Detail</h3>
-              <button onClick={() => setDrawerOpen(false)} className="text-gray-500">✕</button>
-            </div>
+      {active && (
+        <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <SheetContent
+            side="right"
+            className="w-full sm:w-[460px] sm:max-w-[460px] bg-white p-5 overflow-y-auto"
+          >
+            <SheetHeader className="mb-4 space-y-0 text-left">
+              <SheetTitle className="text-lg font-semibold text-inherit">Indent Detail</SheetTitle>
+              <SheetDescription className="sr-only">
+                Details of the selected indent request
+              </SheetDescription>
+            </SheetHeader>
 
             <div className="space-y-2 text-sm">
               {active.indentId && (
@@ -341,8 +348,8 @@ export default function AdminIndents() {
                 <Button size="sm" className="bg-emerald-700 hover:bg-emerald-800 text-white" onClick={() => actionCall(active._id, "issue")}>Mark Issued</Button>
               )}
             </div>
-          </div>
-        </div>
+          </SheetContent>
+        </Sheet>
       )}
     </DashboardLayout>
   );

@@ -3,8 +3,6 @@ import { useEffect, useState } from "react";
 import axios from "../utils/axios";
 import dayjs from "dayjs";
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 
 const StatusPill = ({ value }) => {
   const map = {
@@ -40,6 +38,7 @@ export default function MobileMyIndents() {
       <div className="flex items-center justify-between mb-3">
         <h1 className="text-lg font-semibold">My Indents</h1>
         <select
+          aria-label="Filter by status"
           className="border rounded px-2 py-2"
           value={status}
           onChange={(e) => setStatus(e.target.value)}
@@ -82,7 +81,15 @@ export default function MobileMyIndents() {
           <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold">Indent Detail</h3>
-              <button className="text-gray-500" onClick={() => setOpen(false)}>✕</button>
+              <Button
+                type="button"
+                variant="ghost"
+                aria-label="Close"
+                className="h-auto w-auto p-0 font-normal text-gray-500 hover:bg-transparent hover:text-gray-500"
+                onClick={() => setOpen(false)}
+              >
+                ✕
+              </Button>
             </div>
             <div className="text-sm space-y-1">
               <div><span className="text-gray-500">Project:</span> {active.project?.name || "—"}</div>

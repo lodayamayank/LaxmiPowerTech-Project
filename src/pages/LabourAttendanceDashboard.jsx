@@ -5,11 +5,19 @@ import DateRangeFilter from '../components/DateRangeFilter';
 import { getCurrentMonthDateRange } from '../utils/dateRange';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import {
   FaUser, FaChevronLeft, FaChevronRight, FaAngleDoubleLeft,
   FaAngleDoubleRight, FaDownload, FaSearch, FaCheckCircle, FaTimesCircle, FaClock
 } from 'react-icons/fa';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const LabourAttendanceDashboard = () => {
   const [records, setRecords] = useState([]);
@@ -93,27 +101,61 @@ const LabourAttendanceDashboard = () => {
     <DashboardLayout title="Labour Attendance">
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <p className="text-sm text-gray-500">Attendance overview for labour workers</p>
-          <Button onClick={exportToCSV} className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600">
-            <FaDownload size={14} />Export CSV
+          <p className="text-sm text-gray-500">
+            Attendance overview for labour workers
+          </p>
+          <Button
+            onClick={exportToCSV}
+            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600"
+          >
+            <FaDownload size={14} />
+            Export CSV
           </Button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Total Labour", value: filtered.length, color: "gray", icon: FaUser },
-            { label: "Total Present", value: totals.present, color: "green", icon: FaCheckCircle },
-            { label: "Total Absent", value: totals.absent, color: "red", icon: FaTimesCircle },
-            { label: "Total Overtime", value: totals.overtime, color: "orange", icon: FaClock }
+            {
+              label: "Total Labour",
+              value: filtered.length,
+              color: "gray",
+              icon: FaUser,
+            },
+            {
+              label: "Total Present",
+              value: totals.present,
+              color: "green",
+              icon: FaCheckCircle,
+            },
+            {
+              label: "Total Absent",
+              value: totals.absent,
+              color: "red",
+              icon: FaTimesCircle,
+            },
+            {
+              label: "Total Overtime",
+              value: totals.overtime,
+              color: "orange",
+              icon: FaClock,
+            },
           ].map((stat, i) => (
             <Card key={i}>
               <CardContent className="p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500 font-medium">{stat.label}</p>
-                    <p className={`text-3xl font-bold text-${stat.color}-600 mt-1`}>{stat.value}</p>
+                    <p className="text-sm text-gray-500 font-medium">
+                      {stat.label}
+                    </p>
+                    <p
+                      className={`text-3xl font-bold text-${stat.color}-600 mt-1`}
+                    >
+                      {stat.value}
+                    </p>
                   </div>
-                  <div className={`w-12 h-12 rounded-full bg-${stat.color}-100 flex items-center justify-center`}>
+                  <div
+                    className={`w-12 h-12 rounded-full bg-${stat.color}-100 flex items-center justify-center`}
+                  >
                     <stat.icon className={`text-${stat.color}-600`} size={20} />
                   </div>
                 </div>
@@ -124,30 +166,71 @@ const LabourAttendanceDashboard = () => {
 
         <Card>
           <CardContent className="p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Filters</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Search Labour</label>
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                <input type="text" className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500" placeholder="Search by name..." value={searchStaff} onChange={(e) => setSearchStaff(e.target.value)} />
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">
+              Filters
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label
+                  htmlFor="labour-search"
+                  className="block text-xs font-medium text-gray-600 mb-1.5"
+                >
+                  Search Labour
+                </label>
+                <div className="relative">
+                  <FaSearch
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={14}
+                  />
+                  <Input
+                    id="labour-search"
+                    type="text"
+                    className="w-full h-auto pr-3 py-2.5 border border-gray-300 rounded-lg text-sm shadow-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Search by name..."
+                    value={searchStaff}
+                    onChange={(e) => setSearchStaff(e.target.value)}
+                  />
+                </div>
               </div>
+              <DateRangeFilter value={dateRange} onApply={setDateRange} />
             </div>
-            <DateRangeFilter value={dateRange} onApply={setDateRange} />
-          </div>
           </CardContent>
         </Card>
 
         {!loading && filtered.length > 0 && (
           <Card>
             <CardContent className="flex justify-between py-3">
-            <div className="text-sm text-gray-600">Showing <span className="font-semibold">{startIndex + 1}</span> to <span className="font-semibold">{Math.min(endIndex, totalItems)}</span> of <span className="font-semibold">{totalItems}</span></div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">Rows:</label>
-              <select value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))} className="border rounded-lg px-3 py-1.5 text-sm">
-                <option value={10}>10</option><option value={25}>25</option><option value={50}>50</option><option value={100}>100</option>
-              </select>
-            </div>
+              <div className="text-sm text-gray-600">
+                Showing <span className="font-semibold">{startIndex + 1}</span>{" "}
+                to{" "}
+                <span className="font-semibold">
+                  {Math.min(endIndex, totalItems)}
+                </span>{" "}
+                of <span className="font-semibold">{totalItems}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="labour-rows-per-page"
+                  className="text-sm text-gray-600"
+                >
+                  Rows:
+                </label>
+                <Select
+                  value={String(itemsPerPage)}
+                  onValueChange={(value) => setItemsPerPage(Number(value))}
+                >
+                  <SelectTrigger className="h-9 w-[90px] rounded-lg border-gray-300 text-sm focus:ring-2 focus:ring-orange-500">
+                    <SelectValue placeholder="Per page" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -156,26 +239,62 @@ const LabourAttendanceDashboard = () => {
           <CardContent className="p-0">
             <Table>
               <TableHeader>
-                <TableRow>{["Name", "Employee ID", "Present", "Absent", "Half Day", "Week Off", "Paid Leave", "Unpaid Leave", "Sick Leave", "Casual Leave", "Overtime"].map(h => <TableHead key={h}>{h}</TableHead>)}</TableRow>
+                <TableRow>
+                  {[
+                    "Name",
+                    "Employee ID",
+                    "Present",
+                    "Absent",
+                    "Half Day",
+                    "Week Off",
+                    "Paid Leave",
+                    "Unpaid Leave",
+                    "Sick Leave",
+                    "Casual Leave",
+                    "Overtime",
+                  ].map((h) => (
+                    <TableHead key={h}>{h}</TableHead>
+                  ))}
+                </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-6">Loading...</TableCell></TableRow> : 
-                 filtered.length === 0 ? <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-6">No records</TableCell></TableRow> :
-                 currentItems.map((item, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{item.employeeId}</TableCell>
-                    <TableCell>{item.present}</TableCell>
-                    <TableCell>{item.absent}</TableCell>
-                    <TableCell>{item.halfDay}</TableCell>
-                    <TableCell>{item.weekOff}</TableCell>
-                    <TableCell>{item.paidLeave}</TableCell>
-                    <TableCell>{item.unpaidLeave}</TableCell>
-                    <TableCell>{item.sickLeave}</TableCell>
-                    <TableCell>{item.casualLeave}</TableCell>
-                    <TableCell>{item.overtime}</TableCell>
+                {loading ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={11}
+                      className="text-center text-muted-foreground py-6"
+                    >
+                      Loading...
+                    </TableCell>
                   </TableRow>
-                ))}
+                ) : filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={11}
+                      className="text-center text-muted-foreground py-6"
+                    >
+                      No records
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  currentItems.map((item, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {item.employeeId}
+                      </TableCell>
+                      <TableCell>{item.present}</TableCell>
+                      <TableCell>{item.absent}</TableCell>
+                      <TableCell>{item.halfDay}</TableCell>
+                      <TableCell>{item.weekOff}</TableCell>
+                      <TableCell>{item.paidLeave}</TableCell>
+                      <TableCell>{item.unpaidLeave}</TableCell>
+                      <TableCell>{item.sickLeave}</TableCell>
+                      <TableCell>{item.casualLeave}</TableCell>
+                      <TableCell>{item.overtime}</TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -184,24 +303,83 @@ const LabourAttendanceDashboard = () => {
         {!loading && totalPages > 1 && (
           <Card>
             <CardContent className="flex justify-between py-3">
-              <div className="text-sm">Page <span className="font-semibold">{currentPage}</span> of <span className="font-semibold">{totalPages}</span></div>
+              <div className="text-sm">
+                Page <span className="font-semibold">{currentPage}</span> of{" "}
+                <span className="font-semibold">{totalPages}</span>
+              </div>
               <div className="flex gap-2">
                 {[
-                  { icon: FaAngleDoubleLeft, onClick: () => goToPage(1), disabled: currentPage === 1 },
-                  { icon: FaChevronLeft, onClick: () => goToPage(currentPage - 1), disabled: currentPage === 1 }
-                ].map((btn, i) => <Button key={i} onClick={btn.onClick} disabled={btn.disabled} variant="outline" size="icon"><btn.icon size={14} /></Button>)}
-                
+                  {
+                    icon: FaAngleDoubleLeft,
+                    onClick: () => goToPage(1),
+                    disabled: currentPage === 1,
+                  },
+                  {
+                    icon: FaChevronLeft,
+                    onClick: () => goToPage(currentPage - 1),
+                    disabled: currentPage === 1,
+                  },
+                ].map((btn, i) => (
+                  <Button
+                    key={i}
+                    onClick={btn.onClick}
+                    disabled={btn.disabled}
+                    variant="outline"
+                    size="icon"
+                  >
+                    <btn.icon size={14} />
+                  </Button>
+                ))}
+
                 <div className="flex gap-1">
-                  {getPageNumbers().map((page, idx) => page === '...' ? 
-                    <span key={idx} className="px-3 py-1 text-muted-foreground">...</span> : 
-                    <Button key={page} onClick={() => goToPage(page)} variant={currentPage === page ? "default" : "outline"} size="sm" className={currentPage === page ? "bg-orange-500 hover:bg-orange-600" : ""}>{page}</Button>
+                  {getPageNumbers().map((page, idx) =>
+                    page === "..." ? (
+                      <span
+                        key={idx}
+                        className="px-3 py-1 text-muted-foreground"
+                      >
+                        ...
+                      </span>
+                    ) : (
+                      <Button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        className={
+                          currentPage === page
+                            ? "bg-orange-500 hover:bg-orange-600"
+                            : ""
+                        }
+                      >
+                        {page}
+                      </Button>
+                    )
                   )}
                 </div>
 
                 {[
-                  { icon: FaChevronRight, onClick: () => goToPage(currentPage + 1), disabled: currentPage === totalPages },
-                  { icon: FaAngleDoubleRight, onClick: () => goToPage(totalPages), disabled: currentPage === totalPages }
-                ].map((btn, i) => <Button key={i} onClick={btn.onClick} disabled={btn.disabled} variant="outline" size="icon"><btn.icon size={14} /></Button>)}
+                  {
+                    icon: FaChevronRight,
+                    onClick: () => goToPage(currentPage + 1),
+                    disabled: currentPage === totalPages,
+                  },
+                  {
+                    icon: FaAngleDoubleRight,
+                    onClick: () => goToPage(totalPages),
+                    disabled: currentPage === totalPages,
+                  },
+                ].map((btn, i) => (
+                  <Button
+                    key={i}
+                    onClick={btn.onClick}
+                    disabled={btn.disabled}
+                    variant="outline"
+                    size="icon"
+                  >
+                    <btn.icon size={14} />
+                  </Button>
+                ))}
               </div>
             </CardContent>
           </Card>

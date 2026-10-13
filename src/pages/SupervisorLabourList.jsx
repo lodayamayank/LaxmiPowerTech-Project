@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 
 const SupervisorLabourList = () => {
   const navigate = useNavigate();
@@ -203,12 +204,12 @@ const SupervisorLabourList = () => {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-4">
             <div className="relative">
               <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-              <input
+              <Input
                 type="text"
                 placeholder="Search labours..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+                className="h-auto w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl text-sm shadow-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-orange-500 transition-all"
               />
             </div>
           </div>
@@ -310,12 +311,12 @@ const SupervisorLabourList = () => {
                       📅 Select Date for Attendance
                     </label>
                     <div className="relative">
-                      <input
+                      <Input
                         type="date"
                         value={selectedDate}
                         onChange={handleDateChange}
                         max={new Date().toISOString().split('T')[0]}
-                        className="w-full bg-white border border-orange-300 rounded-lg px-4 py-2.5 pr-10 text-sm text-gray-900 font-medium focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 cursor-pointer"
+                        className="h-auto w-full bg-white border border-orange-300 rounded-lg px-4 py-2.5 pr-10 text-sm text-gray-900 font-medium shadow-none focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-100 cursor-pointer"
                         style={{
                           colorScheme: 'light'
                         }}
@@ -380,12 +381,13 @@ const SupervisorLabourList = () => {
                   {/* Mark Attendance Button */}
                   {Object.keys(attendanceData).length > 0 && (
                     <div className="sticky bottom-20 bg-white pt-4 pb-6 -mx-6 px-6 border-t border-gray-100">
-                      <button
+                      <Button
+                        type="button"
                         onClick={handleMarkAttendance}
-                        className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-base hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg"
+                        className="w-full py-3 h-auto bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-base hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg"
                       >
                         Mark Attendance ({Object.keys(attendanceData).length} labour{Object.keys(attendanceData).length > 1 ? 's' : ''})
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -397,13 +399,14 @@ const SupervisorLabourList = () => {
         {/* Floating Action Button - Fixed for mobile view */}
         <div className="fixed bottom-0 left-0 right-0 pointer-events-none z-50">
           <div className="max-w-md mx-auto relative h-20">
-            <button
+            <Button
+              type="button"
               onClick={() => navigate(`/branch/${branchId}/labours/add`)}
-              className="absolute bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full shadow-2xl hover:shadow-3xl transform hover:scale-110 transition-all duration-300 flex items-center justify-center pointer-events-auto"
+              className="absolute bottom-6 right-6 w-14 h-14 p-0 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full shadow-2xl hover:shadow-3xl transform hover:scale-110 transition-all duration-300 flex items-center justify-center pointer-events-auto"
               title="Add Labour"
             >
               <FaPlus size={20} />
-            </button>
+            </Button>
           </div>
         </div>
 

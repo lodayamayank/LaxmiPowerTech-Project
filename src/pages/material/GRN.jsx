@@ -4,6 +4,11 @@ import { upcomingDeliveryAPI, branchesAPI } from "../../utils/materialAPI";
 import { Package, Calendar, MapPin, FileText, User, TrendingUp, Eye, Filter, Search } from "lucide-react";
 import { FaArrowLeft } from 'react-icons/fa';
 import { getSelectedBranchId, getSelectedBranchName } from "../../utils/branchContext";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import { Skeleton } from "../../components/ui/skeleton";
 
 export default function GRN({ isTabView = false }) {
   const navigate = useNavigate();
@@ -179,21 +184,22 @@ export default function GRN({ isTabView = false }) {
       <div className="mb-4 space-y-3">
         {/* Search bar */}
         <div className="relative">
-          <input
+          <Input
             type="text"
             placeholder="Search by GRN ID, site, or name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-muted-foreground"
+            className="h-10 w-full rounded-lg pl-10 pr-4 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus-visible:ring-2 focus-visible:ring-green-500"
           />
-          <Search size={18} className="absolute left-3 top-3 text-gray-400" />
+          <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         </div>
         
         {/* Filters Toggle Button */}
         <div>
-          <button
+          <Button
+            type="button"
             onClick={() => setShowFilters(!showFilters)}
-            className="w-full flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+            className="w-full h-auto flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white hover:text-white rounded-lg shadow-md hover:shadow-lg transition-all"
           >
             <span className="font-semibold flex items-center gap-2 text-sm">
               <Filter size={16} />
@@ -202,7 +208,7 @@ export default function GRN({ isTabView = false }) {
             <span className="text-xs">
               {showFilters ? '▲' : '▼'}
             </span>
-          </button>
+          </Button>
         </div>
         
         {/* Filters Panel */}
@@ -210,7 +216,7 @@ export default function GRN({ isTabView = false }) {
           <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm space-y-2.5">
             {/* Site Filter */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Site</label>
+              <Label className="block text-xs font-semibold text-gray-700 mb-1">Site</Label>
               <select
                 value={filterSite}
                 onChange={(e) => setFilterSite(e.target.value)}
@@ -226,7 +232,7 @@ export default function GRN({ isTabView = false }) {
             {/* Date Range */}
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">From Date</label>
+                <Label className="block text-xs font-semibold text-gray-700 mb-1">From Date</Label>
                 <input
                   type="date"
                   value={filterDateFrom}
@@ -235,7 +241,7 @@ export default function GRN({ isTabView = false }) {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">To Date</label>
+                <Label className="block text-xs font-semibold text-gray-700 mb-1">To Date</Label>
                 <input
                   type="date"
                   value={filterDateTo}
@@ -246,24 +252,42 @@ export default function GRN({ isTabView = false }) {
             </div>
             
             {/* Clear Filters Button */}
-            <button
+            <Button
+              type="button"
+              variant="secondary"
               onClick={() => {
                 setFilterSite('');
                 setFilterDateFrom('');
                 setFilterDateTo('');
                 setSearch('');
               }}
-              className="w-full px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-md transition-colors"
+              className="w-full h-auto px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-md transition-colors"
             >
               Clear All Filters
-            </button>
+            </Button>
           </div>
         )}
       </div>
       
       {loading ? (
-        <div className="flex justify-center items-center py-10">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+        <div className="space-y-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="rounded-2xl border border-gray-100 dark:border-gray-700 p-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-16 w-16 rounded-lg" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-3 w-1/3" />
+                </div>
+                <Skeleton className="h-6 w-24 rounded-full" />
+              </div>
+              <div className="space-y-2.5">
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-full" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : deliveries.length === 0 ? (
         <div className="text-center py-16">
@@ -306,9 +330,9 @@ export default function GRN({ isTabView = false }) {
                     </p>
                   </div>
                 </div>
-                <span className="text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm bg-green-100 text-green-600">
+                <Badge className="text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm bg-green-100 text-green-600 hover:bg-green-100 border-transparent">
                   ✅ Completed
-                </span>
+                </Badge>
               </div>
 
               {/* Details */}

@@ -19,6 +19,7 @@ import {
   FaLock,
 } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const ProfileScreen = () => {
   const navigate = useNavigate();
@@ -253,11 +254,11 @@ const ProfileScreen = () => {
                   </div>
                 </label>
                 <div className="relative">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-400">
                     <FaUserTag size={14} />
                   </div>
-                  <input
-                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 text-sm cursor-not-allowed"
+                  <Input
+                    className="w-full h-auto pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 text-sm cursor-not-allowed disabled:opacity-100"
                     value={formData.role || ''}
                     disabled
                   />
@@ -400,11 +401,11 @@ const InputField = ({ icon, label, ...props }) => {
         </div>
       </label>
       <div className="relative">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-400">
           {React.createElement(icon, { size: 14 })}
         </div>
-        <input
-          className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+        <Input
+          className="w-full h-auto pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-0 focus-visible:border-transparent transition-all"
           {...props}
         />
       </div>
@@ -422,12 +423,12 @@ const PasswordField = ({ label, value, visible, onToggle, onChange }) => {
         </div>
       </label>
       <div className="relative">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-400">
           <FaLock size={14} />
         </div>
-        <input
+        <Input
           type={visible ? 'text' : 'password'}
-          className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+          className="w-full h-auto pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-0 focus-visible:border-transparent transition-all"
           value={value}
           onChange={onChange}
           autoComplete="new-password"
@@ -445,4 +446,4 @@ const PasswordField = ({ label, value, visible, onToggle, onChange }) => {
   );
 };
 
-export default ProfileScreen;
+export default ProfileScreen; 

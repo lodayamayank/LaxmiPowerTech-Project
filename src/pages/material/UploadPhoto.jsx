@@ -5,6 +5,10 @@ import { Upload, X } from "lucide-react";
 import { submitOffline } from "../../utils/offlineSubmit";
 import { toast } from "react-toastify";
 import { getSelectedBranchName } from '../../utils/branchContext';
+// NOTE: import paths assume the standard shadcn "@/" alias. Adjust if this project uses relative paths.
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function UploadPhoto() {
   const navigate = useNavigate();
@@ -167,13 +171,15 @@ export default function UploadPhoto() {
       <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
         {/* Header with Gradient */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <button
-            className="mobile-back-button absolute top-6 left-6"
+          <Button
+            type="button"
+            variant="ghost"
+            className="mobile-back-button absolute top-6 left-6 h-auto"
             onClick={() => navigate('/material/intent')}
           >
             <FaArrowLeft size={16} />
             <span className="text-sm font-medium">Back</span>
-          </button>
+          </Button>
 
           <div className="text-center pt-8">
             <h1 className="text-white text-2xl font-bold mb-2">Upload Intent List</h1>
@@ -185,23 +191,25 @@ export default function UploadPhoto() {
         <div className="px-6 py-6 -mt-4">
           {/* Intent ID Input */}
           <div className="mb-6">
-            <label className="block text-gray-700 font-semibold mb-2">Intent ID (Auto-generated)</label>
-            <input
+            <Label htmlFor="upload-photo-intent-id" className="block text-base text-gray-700 font-semibold leading-normal mb-2">Intent ID (Auto-generated)</Label>
+            <Input
+              id="upload-photo-intent-id"
               type="text"
               value={indentId}
               readOnly
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-gray-50 text-gray-700 font-mono font-semibold cursor-not-allowed"
+              className="w-full h-auto border-gray-300 rounded-xl px-4 py-3 text-base md:text-base bg-gray-50 text-gray-700 font-mono font-semibold cursor-not-allowed shadow-none"
             />
             <p className="text-xs text-gray-500 mt-1">This ID is automatically generated and cannot be edited</p>
           </div>
 
           {/* Project / Site (Auto-filled) */}
           <div className="mb-6">
-            <label className="block text-gray-700 font-semibold mb-2">Site <span className="text-red-500">*</span></label>
-            <input
+            <Label htmlFor="upload-photo-site" className="block text-base text-gray-700 font-semibold leading-normal mb-2">Site <span className="text-red-500">*</span></Label>
+            <Input
+              id="upload-photo-site"
               type="text"
               value={project}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100 text-gray-700 font-medium cursor-not-allowed"
+              className="w-full h-auto border-gray-200 rounded-xl px-4 py-3 text-base md:text-base bg-gray-100 text-gray-700 font-medium cursor-not-allowed disabled:opacity-100 shadow-none"
               readOnly
               disabled
             />
@@ -212,11 +220,12 @@ export default function UploadPhoto() {
 
           {/* Upload Section */}
           <div className="mb-6">
-            <label className="block text-gray-700 font-semibold mb-3">Material List Photo</label>
+            {/* No htmlFor: two hidden inputs, and a label click must not open the camera/gallery */}
+            <Label className="block text-base text-gray-700 font-semibold leading-normal mb-3">Material List Photo</Label>
             
             {!imagePreview ? (
               <div className="space-y-3">
-                {/* Camera + Gallery hidden inputs */}
+                {/* Camera + Gallery hidden inputs (native, unchanged) */}
                 <input
                   ref={cameraInputRef}
                   type="file"
@@ -234,24 +243,24 @@ export default function UploadPhoto() {
                 />
 
                 {/* Camera Button */}
-                <button
+                <Button
                   type="button"
                   onClick={() => cameraInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98]"
+                  className="w-full h-auto flex items-center justify-center gap-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] [&_svg]:size-6"
                 >
                   <FaCamera size={24} />
                   <span className="text-lg font-bold">Take Photo</span>
-                </button>
+                </Button>
 
                 {/* Gallery Button */}
-                <button
+                <Button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98]"
+                  className="w-full h-auto flex items-center justify-center gap-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] [&_svg]:size-6"
                 >
                   <FaImages size={24} />
                   <span className="text-lg font-bold">Choose from Gallery</span>
-                </button>
+                </Button>
 
                 <p className="text-center text-gray-400 text-xs">JPG, PNG or JPEG (Max 10MB) • Auto-compressed</p>
               </div>
@@ -262,12 +271,15 @@ export default function UploadPhoto() {
                   alt="Preview"
                   className="w-full h-64 object-cover"
                 />
-                <button
+                <Button
+                  type="button"
+                  size="icon"
+                  aria-label="Remove image"
                   onClick={handleRemoveImage}
-                  className="absolute top-3 right-3 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all shadow-lg"
+                  className="absolute top-3 right-3 h-auto w-auto bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all shadow-lg [&_svg]:size-5"
                 >
                   <X size={20} />
-                </button>
+                </Button>
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
                   <p className="text-white text-sm font-medium">{selectedImage?.name}</p>
                 </div>
@@ -276,10 +288,11 @@ export default function UploadPhoto() {
           </div>
 
           {/* Submit Button */}
-          <button
+          <Button
+            type="button"
             onClick={handleSubmit}
             disabled={uploading || !indentId || !project || !selectedImage}
-            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold py-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full h-auto bg-gradient-to-r from-orange-500 to-orange-600 text-white text-base font-semibold py-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:pointer-events-auto disabled:cursor-not-allowed flex items-center justify-center gap-2 [&_svg]:size-5"
           >
             {uploading ? (
               <>
@@ -295,7 +308,7 @@ export default function UploadPhoto() {
                 <span>Upload Intent List</span>
               </>
             )}
-          </button>
+          </Button>
         </div>
 
         {/* Footer */}

@@ -2,7 +2,33 @@ import { useState, useEffect, useRef } from "react";
 import { upcomingDeliveryAPI, indentAPI, purchaseOrderAPI, branchesAPI } from "../../utils/materialAPI";
 import { Eye, Trash2, X, Edit2, Save, Upload, Image as ImageIcon } from "lucide-react";
 import DashboardLayout from "../../layouts/DashboardLayout";
+import { Checkbox } from "@/components/ui/checkbox";
 import axios from "../../utils/axios";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -344,9 +370,9 @@ export default function AdminUpcomingDeliveries() {
     const colorClass = statusColors[status] || 'bg-gray-100 text-gray-600';
     
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
+      <Badge className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
         {status}
-      </span>
+      </Badge>
     );
   };
 
@@ -468,14 +494,14 @@ export default function AdminUpcomingDeliveries() {
           <h1 className="text-2xl font-semibold text-gray-800">Upcoming Deliveries</h1>
           <p className="text-sm text-gray-500">View and manage upcoming deliveries</p>
         </div>
-        <button
+        <Button
           onClick={handleDeleteAll}
           disabled={deliveries.length === 0 || deleting}
           className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
         >
           <Trash2 size={18} />
           {deleting ? 'Deleting...' : 'Delete All'}
-        </button>
+        </Button>
       </div>
 
       {error && (
@@ -484,12 +510,13 @@ export default function AdminUpcomingDeliveries() {
             <span className="text-red-600 font-medium">Error:</span>
             <span className="text-red-700">{error}</span>
           </div>
-          <button
+          <Button
+            variant="link"
             onClick={fetchDeliveries}
-            className="mt-2 text-sm text-red-600 hover:text-red-700 underline"
+            className="mt-2 h-auto p-0 text-sm text-red-600 hover:text-red-700 underline"
           >
             Try Again
-          </button>
+          </Button>
         </div>
       )}
 
@@ -505,7 +532,7 @@ export default function AdminUpcomingDeliveries() {
               <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-100">
                 Upcoming Deliveries ({totalRecords} records)
               </h2>
-              <input
+              <Input
                 type="text"
                 placeholder="Search by Transfer Number..."
                 className="border border-gray-300 dark:border-gray-600 rounded p-2 w-80 bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-orange-400 text-sm"
@@ -523,42 +550,50 @@ export default function AdminUpcomingDeliveries() {
                 {/* Site Filter */}
                 <div className="flex-1 min-w-[200px]">
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Filter by Site</label>
-                  <select
-                    value={filterSite}
-                    onChange={(e) => {
-                      setFilterSite(e.target.value);
+                  <Select
+                    value={filterSite || "all"}
+                    onValueChange={(value) => {
+                      setFilterSite(value === "all" ? "" : value);
                       setCurrentPage(1);
                     }}
-                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
                   >
-                    <option value="" className="text-gray-500">All Sites</option>
+                    <SelectTrigger className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer">
+                      <SelectValue placeholder="All Sites" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Sites</SelectItem>
                     {sites.map(site => (
-                      <option key={site} value={site} className="text-gray-900">{site}</option>
+                      <SelectItem key={site} value={site} className="text-gray-900">{site}</SelectItem>
                     ))}
-                  </select>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 {/* Status Filter */}
                 <div className="flex-1 min-w-[180px]">
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Filter by Status</label>
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => {
-                      setFilterStatus(e.target.value);
+                  <Select
+                    value={filterStatus || "all"}
+                    onValueChange={(value) => {
+                      setFilterStatus(value === "all" ? "" : value);
                       setCurrentPage(1);
                     }}
-                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
                   >
-                    <option value="" className="text-gray-500">All Status</option>
-                    <option value="Pending" className="text-gray-900">Pending</option>
-                    <option value="Partial" className="text-gray-900">Partial</option>
-                  </select>
+                    <SelectTrigger className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer">
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Partial">Partial</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 {/* Date From */}
                 <div className="flex-1 min-w-[160px]">
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">From Date</label>
-                  <input
+                  <Input
                     type="date"
                     value={filterDateFrom}
                     onChange={(e) => {
@@ -572,7 +607,7 @@ export default function AdminUpcomingDeliveries() {
                 {/* Date To */}
                 <div className="flex-1 min-w-[160px]">
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">To Date</label>
-                  <input
+                  <Input
                     type="date"
                     value={filterDateTo}
                     onChange={(e) => {
@@ -584,7 +619,7 @@ export default function AdminUpcomingDeliveries() {
                 </div>
                 
                 {/* Clear Filters Button */}
-                <button
+                <Button
                   onClick={() => {
                     setFilterSite('');
                     setFilterStatus('');
@@ -595,38 +630,38 @@ export default function AdminUpcomingDeliveries() {
                   className="px-5 py-2.5 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-all"
                 >
                   Clear Filters
-                </button>
+                </Button>
               </div>
             </div>
           </div>
 
           {deliveries.length > 0 ? (
             <>
-              <table className="min-w-full border text-sm">
-                <thead className="bg-orange-100 dark:bg-gray-700">
-                  <tr>
-                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Transfer No</th>
-                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Date</th>
-                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">From</th>
-                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">To</th>
-                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Items</th>
-                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Status</th>
-                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="min-w-full border text-sm">
+                <TableHeader className="bg-orange-100 dark:bg-gray-700">
+                  <TableRow>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Transfer No</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Date</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">From</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">To</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Items</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Status</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {deliveries.map((delivery) => {
                     const quantitySummary = getDeliveryQuantitySummary(delivery);
 
                     return (
-                    <tr key={delivery._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <td className="border px-4 py-2 font-medium text-gray-900">{delivery.transfer_number}</td>
-                      <td className="border px-4 py-2 text-gray-600">
+                    <TableRow key={delivery._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <TableCell className="border px-4 py-2 font-medium text-gray-900">{delivery.transfer_number}</TableCell>
+                      <TableCell className="border px-4 py-2 text-gray-600">
                         {formatDate(delivery.date)}
-                      </td>
-                      <td className="border px-4 py-2">{delivery.from}</td>
-                      <td className="border px-4 py-2">{delivery.to}</td>
-                      <td className="border px-4 py-2">
+                      </TableCell>
+                      <TableCell className="border px-4 py-2">{delivery.from}</TableCell>
+                      <TableCell className="border px-4 py-2">{delivery.to}</TableCell>
+                      <TableCell className="border px-4 py-2">
                         <div className="space-y-1">
                           <span className="block text-gray-700">
                             {delivery.items?.length || 0} items
@@ -639,55 +674,65 @@ export default function AdminUpcomingDeliveries() {
                             Pending: {quantitySummary.pending}
                           </span>
                         </div>
-                      </td>
-                      <td className="border px-4 py-2">
+                      </TableCell>
+                      <TableCell className="border px-4 py-2">
                         {getStatusBadge(delivery.status)}
-                      </td>
-                      <td className="border px-4 py-2">
+                      </TableCell>
+                      <TableCell className="border px-4 py-2">
                         <div className="flex gap-2">
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="View Details"
                             onClick={() => handleViewDetails(delivery._id)}
                             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                             title="View Details"
                           >
                             <Eye size={18} />
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Delete"
                             onClick={() => handleDelete(delivery._id, delivery.st_id)}
                             className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                             title="Delete"
                             disabled={deleting}
                           >
                             <Trash2 size={18} />
-                          </button>
+                          </Button>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                     );
                   })}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
 
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-2 mt-4">
-                  <button
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                     className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                   >
                     Previous
-                  </button>
+                  </Button>
                   <span className="text-sm text-gray-600">
                     Page {currentPage} of {totalPages}
                   </span>
-                  <button
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
                     className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                   >
                     Next
-                  </button>
+                  </Button>
                 </div>
               )}
             </>
@@ -701,30 +746,35 @@ export default function AdminUpcomingDeliveries() {
 
       {/* Details Modal */}
       {showDetailsModal && selectedDelivery && (
-        <div 
-          className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black bg-opacity-50"
-          onClick={closeModal}
+        <Dialog
+          open={showDetailsModal}
+          onOpenChange={(open) => {
+            if (!open) closeModal();
+          }}
         >
-          <div 
-            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <DialogContent className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out p-0 gap-0 [&>button]:hidden">
             {/* Modal Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex justify-between items-center rounded-t-lg">
+            <DialogHeader className="sticky top-0 z-10 bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex flex-row justify-between items-center rounded-t-lg space-y-0 text-left">
               <div>
-                <h2 className="text-xl font-bold text-white">
+                <DialogTitle className="text-xl font-bold text-white">
                   Delivery Details - {selectedDelivery.st_id}
-                </h2>
+                </DialogTitle>
+                <DialogDescription className="sr-only">
+                  Details, materials, attachments, and delivery information
+                </DialogDescription>
                 <p className="text-sm text-orange-100">Transfer Number: {selectedDelivery.transfer_number}</p>
               </div>
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Close modal"
                 onClick={closeModal}
                 className="text-white hover:text-orange-100 transition-colors p-1 hover:bg-orange-600 rounded"
                 title="Close"
               >
                 <X size={24} />
-              </button>
-            </div>
+              </Button>
+            </DialogHeader>
 
             {/* Modal Body */}
             <div className="p-6 space-y-6">
@@ -787,19 +837,19 @@ export default function AdminUpcomingDeliveries() {
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">Materials</h3>
                 <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead>
-                        <tr className="bg-gradient-to-r from-orange-500 to-orange-600">
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Category</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Sub Category</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Sub Category 1</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider">Requested</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider">Received</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider">Pending</th>
-                          <th className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                    <Table className="min-w-full divide-y divide-gray-200">
+                      <TableHeader>
+                        <TableRow className="bg-gradient-to-r from-orange-500 to-orange-600">
+                          <TableHead className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Category</TableHead>
+                          <TableHead className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Sub Category</TableHead>
+                          <TableHead className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Sub Category 1</TableHead>
+                          <TableHead className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider">Requested</TableHead>
+                          <TableHead className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider">Received</TableHead>
+                          <TableHead className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider">Pending</TableHead>
+                          <TableHead className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody className="bg-white divide-y divide-gray-200">
                         {(editing ? formData.items : selectedDelivery.items).map((item, index) => {
                           const requestedQty = getRequestedQuantity(item);
                           const displayReceivedQty = getReceivedQuantity(item, selectedDelivery.status);
@@ -809,21 +859,28 @@ export default function AdminUpcomingDeliveries() {
                           const isPartiallyReceived = displayReceivedQty > 0 && pendingQty > 0;
                           
                           return (
-                            <tr key={item._id || index} className="hover:bg-orange-50 transition-colors">
-                              <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                            <TableRow
+                              key={item._id || index}
+                              className="hover:bg-orange-50 transition-colors"
+                            >
+                              <TableCell className="px-4 py-3 text-sm text-gray-900 font-medium">
                                 {/* ✅ For PO items, show full name; for ST items, show category */}
-                                {item.name || item.category || '—'}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-700">{item.sub_category || '—'}</td>
-                              <td className="px-4 py-3 text-sm text-gray-700">{item.sub_category1 || '—'}</td>
-                              <td className="px-4 py-3 text-sm text-right">
+                                {item.name || item.category || "—"}
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-sm text-gray-700">
+                                {item.sub_category || "—"}
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-sm text-gray-700">
+                                {item.sub_category1 || "—"}
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-sm text-right">
                                 <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
                                   {formatQuantity(requestedQty)}
                                 </span>
-                              </td>
-                              <td className="px-4 py-3 text-sm text-right">
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-sm text-right">
                                 {editing ? (
-                                  <input
+                                  <Input
                                     type="number"
                                     min="0"
                                     max={item.st_quantity}
@@ -832,41 +889,56 @@ export default function AdminUpcomingDeliveries() {
                                     className="w-24 border-2 border-orange-300 rounded-lg px-3 py-2 text-right focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 font-semibold bg-white shadow-sm"
                                   />
                                 ) : (
-                                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
-                                    isFullyReceived ? 'bg-green-100 text-green-800' : 
-                                    isPartiallyReceived ? 'bg-yellow-100 text-yellow-800' : 
-                                    'bg-gray-100 text-gray-800'
-                                  }`}>
+                                  <span
+                                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                      isFullyReceived
+                                        ? "bg-green-100 text-green-800"
+                                        : isPartiallyReceived
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-gray-100 text-gray-800"
+                                    }`}
+                                  >
                                     {formatQuantity(displayReceivedQty)}
                                   </span>
                                 )}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-right">
-                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
-                                  pendingQty > 0 ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'
-                                }`}>
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-sm text-right">
+                                <span
+                                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                    pendingQty > 0
+                                      ? "bg-orange-100 text-orange-800"
+                                      : "bg-green-100 text-green-800"
+                                  }`}
+                                >
                                   {formatQuantity(pendingQty)}
                                 </span>
-                              </td>
-                              <td className="px-4 py-3 text-center">
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-center">
                                 {editing ? (
                                   <div className="flex items-center justify-center">
-                                    <input
-                                      type="checkbox"
-                                      checked={item.is_received}
-                                      onChange={(e) => {
-                                        const isChecked = e.target.checked;
+                                    <Checkbox
+                                      checked={!!item.is_received}
+                                      onCheckedChange={(checked) => {
+                                        const isChecked = checked === true;
                                         // Update both fields at once
-                                        const updatedItems = [...formData.items];
+                                        const updatedItems = [
+                                          ...formData.items,
+                                        ];
                                         const currentItem = updatedItems[index];
                                         updatedItems[index] = {
                                           ...currentItem,
                                           is_received: isChecked,
-                                          received_quantity: isChecked ? currentItem.st_quantity : currentItem.received_quantity
+                                          received_quantity: isChecked
+                                            ? currentItem.st_quantity
+                                            : currentItem.received_quantity,
                                         };
-                                        setFormData({ ...formData, items: updatedItems });
+                                        setFormData({
+                                          ...formData,
+                                          items: updatedItems,
+                                        });
                                       }}
-                                      className="w-5 h-5 accent-orange-500 cursor-pointer rounded border-2 border-gray-300 focus:ring-2 focus:ring-orange-500"
+                                      aria-label="Mark item as received"
+                                      className="w-5 h-5 border-gray-400 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-white"
                                     />
                                   </div>
                                 ) : (
@@ -886,12 +958,12 @@ export default function AdminUpcomingDeliveries() {
                                     )}
                                   </div>
                                 )}
-                              </td>
-                            </tr>
+                              </TableCell>
+                            </TableRow>
                           );
                         })}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   </div>
                 </div>
               </div>
@@ -948,7 +1020,10 @@ export default function AdminUpcomingDeliveries() {
                             )}
                             
                             {/* Delete Button Overlay */}
-                            <button
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Delete attachment"
                               onClick={() => handleDeleteAttachment(index)}
                               disabled={deletingAttachment === index}
                               className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
@@ -959,7 +1034,7 @@ export default function AdminUpcomingDeliveries() {
                               ) : (
                                 <Trash2 size={16} />
                               )}
-                            </button>
+                            </Button>
                           </div>
                           
                           {/* File Info */}
@@ -997,14 +1072,14 @@ export default function AdminUpcomingDeliveries() {
             <div className="sticky bottom-0 bg-white border-t-2 border-orange-100 px-6 py-4 flex justify-end gap-3 rounded-b-lg">
               {editing ? (
                 <>
-                  <button
+                  <Button
                     onClick={handleCancelEdit}
                     className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2 font-medium"
                   >
                     <X size={16} />
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={handleSaveChanges}
                     disabled={saving}
                     className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
@@ -1020,28 +1095,29 @@ export default function AdminUpcomingDeliveries() {
                         Save Changes
                       </>
                     )}
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <>
-                  <button
+                  <Button
+                    variant="outline"
                     onClick={closeModal}
                     className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
                   >
                     Close
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={handleEdit}
                     className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 font-medium shadow-sm"
                   >
                     <Edit2 size={16} />
                     Edit
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
     </DashboardLayout>

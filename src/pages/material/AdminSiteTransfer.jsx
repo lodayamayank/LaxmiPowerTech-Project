@@ -3,6 +3,31 @@ import { siteTransferAPI, branchesAPI, materialCatalogAPI as materialAPI } from 
 import { Eye, Trash2, X, Edit2, Save, Plus } from "lucide-react";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import MaterialLineItem from "./MaterialLineItem";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 export default function AdminSiteTransfer() {
   // ==================== STATE MANAGEMENT ====================
@@ -470,9 +495,9 @@ export default function AdminSiteTransfer() {
     const colorClass = statusColors[status?.toLowerCase()] || 'bg-gray-100 text-gray-600';
     
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
+      <Badge className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
         {status?.charAt(0).toUpperCase() + status?.slice(1)}
-      </span>
+      </Badge>
     );
   };
 
@@ -543,14 +568,14 @@ export default function AdminSiteTransfer() {
             <h1 className="text-2xl font-semibold text-gray-800">Site Transfers</h1>
             <p className="text-sm text-gray-500">View all site transfer requests 11</p>
           </div>
-          <button
+          <Button
             onClick={handleDeleteAll}
             disabled={transfers.length === 0 || deleting}
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <Trash2 size={18} />
             {deleting ? 'Deleting...' : 'Delete All'}
-          </button>
+          </Button>
         </div>
 
         {/* Error Message */}
@@ -560,12 +585,13 @@ export default function AdminSiteTransfer() {
               <span className="text-red-600 font-medium">Error:</span>
               <span className="text-red-700">{error}</span>
             </div>
-            <button
+            <Button
+              variant="link"
               onClick={fetchTransfers}
-              className="mt-2 text-sm text-red-600 hover:text-red-700 underline"
+              className="mt-2 h-auto p-0 text-sm text-red-600 hover:text-red-700 underline"
             >
               Try Again
-            </button>
+            </Button>
           </div>
         )}
 
@@ -582,7 +608,7 @@ export default function AdminSiteTransfer() {
                 <h2 className="text-lg font-semibold text-gray-700">
                   Site Transfers ({filteredTransfers.length} records)
                 </h2>
-                <input
+                <Input
                   type="text"
                   placeholder="Search by ST ID, site, or person..."
                   className="border border-gray-300 rounded p-2 w-80 focus:ring-2 focus:ring-orange-400 text-sm"
@@ -597,38 +623,46 @@ export default function AdminSiteTransfer() {
                   {/* Site Filter */}
                   <div className="flex-1 min-w-[200px]">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Filter by Site</label>
-                    <select
-                      value={filterSite}
-                      onChange={(e) => setFilterSite(e.target.value)}
-                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
+                    <Select
+                      value={filterSite || "all"}
+                      onValueChange={(value) => setFilterSite(value === "all" ? "" : value)}
                     >
-                      <option value="" className="text-gray-500">All Sites</option>
+                      <SelectTrigger className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer">
+                        <SelectValue placeholder="All Sites" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Sites</SelectItem>
                       {sites.map(site => (
-                        <option key={site} value={site} className="text-gray-900">{site}</option>
+                        <SelectItem key={site} value={site} className="text-gray-900">{site}</SelectItem>
                       ))}
-                    </select>
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   {/* Status Filter */}
                   <div className="flex-1 min-w-[180px]">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Filter by Status</label>
-                    <select
-                      value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value)}
-                      className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors cursor-pointer"
+                    <Select
+                      value={filterStatus || "all"}
+                      onValueChange={(value) => setFilterStatus(value === "all" ? "" : value)}
                     >
-                      <option value="" className="text-gray-500">All Status</option>
-                      <option value="pending" className="text-gray-900">Pending</option>
-                      <option value="in-transit" className="text-gray-900">In Transit</option>
-                      <option value="delivered" className="text-gray-900">Delivered</option>
-                      <option value="cancelled" className="text-gray-900">Cancelled</option>
-                    </select>
+                      <SelectTrigger className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors cursor-pointer">
+                        <SelectValue placeholder="All Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="in-transit">In Transit</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   {/* Date From */}
                   <div className="flex-1 min-w-[160px]">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">From Date</label>
-                    <input
+                    <Input
                       type="date"
                       value={filterDateFrom}
                       onChange={(e) => setFilterDateFrom(e.target.value)}
@@ -639,7 +673,7 @@ export default function AdminSiteTransfer() {
                   {/* Date To */}
                   <div className="flex-1 min-w-[160px]">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">To Date</label>
-                    <input
+                    <Input
                       type="date"
                       value={filterDateTo}
                       onChange={(e) => setFilterDateTo(e.target.value)}
@@ -648,7 +682,7 @@ export default function AdminSiteTransfer() {
                   </div>
                   
                   {/* Clear Filters Button */}
-                  <button
+                  <Button
                     onClick={() => {
                       setFilterSite('');
                       setFilterStatus('');
@@ -658,7 +692,7 @@ export default function AdminSiteTransfer() {
                     className="px-5 py-2.5 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-all"
                   >
                     Clear Filters
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -666,82 +700,92 @@ export default function AdminSiteTransfer() {
             {/* Table */}
             {filteredTransfers.length > 0 ? (
               <>
-                <table className="min-w-full border text-sm">
-                  <thead className="bg-orange-100 dark:bg-gray-700">
-                    <tr>
-                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Site Transfer ID</th>
-                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">From Site</th>
-                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">To Site</th>
-                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Requested By</th>
-                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Materials</th>
-                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Status</th>
-                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Date</th>
-                      <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table className="min-w-full border text-sm">
+                  <TableHeader className="bg-orange-100 dark:bg-gray-700">
+                    <TableRow>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Site Transfer ID</TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">From Site</TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">To Site</TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Requested By</TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Materials</TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Status</TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Date</TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {filteredTransfers.map((transfer) => (
-                      <tr key={transfer._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td className="border px-4 py-2 font-medium text-gray-900">
+                      <TableRow key={transfer._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <TableCell className="border px-4 py-2 font-medium text-gray-900">
                           {transfer.siteTransferId}
-                        </td>
-                        <td className="border px-4 py-2">{transfer.fromSite}</td>
-                        <td className="border px-4 py-2">{transfer.toSite}</td>
-                        <td className="border px-4 py-2">{transfer.requestedBy}</td>
-                        <td className="border px-4 py-2">
+                        </TableCell>
+                        <TableCell className="border px-4 py-2">{transfer.fromSite}</TableCell>
+                        <TableCell className="border px-4 py-2">{transfer.toSite}</TableCell>
+                        <TableCell className="border px-4 py-2">{transfer.requestedBy}</TableCell>
+                        <TableCell className="border px-4 py-2">
                           <span className="text-gray-600">
                             {transfer.materials?.length || 0} items
                           </span>
-                        </td>
-                        <td className="border px-4 py-2">
+                        </TableCell>
+                        <TableCell className="border px-4 py-2">
                           {getStatusBadge(transfer.status)}
-                        </td>
-                        <td className="border px-4 py-2 text-gray-600">
+                        </TableCell>
+                        <TableCell className="border px-4 py-2 text-gray-600">
                           {formatDate(transfer.createdAt)}
-                        </td>
-                        <td className="border px-4 py-2">
+                        </TableCell>
+                        <TableCell className="border px-4 py-2">
                           <div className="flex gap-2">
-                            <button
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="View Details"
                               onClick={() => handleViewDetails(transfer._id)}
                               className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                               title="View Details"
                             >
                               <Eye size={18} />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Delete"
                               onClick={() => handleDelete(transfer._id, transfer.siteTransferId)}
                               className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                               title="Delete"
                             >
                               <Trash2 size={18} />
-                            </button>
+                            </Button>
                           </div>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
 
                 {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="flex justify-center items-center gap-2 mt-4">
-                    <button
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
                       className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Previous
-                    </button>
+                    </Button>
                     <span className="text-sm text-gray-600">
                       Page {currentPage} of {totalPages}
                     </span>
-                    <button
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
                       className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Next
-                    </button>
+                    </Button>
                   </div>
                 )}
               </>
@@ -755,27 +799,34 @@ export default function AdminSiteTransfer() {
 
         {/* ==================== DETAILS MODAL ==================== */}
         {showDetailsModal && selectedTransfer && (
-          <div 
-            className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black bg-opacity-50"
-            onClick={closeModal}
+          <Dialog
+            open={showDetailsModal}
+            onOpenChange={(open) => {
+              if (!open) closeModal();
+            }}
           >
-            <div 
-              className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <DialogContent className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out p-0 [&>button]:hidden">
               {/* Modal Header */}
-              <div className="sticky top-0 bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex justify-between items-center rounded-t-lg">
-                <h2 className="text-xl font-bold text-white">
-                  Site Transfer Details
-                </h2>
-                <button
+              <DialogHeader className="sticky top-0 bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex flex-row justify-between items-center rounded-t-lg space-y-0 text-left">
+                <div>
+                  <DialogTitle className="text-xl font-bold text-white">
+                    Site Transfer Details
+                  </DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Details and materials for this site transfer
+                  </DialogDescription>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Close modal"
                   onClick={closeModal}
                   className="text-white hover:text-orange-100 transition-colors p-1 hover:bg-orange-600 rounded"
                   title="Close"
                 >
                   <X size={24} />
-                </button>
-              </div>
+                </Button>
+              </DialogHeader>
 
               {/* Modal Content */}
               <div className="px-6 py-4">
@@ -792,16 +843,20 @@ export default function AdminSiteTransfer() {
                     <div>
                       <p className="text-sm text-gray-500">Status</p>
                       {editing ? (
-                        <select
+                        <Select
                           value={formData.status}
-                          onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                          className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                          onValueChange={(value) => setFormData({ ...formData, status: value })}
                         >
-                          <option value="pending">Pending</option>
-                          <option value="approved">Approved</option>
-                          <option value="transferred">Transferred</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
+                          <SelectTrigger className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="approved">Approved</SelectItem>
+                            <SelectItem value="transferred">Transferred</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
                       ) : (
                         <div className="mt-1">{getStatusBadge(selectedTransfer.status)}</div>
                       )}
@@ -809,7 +864,7 @@ export default function AdminSiteTransfer() {
                     <div>
                       <p className="text-sm text-gray-500">From Site</p>
                       {editing ? (
-                        <input
+                        <Input
                           type="text"
                           value={formData.fromSite}
                           onChange={(e) => setFormData({ ...formData, fromSite: e.target.value })}
@@ -822,7 +877,7 @@ export default function AdminSiteTransfer() {
                     <div>
                       <p className="text-sm text-gray-500">To Site</p>
                       {editing ? (
-                        <input
+                        <Input
                           type="text"
                           value={formData.toSite}
                           onChange={(e) => setFormData({ ...formData, toSite: e.target.value })}
@@ -835,7 +890,7 @@ export default function AdminSiteTransfer() {
                     <div>
                       <p className="text-sm text-gray-500">Requested By</p>
                       {editing ? (
-                        <input
+                        <Input
                           type="text"
                           value={formData.requestedBy}
                           onChange={(e) => setFormData({ ...formData, requestedBy: e.target.value })}
@@ -859,13 +914,13 @@ export default function AdminSiteTransfer() {
                       Materials ({editing ? formData.materials?.length : selectedTransfer.materials?.length || 0} items)
                     </h3>
                     {editing && (
-                      <button
+                      <Button
                         onClick={addMaterialRow}
                         className="flex items-center gap-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
                       >
                         <Plus size={16} />
                         Add Material
-                      </button>
+                      </Button>
                     )}
                   </div>
                   {editing ? (
@@ -904,28 +959,28 @@ export default function AdminSiteTransfer() {
                   ) : (
                     selectedTransfer.materials && selectedTransfer.materials.length > 0 ? (
                       <div className="overflow-x-auto">
-                        <table className="min-w-full border text-sm">
-                          <thead className="bg-orange-50">
-                            <tr>
-                              <th className="border px-3 py-2 text-left font-medium text-gray-700">#</th>
-                              <th className="border px-3 py-2 text-left font-medium text-gray-700">Item Name</th>
-                              <th className="border px-3 py-2 text-left font-medium text-gray-700">Quantity</th>
-                              <th className="border px-3 py-2 text-left font-medium text-gray-700">UOM</th>
-                              <th className="border px-3 py-2 text-left font-medium text-gray-700">Remarks</th>
-                            </tr>
-                          </thead>
-                          <tbody>
+                        <Table className="min-w-full border text-sm">
+                          <TableHeader className="bg-orange-50">
+                            <TableRow>
+                              <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">#</TableHead>
+                              <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Item Name</TableHead>
+                              <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Quantity</TableHead>
+                              <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">UOM</TableHead>
+                              <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Remarks</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
                             {selectedTransfer.materials.map((material, index) => (
-                              <tr key={index} className="hover:bg-gray-50">
-                                <td className="border px-3 py-2 text-gray-600">{index + 1}</td>
-                                <td className="border px-3 py-2 font-medium">{material.itemName || '-'}</td>
-                                <td className="border px-3 py-2">{material.quantity || '-'}</td>
-                                <td className="border px-3 py-2">{material.uom || '-'}</td>
-                                <td className="border px-3 py-2 text-gray-600">{material.remarks || '-'}</td>
-                              </tr>
+                              <TableRow key={index} className="hover:bg-gray-50">
+                                <TableCell className="border px-3 py-2 text-gray-600">{index + 1}</TableCell>
+                                <TableCell className="border px-3 py-2 font-medium">{material.itemName || '-'}</TableCell>
+                                <TableCell className="border px-3 py-2">{material.quantity || '-'}</TableCell>
+                                <TableCell className="border px-3 py-2">{material.uom || '-'}</TableCell>
+                                <TableCell className="border px-3 py-2 text-gray-600">{material.remarks || '-'}</TableCell>
+                              </TableRow>
                             ))}
-                          </tbody>
-                        </table>
+                          </TableBody>
+                        </Table>
                       </div>
                     ) : (
                       <p className="text-gray-500 text-sm">No materials listed</p>
@@ -994,7 +1049,8 @@ export default function AdminSiteTransfer() {
                                 >
                                   Download
                                 </a>
-                                <button
+                                <Button
+                                  aria-label="Delete attachment"
                                   onClick={() => handleDeleteAttachment(index)}
                                   disabled={deletingAttachment === index}
                                   className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
@@ -1002,7 +1058,7 @@ export default function AdminSiteTransfer() {
                                 >
                                   <Trash2 size={12} />
                                   {deletingAttachment === index ? 'Deleting...' : 'Delete'}
-                                </button>
+                                </Button>
                               </div>
                             </div>
                           </div>
@@ -1033,14 +1089,14 @@ export default function AdminSiteTransfer() {
               <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t-2 border-orange-100 dark:border-gray-700 px-6 py-4 flex justify-end gap-3 rounded-b-lg">
                 {editing ? (
                   <>
-                    <button
+                    <Button
                       onClick={handleCancelEdit}
                       className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2 font-medium"
                     >
                       <X size={16} />
                       Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={handleSaveChanges}
                       disabled={saving}
                       className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
@@ -1056,28 +1112,30 @@ export default function AdminSiteTransfer() {
                           Save Changes
                         </>
                       )}
-                    </button>
+                    </Button>
                   </>
                 ) : (
                   <>
-                    <button
+                    <Button
                       onClick={handleEdit}
                       className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 font-medium shadow-sm"
                     >
                       <Edit2 size={16} />
                       Edit
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      aria-label="Close modal"
                       onClick={closeModal}
                       className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition-colors"
                     >
                       Close
-                    </button>
+                    </Button>
                   </>
                 )}
               </div>
-            </div>
-          </div>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
     </DashboardLayout>

@@ -4,7 +4,15 @@ import axios from '../utils/axios';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 const AttendancePage = () => {
   const [searchParams] = useSearchParams();
@@ -59,69 +67,73 @@ const AttendancePage = () => {
     <DashboardLayout>
       <div className="flex gap-4">
         {/* Left Panel */}
-        <div className="bg-white p-4 rounded shadow w-[260px] flex flex-col gap-6">
-          <select
-            className="border p-2 rounded"
-            value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
-          >
-            <option value="">Select Project</option>
-            {projects.map((proj) => (
-              <option key={proj._id} value={proj._id}>{proj.name}</option>
-            ))}
-          </select>
+        <Card className="bg-white rounded shadow w-[260px] gap-0 py-0 self-start">
+          <CardContent className="p-4 flex flex-col gap-6">
+            <select
+              className="border p-2 rounded"
+              value={selectedProject}
+              onChange={(e) => setSelectedProject(e.target.value)}
+            >
+              <option value="">Select Project</option>
+              {projects.map((proj) => (
+                <option key={proj._id} value={proj._id}>{proj.name}</option>
+              ))}
+            </select>
 
-          <input
-            type="month"
-            className="border p-2 rounded"
-            value={`${selectedMonth.getFullYear()}-${(selectedMonth.getMonth() + 1).toString().padStart(2, '0')}`}
-            onChange={(e) => setSelectedMonth(new Date(e.target.value))}
-          />
-        </div>
+            <Input
+              type="month"
+              className="border p-2 rounded h-auto"
+              value={`${selectedMonth.getFullYear()}-${(selectedMonth.getMonth() + 1).toString().padStart(2, '0')}`}
+              onChange={(e) => setSelectedMonth(new Date(e.target.value))}
+            />
+          </CardContent>
+        </Card>
 
         {/* Right Panel */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div className="flex justify-between items-center mb-4">
-            <input
+            <Input
               type="text"
               placeholder="Search Staff Name / Phone No."
-              className="border p-2 rounded w-80"
+              className="border p-2 rounded w-80 h-auto"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <Button className="bg-orange-500 hover:bg-orange-600 text-white">Download Report</Button>
           </div>
 
-          <table className="w-full border text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border p-2 text-black">Name</th>
-                <th className="border p-2 text-black">Employee ID</th>
-                <th className="border p-2 text-black">Present</th>
-                <th className="border p-2 text-black">Absent</th>
-                <th className="border p-2 text-black">Half Day</th>
-                <th className="border p-2 text-black">Week off</th>
-                <th className="border p-2 text-black">Paid Leave</th>
-                <th className="border p-2 text-black">Unpaid Leave</th>
-                <th className="border p-2 text-black">Overtime</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.map((item) => (
-                <tr key={item.user._id}>
-                  <td className="border p-2 text-black">{item.user.name}</td>
-                  <td className="border p-2 text-black">{item.user.employeeId || '-'}</td>
-                  <td className="border p-2 text-center">{item.present}</td>
-                  <td className="border p-2 text-center">{item.absent}</td>
-                  <td className="border p-2 text-center">{item.halfDay}</td>
-                  <td className="border p-2 text-center">{item.weekOff}</td>
-                  <td className="border p-2 text-center">{item.paidLeave}</td>
-                  <td className="border p-2 text-center">{item.unpaidLeave}</td>
-                  <td className="border p-2 text-center">{item.overtime}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <Table className="w-full border text-sm">
+              <TableHeader className="bg-gray-100">
+                <TableRow>
+                  <TableHead className="border p-2 h-auto text-black">Name</TableHead>
+                  <TableHead className="border p-2 h-auto text-black">Employee ID</TableHead>
+                  <TableHead className="border p-2 h-auto text-black">Present</TableHead>
+                  <TableHead className="border p-2 h-auto text-black">Absent</TableHead>
+                  <TableHead className="border p-2 h-auto text-black">Half Day</TableHead>
+                  <TableHead className="border p-2 h-auto text-black">Week off</TableHead>
+                  <TableHead className="border p-2 h-auto text-black">Paid Leave</TableHead>
+                  <TableHead className="border p-2 h-auto text-black">Unpaid Leave</TableHead>
+                  <TableHead className="border p-2 h-auto text-black">Overtime</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredData.map((item) => (
+                  <TableRow key={item.user._id}>
+                    <TableCell className="border p-2 text-black">{item.user.name}</TableCell>
+                    <TableCell className="border p-2 text-black">{item.user.employeeId || '-'}</TableCell>
+                    <TableCell className="border p-2 text-center">{item.present}</TableCell>
+                    <TableCell className="border p-2 text-center">{item.absent}</TableCell>
+                    <TableCell className="border p-2 text-center">{item.halfDay}</TableCell>
+                    <TableCell className="border p-2 text-center">{item.weekOff}</TableCell>
+                    <TableCell className="border p-2 text-center">{item.paidLeave}</TableCell>
+                    <TableCell className="border p-2 text-center">{item.unpaidLeave}</TableCell>
+                    <TableCell className="border p-2 text-center">{item.overtime}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
     </DashboardLayout>

@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
-import axios from '../utils/axios';
-import DashboardLayout from '../layouts/DashboardLayout';
-import SmartTowerBuilder from '../components/SmartTowerBuilder';
+import React, { useEffect, useState, useRef } from "react";
+import axios from "../utils/axios";
+import DashboardLayout from "../layouts/DashboardLayout";
+import SmartTowerBuilder from "../components/SmartTowerBuilder";
 import {
   FaProjectDiagram,
   FaMapMarkerAlt,
@@ -17,25 +17,58 @@ import {
   FaLayerGroup,
   FaCheckCircle,
   FaClock,
-  FaChartLine
-} from 'react-icons/fa';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Progress } from '@/components/ui/progress';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Autocomplete, useJsApiLoader } from '@react-google-maps/api';
-import StatCard from '@/components/common/StatCard';
+  FaChartLine,
+} from "react-icons/fa";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import EmptyTableRow from "@/components/common/EmptyTableRow";  
+import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
+import StatCard from "@/components/common/StatCard";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ChevronsUpDown } from "lucide-react";
+import { toast } from "react-toastify";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-const GOOGLE_LIBS = ['places'];
+const GOOGLE_LIBS = ["places"];
 
 const CreateProject = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    address: '',
+    name: "",
+    address: "",
     branches: [],
     buildings: [],
   });
@@ -47,12 +80,16 @@ const CreateProject = () => {
   const [detailsProject, setDetailsProject] = useState(null);
   const [projectTasks, setProjectTasks] = useState([]);
   const [detailsLoading, setDetailsLoading] = useState(false);
-  const token = localStorage.getItem('token');
+  const [largeProjectDialogOpen, setLargeProjectDialogOpen] = useState(false);
+  const [largeProjectUnits, setLargeProjectUnits] = useState(0);
+  const [deleteProjectId, setDeleteProjectId] = useState(null);
+  const token = localStorage.getItem("token");
+  const formRef = useRef(null);
 
   // Google Places Autocomplete
   const { isLoaded: mapsLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+    id: "google-map-script",
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
     libraries: GOOGLE_LIBS,
   });
   const autocompleteWidgetRef = useRef(null);
@@ -65,7 +102,7 @@ const CreateProject = () => {
     const ac = autocompleteWidgetRef.current;
     if (!ac) return;
     const place = ac.getPlace();
-    const addr = place?.formatted_address || place?.name || '';
+    const addr = place?.formatted_address || place?.name || "";
     if (addr) {
       setFormData((prev) => ({ ...prev, address: addr }));
     }
@@ -74,12 +111,12 @@ const CreateProject = () => {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/projects', {
+      const res = await axios.get("/projects", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProjects(res.data);
     } catch (err) {
-      console.error('Failed to fetch projects', err);
+      console.error("Failed to fetch projects", err);
     } finally {
       setLoading(false);
     }
@@ -87,41 +124,47 @@ const CreateProject = () => {
 
   const fetchBranches = async () => {
     try {
-      const res = await axios.get('/branches', {
+      const res = await axios.get("/branches", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const sorted = (res.data || []).slice().sort((a, b) =>
-        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-      );
+      const sorted = (res.data || [])
+        .slice()
+        .sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+        );
       setBranches(sorted);
     } catch (err) {
-      console.error('Failed to fetch branches', err);
+      console.error("Failed to fetch branches", err);
     }
   };
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get('/users', {
+      const res = await axios.get("/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data || []);
     } catch (err) {
-      console.error('Failed to fetch users', err);
+      console.error("Failed to fetch users", err);
     }
   };
 
   const getId = (value) => {
-    if (!value) return '';
-    return typeof value === 'object' ? value._id : value;
+    if (!value) return "";
+    return typeof value === "object" ? value._id : value;
   };
 
   const getProjectTeam = (project) => {
-    const projectBranchIds = new Set((project?.branches || []).map(getId).filter(Boolean));
+    const projectBranchIds = new Set(
+      (project?.branches || []).map(getId).filter(Boolean)
+    );
 
     return users.filter((user) => {
-      if (!['supervisor', 'subcontractor'].includes(user.role)) return false;
+      if (!["supervisor", "subcontractor"].includes(user.role)) return false;
       if (getId(user.project) === project?._id) return true;
-      return (user.assignedBranches || []).some((branch) => projectBranchIds.has(getId(branch)));
+      return (user.assignedBranches || []).some((branch) =>
+        projectBranchIds.has(getId(branch))
+      );
     });
   };
 
@@ -146,26 +189,29 @@ const CreateProject = () => {
     return { buildings: buildings.length, floors, flats, rooms };
   };
 
-  const isSupervisorUploadedTask = (task) => (
-    Boolean(task?.photoUrl || task?.photoPublicId || task?.capturedAt || task?.syncedOffline)
-  );
+  const isSupervisorUploadedTask = (task) =>
+    Boolean(
+      task?.photoUrl ||
+        task?.photoPublicId ||
+        task?.capturedAt ||
+        task?.syncedOffline
+    );
 
-  const isApprovedSupervisorTask = (task) => (
-    isSupervisorUploadedTask(task) && task?.status === 'approved'
-  );
+  const isApprovedSupervisorTask = (task) =>
+    isSupervisorUploadedTask(task) && task?.status === "approved";
 
   const getEffectiveTaskStatus = (task) => {
-    if (task?.status === 'approved') {
-      return 'completed';
+    if (task?.status === "approved") {
+      return "completed";
     }
 
-    return task?.status || 'pending';
+    return task?.status || "pending";
   };
 
   const getTaskProgress = (tasks) => {
     const counts = {
       pending: 0,
-      'in-progress': 0,
+      "in-progress": 0,
       completed: 0,
       verified: 0,
       approved: 0,
@@ -187,22 +233,34 @@ const CreateProject = () => {
     };
   };
 
-  const groupTasksBy = (tasks, keyPath, fallback = 'Unassigned') => {
+  const groupTasksBy = (tasks, keyPath, fallback = "Unassigned") => {
     const groups = new Map();
 
     tasks.forEach((task) => {
-      const key = keyPath.split('.').reduce((value, key) => value?.[key], task) || fallback;
-      const current = groups.get(key) || { name: key, total: 0, done: 0, pending: 0, inProgress: 0, rejected: 0 };
+      const key =
+        keyPath.split(".").reduce((value, key) => value?.[key], task) ||
+        fallback;
+      const current = groups.get(key) || {
+        name: key,
+        total: 0,
+        done: 0,
+        pending: 0,
+        inProgress: 0,
+        rejected: 0,
+      };
       const status = getEffectiveTaskStatus(task);
       current.total += 1;
-      if (['completed', 'verified', 'approved'].includes(status)) current.done += 1;
-      if (status === 'pending') current.pending += 1;
-      if (status === 'in-progress') current.inProgress += 1;
-      if (status === 'rejected') current.rejected += 1;
+      if (["completed", "verified", "approved"].includes(status))
+        current.done += 1;
+      if (status === "pending") current.pending += 1;
+      if (status === "in-progress") current.inProgress += 1;
+      if (status === "rejected") current.rejected += 1;
       groups.set(key, current);
     });
 
-    return Array.from(groups.values()).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
+    return Array.from(groups.values()).sort(
+      (a, b) => b.total - a.total || a.name.localeCompare(b.name)
+    );
   };
 
   const handleViewDetails = async (project) => {
@@ -211,14 +269,14 @@ const CreateProject = () => {
     setDetailsLoading(true);
 
     try {
-      const res = await axios.get('/tasks', {
+      const res = await axios.get("/tasks", {
         params: { project: project._id, limit: 1000 },
         headers: { Authorization: `Bearer ${token}` },
       });
       setProjectTasks(res.data?.data || []);
     } catch (err) {
-      console.error('Failed to fetch project tasks', err);
-      alert('Failed to fetch project details');
+      console.error("Failed to fetch project tasks", err);
+      toast.error("Failed to fetch project details");
     } finally {
       setDetailsLoading(false);
     }
@@ -230,63 +288,76 @@ const CreateProject = () => {
     setDetailsLoading(false);
   };
 
+  const getTotalUnits = () =>
+    formData.buildings.reduce((sum, tower) => {
+      return (
+        sum +
+        (tower.wings?.[0]?.floors?.reduce(
+          (floorSum, floor) => floorSum + (floor.flats?.length || 0),
+          0
+        ) || 0)
+      );
+    }, 0);
+
   const handleSubmit = async () => {
+    if (!formData.name || !formData.address) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (formData.buildings.length === 0) {
+      toast.error("Please add at least one tower with floors and units");
+      return;
+    }
+
+    // Residential flats and commercial shops/offices/godowns share the same persisted slot.
+    const totalUnits = getTotalUnits();
+
+    if (totalUnits === 0) {
+      toast.error("Please add at least one unit to your project structure");
+      return;
+    }
+
+    if (totalUnits > 5000) {
+      setLargeProjectUnits(totalUnits);
+      setLargeProjectDialogOpen(true);
+      return;
+    }
+
+    await saveProject();
+  };
+
+  const saveProject = async () => {
     try {
-      if (!formData.name || !formData.address) {
-        alert('Please fill in all required fields');
-        return;
-      }
-
-      if (formData.buildings.length === 0) {
-        alert('Please add at least one tower with floors and units');
-        return;
-      }
-
-      // Count total generated units for validation. Residential flats and
-      // commercial shops/offices/godowns share the same persisted slot.
-      const totalUnits = formData.buildings.reduce((sum, tower) => {
-        return sum + (tower.wings?.[0]?.floors?.reduce((fSum, floor) => 
-          fSum + (floor.flats?.length || 0), 0) || 0);
-      }, 0);
-
-      if (totalUnits === 0) {
-        alert('Please add at least one unit to your project structure');
-        return;
-      }
-
-      // Warn if structure is very large
-      if (totalUnits > 5000) {
-        const confirmed = window.confirm(
-          `This project has ${totalUnits.toLocaleString()} units. This is a large structure. Continue?`
-        );
-        if (!confirmed) return;
-      }
-
       const projectData = {
         ...formData,
-        buildings: formData.buildings
+        buildings: formData.buildings,
       };
 
       if (editingId) {
         await axios.put(`/projects/${editingId}`, projectData, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        alert('Project updated successfully!');
+        toast.success("Project updated successfully!");
       } else {
-        await axios.post('/projects', projectData, {
+        await axios.post("/projects", projectData, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        alert('Project created successfully!');
+        toast.success("Project created successfully!");
       }
-      setFormData({ name: '', address: '', branches: [], buildings: [] });
+
+      setFormData({ name: "", address: "", branches: [], buildings: [] });
       setEditingId(null);
+      setLargeProjectDialogOpen(false);
       fetchProjects();
     } catch (err) {
-      console.error('Failed to save project', err);
+      console.error("Failed to save project", err);
       if (err.response?.status === 413) {
-        alert('Project structure too large. Please reduce the number of floors, flats, or buildings.');
+        toast.error(
+          "Project structure too large. Please reduce the number of floors, flats, or buildings."
+        );
       } else {
-        alert(err.response?.data?.message || 'Failed to save project');
+        toast.error(err.response?.data?.message || "Failed to save project");
       }
     }
   };
@@ -298,26 +369,40 @@ const CreateProject = () => {
       branches: project.branches?.map((b) => b._id) || [],
       buildings: project.buildings || [],
     });
+
     setEditingId(project._id);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Scroll directly to the edit form
+    requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
   };
 
   const handleCancel = () => {
-    setFormData({ name: '', address: '', branches: [], buildings: [] });
+    setFormData({ name: "", address: "", branches: [], buildings: [] });
     setEditingId(null);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this project?')) {
-      try {
-        await axios.delete(`/projects/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        fetchProjects();
-      } catch (err) {
-        console.error('Failed to delete project', err);
-        alert('Failed to delete project');
-      }
+  const handleDelete = (id) => {
+    setDeleteProjectId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteProjectId) return;
+
+    try {
+      await axios.delete(`/projects/${deleteProjectId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success("Project deleted successfully");
+      setDeleteProjectId(null);
+      fetchProjects();
+    } catch (err) {
+      console.error("Failed to delete project", err);
+      toast.error(err.response?.data?.message || "Failed to delete project");
     }
   };
 
@@ -327,13 +412,19 @@ const CreateProject = () => {
     fetchUsers();
   }, []);
 
-  const totalBranches = projects.reduce((acc, proj) => acc + (proj.branches?.length || 0), 0);
+  const totalBranches = projects.reduce(
+    (acc, proj) => acc + (proj.branches?.length || 0),
+    0
+  );
   const detailStructure = countProjectStructure(detailsProject);
   const completedProjectTasks = projectTasks.filter(isApprovedSupervisorTask);
   const detailProgress = getTaskProgress(completedProjectTasks);
   const detailTeam = detailsProject ? getProjectTeam(detailsProject) : [];
-  const buildingProgress = groupTasksBy(completedProjectTasks, 'building.name');
-  const supervisorProgress = groupTasksBy(completedProjectTasks, 'supervisor.name');
+  const buildingProgress = groupTasksBy(completedProjectTasks, "building.name");
+  const supervisorProgress = groupTasksBy(
+    completedProjectTasks,
+    "supervisor.name"
+  );
 
   return (
     <DashboardLayout title="Projects">
@@ -341,23 +432,43 @@ const CreateProject = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Project Management</h1>
-            <p className="text-sm text-gray-500 mt-1">Create and manage your projects</p>
+            <h1 className="text-2xl font-bold text-gray-800">
+              Project Management
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Create and manage your projects
+            </p>
           </div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <StatCard title="Total Projects" value={projects.length} icon={FaProjectDiagram} color="orange" />
-          <StatCard title="Total Branches" value={totalBranches} icon={FaBuilding} color="blue" />
-          <StatCard title="Available Branches" value={branches.length} icon={FaMapMarkerAlt} color="green" />
+          <StatCard
+            title="Total Projects"
+            value={projects.length}
+            icon={FaProjectDiagram}
+            color="orange"
+          />
+          <StatCard
+            title="Total Branches"
+            value={totalBranches}
+            icon={FaBuilding}
+            color="blue"
+          />
+          <StatCard
+            title="Available Branches"
+            value={branches.length}
+            icon={FaMapMarkerAlt}
+            color="green"
+          />
         </div>
 
         {/* Form */}
-        <Card>
+        
+        <Card ref={formRef} id="project-form">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-              {editingId ? 'Edit Project' : 'Create New Project'}
+              {editingId ? "Edit Project" : "Create New Project"}
             </CardTitle>
             {editingId && (
               <Button
@@ -384,10 +495,12 @@ const CreateProject = () => {
                     <FaProjectDiagram size={14} />
                   </div>
                   <Input
-                    className="pl-10"
+                    className="pl-2"
                     placeholder="Enter project name"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                   />
                 </div>
               </div>
@@ -400,7 +513,7 @@ const CreateProject = () => {
                   <Autocomplete
                     onLoad={onAutocompleteLoad}
                     onPlaceChanged={onPlaceChanged}
-                    options={{ componentRestrictions: { country: 'in' } }}
+                    options={{ componentRestrictions: { country: "in" } }}
                   >
                     <div className="relative">
                       <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">
@@ -410,7 +523,9 @@ const CreateProject = () => {
                         className="pl-10"
                         placeholder="Enter project address"
                         value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, address: e.target.value })
+                        }
                       />
                     </div>
                   </Autocomplete>
@@ -423,7 +538,9 @@ const CreateProject = () => {
                       className="pl-10"
                       placeholder="Enter project address"
                       value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, address: e.target.value })
+                      }
                     />
                   </div>
                 )}
@@ -433,25 +550,74 @@ const CreateProject = () => {
                 <Label className="block mb-1.5 font-semibold">
                   Assign Branches
                 </Label>
-                <select
-                  multiple
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 h-40 text-sm bg-background text-foreground focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                  value={formData.branches}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      branches: Array.from(e.target.selectedOptions, (opt) => opt.value),
-                    })
-                  }
-                >
-                  {branches.map((b) => (
-                    <option key={b._id} value={b._id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      role="combobox"
+                      className="w-full justify-between font-normal"
+                    >
+                      {formData.branches.length > 0
+                        ? `${formData.branches.length} branch(es) selected`
+                        : "Select branches..."}
+
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+
+                  <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-2">
+                    <div className="max-h-60 overflow-y-auto space-y-1">
+                      {branches.map((branch) => {
+                        const isSelected = formData.branches.includes(
+                          branch._id
+                        );
+
+                        return (
+                          <div
+                            key={branch._id}
+                            className="flex items-center gap-2 rounded-md p-2 hover:bg-accent cursor-pointer"
+                            onClick={() => {
+                              setFormData((prev) => ({
+                                ...prev,
+                                branches: isSelected
+                                  ? prev.branches.filter(
+                                      (id) => id !== branch._id
+                                    )
+                                  : [...prev.branches, branch._id],
+                              }));
+                            }}
+                          >
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={(checked) => {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  branches: checked
+                                    ? prev.branches.includes(branch._id)
+                                      ? prev.branches
+                                      : [...prev.branches, branch._id]
+                                    : prev.branches.filter(
+                                        (id) => id !== branch._id
+                                      ),
+                                }));
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+
+                            <span className="text-sm">{branch.name}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+
                 <p className="text-xs text-muted-foreground mt-1.5">
-                  Hold Ctrl (Cmd on Mac) to select multiple branches
+                  {formData.branches.length > 0
+                    ? `${formData.branches.length} branch(es) selected`
+                    : "Select one or more branches."}
                 </p>
               </div>
             </div>
@@ -460,7 +626,9 @@ const CreateProject = () => {
             <div className="mt-6">
               <SmartTowerBuilder
                 buildings={formData.buildings}
-                onChange={(buildings) => setFormData({ ...formData, buildings })}
+                onChange={(buildings) =>
+                  setFormData({ ...formData, buildings })
+                }
               />
             </div>
 
@@ -494,41 +662,67 @@ const CreateProject = () => {
         {/* Projects List */}
         <Card>
           <CardHeader className="border-b border-gray-100 dark:border-gray-700">
-            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100">Projects List</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">Manage your existing projects</p>
+            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+              Projects List
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Manage your existing projects
+            </p>
           </CardHeader>
 
           <CardContent className="p-0 overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="dark:border-gray-700">
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Project Name</TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Address</TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Branches</TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Actions</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                    Project Name
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                    Address
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                    Branches
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   Array.from({ length: 4 }).map((_, i) => (
                     <TableRow key={`skeleton-${i}`}>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-24 rounded-full" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-28" /></TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-32" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-48" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-24 rounded-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-8 w-28" />
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : projects.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-6">
-                      No projects found. Create your first project above.
-                    </TableCell>
-                  </TableRow>
+                  <EmptyTableRow
+                    colSpan={4}
+                    message="No projects found. Create your first project above."
+                  />
                 ) : (
                   projects.map((proj) => (
-                    <TableRow key={proj._id} className="dark:border-gray-700 dark:hover:bg-gray-700/60">
-                      <TableCell className="font-medium text-gray-900 dark:text-gray-100">{proj.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{proj.address}</TableCell>
+                    <TableRow
+                      key={proj._id}
+                      className="dark:border-gray-700 dark:hover:bg-gray-700/60"
+                    >
+                      <TableCell className="font-medium text-gray-900 dark:text-gray-100">
+                        {proj.name}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {proj.address}
+                      </TableCell>
                       <TableCell>
                         {proj.branches?.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
@@ -590,27 +784,44 @@ const CreateProject = () => {
         </Card>
 
         {detailsProject && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
-              <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{detailsProject.name}</h2>
-                  <p className="text-sm text-muted-foreground mt-1">{detailsProject.address || 'No address added'}</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={closeDetails}
-                  className="text-gray-400 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
-                  title="Close"
-                >
-                  <FaTimes size={18} />
-                </Button>
-              </div>
+          <Dialog
+            open={Boolean(detailsProject)}
+            onOpenChange={(open) => {
+              if (!open) closeDetails();
+            }}
+          >
+            <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden p-0">
+              <DialogHeader className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 text-left">
+                <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                  {detailsProject.name}
+                </DialogTitle>
+                <DialogDescription>
+                  {detailsProject.address || "No address added"}
+                </DialogDescription>
+              </DialogHeader>
 
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-76px)] space-y-6">
+              <div className="px-6 pb-6 overflow-y-auto max-h-[calc(90vh-100px)] space-y-6">
                 {detailsLoading ? (
-                  <div className="py-16 text-center text-muted-foreground">Loading project details...</div>
+                  <div
+                    className="space-y-6 py-2"
+                    aria-label="Loading project details"
+                  >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {Array.from({ length: 4 }).map((_, index) => (
+                        <Card key={`detail-skeleton-${index}`}>
+                          <CardContent className="p-4 space-y-3">
+                            <Skeleton className="h-4 w-28" />
+                            <Skeleton className="h-8 w-16" />
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                    <Skeleton className="h-3 w-full" />
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <Skeleton className="h-48 w-full" />
+                      <Skeleton className="h-48 w-full" />
+                    </div>
+                  </div>
                 ) : (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -618,10 +829,17 @@ const CreateProject = () => {
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-sm text-muted-foreground font-medium">Completed Tasks</p>
-                              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{detailProgress.total}</p>
+                              <p className="text-sm text-muted-foreground font-medium">
+                                Completed Tasks
+                              </p>
+                              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+                                {detailProgress.total}
+                              </p>
                             </div>
-                            <FaTasks className="text-blue-600 dark:text-blue-400" size={22} />
+                            <FaTasks
+                              className="text-blue-600 dark:text-blue-400"
+                              size={22}
+                            />
                           </div>
                         </CardContent>
                       </Card>
@@ -629,10 +847,17 @@ const CreateProject = () => {
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-sm text-muted-foreground font-medium">Work Done</p>
-                              <p className="text-2xl font-bold text-green-700 dark:text-green-400 mt-1">{detailProgress.percent}%</p>
+                              <p className="text-sm text-muted-foreground font-medium">
+                                Work Done
+                              </p>
+                              <p className="text-2xl font-bold text-green-700 dark:text-green-400 mt-1">
+                                {detailProgress.percent}%
+                              </p>
                             </div>
-                            <FaChartLine className="text-green-600 dark:text-green-400" size={22} />
+                            <FaChartLine
+                              className="text-green-600 dark:text-green-400"
+                              size={22}
+                            />
                           </div>
                         </CardContent>
                       </Card>
@@ -640,10 +865,17 @@ const CreateProject = () => {
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-sm text-muted-foreground font-medium">Assigned Team</p>
-                              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{detailTeam.length}</p>
+                              <p className="text-sm text-muted-foreground font-medium">
+                                Assigned Team
+                              </p>
+                              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+                                {detailTeam.length}
+                              </p>
                             </div>
-                            <FaUsers className="text-purple-600 dark:text-purple-400" size={22} />
+                            <FaUsers
+                              className="text-purple-600 dark:text-purple-400"
+                              size={22}
+                            />
                           </div>
                         </CardContent>
                       </Card>
@@ -651,34 +883,54 @@ const CreateProject = () => {
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-sm text-muted-foreground font-medium">Rooms Planned</p>
-                              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{detailStructure.rooms}</p>
+                              <p className="text-sm text-muted-foreground font-medium">
+                                Rooms Planned
+                              </p>
+                              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+                                {detailStructure.rooms}
+                              </p>
                             </div>
-                            <FaLayerGroup className="text-orange-600 dark:text-orange-400" size={22} />
+                            <FaLayerGroup
+                              className="text-orange-600 dark:text-orange-400"
+                              size={22}
+                            />
                           </div>
                         </CardContent>
                       </Card>
                     </div>
 
                     <div>
-                      <Progress value={detailProgress.percent} className="h-3 [&>div]:bg-green-600" />
+                      <Progress
+                        value={detailProgress.percent}
+                        className="h-3 [&>div]:bg-green-600"
+                      />
                       <div className="flex flex-wrap gap-2 mt-3">
-                        {Object.entries(detailProgress.counts).map(([status, count]) => (
-                          <Badge key={status} variant="secondary" className="capitalize">
-                            {status.replace('-', ' ')}: {count}
-                          </Badge>
-                        ))}
+                        {Object.entries(detailProgress.counts).map(
+                          ([status, count]) => (
+                            <Badge
+                              key={status}
+                              variant="secondary"
+                              className="capitalize"
+                            >
+                              {status.replace("-", " ")}: {count}
+                            </Badge>
+                          )
+                        )}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       <div className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden">
                         <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
-                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">Project Info</h3>
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                            Project Info
+                          </h3>
                         </div>
                         <div className="p-4 space-y-4">
                           <div>
-                            <p className="text-xs font-semibold text-muted-foreground uppercase">Branches</p>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase">
+                              Branches
+                            </p>
                             <div className="flex flex-wrap gap-2 mt-2">
                               {detailsProject.branches?.length > 0 ? (
                                 detailsProject.branches.map((branch) => (
@@ -692,26 +944,44 @@ const CreateProject = () => {
                                   </Badge>
                                 ))
                               ) : (
-                                <span className="text-sm text-muted-foreground">No branches assigned</span>
+                                <span className="text-sm text-muted-foreground">
+                                  No branches assigned
+                                </span>
                               )}
                             </div>
                           </div>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
-                              <p className="text-xs text-muted-foreground">Buildings</p>
-                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{detailStructure.buildings}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Buildings
+                              </p>
+                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                                {detailStructure.buildings}
+                              </p>
                             </div>
                             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
-                              <p className="text-xs text-muted-foreground">Floors</p>
-                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{detailStructure.floors}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Floors
+                              </p>
+                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                                {detailStructure.floors}
+                              </p>
                             </div>
                             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
-                              <p className="text-xs text-muted-foreground">Flats</p>
-                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{detailStructure.flats}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Flats
+                              </p>
+                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                                {detailStructure.flats}
+                              </p>
                             </div>
                             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
-                              <p className="text-xs text-muted-foreground">Rooms</p>
-                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{detailStructure.rooms}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Rooms
+                              </p>
+                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                                {detailStructure.rooms}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -719,23 +989,39 @@ const CreateProject = () => {
 
                       <div className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden">
                         <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
-                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">Assigned Supervisors</h3>
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                            Assigned Supervisors
+                          </h3>
                         </div>
                         <div className="p-4">
                           {detailTeam.length > 0 ? (
                             <div className="space-y-2">
                               {detailTeam.map((member) => (
-                                <div key={member._id} className="flex items-center justify-between gap-3 py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+                                <div
+                                  key={member._id}
+                                  className="flex items-center justify-between gap-3 py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                                >
                                   <div>
-                                    <p className="font-medium text-gray-900 dark:text-gray-100">{member.name}</p>
-                                    <p className="text-xs text-muted-foreground">@{member.username || 'user'}</p>
+                                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                                      {member.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      @{member.username || "user"}
+                                    </p>
                                   </div>
-                                  <Badge variant="secondary" className="capitalize">{member.role}</Badge>
+                                  <Badge
+                                    variant="secondary"
+                                    className="capitalize"
+                                  >
+                                    {member.role}
+                                  </Badge>
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <p className="text-sm text-muted-foreground">No supervisors assigned to this project</p>
+                            <p className="text-sm text-muted-foreground">
+                              No supervisors assigned to this project
+                            </p>
                           )}
                         </div>
                       </div>
@@ -745,32 +1031,54 @@ const CreateProject = () => {
                       <div className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden">
                         <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
                           <FaBuilding className="text-gray-500" />
-                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">Work By Building</h3>
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                            Work By Building
+                          </h3>
                         </div>
                         <div className="overflow-x-auto">
                           <Table>
                             <TableHeader>
                               <TableRow className="dark:border-gray-700">
-                                <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Building</TableHead>
-                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">Total</TableHead>
-                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">Done</TableHead>
-                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">Pending</TableHead>
+                                <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                                  Building
+                                </TableHead>
+                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">
+                                  Total
+                                </TableHead>
+                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">
+                                  Done
+                                </TableHead>
+                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">
+                                  Pending
+                                </TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {buildingProgress.length > 0 ? (
                                 buildingProgress.map((row) => (
-                                  <TableRow key={row.name} className="dark:border-gray-700">
-                                    <TableCell className="font-medium text-gray-900 dark:text-gray-100">{row.name}</TableCell>
-                                    <TableCell className="text-center">{row.total}</TableCell>
-                                    <TableCell className="text-center text-green-700 dark:text-green-400 font-medium">{row.done}</TableCell>
-                                    <TableCell className="text-center text-orange-600 dark:text-orange-400 font-medium">{row.pending}</TableCell>
+                                  <TableRow
+                                    key={row.name}
+                                    className="dark:border-gray-700"
+                                  >
+                                    <TableCell className="font-medium text-gray-900 dark:text-gray-100">
+                                      {row.name}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      {row.total}
+                                    </TableCell>
+                                    <TableCell className="text-center text-green-700 dark:text-green-400 font-medium">
+                                      {row.done}
+                                    </TableCell>
+                                    <TableCell className="text-center text-orange-600 dark:text-orange-400 font-medium">
+                                      {row.pending}
+                                    </TableCell>
                                   </TableRow>
                                 ))
                               ) : (
-                                <TableRow>
-                                  <TableCell colSpan={4} className="text-center text-muted-foreground py-6">No approved tasks yet</TableCell>
-                                </TableRow>
+                                <EmptyTableRow
+                                  colSpan={4}
+                                  message="No approved tasks yet"
+                                />
                               )}
                             </TableBody>
                           </Table>
@@ -780,32 +1088,54 @@ const CreateProject = () => {
                       <div className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden">
                         <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
                           <FaUsers className="text-gray-500" />
-                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">Work By Supervisor</h3>
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                            Work By Supervisor
+                          </h3>
                         </div>
                         <div className="overflow-x-auto">
                           <Table>
                             <TableHeader>
                               <TableRow className="dark:border-gray-700">
-                                <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Supervisor</TableHead>
-                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">Total</TableHead>
-                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">Done</TableHead>
-                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">Open</TableHead>
+                                <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                                  Supervisor
+                                </TableHead>
+                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">
+                                  Total
+                                </TableHead>
+                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">
+                                  Done
+                                </TableHead>
+                                <TableHead className="font-semibold text-center text-gray-700 dark:text-gray-300">
+                                  Open
+                                </TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {supervisorProgress.length > 0 ? (
                                 supervisorProgress.map((row) => (
-                                  <TableRow key={row.name} className="dark:border-gray-700">
-                                    <TableCell className="font-medium text-gray-900 dark:text-gray-100">{row.name}</TableCell>
-                                    <TableCell className="text-center">{row.total}</TableCell>
-                                    <TableCell className="text-center text-green-700 dark:text-green-400 font-medium">{row.done}</TableCell>
-                                    <TableCell className="text-center text-orange-600 dark:text-orange-400 font-medium">{row.pending + row.inProgress}</TableCell>
+                                  <TableRow
+                                    key={row.name}
+                                    className="dark:border-gray-700"
+                                  >
+                                    <TableCell className="font-medium text-gray-900 dark:text-gray-100">
+                                      {row.name}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      {row.total}
+                                    </TableCell>
+                                    <TableCell className="text-center text-green-700 dark:text-green-400 font-medium">
+                                      {row.done}
+                                    </TableCell>
+                                    <TableCell className="text-center text-orange-600 dark:text-orange-400 font-medium">
+                                      {row.pending + row.inProgress}
+                                    </TableCell>
                                   </TableRow>
                                 ))
                               ) : (
-                                <TableRow>
-                                  <TableCell colSpan={4} className="text-center text-muted-foreground py-6">No approved tasks yet</TableCell>
-                                </TableRow>
+                                <EmptyTableRow
+                                  colSpan={4}
+                                  message="No approved tasks yet"
+                                />
                               )}
                             </TableBody>
                           </Table>
@@ -816,52 +1146,85 @@ const CreateProject = () => {
                     <div className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden">
                       <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
                         <FaClock className="text-gray-500" />
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Recent Tasks</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                          Recent Tasks
+                        </h3>
                       </div>
                       <div className="overflow-x-auto">
                         <Table>
                           <TableHeader>
                             <TableRow className="dark:border-gray-700">
-                              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Location</TableHead>
-                              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Activity</TableHead>
-                              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Supervisor</TableHead>
-                              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Status</TableHead>
+                              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                                Location
+                              </TableHead>
+                              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                                Activity
+                              </TableHead>
+                              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                                Supervisor
+                              </TableHead>
+                              <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                                Status
+                              </TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {completedProjectTasks.slice(0, 8).map((task) => {
                               const status = getEffectiveTaskStatus(task);
-                              const isDone = ['completed', 'verified', 'approved'].includes(status);
+                              const isDone = [
+                                "completed",
+                                "verified",
+                                "approved",
+                              ].includes(status);
 
                               return (
-                                <TableRow key={task._id} className="dark:border-gray-700">
+                                <TableRow
+                                  key={task._id}
+                                  className="dark:border-gray-700"
+                                >
                                   <TableCell className="text-gray-900 dark:text-gray-100">
-                                    {[task.building?.name, task.floor?.name, task.flat?.name, task.room?.name].filter(Boolean).join(' / ')}
+                                    {[
+                                      task.building?.name,
+                                      task.floor?.name,
+                                      task.flat?.name,
+                                      task.room?.name,
+                                    ]
+                                      .filter(Boolean)
+                                      .join(" / ")}
                                   </TableCell>
-                                  <TableCell className="text-muted-foreground">{task.level3Activity?.name || '-'}</TableCell>
-                                  <TableCell className="text-gray-900 dark:text-gray-100">{task.supervisor?.name || 'N/A'}</TableCell>
+                                  <TableCell className="text-muted-foreground">
+                                    {task.level3Activity?.name || "-"}
+                                  </TableCell>
+                                  <TableCell className="text-gray-900 dark:text-gray-100">
+                                    {task.supervisor?.name || "N/A"}
+                                  </TableCell>
                                   <TableCell>
                                     <Badge
                                       variant="outline"
                                       className={`gap-1 capitalize font-semibold ${
                                         isDone
-                                          ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800'
-                                          : status === 'rejected'
-                                            ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800'
-                                            : 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800'
+                                          ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800"
+                                          : status === "rejected"
+                                          ? "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800"
+                                          : "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800"
                                       }`}
                                     >
-                                      {isDone ? <FaCheckCircle size={10} /> : <FaClock size={10} />}
-                                      {status.replace('-', ' ')}
+                                      {isDone ? (
+                                        <FaCheckCircle size={10} />
+                                      ) : (
+                                        <FaClock size={10} />
+                                      )}
+                                      {status.replace("-", " ")}
                                     </Badge>
                                   </TableCell>
                                 </TableRow>
                               );
                             })}
                             {completedProjectTasks.length === 0 && (
-                              <TableRow>
-                                <TableCell colSpan={4} className="text-center text-muted-foreground py-6">No approved tasks yet</TableCell>
-                              </TableRow>
+                              <EmptyTableRow
+                                colSpan={4}
+                                message="No approved tasks yet"
+                              />
                             )}
                           </TableBody>
                         </Table>
@@ -870,9 +1233,66 @@ const CreateProject = () => {
                   </>
                 )}
               </div>
-            </div>
-          </div>
+            </DialogContent>
+          </Dialog>
         )}
+
+        <AlertDialog
+          open={largeProjectDialogOpen}
+          onOpenChange={setLargeProjectDialogOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm large project</AlertDialogTitle>
+              <AlertDialogDescription>
+                This project contains {largeProjectUnits.toLocaleString()}{" "}
+                units. This is a large structure and may take longer to process.
+                Do you want to continue?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(event) => {
+                  event.preventDefault();
+                  setLargeProjectDialogOpen(false);
+                  saveProject();
+                }}
+              >
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog
+          open={Boolean(deleteProjectId)}
+          onOpenChange={(open) => {
+            if (!open) setDeleteProjectId(null);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete project?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this project? This action cannot
+                be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={(event) => {
+                  event.preventDefault();
+                  confirmDelete();
+                }}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );

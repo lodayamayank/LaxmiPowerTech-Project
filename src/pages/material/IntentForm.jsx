@@ -5,6 +5,20 @@ import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import axios from '../../utils/axios';
 import { getSelectedBranchName } from '../../utils/branchContext';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+// Class overrides so shadcn primitives keep the page's existing look
+const sectionLabelClass = 'text-gray-700 text-sm font-medium mb-2 block leading-normal';
+const fieldLabelClass = 'text-gray-700 text-xs mb-1.5 block font-normal leading-normal';
 
 // Searchable Dropdown Component
 function SearchableDropdown({ value, onChange, options, placeholder, disabled }) {
@@ -358,14 +372,15 @@ export default function IntentForm() {
       <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
         {/* Header with Gradient */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <button
-            className="mobile-back-button absolute top-6 left-6"
+          <Button
+            variant="ghost"
+            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
             onClick={() => navigate('/material/intent')}
             disabled={submitting}
           >
             <FaArrowLeft size={16} />
             <span className="text-sm font-medium">Back</span>
-          </button>
+          </Button>
 
           <div className="text-center pt-8">
             <h1 className="text-white text-2xl font-bold mb-2">Create Intent (PO)</h1>
@@ -382,13 +397,13 @@ export default function IntentForm() {
               <h3 className="text-orange-600 font-bold text-sm mb-4">Intent Information</h3>
 
               <div className="mb-4">
-                <label className="text-gray-700 text-sm font-medium mb-2 block">
+                <Label className={sectionLabelClass}>
                   Requested By <span className="text-red-500">*</span>
-                </label>
-                <input
+                </Label>
+                <Input
                   type="text"
                   value={userName}
-                  className="w-full bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none cursor-not-allowed font-medium"
+                  className="h-auto w-full bg-gray-100 dark:bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 shadow-none focus-visible:ring-0 cursor-not-allowed font-medium disabled:opacity-100"
                   placeholder="Enter your name"
                   required
                   readOnly
@@ -397,13 +412,13 @@ export default function IntentForm() {
               </div>
 
               <div className="mb-4">
-                <label className="text-gray-700 text-sm font-medium mb-2 block">
+                <Label className={sectionLabelClass}>
                   Delivery Site <span className="text-red-500">*</span>
-                </label>
-                <input
+                </Label>
+                <Input
                   type="text"
                   value={formData.deliverySite}
-                  className="w-full bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none cursor-not-allowed font-medium"
+                  className="h-auto w-full bg-gray-100 dark:bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 shadow-none focus-visible:ring-0 cursor-not-allowed font-medium disabled:opacity-100"
                   readOnly
                   disabled
                 />
@@ -413,10 +428,10 @@ export default function IntentForm() {
               </div>
 
               <div>
-                <label className="text-gray-700 text-sm font-medium mb-2 block">
+                <Label className={sectionLabelClass}>
                   Remarks (Optional)
-                </label>
-                <textarea
+                </Label>
+                <Textarea
                   value={formData.remarks}
                   onChange={(e) => setFormData(prev => ({ ...prev, remarks: e.target.value }))}
                   className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 resize-none"
@@ -431,14 +446,14 @@ export default function IntentForm() {
             <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-5 border border-gray-100 shadow-sm">
               <h3 className="text-orange-600 font-bold text-sm mb-4">Materials</h3>
               
-              <button
+              <Button
                 type="button"
                 onClick={addMaterialRow}
-                className="w-full mb-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-sm hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg transform hover:scale-[1.02]"
+                className="w-full h-auto mb-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-sm hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg transform hover:scale-[1.02]"
                 disabled={submitting}
               >
                 + Add Material
-              </button>
+              </Button>
 
               {formData.materials.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center py-4">
@@ -453,76 +468,102 @@ export default function IntentForm() {
                     // Collapsed view when complete and not editing
                     if (!isEditing && isComplete) {
                       return (
-                        <div key={material.id} className="bg-white border border-gray-300 rounded-md p-3 relative">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <p className="text-xs text-gray-700 font-medium mb-2">Material #{index + 1}</p>
-                              <div className="grid grid-cols-2 gap-2 text-xs">
+                        <Accordion
+                          key={material.id}
+                          type="single"
+                          collapsible
+                          value=""
+                          onValueChange={(value) => setEditingMaterialId(value ? material.id : null)}
+                        >
+                          <AccordionItem value={String(material.id)} className="rounded-md border border-gray-300 bg-white">
+                            <div className="flex items-center justify-between">
+                              <AccordionTrigger className="flex-1 p-3 text-left hover:no-underline">
                                 <div>
-                                  <span className="text-gray-500">Category:</span>
-                                  <p className="text-gray-900 font-medium truncate">{material.category}</p>
+                                  <p className="text-xs text-gray-700 font-medium mb-2">Material #{index + 1}</p>
+                                  <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div>
+                                      <span className="text-gray-500">Category:</span>
+                                      <p className="text-gray-900 font-medium truncate">{material.category}</p>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">Sub Category:</span>
+                                      <p className="text-gray-900 font-medium truncate">{material.subCategory}</p>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">Sub Category 1:</span>
+                                      <p className="text-gray-900 font-medium truncate">{material.subCategory1}</p>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">Sub Category 2:</span>
+                                      <p className="text-gray-900 font-medium truncate">{material.subCategory2}</p>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">Quantity:</span>
+                                      <p className="text-gray-900 font-medium">{material.quantity}</p>
+                                    </div>
+                                  </div>
                                 </div>
-                                <div>
-                                  <span className="text-gray-500">Sub Category:</span>
-                                  <p className="text-gray-900 font-medium truncate">{material.subCategory}</p>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Sub Category 1:</span>
-                                  <p className="text-gray-900 font-medium truncate">{material.subCategory1}</p>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Sub Category 2:</span>
-                                  <p className="text-gray-900 font-medium truncate">{material.subCategory2}</p>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Quantity:</span>
-                                  <p className="text-gray-900 font-medium">{material.quantity}</p>
-                                </div>
+                              </AccordionTrigger>
+                              <div className="flex gap-1 flex-shrink-0 pr-2">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  onClick={() => setEditingMaterialId(material.id)}
+                                  className="h-auto w-auto p-1.5 hover:bg-gray-100 rounded transition-colors"
+                                  disabled={submitting}
+                                >
+                                  <X size={16} className="text-gray-600" />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  onClick={() => removeMaterialRow(material.id)}
+                                  className="h-auto w-auto p-1.5 hover:bg-gray-100 rounded transition-colors"
+                                  disabled={submitting}
+                                >
+                                  <X size={16} className="text-red-500" />
+                                </Button>
                               </div>
                             </div>
-                            <div className="flex gap-1 flex-shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => setEditingMaterialId(material.id)}
-                                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                                disabled={submitting}
-                              >
-                                <X size={16} className="text-gray-600" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => removeMaterialRow(material.id)}
-                                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                                disabled={submitting}
-                              >
-                                <X size={16} className="text-red-500" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
+                            <AccordionContent className="p-0" />
+                          </AccordionItem>
+                        </Accordion>
                       );
                     }
 
                     // Expanded edit view
                     return (
-                      <div key={material.id} className="bg-gray-50 border border-gray-300 rounded-md p-4 relative">
-                        <button
+                      <Accordion
+                        key={material.id}
+                        type="single"
+                        collapsible
+                        value={String(material.id)}
+                        onValueChange={(value) => {
+                          if (!value && isComplete) setEditingMaterialId(null);
+                        }}
+                      >
+                        <AccordionItem value={String(material.id)} className="border-0">
+                          <AccordionTrigger className="px-4 py-3 text-left hover:no-underline">
+                            Material #{index + 1}
+                          </AccordionTrigger>
+                          <AccordionContent className="p-0">
+                      <div className="bg-gray-50 border border-gray-300 rounded-md p-4 relative">
+                        <Button
                           type="button"
+                          variant="ghost"
                           onClick={() => removeMaterialRow(material.id)}
-                          className="absolute top-3 right-3 text-red-500 hover:text-red-700 z-10"
+                          className="absolute top-3 right-3 h-auto w-auto p-0 text-red-500 hover:text-red-700 hover:bg-transparent z-10"
                           disabled={submitting}
                         >
                           <X size={16} />
-                        </button>
-
-                        <p className="text-xs text-gray-700 font-medium mb-3">Material #{index + 1}</p>
+                        </Button>
 
                         {/* Row 1: Category and Sub Category */}
                         <div className="grid grid-cols-2 gap-3 mb-3">
                           <div>
-                            <label className="text-gray-700 text-xs mb-1.5 block">
+                            <Label className={fieldLabelClass}>
                               Category <span className="text-red-500">*</span>
-                            </label>
+                            </Label>
                             <SearchableDropdown
                               value={material.category}
                               onChange={(value) => updateMaterial(material.id, 'category', value)}
@@ -533,9 +574,9 @@ export default function IntentForm() {
                           </div>
 
                           <div>
-                            <label className="text-gray-700 text-xs mb-1.5 block">
+                            <Label className={fieldLabelClass}>
                               Sub Category <span className="text-red-500">*</span>
-                            </label>
+                            </Label>
                             <SearchableDropdown
                               value={material.subCategory}
                               onChange={(value) => updateMaterial(material.id, 'subCategory', value)}
@@ -549,9 +590,9 @@ export default function IntentForm() {
                         {/* Row 2: Sub Category 1 and Sub Category 2 */}
                         <div className="grid grid-cols-2 gap-3 mb-3">
                           <div>
-                            <label className="text-gray-700 text-xs mb-1.5 block">
+                            <Label className={fieldLabelClass}>
                               Sub Category 1
-                            </label>
+                            </Label>
                             <SearchableDropdown
                               value={material.subCategory1}
                               onChange={(value) => updateMaterial(material.id, 'subCategory1', value)}
@@ -562,9 +603,9 @@ export default function IntentForm() {
                           </div>
 
                           <div>
-                            <label className="text-gray-700 text-xs mb-1.5 block">
+                            <Label className={fieldLabelClass}>
                               Sub Category 2
-                            </label>
+                            </Label>
                             <SearchableDropdown
                               value={material.subCategory2}
                               onChange={(value) => updateMaterial(material.id, 'subCategory2', value)}
@@ -578,14 +619,14 @@ export default function IntentForm() {
                         {/* Row 3: Quantity and Remarks */}
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="text-gray-700 text-xs mb-1.5 block">
+                            <Label className={fieldLabelClass}>
                               Quantity <span className="text-red-500">*</span>
-                            </label>
-                            <input
+                            </Label>
+                            <Input
                               type="number"
                               value={material.quantity}
                               onChange={(e) => updateMaterial(material.id, 'quantity', e.target.value)}
-                              className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-gray-400"
+                              className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 shadow-none focus-visible:ring-0 focus-visible:border-gray-400"
                               placeholder="Enter qty"
                               min="1"
                               required
@@ -594,14 +635,14 @@ export default function IntentForm() {
                           </div>
 
                           <div>
-                            <label className="text-gray-700 text-xs mb-1.5 block">
+                            <Label className={fieldLabelClass}>
                               Remarks
-                            </label>
-                            <input
+                            </Label>
+                            <Input
                               type="text"
                               value={material.remarks}
                               onChange={(e) => updateMaterial(material.id, 'remarks', e.target.value)}
-                              className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-gray-400"
+                              className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 shadow-none focus-visible:ring-0 focus-visible:border-gray-400"
                               placeholder="Optional notes"
                               disabled={submitting}
                             />
@@ -610,15 +651,19 @@ export default function IntentForm() {
 
                         {/* Done editing button */}
                         {isComplete && (
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
                             onClick={() => setEditingMaterialId(null)}
-                            className="mt-3 w-full text-xs text-orange-500 font-medium hover:text-orange-600 transition-colors"
+                            className="mt-3 w-full h-auto p-0 hover:bg-transparent text-xs text-orange-500 font-medium hover:text-orange-600 transition-colors"
                           >
                             ✓ Done editing
-                          </button>
+                          </Button>
                         )}
                       </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
                     );
                   })}
                 </div>
@@ -658,14 +703,14 @@ export default function IntentForm() {
                         alt={`Preview ${index + 1}`}
                         className="w-full h-24 object-cover rounded-xl border-2 border-gray-200 shadow-sm"
                       />
-                      <button
+                      <Button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg transition-all transform hover:scale-110"
+                        className="absolute -top-2 -right-2 h-auto w-auto p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg transition-all transform hover:scale-110"
                         disabled={submitting}
                       >
-                        <X size={14} />
-                      </button>
+                        <X size={14} className="size-3.5" />
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -674,23 +719,24 @@ export default function IntentForm() {
 
             {/* Submit Buttons */}
             <div className="flex gap-3 mt-6">
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => navigate('/material/intent')}
-                className="flex-1 bg-white border-2 border-gray-200 text-gray-700 font-semibold py-3.5 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+                className="flex-1 h-auto bg-white border-2 border-gray-200 text-gray-700 font-semibold py-3.5 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
                 disabled={submitting}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold py-3.5 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transform hover:scale-[1.02]"
+                className="flex-1 h-auto bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold py-3.5 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg disabled:opacity-100 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transform hover:scale-[1.02]"
               >
                 {submitting ? (
                   <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <svg className="size-5 animate-spin h-5 w-5" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
@@ -699,7 +745,7 @@ export default function IntentForm() {
                 ) : (
                   'Create Intent'
                 )}
-              </button>
+              </Button>
             </div>
           </form>
         </div>

@@ -6,8 +6,6 @@ import {
   FaMoneyBillWave,
   FaTasks,
   FaHardHat,
-  FaChevronDown,
-  FaChevronUp,
   FaPowerOff,
   FaSitemap,
   FaTimes,
@@ -37,6 +35,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 
 // ── Shared class strings ─────────────────────────────────────────────────────
@@ -155,43 +159,43 @@ const AppSidebar = ({
       if (depth === 0) {
         const containsActive = groupHasActiveChild(item);
 
-        const handleGroupClick = () => {
-          // Collapsed rail has no room for sub-items: expand first, then open the group.
-          if (isCollapsed) {
-            setOpen(true);
-            if (!isOpen) onToggleMenu(key);
-            return;
-          }
-          onToggleMenu(key);
-        };
-
         return (
           <SidebarMenuItem key={key}>
-            <SidebarMenuButton
-              tooltip={item.label}
-              onClick={handleGroupClick}
-              className={cn(
-                ROW_BASE,
-                "justify-between text-white bg-white/20 hover:bg-white/30 hover:text-white active:bg-white/30 active:text-white",
-                (isOpen || containsActive) && "font-semibold",
-                // Collapsed: brighter when the current page lives inside this group
-                containsActive && "group-data-[collapsible=icon]:bg-white/40"
-              )}
+            <Accordion
+              type="single"
+              collapsible
+              value={isOpen ? key : ""}
+              onValueChange={() => {
+                if (isCollapsed) {
+                  setOpen(true);
+                  if (!isOpen) onToggleMenu(key);
+                  return;
+                }
+                onToggleMenu(key);
+              }}
             >
-              <div className="flex items-center gap-3 min-w-0 group-data-[collapsible=icon]:gap-0">
-                <span className="text-sm shrink-0">{item.icon}</span>
-                <span className="group-data-[collapsible=icon]:hidden truncate">{item.label}</span>
-              </div>
-              <span className="group-data-[collapsible=icon]:hidden">
-                {isOpen ? <FaChevronUp className="text-xs" /> : <FaChevronDown className="text-xs" />}
-              </span>
-            </SidebarMenuButton>
-
-            {isOpen && (
-              <SidebarMenuSub className="border-white/20 mt-1 space-y-1 group-data-[collapsible=icon]:hidden">
-                {item.children.map((child) => renderMenuItem(child, depth + 1, key))}
-              </SidebarMenuSub>
-            )}
+              <AccordionItem value={key} className="border-0">
+                <AccordionTrigger
+                  title={item.label}
+                  className={cn(
+                    ROW_BASE,
+                    "justify-between text-white bg-white/20 hover:bg-white/30 hover:text-white active:bg-white/30 active:text-white hover:no-underline group-data-[collapsible=icon]:[&>svg]:hidden",
+                    (isOpen || containsActive) && "font-semibold",
+                    containsActive && "group-data-[collapsible=icon]:bg-white/40"
+                  )}
+                >
+                  <div className="flex items-center gap-3 min-w-0 group-data-[collapsible=icon]:gap-0">
+                    <span className="text-sm shrink-0">{item.icon}</span>
+                    <span className="group-data-[collapsible=icon]:hidden truncate">{item.label}</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="p-0">
+                  <SidebarMenuSub className="border-white/20 mt-1 space-y-1 group-data-[collapsible=icon]:hidden">
+                    {item.children.map((child) => renderMenuItem(child, depth + 1, key))}
+                  </SidebarMenuSub>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </SidebarMenuItem>
         );
       }
@@ -199,29 +203,32 @@ const AppSidebar = ({
       // Nested group (depth > 0, e.g. Attendance > Salary, Inventory > Material)
       return (
         <SidebarMenuSubItem key={key}>
-          <SidebarMenuSubButton
-            role="button"
-            onClick={() => onToggleMenu(key)}
-            className={cn(
-              "flex items-center justify-between w-full h-auto py-2 px-3 text-sm transition-all rounded-lg cursor-pointer",
-              "text-white/90 bg-white/10 hover:bg-white/20 hover:text-white active:bg-white/20 active:text-white",
-              isOpen && "font-semibold"
-            )}
+          <Accordion
+            type="single"
+            collapsible
+            value={isOpen ? key : ""}
+            onValueChange={() => onToggleMenu(key)}
           >
-            <div className="flex items-center gap-2 min-w-0">
-              {item.icon && <span className="text-sm shrink-0">{item.icon}</span>}
-              <span className="truncate">{item.label}</span>
-            </div>
-            <span>
-              {isOpen ? <FaChevronUp className="text-xs" /> : <FaChevronDown className="text-xs" />}
-            </span>
-          </SidebarMenuSubButton>
-
-          {isOpen && (
-            <SidebarMenuSub className="border-white/20 mt-1 space-y-1 ml-2">
-              {item.children.map((child) => renderMenuItem(child, depth + 1, key))}
-            </SidebarMenuSub>
-          )}
+            <AccordionItem value={key} className="border-0">
+              <AccordionTrigger
+                className={cn(
+                  "flex items-center justify-between w-full h-auto py-2 px-3 text-sm transition-all rounded-lg cursor-pointer hover:no-underline",
+                  "text-white/90 bg-white/10 hover:bg-white/20 hover:text-white active:bg-white/20 active:text-white",
+                  isOpen && "font-semibold"
+                )}
+              >
+                <span className="flex items-center gap-2 min-w-0">
+                  {item.icon && <span className="text-sm shrink-0">{item.icon}</span>}
+                  <span className="truncate">{item.label}</span>
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="p-0">
+                <SidebarMenuSub className="border-white/20 mt-1 space-y-1 ml-2">
+                  {item.children.map((child) => renderMenuItem(child, depth + 1, key))}
+                </SidebarMenuSub>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </SidebarMenuSubItem>
       );
     }

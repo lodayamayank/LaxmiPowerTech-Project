@@ -31,6 +31,8 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 const MAP_STYLE = { height: "400px", width: "100%" };
 const DEFAULT_CENTER = { lat: -33.8688, lng: 151.2093 };
 const DEFAULT_ZOOM = 5;
+// Google Maps needs a literal color string (it cannot read CSS variables). Matches the orange primary (orange-500).
+const MAP_PRIMARY_COLOR = "#f97316";
 
 const AdminBranches = () => {
   const [branches, setBranches] = useState([]);
@@ -207,7 +209,7 @@ const AdminBranches = () => {
         {/* Header */}
         <div>
           {/* <h1 className="text-2xl font-bold text-gray-800">Branch Management</h1> */}
-          <p className="text-sm text-gray-500 mt-1">Manage your branch locations with geofencing</p>
+          <p className="text-sm text-muted-foreground mt-1">Manage your branch locations with geofencing</p>
         </div>
 
         {/* Stats Card */}
@@ -217,10 +219,10 @@ const AdminBranches = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground font-medium">Total Branches</p>
-                  <p className="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-1">{branches.length}</p>
+                  <p className="text-3xl font-bold text-foreground mt-1">{branches.length}</p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-950/40 flex items-center justify-center">
-                  <FaBuilding className="text-orange-600 dark:text-orange-400" size={20} />
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <FaBuilding className="text-primary" size={20} />
                 </div>
               </div>
             </CardContent>
@@ -230,7 +232,7 @@ const AdminBranches = () => {
         {/* Form */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-4">
-            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+            <CardTitle className="text-lg font-semibold text-foreground">
               {editingId ? "Edit Branch" : "Add New Branch"}
             </CardTitle>
             {editingId && (
@@ -239,7 +241,7 @@ const AdminBranches = () => {
                 variant="ghost"
                 size="icon"
                 onClick={handleCancelEdit}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-muted-foreground hover:text-foreground"
                 title="Cancel"
               >
                 <FaTimes size={16} />
@@ -290,7 +292,7 @@ const AdminBranches = () => {
                   <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
                   <Input
                     type="text"
-                    className="pl-10 bg-gray-50 dark:bg-gray-800"
+                    className="pl-10 bg-muted"
                     readOnly
                     value={formData.address || "Select location on map or search below"}
                   />
@@ -320,7 +322,7 @@ const AdminBranches = () => {
                 ) : (
                   <Input
                     type="text"
-                    className="bg-gray-50 dark:bg-gray-800"
+                    className="bg-muted"
                     placeholder="Loading Google Maps..."
                     disabled
                   />
@@ -335,7 +337,7 @@ const AdminBranches = () => {
                   Select Location on Map
                 </Label>
                 {isLoaded && (
-                  <div className="rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
+                  <div className="rounded-lg overflow-hidden border border-border">
                     <GoogleMap
                       mapContainerStyle={MAP_STYLE}
                       center={
@@ -355,9 +357,9 @@ const AdminBranches = () => {
                             center={{ lat: formData.lat, lng: formData.lng }}
                             radius={Number(formData.radius) || 0}
                             options={{ 
-                              fillColor: "#ff6b35",
+                              fillColor: MAP_PRIMARY_COLOR,
                               fillOpacity: 0.15, 
-                              strokeColor: "#ff6b35",
+                              strokeColor: MAP_PRIMARY_COLOR,
                               strokeOpacity: 0.6, 
                               strokeWeight: 2 
                             }}
@@ -370,10 +372,7 @@ const AdminBranches = () => {
               </div>
 
               <div className="flex items-center gap-3 pt-2">
-                <Button
-                  type="submit"
-                  className="bg-orange-500 hover:bg-orange-600 text-white gap-2"
-                >
+                <Button type="submit" className="gap-2">
                   {editingId ? (
                     <>
                       <FaCheck size={14} />
@@ -403,20 +402,20 @@ const AdminBranches = () => {
 
         {/* Branches Table */}
         <Card>
-          <CardHeader className="border-b border-gray-100 dark:border-gray-700">
-            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100">Branches List</CardTitle>
+          <CardHeader className="border-b border-border">
+            <CardTitle className="text-lg font-semibold text-foreground">Branches List</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">Manage your existing branches</p>
           </CardHeader>
 
           <CardContent className="p-0 overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="dark:border-gray-700">
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Name</TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Address</TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Radius (m)</TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Coordinates</TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Actions</TableHead>
+                <TableRow>
+                  <TableHead className="font-semibold text-foreground">Name</TableHead>
+                  <TableHead className="font-semibold text-foreground">Address</TableHead>
+                  <TableHead className="font-semibold text-foreground">Radius (m)</TableHead>
+                  <TableHead className="font-semibold text-foreground">Coordinates</TableHead>
+                  <TableHead className="font-semibold text-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -438,8 +437,8 @@ const AdminBranches = () => {
                   </TableRow>
                 ) : (
                   branches.map((b) => (
-                    <TableRow key={b._id} className="dark:border-gray-700 dark:hover:bg-gray-700/60">
-                      <TableCell className="font-medium text-gray-900 dark:text-gray-100">{b.name}</TableCell>
+                    <TableRow key={b._id}>
+                      <TableCell className="font-medium text-foreground">{b.name}</TableCell>
                       <TableCell className="text-muted-foreground max-w-xs truncate">
                         {b.address || "—"}
                       </TableCell>
@@ -453,7 +452,7 @@ const AdminBranches = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleEdit(b)}
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 gap-1 font-medium"
+                            className="text-primary hover:text-primary hover:bg-primary/10 gap-1 font-medium"
                           >
                             <FaEdit size={14} />
                             Edit
@@ -462,7 +461,7 @@ const AdminBranches = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDelete(b._id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 gap-1 font-medium"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1 font-medium"
                           >
                             <FaTrash size={14} />
                             Delete

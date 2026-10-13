@@ -1,28 +1,12 @@
-import React, { useState } from 'react';
-import { FaPlus, FaTrash, FaEdit, FaSave, FaTimes, FaChevronDown, FaChevronRight } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 const ProjectHierarchyManager = ({ buildings, onChange }) => {
-  const [expandedBuildings, setExpandedBuildings] = useState({});
-  const [expandedWings, setExpandedWings] = useState({});
-  const [expandedFloors, setExpandedFloors] = useState({});
-  const [expandedFlats, setExpandedFlats] = useState({});
-
-  const toggleBuilding = (buildingId) => {
-    setExpandedBuildings(prev => ({ ...prev, [buildingId]: !prev[buildingId] }));
-  };
-
-  const toggleWing = (key) => {
-    setExpandedWings(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const toggleFloor = (key) => {
-    setExpandedFloors(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const toggleFlat = (key) => {
-    setExpandedFlats(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
   const addBuilding = () => {
     const newBuildings = [...buildings, { name: '', wings: [] }];
     onChange(newBuildings);
@@ -141,19 +125,16 @@ const ProjectHierarchyManager = ({ buildings, onChange }) => {
           <p className="text-gray-500">No buildings added yet. Click "Add Building" to start.</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <Accordion type="multiple" className="space-y-3">
           {buildings.map((building, bIdx) => (
-            <div key={bIdx} className="border border-gray-200 rounded-lg bg-white">
+            <AccordionItem key={bIdx} value={`building-${bIdx}`} className="overflow-hidden rounded-lg border border-gray-200 bg-white">
               {/* Building Level */}
               <div className="p-3 bg-blue-50 border-b border-gray-200">
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => toggleBuilding(bIdx)}
-                    className="text-gray-600 hover:text-gray-800"
-                  >
-                    {expandedBuildings[bIdx] ? <FaChevronDown /> : <FaChevronRight />}
-                  </button>
+                  <AccordionTrigger
+                    aria-label={`Toggle building ${building.name || bIdx + 1}`}
+                    className="h-8 w-8 flex-none justify-center rounded p-1 text-gray-600 hover:text-gray-800 hover:no-underline"
+                  />
                   <input
                     type="text"
                     value={building.name}
@@ -179,21 +160,19 @@ const ProjectHierarchyManager = ({ buildings, onChange }) => {
               </div>
 
               {/* Wings */}
-              {expandedBuildings[bIdx] && building.wings && building.wings.length > 0 && (
-                <div className="p-3 space-y-2">
+              <AccordionContent className="p-3">
+                {building.wings?.length > 0 && (
+                  <Accordion type="multiple" className="space-y-2">
                   {building.wings.map((wing, wIdx) => {
                     const wingKey = `${bIdx}-${wIdx}`;
                     return (
-                      <div key={wIdx} className="border border-gray-200 rounded-lg bg-green-50">
+                      <AccordionItem key={wIdx} value={`wing-${wingKey}`} className="rounded-lg border border-gray-200 bg-green-50">
                         <div className="p-2">
                           <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => toggleWing(wingKey)}
-                              className="text-gray-600 hover:text-gray-800"
-                            >
-                              {expandedWings[wingKey] ? <FaChevronDown /> : <FaChevronRight />}
-                            </button>
+                            <AccordionTrigger
+                              aria-label={`Toggle wing ${wing.name || wIdx + 1}`}
+                              className="h-8 w-8 flex-none justify-center rounded p-1 text-gray-600 hover:text-gray-800 hover:no-underline"
+                            />
                             <input
                               type="text"
                               value={wing.name}
@@ -219,21 +198,19 @@ const ProjectHierarchyManager = ({ buildings, onChange }) => {
                         </div>
 
                         {/* Floors */}
-                        {expandedWings[wingKey] && wing.floors && wing.floors.length > 0 && (
-                          <div className="p-2 space-y-2">
+                        {wing.floors?.length > 0 && (
+                          <AccordionContent className="p-2">
+                            <Accordion type="multiple" className="space-y-2">
                             {wing.floors.map((floor, fIdx) => {
                               const floorKey = `${bIdx}-${wIdx}-${fIdx}`;
                               return (
-                                <div key={fIdx} className="border border-gray-200 rounded bg-purple-50">
+                                <AccordionItem key={fIdx} value={`floor-${floorKey}`} className="rounded border border-gray-200 bg-purple-50">
                                   <div className="p-2">
                                     <div className="flex items-center gap-2">
-                                      <button
-                                        type="button"
-                                        onClick={() => toggleFloor(floorKey)}
-                                        className="text-gray-600 hover:text-gray-800"
-                                      >
-                                        {expandedFloors[floorKey] ? <FaChevronDown /> : <FaChevronRight />}
-                                      </button>
+                                      <AccordionTrigger
+                                        aria-label={`Toggle floor ${floor.name || fIdx + 1}`}
+                                        className="h-8 w-8 flex-none justify-center rounded p-1 text-gray-600 hover:text-gray-800 hover:no-underline"
+                                      />
                                       <input
                                         type="text"
                                         value={floor.name}
@@ -259,21 +236,19 @@ const ProjectHierarchyManager = ({ buildings, onChange }) => {
                                   </div>
 
                                   {/* Flats */}
-                                  {expandedFloors[floorKey] && floor.flats && floor.flats.length > 0 && (
-                                    <div className="p-2 space-y-2">
+                                  {floor.flats?.length > 0 && (
+                                    <AccordionContent className="p-2">
+                                      <Accordion type="multiple" className="space-y-2">
                                       {floor.flats.map((flat, flatIdx) => {
                                         const flatKey = `${bIdx}-${wIdx}-${fIdx}-${flatIdx}`;
                                         return (
-                                          <div key={flatIdx} className="border border-gray-200 rounded bg-orange-50">
+                                          <AccordionItem key={flatIdx} value={`flat-${flatKey}`} className="rounded border border-gray-200 bg-orange-50">
                                             <div className="p-2">
                                               <div className="flex items-center gap-2">
-                                                <button
-                                                  type="button"
-                                                  onClick={() => toggleFlat(flatKey)}
-                                                  className="text-gray-600 hover:text-gray-800"
-                                                >
-                                                  {expandedFlats[flatKey] ? <FaChevronDown /> : <FaChevronRight />}
-                                                </button>
+                                                <AccordionTrigger
+                                                  aria-label={`Toggle flat ${flat.name || flatIdx + 1}`}
+                                                  className="h-8 w-8 flex-none justify-center rounded p-1 text-gray-600 hover:text-gray-800 hover:no-underline"
+                                                />
                                                 <input
                                                   type="text"
                                                   value={flat.name}
@@ -299,8 +274,9 @@ const ProjectHierarchyManager = ({ buildings, onChange }) => {
                                             </div>
 
                                             {/* Rooms */}
-                                            {expandedFlats[flatKey] && flat.rooms && flat.rooms.length > 0 && (
-                                              <div className="p-2 space-y-1">
+                                            {flat.rooms?.length > 0 && (
+                                              <AccordionContent className="p-2">
+                                                <div className="space-y-1">
                                                 {flat.rooms.map((room, rIdx) => (
                                                   <div key={rIdx} className="flex items-center gap-2 bg-teal-50 p-2 rounded">
                                                     <input
@@ -319,26 +295,30 @@ const ProjectHierarchyManager = ({ buildings, onChange }) => {
                                                     </button>
                                                   </div>
                                                 ))}
-                                              </div>
+                                                </div>
+                                              </AccordionContent>
                                             )}
-                                          </div>
+                                          </AccordionItem>
                                         );
                                       })}
-                                    </div>
+                                      </Accordion>
+                                    </AccordionContent>
                                   )}
-                                </div>
+                                </AccordionItem>
                               );
                             })}
-                          </div>
+                            </Accordion>
+                          </AccordionContent>
                         )}
-                      </div>
+                      </AccordionItem>
                     );
                   })}
-                </div>
-              )}
-            </div>
+                  </Accordion>
+                )}
+              </AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
       )}
     </div>
   );

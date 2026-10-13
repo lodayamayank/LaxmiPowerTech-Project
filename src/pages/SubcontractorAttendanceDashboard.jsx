@@ -1,12 +1,13 @@
 import DashboardLayout from "../layouts/DashboardLayout";
 import React, { useEffect, useState } from "react";
 import axios from "../utils/axios";
-import Select from "../components/Select";
+// import Select from "../components/Select";
 import DateRangeFilter from "../components/DateRangeFilter";
 import { getCurrentMonthDateRange } from "../utils/dateRange";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableHeader,
@@ -29,6 +30,13 @@ import {
   FaClock,
   FaFilter,
 } from "react-icons/fa";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const LeaveBadge = ({ count, type }) => {
   if (!count || count === 0) return null;
@@ -327,9 +335,9 @@ const SubcontractorAttendanceDashboard = () => {
                     size={14}
                   />
 
-                  <input
+                  <Input
                     type="text"
-                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                    className="h-auto w-full  pr-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm shadow-none focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-transparent transition-all"
                     placeholder="Search by name..."
                     value={searchStaff}
                     onChange={(e) => setSearchStaff(e.target.value)}
@@ -363,16 +371,21 @@ const SubcontractorAttendanceDashboard = () => {
               </div>
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-600">Rows per page:</label>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                  className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                <Select
+                  value={String(itemsPerPage)}
+                  onValueChange={(value) => setItemsPerPage(Number(value))}
                 >
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                </select>
+                  <SelectTrigger className="h-9 w-[90px] rounded-lg border-gray-300 text-sm focus:ring-2 focus:ring-orange-500">
+                    <SelectValue placeholder="Per page" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>

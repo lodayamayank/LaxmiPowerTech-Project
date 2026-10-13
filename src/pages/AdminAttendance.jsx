@@ -1,9 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
 import axios from '../utils/axios';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+// NOTE: assumes the standard shadcn files exist at these paths.
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
 
 const AdminAttendance = ({role}) => {
   const [summary, setSummary] = useState([]);
@@ -13,17 +22,7 @@ const AdminAttendance = ({role}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  useEffect(() => {
-    if (selectedProject && selectedMonth) {
-      fetchAttendanceSummary();
-    }
-  }, [selectedProject, selectedMonth]);
-
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       const res = await axios.get('/projects', {
         headers: { Authorization: `Bearer ${token}` },
@@ -32,21 +31,31 @@ const AdminAttendance = ({role}) => {
     } catch (err) {
       console.error('Failed to fetch projects', err);
     }
-  };
+  }, [token]);
 
-  const fetchAttendanceSummary = async () => {
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+  const fetchAttendanceSummary = useCallback(async () => {
     try {
       const month = selectedMonth.getMonth() + 1;
       const year = selectedMonth.getFullYear();
       const res = await axios.get(
-  `/attendance/summary?project=${selectedProject}&month=${month}&year=${year}&role=${role}`,
-  { headers: { Authorization: `Bearer ${token}` } }
-);
+        `/attendance/summary?project=${selectedProject}&month=${month}&year=${year}&role=${role}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setSummary(res.data);
     } catch (err) {
       console.error('Failed to fetch attendance summary', err);
     }
-  };
+  }, [role, selectedMonth, selectedProject, token]);
+
+  useEffect(() => {
+    if (selectedProject && selectedMonth) {
+      fetchAttendanceSummary();
+    }
+  }, [fetchAttendanceSummary, selectedProject, selectedMonth]);
 
   const handleMonthChange = (e) => {
     const date = new Date(e.target.value);
@@ -63,69 +72,91 @@ const AdminAttendance = ({role}) => {
         <h1 className="text-2xl font-bold mb-4">Attendance Staff Dashboard</h1>
 
         {/* Filters */}
-        <div className="flex flex-wrap gap-4 mb-6">
-          <select
-            className="border p-2 rounded"
-            value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
-          >
-            <option value="">Select Project</option>
-            {projects.map((proj) => (
-              <option key={proj._id} value={proj._id}>{proj.name}</option>
-            ))}
-          </select>
+        <Card className="mb-6">
+          <CardContent className="flex flex-wrap gap-4 p-4">
+            {/* Native select retained: preserves selectedProject (project _id) and onChange exactly */}
+            <select
+              aria-label="Select project"
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              value={selectedProject}
+              onChange={(e) => setSelectedProject(e.target.value)}
+            >
+              <option value="">Select Project</option>
+              {projects.map((proj) => (
+                <option key={proj._id} value={proj._id}>{proj.name}</option>
+              ))}
+            </select>
 
-          <input
-            type="month"
-            className="border p-2 rounded"
-            onChange={handleMonthChange}
-            value={`${selectedMonth.getFullYear()}-${(selectedMonth.getMonth() + 1).toString().padStart(2, '0')}`}
-          />
+            <Input
+              type="month"
+              aria-label="Select month"
+              className="w-auto"
+              onChange={handleMonthChange}
+              value={`${selectedMonth.getFullYear()}-${(selectedMonth.getMonth() + 1).toString().padStart(2, '0')}`}
+            />
 
-          <input
-            type="text"
-            placeholder="Search Staff Name / Phone No."
-            className="border p-2 rounded flex-1"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+            <Input
+              type="text"
+              placeholder="Search Staff Name / Phone No."
+              aria-label="Search staff"
+              className="flex-1 min-w-[200px]"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
 
-          <button className="bg-orange-500 text-white px-4 py-2 rounded">Download Report</button>
-        </div>
+            {/* No onClick: unchanged from original (download is not implemented) */}
+            <Button className="bg-orange-500 text-white hover:bg-orange-600">Download Report</Button>
+          </CardContent>
+        </Card>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 border">Name</th>
-                <th className="p-2 border">Employee ID</th>
-                <th className="p-2 border">Present</th>
-                <th className="p-2 border">Absent</th>
-                <th className="p-2 border">Half Day</th>
-                <th className="p-2 border">Week off</th>
-                <th className="p-2 border">Paid Leave</th>
-                <th className="p-2 border">Unpaid Leave</th>
-                <th className="p-2 border">Overtime</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSummary.map((item) => (
-                <tr key={item.user._id}>
-                  <td className="p-2 border">{item.user.name}</td>
-                  <td className="p-2 border">{item.user.employeeId || '-'}</td>
-                  <td className="p-2 border text-center">{item.present}</td>
-                  <td className="p-2 border text-center">{item.absent}</td>
-                  <td className="p-2 border text-center">{item.halfDay}</td>
-                  <td className="p-2 border text-center">{item.weekOff}</td>
-                  <td className="p-2 border text-center">{item.paidLeave}</td>
-                  <td className="p-2 border text-center">{item.unpaidLeave}</td>
-                  <td className="p-2 border text-center">{item.overtime}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table className="w-full text-sm border">
+                <TableHeader className="bg-gray-100">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="h-auto p-2 border text-center font-bold text-foreground">Name</TableHead>
+                    <TableHead className="h-auto p-2 border text-center font-bold text-foreground">Employee ID</TableHead>
+                    <TableHead className="h-auto p-2 border text-center font-bold text-foreground">Present</TableHead>
+                    <TableHead className="h-auto p-2 border text-center font-bold text-foreground">Absent</TableHead>
+                    <TableHead className="h-auto p-2 border text-center font-bold text-foreground">Half Day</TableHead>
+                    <TableHead className="h-auto p-2 border text-center font-bold text-foreground">Week off</TableHead>
+                    <TableHead className="h-auto p-2 border text-center font-bold text-foreground">Paid Leave</TableHead>
+                    <TableHead className="h-auto p-2 border text-center font-bold text-foreground">Unpaid Leave</TableHead>
+                    <TableHead className="h-auto p-2 border text-center font-bold text-foreground">Overtime</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredSummary.length === 0 ? (
+                    <TableRow className="hover:bg-transparent">
+                      <TableCell
+                        colSpan={9}
+                        className="h-24 text-center text-muted-foreground"
+                      >
+                        No attendance records found.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                  filteredSummary.map((item) => (
+                    <TableRow key={item.user._id} className="hover:bg-transparent">
+                      <TableCell className="p-2 border whitespace-normal">{item.user.name}</TableCell>
+                      <TableCell className="p-2 border whitespace-normal">{item.user.employeeId || '-'}</TableCell>
+                      <TableCell className="p-2 border text-center">{item.present}</TableCell>
+                      <TableCell className="p-2 border text-center">{item.absent}</TableCell>
+                      <TableCell className="p-2 border text-center">{item.halfDay}</TableCell>
+                      <TableCell className="p-2 border text-center">{item.weekOff}</TableCell>
+                      <TableCell className="p-2 border text-center">{item.paidLeave}</TableCell>
+                      <TableCell className="p-2 border text-center">{item.unpaidLeave}</TableCell>
+                      <TableCell className="p-2 border text-center">{item.overtime}</TableCell>
+                    </TableRow>
+                  ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );

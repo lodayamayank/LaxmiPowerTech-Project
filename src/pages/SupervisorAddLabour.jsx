@@ -5,8 +5,8 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import logo from '../assets/logo.png';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+
 
 const SupervisorAddLabour = () => {
   const navigate = useNavigate();
@@ -142,13 +142,13 @@ const SupervisorAddLabour = () => {
                 <label className="text-gray-700 text-sm font-medium mb-2 block">
                   Name <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Enter full name"
-                  className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                  className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
                   required
                   disabled={loading}
                 />
@@ -190,13 +190,13 @@ const SupervisorAddLabour = () => {
                 <label className="text-gray-700 text-sm font-medium mb-2 block">
                   Mobile Number (Optional)
                 </label>
-                <input
+                <Input
                   type="tel"
                   name="mobileNumber"
                   value={formData.mobileNumber}
                   onChange={handleChange}
                   placeholder="Enter mobile number"
-                  className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                  className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
                   disabled={loading}
                 />
               </div>
@@ -206,13 +206,13 @@ const SupervisorAddLabour = () => {
                 <label className="text-gray-700 text-sm font-medium mb-2 block">
                   Emergency Contact (Optional)
                 </label>
-                <input
+                <Input
                   type="tel"
                   name="emergencyContact"
                   value={formData.emergencyContact}
                   onChange={handleChange}
                   placeholder="Enter emergency contact"
-                  className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                  className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
                   disabled={loading}
                 />
               </div>
@@ -281,13 +281,13 @@ const SupervisorAddLabour = () => {
                   <label className="text-gray-700 text-sm font-medium mb-2 block">
                     Daily Wage (₹)
                   </label>
-                  <input
+                  <Input
                     type="number"
                     name="dailyWage"
                     value={formData.dailyWage}
                     onChange={handleChange}
                     placeholder="Enter amount"
-                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                    className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
                     disabled={loading}
                   />
                 </div>
@@ -295,13 +295,13 @@ const SupervisorAddLabour = () => {
                   <label className="text-gray-700 text-sm font-medium mb-2 block">
                     Overtime Rate (₹/hr)
                   </label>
-                  <input
+                  <Input
                     type="number"
                     name="overtimeWage"
                     value={formData.overtimeWage}
                     onChange={handleChange}
                     placeholder="Enter rate"
-                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                    className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
                     disabled={loading}
                   />
                 </div>

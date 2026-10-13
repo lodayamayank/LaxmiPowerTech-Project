@@ -1,20 +1,29 @@
-import React, { useRef, useEffect } from "react";
-import { FileUp, ShoppingCart, Upload } from "lucide-react";
+// import React, { useRef, useEffect } from "react";
+import React from "react";
+// import { FileUp, ShoppingCart, Upload } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 export default function AddIndentPopup({ onClose, onUploadClick }) {
-  const popupRef = useRef(null);
+  // const popupRef = useRef(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (popupRef.current && !popupRef.current.contains(event.target)) {
-        onClose();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     if (popupRef.current && !popupRef.current.contains(event.target)) {
+  //       onClose();
+  //     }
+  //   };
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, [onClose]);
 
   const handleCreateIntent = () => {
     onClose(); // close popup
@@ -27,52 +36,70 @@ export default function AddIndentPopup({ onClose, onUploadClick }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end justify-center z-50 animate-fade-in">
-      <div
-        ref={popupRef}
-        className="bg-white rounded-t-3xl w-full max-w-md p-6 shadow-2xl animate-slide-up"
-      >
-        <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-6"></div>
-        
-        <h3 className="text-gray-900 font-bold text-lg mb-6">
+  <Sheet open={true} onOpenChange={(open) => !open && onClose()}>
+    <SheetContent
+      side="bottom"
+      className="w-full max-w-md mx-auto rounded-t-3xl px-6 pb-6"
+    >
+      <SheetHeader className="mb-6">
+        <SheetTitle className="text-left text-lg font-bold text-gray-900">
           Create New Intent
-        </h3>
+        </SheetTitle>
+      </SheetHeader>
 
-        <div className="flex flex-col space-y-3">
-          <button
-            onClick={handleCreateIntent}
-            className="flex items-center space-x-4 bg-gradient-to-r from-orange-50 to-orange-100 text-gray-900 font-semibold p-4 rounded-xl hover:from-orange-100 hover:to-orange-200 transition-all shadow-sm hover:shadow-md transform hover:scale-[1.02]"
-          >
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
-              <ShoppingCart size={22} className="text-white" />
-            </div>
-            <div className="text-left flex-1">
-              <p className="font-bold text-gray-900">Create Intent (PO)</p>
-              <p className="text-xs text-gray-600 mt-0.5">Fill form to create new intent</p>
-            </div>
-          </button>
+      <div className="flex flex-col gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={handleCreateIntent}
+          className="h-auto justify-start gap-4 rounded-xl bg-gradient-to-r from-orange-50 to-orange-100 p-4 text-left hover:from-orange-100 hover:to-orange-200"
+        >
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 shadow-md">
+            <ShoppingCart size={22} className="text-white" />
+          </div>
 
-          <button
-            onClick={handleUploadIntentList}
-            className="flex items-center space-x-4 bg-gradient-to-r from-blue-50 to-blue-100 text-gray-900 font-semibold p-4 rounded-xl hover:from-blue-100 hover:to-blue-200 transition-all shadow-sm hover:shadow-md transform hover:scale-[1.02]"
-          >
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
-              <Upload size={22} className="text-white" />
-            </div>
-            <div className="text-left flex-1">
-              <p className="font-bold text-gray-900">Upload Intent List</p>
-              <p className="text-xs text-gray-600 mt-0.5">Upload photo of material list</p>
-            </div>
-          </button>
+          <div className="flex-1">
+            <p className="font-bold text-gray-900">
+              Create Intent (PO)
+            </p>
 
-          <button
-            onClick={onClose}
-            className="flex items-center justify-center space-x-2 bg-white border-2 border-gray-200 text-gray-700 font-semibold p-4 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
-          >
-            <span>Cancel</span>
-          </button>
-        </div>
+            <p className="mt-0.5 text-xs text-gray-600">
+              Fill form to create new intent
+            </p>
+          </div>
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={handleUploadIntentList}
+          className="h-auto justify-start gap-4 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 p-4 text-left hover:from-blue-100 hover:to-blue-200"
+        >
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
+            <Upload size={22} className="text-white" />
+          </div>
+
+          <div className="flex-1">
+            <p className="font-bold text-gray-900">
+              Upload Intent List
+            </p>
+
+            <p className="mt-0.5 text-xs text-gray-600">
+              Upload photo of material list
+            </p>
+          </div>
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onClose}
+          className="h-auto p-4"
+        >
+          Cancel
+        </Button>
       </div>
-    </div>
-  );
+    </SheetContent>
+  </Sheet>
+);
 }

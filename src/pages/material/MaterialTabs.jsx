@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 export default function MaterialTabs({ activeTab }) {
   const tabs = [
@@ -16,9 +17,12 @@ export default function MaterialTabs({ activeTab }) {
           key={tab.path}
           to={tab.path}
           className={({ isActive }) =>
-            isActive
-              ? "text-orange-500 border-b-2 border-orange-500 pb-1 whitespace-nowrap"
-              : "text-gray-600 hover:text-orange-500 whitespace-nowrap"
+            cn(
+              "whitespace-nowrap",
+              isActive
+                ? "text-orange-500 border-b-2 border-orange-500 pb-1"
+                : "text-gray-600 hover:text-orange-500"
+            )
           }
         >
           {tab.name}

@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AddIndentPopup from "./AddIntentPopup";
 import { purchaseOrderAPI } from "../../utils/materialAPI";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MaterialIndent() {
   const [showPopup, setShowPopup] = useState(false);
@@ -117,7 +120,7 @@ export default function MaterialIndent() {
       <div className="px-3 pb-20 pt-3">
         {loading ? (
           <div className="flex justify-center items-center py-10">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+            <Skeleton className="h-8 w-8 rounded-full" />
           </div>
         ) : purchaseOrders.length === 0 ? (
           <div className="text-center py-10">
@@ -127,60 +130,62 @@ export default function MaterialIndent() {
         ) : (
           <div className="space-y-3">
             {purchaseOrders.map((po) => (
-              <div
+              <Card
                 key={po._id}
                 onClick={() => navigate(`/dashboard/material/intent/${po._id}`)}
-                className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                className="bg-white rounded-xl border border-gray-200 gap-0 py-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
               >
-                {/* Header */}
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="font-semibold text-gray-900 text-base">
-                      {po.purchaseOrderId}
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {po.purchaseOrderId}
-                    </p>
+                <CardContent className="p-4">
+                  {/* Header */}
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-base">
+                        {po.purchaseOrderId}
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {po.purchaseOrderId}
+                      </p>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusColor(po.status)}`}>
+                      {getStatusText(po.status)}
+                    </span>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusColor(po.status)}`}>
-                    {getStatusText(po.status)}
-                  </span>
-                </div>
 
-                {/* Details */}
-                <div className="space-y-1.5 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Delivery Site</span>
-                    <span className="font-medium text-gray-900">{po.deliverySite}</span>
+                  {/* Details */}
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Delivery Site</span>
+                      <span className="font-medium text-gray-900">{po.deliverySite}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Materials</span>
+                      <span className="font-medium text-gray-900">{po.materials?.length || 0} items</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Requested By</span>
+                      <span className="font-medium text-gray-900">{po.requestedBy}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Date</span>
+                      <span className="font-medium text-gray-900">{formatDate(po.requestDate)}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Materials</span>
-                    <span className="font-medium text-gray-900">{po.materials?.length || 0} items</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Requested By</span>
-                    <span className="font-medium text-gray-900">{po.requestedBy}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Date</span>
-                    <span className="font-medium text-gray-900">{formatDate(po.requestDate)}</span>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
       </div>
 
       {/* Floating Add Button - fixed at bottom */}
-      <button
+      <Button
         onClick={togglePopup}
-        className={`fixed bottom-6 left-1/2 -translate-x-1/2 text-white text-2xl font-bold rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-orange-600 transition-transform transform hover:scale-110 ${
+        className={`fixed bottom-6 left-1/2 -translate-x-1/2 text-white text-2xl font-bold rounded-full w-14 h-14 p-0 flex items-center justify-center shadow-lg hover:bg-orange-600 transition-transform transform hover:scale-110 ${
           showPopup ? "rotate-45 bg-gray-400" : "bg-orange-500"
         }`}
       >
         +
-      </button>
+      </Button>
 
       {/* Bottom Popup */}
       {showPopup && (

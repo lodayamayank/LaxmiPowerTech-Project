@@ -16,6 +16,7 @@ import {
 } from "react-icons/fa";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 const FALLBACK_DELAY_MS = 30000;
 
@@ -405,7 +406,7 @@ const SelfieCaptureScreen = () => {
                     >
                       Supervisor Code
                     </label>
-                    <input
+                    <Input
                       id="supervisor-code"
                       type="text"
                       inputMode="numeric"
@@ -418,7 +419,7 @@ const SelfieCaptureScreen = () => {
                         )
                       }
                       placeholder="Enter 6-digit code"
-                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
+                      className="h-auto w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-none outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 focus-visible:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-200"
                     />
                     <Button
                       type="button"

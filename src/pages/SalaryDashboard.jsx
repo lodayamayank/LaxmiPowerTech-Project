@@ -5,7 +5,29 @@ import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import {
   FaRupeeSign,
   FaCalendarAlt,
@@ -23,7 +45,6 @@ import {
   FaCalendarCheck,
   FaInfoCircle,
 } from 'react-icons/fa';
-import Select from '../components/Select';
 
 const SalaryDashboard = () => {
   const [salaryData, setSalaryData] = useState([]);
@@ -353,32 +374,34 @@ const SalaryDashboard = () => {
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                <Label className="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Month
-                </label>
-                <Select
-                  value={month}
-                  onChange={(e) => setMonth(parseInt(e.target.value))}
-                  options={monthNames.map((name, index) => ({
-                    value: index + 1,
-                    label: name
-                  }))}
-                  className="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
+                </Label>
+                <Select value={String(month)} onValueChange={(value) => setMonth(Number(value))}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {monthNames.map((name, index) => (
+                      <SelectItem key={name} value={String(index + 1)}>{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                <Label className="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Year
-                </label>
-                <Select
-                  value={year}
-                  onChange={(e) => setYear(parseInt(e.target.value))}
-                  options={[2024, 2025, 2026, 2027].map((y) => ({
-                    value: y,
-                    label: y.toString()
-                  }))}
-                  className="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
+                </Label>
+                <Select value={String(year)} onValueChange={(value) => setYear(Number(value))}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[2024, 2025, 2026, 2027].map((y) => (
+                      <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -521,27 +544,31 @@ const SalaryDashboard = () => {
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1">
                 <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-                  <input
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 z-10 text-gray-400 dark:text-gray-500" />
+                  <Input
                     type="text"
                     placeholder="Search by name, username, or employee ID..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full h-auto pl-10 pr-4 py-2 text-base md:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent focus-visible:ring-orange-500 focus-visible:ring-offset-0 focus-visible:border-transparent"
                   />
                 </div>
               </div>
               <div className="flex gap-4">
                 <Select
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                  className="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  value={roleFilter || 'all'}
+                  onValueChange={(value) => setRoleFilter(value === 'all' ? '' : value)}
                 >
-                  <option value="">All Roles</option>
-                  <option value="staff">Staff</option>
-                  <option value="supervisor">Supervisor</option>
-                  <option value="labour">Labour</option>
-                  <option value="subcontractor">Subcontractor</option>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="All Roles" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Roles</SelectItem>
+                    <SelectItem value="staff">Staff</SelectItem>
+                    <SelectItem value="supervisor">Supervisor</SelectItem>
+                    <SelectItem value="labour">Labour</SelectItem>
+                    <SelectItem value="subcontractor">Subcontractor</SelectItem>
+                  </SelectContent>
                 </Select>
                 <Button
                   onClick={exportToCSV}
@@ -554,32 +581,41 @@ const SalaryDashboard = () => {
             </div>
 
             {/* Salary Table */}
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Employee</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead className="text-right">CTC</TableHead>
-                    <TableHead className="text-right">Gross</TableHead>
-                    <TableHead className="text-center">Days</TableHead>
-                    <TableHead className="text-right">Deductions</TableHead>
-                    <TableHead className="text-right">Net Salary</TableHead>
-                    <TableHead className="text-center">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+            <div className="overflow-x-auto rounded-md border">
+              <div className="min-w-[1100px]">
+                <div className="grid grid-cols-[minmax(0,2fr)_repeat(6,minmax(0,1fr))_minmax(130px,auto)] items-center gap-2 bg-muted/50 px-4 py-3 text-sm font-medium">
+                  <div>Employee</div>
+                  <div>Role</div>
+                  <div className="text-right">CTC</div>
+                  <div className="text-right">Gross</div>
+                  <div className="text-center">Days</div>
+                  <div className="text-right">Deductions</div>
+                  <div className="text-right">Net Salary</div>
+                  <div className="text-center">Actions</div>
+                  <div />
+                </div>
+                <Accordion
+                  type="single"
+                  collapsible
+                  value={expandedRow ? String(expandedRow) : ""}
+                  onValueChange={(value) => {
+                    if (!value) {
+                      setExpandedRow(null);
+                      return;
+                    }
+                    const item = filteredData.find((entry) => String(entry.userId) === value);
+                    if (item) toggleRow(item);
+                  }}
+                >
                   {filteredData.map((item) => (
-                    <React.Fragment key={item.userId}>
-                      <TableRow>
-                        <TableCell>
-                          <div>
-                            <p className="font-semibold text-gray-900 dark:text-white">{item.name}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">@{item.username}</p>
-                            <p className="text-xs text-gray-400 dark:text-gray-500">{item.employeeId}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
+                    <AccordionItem key={item.userId} value={String(item.userId)} className="border-b border-gray-200 last:border-b-0">
+                      <div className="grid grid-cols-[minmax(0,2fr)_repeat(6,minmax(0,1fr))_minmax(130px,auto)] items-center gap-2 px-4 py-3 transition-colors hover:bg-muted/50">
+                        <div>
+                          <p className="font-semibold text-gray-900 dark:text-white">{item.name}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">@{item.username}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">{item.employeeId}</p>
+                        </div>
+                        <div>
                           <Badge variant="outline" className={`capitalize ${
                             item.role === 'admin' ? 'bg-purple-50 text-purple-800 border-purple-200' :
                             item.role === 'staff' ? 'bg-blue-50 text-blue-800 border-blue-200' :
@@ -588,44 +624,35 @@ const SalaryDashboard = () => {
                           }`}>
                             {item.role}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
+                        </div>
+                        <div className="text-right">
                           <p className="font-medium">{formatCurrency(item.ctcAmount)}</p>
                           <p className="text-xs text-muted-foreground">{item.salaryType}</p>
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
+                        </div>
+                        <div className="text-right font-medium">
                           {formatCurrency(item.grossSalary)}
-                        </TableCell>
-                        <TableCell className="text-center">
+                        </div>
+                        <div className="text-center">
                           <div className="text-sm">
                             <p className="text-green-600 font-semibold">{item.payableDays}</p>
                             <p className="text-xs text-muted-foreground">of {item.attendance.workingDays}</p>
                           </div>
-                        </TableCell>
-                        <TableCell className="text-right text-red-600 font-medium">
+                        </div>
+                        <div className="text-right text-red-600 font-medium">
                           {formatCurrency(item.deductions.total)}
-                        </TableCell>
-                        <TableCell className="text-right">
+                        </div>
+                        <div className="text-right">
                           <p className="font-bold text-lg text-green-600">
                             {formatCurrency(item.netSalary)}
                           </p>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Button
-                            onClick={() => toggleRow(item)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-orange-500 hover:text-orange-600"
-                          >
-                            {expandedRow === item.userId ? 'Hide' : 'Details'}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                      {/* Expanded Row Details */}
-                      {/* Expanded Row Details */}
-                      {expandedRow === item.userId && (
-                        <TableRow className="bg-muted/50">
-                          <TableCell colSpan="8" className="py-6">
+                        </div>
+                        <div className="text-center">
+                          <AccordionTrigger className="w-full justify-center px-2 py-1 text-sm text-orange-500 hover:text-orange-600 hover:no-underline">
+                            Details
+                          </AccordionTrigger>
+                        </div>
+                      </div>
+                      <AccordionContent className="bg-muted/50 px-6 py-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                               {/* Attendance Breakdown */}
                               <div>
@@ -827,22 +854,26 @@ const SalaryDashboard = () => {
                                 </h4>
                                 <div className="flex flex-wrap items-end gap-3">
                                   <div>
-                                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Type</label>
-                                    <select
+                                    <Label className="mb-1 block text-xs text-gray-500 dark:text-gray-400">Type</Label>
+                                    <Select
                                       value={otherEdits[item.userId].type}
-                                      onChange={e => setOtherEdits(prev => ({
+                                      onValueChange={(value) => setOtherEdits(prev => ({
                                         ...prev,
-                                        [item.userId]: { ...prev[item.userId], type: e.target.value },
+                                        [item.userId]: { ...prev[item.userId], type: value },
                                       }))}
-                                      className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                     >
-                                      <option value="earning">Earning (+)</option>
-                                      <option value="deduction">Deduction (−)</option>
-                                    </select>
+                                      <SelectTrigger className="w-[170px]">
+                                        <SelectValue placeholder="Select type" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="earning">Earning (+)</SelectItem>
+                                        <SelectItem value="deduction">Deduction (−)</SelectItem>
+                                      </SelectContent>
+                                    </Select>
                                   </div>
                                   <div>
-                                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Amount (₹)</label>
-                                    <input
+                                    <Label className="mb-1 block text-xs text-gray-500 dark:text-gray-400">Amount (₹)</Label>
+                                    <Input
                                       type="number"
                                       min="0"
                                       value={otherEdits[item.userId].amount}
@@ -850,7 +881,7 @@ const SalaryDashboard = () => {
                                         ...prev,
                                         [item.userId]: { ...prev[item.userId], amount: e.target.value },
                                       }))}
-                                      className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-36"
+                                      className="h-auto border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm md:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-36"
                                     />
                                   </div>
                                   <Button
@@ -891,13 +922,11 @@ const SalaryDashboard = () => {
                                 </div>
                               </div>
                             )}
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </React.Fragment>
+                      </AccordionContent>
+                    </AccordionItem>
                   ))}
-                </TableBody>
-              </Table>
+                </Accordion>
+              </div>
             </div>
 
             {/* Results Summary + Pagination */}
@@ -954,84 +983,89 @@ const SalaryDashboard = () => {
           </Card>
         )}
       </div>
-      {/* Generate Salary Slips Modal */}
-      {showGenerateModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-xl font-bold text-gray-800 dark:text-white">
-                Generate Salary Slips
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Create permanent salary records for {monthNames[month - 1]} {year}
-              </p>
-            </div>
+      {/* Generate Salary Slips Dialog */}
+      <Dialog
+        open={showGenerateModal}
+        onOpenChange={(open) => {
+          if (!generating) setShowGenerateModal(open);
+        }}
+      >
+        <DialogContent
+          className="max-w-md"
+          onEscapeKeyDown={(event) => generating && event.preventDefault()}
+          onInteractOutside={(event) => generating && event.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Generate Salary Slips</DialogTitle>
+            <DialogDescription>
+              Create permanent salary records for {monthNames[month - 1]} {year}
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="p-6 space-y-4">
-              <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <FaInfoCircle className="text-orange-500 mt-0.5" />
-                  <div className="text-sm text-orange-800 dark:text-orange-200">
-                    <p className="font-semibold mb-1">What happens when you generate slips?</p>
-                    <ul className="list-disc list-inside space-y-1 text-xs">
-                      <li>Permanent salary records will be created for <strong>{filteredData.length} employee(s)</strong></li>
-                      <li>Records include attendance, deductions, and benefits</li>
-                      <li>You can mark them as paid after generation</li>
-                      <li>Existing slips for this period will be skipped</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Summary</h4>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Period:</span>
-                    <span className="font-medium">{monthNames[month - 1]} {year}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Employees:</span>
-                    <span className="font-medium">{filteredData.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Total Payable:</span>
-                    <span className="font-medium text-green-600">{formatCurrency(summary.totalNet)}</span>
-                  </div>
+          <div className="space-y-4">
+            <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-800 dark:bg-orange-900/20">
+              <div className="flex items-start gap-3">
+                <FaInfoCircle className="mt-0.5 text-orange-500" />
+                <div className="text-sm text-orange-800 dark:text-orange-200">
+                  <p className="mb-1 font-semibold">What happens when you generate slips?</p>
+                  <ul className="list-inside list-disc space-y-1 text-xs">
+                    <li>Permanent salary records will be created for <strong>{filteredData.length} employee(s)</strong></li>
+                    <li>Records include attendance, deductions, and benefits</li>
+                    <li>You can mark them as paid after generation</li>
+                    <li>Existing slips for this period will be skipped</li>
+                  </ul>
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
-              <Button
-                onClick={() => setShowGenerateModal(false)}
-                disabled={generating}
-                variant="outline"
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleGenerateSlips}
-                disabled={generating || filteredData.length === 0}
-                className="flex-1 bg-purple-500 hover:bg-purple-600 flex items-center justify-center gap-2"
-              >
-                {generating ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <FaCheckCircle />
-                    Generate {filteredData.length} Slip(s)
-                  </>
-                )}
-              </Button>
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+              <h4 className="mb-2 font-semibold text-gray-800 dark:text-white">Summary</h4>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Period:</span>
+                  <span className="font-medium">{monthNames[month - 1]} {year}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Employees:</span>
+                  <span className="font-medium">{filteredData.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Total Payable:</span>
+                  <span className="font-medium text-green-600">{formatCurrency(summary.totalNet)}</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+
+          <DialogFooter className="gap-3 sm:gap-3">
+            <Button
+              onClick={() => setShowGenerateModal(false)}
+              disabled={generating}
+              variant="outline"
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleGenerateSlips}
+              disabled={generating || filteredData.length === 0}
+              className="flex-1 bg-purple-500 hover:bg-purple-600"
+            >
+              {generating ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <FaCheckCircle />
+                  Generate {filteredData.length} Slip(s)
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };

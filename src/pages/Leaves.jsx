@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Textarea } from "@/components/ui/textarea";
 import {
   FaArrowLeft,
   FaCalendarAlt,
@@ -18,8 +19,7 @@ import {
   FaPaperPlane,
 } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 
 
 
@@ -201,13 +201,14 @@ export default function Leaves() {
               className="bg-gradient-to-br from-orange-50 to-blue-50 rounded-2xl p-5 space-y-4 shadow-md border border-orange-100"
             >
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label htmlFor="leave-type" className="block text-sm font-semibold text-gray-700 mb-1.5">
                   <div className="flex items-center gap-2">
                     <FaClipboardList className="text-gray-400" size={14} />
                     <span>Leave Type</span>
                   </div>
                 </label>
                 <select
+                  id="leave-type"
                   value={form.type}
                   // Update leave type and clear sick proof when not using sick leave.
                   onChange={(e) => {
@@ -227,7 +228,7 @@ export default function Leaves() {
 
               {form.type === "sick" && (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  <label htmlFor="leave-proof" className="block text-sm font-semibold text-gray-700 mb-1.5">
                     <div className="flex items-center gap-2">
                       <FaClipboardList className="text-gray-400" size={14} />
                       <span>Medical Proof Image *</span>
@@ -237,6 +238,7 @@ export default function Leaves() {
                     <label className="cursor-pointer rounded-lg border border-orange-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-orange-600 hover:bg-orange-50">
                       Upload Image
                       <input
+                        id="leave-proof"
                         type="file"
                         accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp"
                         onChange={handleProofChange}
@@ -286,49 +288,52 @@ export default function Leaves() {
               )}
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label htmlFor="leave-start-date" className="block text-sm font-semibold text-gray-700 mb-1.5">
                   <div className="flex items-center gap-2">
                     <FaCalendarAlt className="text-gray-400" size={14} />
                     <span>Start Date</span>
                   </div>
                 </label>
-                <input
+                <Input
+                  id="leave-start-date"
                   type="date"
                   value={form.startDate}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, startDate: e.target.value }))
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                  className="w-full h-auto shadow-none border border-gray-300 rounded-lg px-3 py-2.5 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-transparent transition-all"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label htmlFor="leave-end-date" className="block text-sm font-semibold text-gray-700 mb-1.5">
                   <div className="flex items-center gap-2">
                     <FaCalendarAlt className="text-gray-400" size={14} />
                     <span>End Date</span>
                   </div>
                 </label>
-                <input
+                <Input
+                  id="leave-end-date"
                   type="date"
                   value={form.endDate}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, endDate: e.target.value }))
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                  className="w-full h-auto shadow-none border border-gray-300 rounded-lg px-3 py-2.5 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-transparent transition-all"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label htmlFor="leave-reason" className="block text-sm font-semibold text-gray-700 mb-1.5">
                   <div className="flex items-center gap-2">
                     <FaClipboardList className="text-gray-400" size={14} />
                     <span>Reason (Optional)</span>
                   </div>
                 </label>
-                <textarea
+                <Textarea
+                  id="leave-reason"
                   value={form.reason}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, reason: e.target.value }))

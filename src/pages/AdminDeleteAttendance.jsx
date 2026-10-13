@@ -5,6 +5,8 @@ import axios from '../utils/axios';
 import { FaExclamationTriangle, FaTrash, FaImage } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 // Kept in sync with the same literal on the backend
 // (laxmipowertech-backend/routes/attendance.routes.js).
@@ -130,24 +132,32 @@ const AdminDeleteAttendance = () => {
           <CardContent className="p-6 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+                <Label
+                  htmlFor="delete-attendance-start-date"
+                  className="block text-sm font-semibold leading-5 text-gray-700 dark:text-gray-200 mb-1.5"
+                >
                   Start Date <span className="text-red-500">*</span>
-                </label>
-                <input
+                </Label>
+                <Input
+                  id="delete-attendance-start-date"
                   type="date"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 bg-background text-foreground text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="h-auto w-full rounded-lg border-gray-300 dark:border-gray-600 px-3 py-2.5 text-sm md:text-sm text-foreground focus-visible:ring-orange-500 focus-visible:ring-offset-0 focus-visible:border-transparent"
                   value={startDate}
                   max={todayStr()}
                   onChange={(e) => setStartDate(e.target.value)}
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+                <Label
+                  htmlFor="delete-attendance-end-date"
+                  className="block text-sm font-semibold leading-5 text-gray-700 dark:text-gray-200 mb-1.5"
+                >
                   End Date <span className="text-gray-400 font-normal">(optional)</span>
-                </label>
-                <input
+                </Label>
+                <Input
+                  id="delete-attendance-end-date"
                   type="date"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 bg-background text-foreground text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="h-auto w-full rounded-lg border-gray-300 dark:border-gray-600 px-3 py-2.5 text-sm md:text-sm text-foreground focus-visible:ring-orange-500 focus-visible:ring-offset-0 focus-visible:border-transparent"
                   value={endDate}
                   min={startDate}
                   max={todayStr()}
@@ -188,12 +198,19 @@ const AdminDeleteAttendance = () => {
             )}
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+              <Label
+                id="delete-attendance-mode-label"
+                className="block text-sm font-semibold leading-5 text-gray-700 dark:text-gray-200 mb-1.5"
+              >
                 Delete from
-              </label>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <label
-                  className={`flex items-center gap-2 text-sm rounded-lg px-3 py-2.5 flex-1 cursor-pointer border ${
+              </Label>
+              <div
+                role="group"
+                aria-labelledby="delete-attendance-mode-label"
+                className="flex flex-col sm:flex-row gap-3"
+              >
+                <Label
+                  className={`flex items-center gap-2 text-sm font-normal leading-5 rounded-lg px-3 py-2.5 flex-1 cursor-pointer border ${
                     deleteMode === 'cloudinary'
                       ? 'border-red-400 bg-red-50 dark:bg-red-950/40 text-gray-900 dark:text-gray-100'
                       : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -207,9 +224,9 @@ const AdminDeleteAttendance = () => {
                     onChange={() => setDeleteMode('cloudinary')}
                   />
                   Delete from Cloudinary
-                </label>
-                <label
-                  className={`flex items-center gap-2 text-sm rounded-lg px-3 py-2.5 flex-1 cursor-pointer border ${
+                </Label>
+                <Label
+                  className={`flex items-center gap-2 text-sm font-normal leading-5 rounded-lg px-3 py-2.5 flex-1 cursor-pointer border ${
                     deleteMode === 'both'
                       ? 'border-red-400 bg-red-50 dark:bg-red-950/40 text-gray-900 dark:text-gray-100'
                       : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -223,7 +240,7 @@ const AdminDeleteAttendance = () => {
                     onChange={() => setDeleteMode('both')}
                   />
                   Delete from Cloudinary + Database
-                </label>
+                </Label>
               </div>
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
                 {deleteMode === 'cloudinary'
@@ -281,14 +298,18 @@ const AdminDeleteAttendance = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <Label
+                  htmlFor="delete-attendance-confirm-text"
+                  className="block text-sm font-semibold leading-5 text-gray-700 mb-1.5"
+                >
                   Type <span className="font-mono text-red-600">{CONFIRMATION_PHRASE}</span> to
                   confirm
-                </label>
-                <input
+                </Label>
+                <Input
+                  id="delete-attendance-confirm-text"
                   type="text"
                   autoFocus
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-mono focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="h-auto w-full rounded-lg border-gray-300 bg-white px-3 py-2.5 text-sm md:text-sm font-mono focus-visible:ring-red-500 focus-visible:ring-offset-0 focus-visible:border-transparent"
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
                   placeholder={CONFIRMATION_PHRASE}

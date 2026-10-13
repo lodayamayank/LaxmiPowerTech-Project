@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "../utils/axios";
 import DashboardLayout from "../layouts/DashboardLayout";
 import {
@@ -12,6 +12,13 @@ import {
   FaChevronLeft,
   FaChevronRight,
 } from "react-icons/fa";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "react-toastify";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +26,13 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 const StatusBadge = ({ status }) => {
   const cls =
@@ -148,9 +162,9 @@ const AdminReimbursements = () => {
       refetchReimbursements();
       setShowDetailsModal(false);
       setSelectedReimbursement(null);
-    } catch (err) {
-      console.error("Failed to update status", err);
-      toast.error(err.response?.data?.message || "Failed to update status");
+    } catch (error) {
+      console.error("Failed to update status", error);
+      toast.error(error.response?.data?.message || "Failed to update status");
     }
   };
 
@@ -180,7 +194,8 @@ const AdminReimbursements = () => {
       });
       setSelectedReimbursement(res.data);
       setShowDetailsModal(true);
-    } catch (err) {
+    } catch (error) {
+      console.error("Failed to load details", error);
       toast.error("Failed to load details");
     }
   };
@@ -195,34 +210,56 @@ const AdminReimbursements = () => {
               onSubmit={onSearch}
               className="grid grid-cols-1 md:grid-cols-5 gap-3"
             >
-              <select
-                value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+              <Select
+                value={filters.status || "all"}
+                onValueChange={(value) =>
+                  setFilters({
+                    ...filters,
+                    status: value === "all" ? "" : value,
+                  })
+                }
               >
-                <option value="">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-                <option value="paid">Paid</option>
-              </select>
+                <SelectTrigger className="w-full border-gray-300 text-sm dark:border-gray-600">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
 
-              <select
-                value={filters.role}
-                onChange={(e) => setFilters({ ...filters, role: e.target.value })}
-                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={filters.role || "all"}
+                onValueChange={(value) =>
+                  setFilters({
+                    ...filters,
+                    role: value === "all" ? "" : value,
+                  })
+                }
               >
-                <option value="">All Roles</option>
-                <option value="labour">Labour</option>
-                <option value="staff">Staff</option>
-                <option value="supervisor">Supervisor</option>
-                <option value="subcontractor">Subcontractor</option>
-              </select>
+                <SelectTrigger className="w-full border-gray-300 text-sm dark:border-gray-600">
+                  <SelectValue placeholder="All Roles" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="labour">Labour</SelectItem>
+                  <SelectItem value="staff">Staff</SelectItem>
+                  <SelectItem value="supervisor">Supervisor</SelectItem>
+                  <SelectItem value="subcontractor">Subcontractor</SelectItem>
+                </SelectContent>
+              </Select>
 
               <Input
                 type="date"
                 value={filters.from}
-                onChange={(e) => setFilters({ ...filters, from: e.target.value })}
+                onChange={(e) =>
+                  setFilters({ ...filters, from: e.target.value })
+                }
                 placeholder="From"
               />
 
@@ -233,9 +270,7 @@ const AdminReimbursements = () => {
                 placeholder="To"
               />
 
-              <Button type="submit">
-                Filter
-              </Button>
+              <Button type="submit">Filter</Button>
             </form>
           </CardContent>
         </Card>
@@ -246,47 +281,89 @@ const AdminReimbursements = () => {
             <Table>
               <TableHeader>
                 <TableRow className="dark:border-gray-700">
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">User</TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Role</TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Total Amount</TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Items</TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Submitted</TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Status</TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Approver</TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Actions</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                    User
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                    Role
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                    Total Amount
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                    Items
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                    Submitted
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                    Status
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                    Approver
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={`skeleton-${i}`}>
-                      <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-24" /></TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-28" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-8" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-16 rounded-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-8 w-24" />
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : reimbursements.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-6">
+                    <TableCell
+                      colSpan={8}
+                      className="text-center text-muted-foreground py-6"
+                    >
                       No records found
                     </TableCell>
                   </TableRow>
                 ) : (
                   reimbursements.map((reimb) => (
-                    <TableRow key={reimb._id} className="dark:border-gray-700 dark:hover:bg-gray-700/60">
+                    <TableRow
+                      key={reimb._id}
+                      className="dark:border-gray-700 dark:hover:bg-gray-700/60"
+                    >
                       <TableCell className="font-medium text-gray-900 dark:text-gray-100">
                         {reimb.user?.name || "Unknown"}
                       </TableCell>
-                      <TableCell className="capitalize text-muted-foreground">{reimb.user?.role || "-"}</TableCell>
+                      <TableCell className="capitalize text-muted-foreground">
+                        {reimb.user?.role || "-"}
+                      </TableCell>
                       <TableCell className="font-semibold text-green-600 dark:text-green-400">
                         ₹{reimb.totalAmount.toFixed(2)}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{reimb.items.length}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {reimb.items.length}
+                      </TableCell>
                       <TableCell className="text-muted-foreground">
                         {new Date(reimb.submittedAt).toLocaleDateString()}
                       </TableCell>
@@ -354,9 +431,19 @@ const AdminReimbursements = () => {
           <Card>
             <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 py-3">
               <div className="text-sm text-gray-600 dark:text-gray-300">
-                Page <span className="font-semibold text-gray-900 dark:text-white">{page}</span> of{" "}
-                <span className="font-semibold text-gray-900 dark:text-white">{totalPages}</span> ·{" "}
-                <span className="font-semibold text-gray-900 dark:text-white">{total}</span> records
+                Page{" "}
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {page}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {totalPages}
+                </span>{" "}
+                ·{" "}
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {total}
+                </span>{" "}
+                records
               </div>
               <div className="flex items-center gap-2">
                 <select
@@ -373,10 +460,22 @@ const AdminReimbursements = () => {
                     </option>
                   ))}
                 </select>
-                <Button variant="outline" size="icon" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="h-9 w-9">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="h-9 w-9"
+                >
                   <FaChevronLeft size={14} />
                 </Button>
-                <Button variant="outline" size="icon" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} className="h-9 w-9">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  className="h-9 w-9"
+                >
                   <FaChevronRight size={14} />
                 </Button>
               </div>
@@ -406,23 +505,25 @@ const AdminReimbursements = () => {
 // Details Modal Component
 const ReimbursementDetailsModal = ({ reimbursement, onClose, onApprove, onReject, onMarkPaid }) => {
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent
+        className="max-w-4xl max-h-[90vh] flex flex-col gap-0 overflow-hidden p-0 bg-white rounded-xl border-0 shadow-2xl sm:rounded-xl [&>button]:text-white [&>button]:opacity-100 [&>button]:hover:bg-white/20 [&>button]:rounded-full [&>button]:p-1"
+      >
         {/* Modal Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex items-center justify-between rounded-t-xl">
-          <h2 className="text-white font-bold text-xl">Reimbursement Details</h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="text-white hover:bg-white/20 hover:text-white rounded-full h-8 w-8"
-          >
-            <FaTimes size={18} />
-          </Button>
-        </div>
+        <DialogHeader className="shrink-0 space-y-0 bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 rounded-t-xl text-left">
+          <DialogTitle className="text-white font-bold text-xl">Reimbursement Details</DialogTitle>
+          <DialogDescription className="sr-only">
+            Details, expense items and actions for the selected reimbursement request
+          </DialogDescription>
+        </DialogHeader>
 
         {/* Modal Content */}
-        <div className="p-6">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Column */}
             <div className="space-y-4">
@@ -571,8 +672,8 @@ const ReimbursementDetailsModal = ({ reimbursement, onClose, onApprove, onReject
             )}
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

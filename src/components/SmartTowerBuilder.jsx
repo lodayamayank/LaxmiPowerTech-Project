@@ -5,7 +5,15 @@ import {
   FaCheck,
   FaTimes
 } from 'react-icons/fa';
+import { Checkbox } from '@/components/ui/checkbox';
 import TowerHierarchyBuilder from './TowerHierarchyBuilder';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const ROOM_TYPES = [
   { value: 'living_room', label: 'Living Room', icon: '🛋️' },
@@ -385,35 +393,35 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
 
     for (let i = 1; i <= safeFlatsCount; i++) {
       const flatNumber = floorNumber >= 0 ? `${floorNumber}0${i}` : `B${Math.abs(floorNumber)}0${i}`;
-      
+
       // Generate rooms with proper numbering
       const rooms = [];
-      
+
       // Add Living Room if enabled
       if (hasLivingRoom) {
         rooms.push({ name: 'Living Room / Hall', type: 'living_room' });
       }
-      
+
       // Add numbered Bedrooms
       for (let b = 1; b <= safeBedroomCount; b++) {
         rooms.push({ name: `Bedroom ${b}`, type: 'bedroom' });
       }
-      
+
       // Add Kitchen if enabled
       if (hasKitchen) {
         rooms.push({ name: 'Kitchen', type: 'kitchen' });
       }
-      
+
       // Add numbered Bathrooms
       for (let b = 1; b <= safeBathroomCount; b++) {
         rooms.push({ name: `Bathroom ${b}`, type: 'bathroom' });
       }
-      
+
       // Add numbered Balconies
       for (let b = 1; b <= safeBalconyCount; b++) {
         rooms.push({ name: `Balcony ${b}`, type: 'balcony' });
       }
-      
+
       // Add any other selected room types from defaultRooms
       roomTypes.forEach(type => {
         if (!['living_room', 'bedroom', 'kitchen', 'bathroom', 'balcony'].includes(type)) {
@@ -423,7 +431,7 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
           }
         }
       });
-      
+
       flats.push({
         name: `Flat ${i}`,
         flatNumber: flatNumber,
@@ -438,7 +446,7 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
         rooms: rooms
       });
     }
-    
+
     return {
       name,
       floorNumber,
@@ -519,6 +527,14 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
       defaultRooms: prev.defaultRooms.includes(roomValue)
         ? prev.defaultRooms.filter(r => r !== roomValue)
         : [...prev.defaultRooms, roomValue]
+    }));
+  };
+
+  // Used by the shadcn Checkbox toggles (Radix passes true | false | 'indeterminate')
+  const setConfigFlag = (field, checked) => {
+    setTowerConfig((prev) => ({
+      ...prev,
+      [field]: checked === true
     }));
   };
 
@@ -646,7 +662,9 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
             <FaBuilding className="text-orange-600" />
             Smart Tower Builder
           </h3>
-          <p className="text-xs text-gray-500 mt-1">Auto-generate complete tower structures in seconds</p>
+          <p className="text-xs text-gray-500 mt-1">
+            Auto-generate complete tower structures in seconds
+          </p>
         </div>
         <button
           type="button"
@@ -658,10 +676,7 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
       </div>
 
       {/* Tower Hierarchy Builder - Full Editable Structure */}
-      <TowerHierarchyBuilder 
-        buildings={buildings}
-        onChange={onChange}
-      />
+      <TowerHierarchyBuilder buildings={buildings} onChange={onChange} />
 
       {/* Project Summary */}
       {buildings.length > 0 && (
@@ -672,27 +687,42 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white p-4 rounded-lg shadow-sm border border-orange-200">
               <p className="text-xs text-gray-500 mb-1">Total Towers</p>
-              <p className="text-3xl font-bold text-orange-600">{buildings.length}</p>
+              <p className="text-3xl font-bold text-orange-600">
+                {buildings.length}
+              </p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-200">
               <p className="text-xs text-gray-500 mb-1">Total Floors</p>
               <p className="text-3xl font-bold text-blue-600">
-                {buildings.reduce((sum, t) => sum + (t.wings?.[0]?.floors?.length || 0), 0)}
+                {buildings.reduce(
+                  (sum, t) => sum + (t.wings?.[0]?.floors?.length || 0),
+                  0
+                )}
               </p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-sm border border-green-200">
               <p className="text-xs text-gray-500 mb-1">Total Units</p>
               <p className="text-3xl font-bold text-green-600">
-                {buildings.reduce((sum, t) => 
-                  sum + (t.wings?.[0]?.floors?.reduce((fSum, f) => fSum + (f.flats?.length || 0), 0) || 0), 0
+                {buildings.reduce(
+                  (sum, t) =>
+                    sum +
+                    (t.wings?.[0]?.floors?.reduce(
+                      (fSum, f) => fSum + (f.flats?.length || 0),
+                      0
+                    ) || 0),
+                  0
                 )}
               </p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-300">
               <p className="text-xs text-gray-500 mb-1">Basements</p>
               <p className="text-3xl font-bold text-gray-600">
-                {buildings.reduce((sum, t) => 
-                  sum + (t.wings?.[0]?.floors?.filter(f => f.isBasement)?.length || 0), 0
+                {buildings.reduce(
+                  (sum, t) =>
+                    sum +
+                    (t.wings?.[0]?.floors?.filter((f) => f.isBasement)
+                      ?.length || 0),
+                  0
                 )}
               </p>
             </div>
@@ -708,7 +738,9 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <FaMagic className="text-white text-2xl" />
-                  <h3 className="text-xl font-bold text-white">Smart Tower Generator</h3>
+                  <h3 className="text-xl font-bold text-white">
+                    Smart Tower Generator
+                  </h3>
                 </div>
                 <button
                   onClick={() => setShowConfigModal(false)}
@@ -717,7 +749,9 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                   <FaTimes size={20} />
                 </button>
               </div>
-              <p className="text-white/90 text-sm mt-2">Configure once and generate complete structure automatically</p>
+              <p className="text-white/90 text-sm mt-2">
+                Configure once and generate complete structure automatically
+              </p>
             </div>
 
             <div className="p-6 space-y-6">
@@ -729,7 +763,12 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                 <input
                   type="text"
                   value={towerConfig.towerName}
-                  onChange={(e) => setTowerConfig({ ...towerConfig, towerName: e.target.value })}
+                  onChange={(e) =>
+                    setTowerConfig({
+                      ...towerConfig,
+                      towerName: e.target.value,
+                    })
+                  }
                   placeholder="e.g., Tower A, Sunrise Block"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
                 />
@@ -744,15 +783,24 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                     <button
                       key={option.value}
                       type="button"
-                      onClick={() => setTowerConfig({ ...towerConfig, buildingUse: option.value })}
+                      onClick={() =>
+                        setTowerConfig({
+                          ...towerConfig,
+                          buildingUse: option.value,
+                        })
+                      }
                       className={`rounded-xl border-2 p-4 text-left transition-all ${
                         towerConfig.buildingUse === option.value
-                          ? 'border-orange-500 bg-orange-50 shadow-md'
-                          : 'border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50'
+                          ? "border-orange-500 bg-orange-50 shadow-md"
+                          : "border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50"
                       }`}
                     >
-                      <span className="block font-bold text-gray-900">{option.label}</span>
-                      <span className="mt-1 block text-xs text-gray-500">{option.hint}</span>
+                      <span className="block font-bold text-gray-900">
+                        {option.label}
+                      </span>
+                      <span className="mt-1 block text-xs text-gray-500">
+                        {option.hint}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -760,12 +808,13 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
 
               {/* Podium Configuration */}
               <div className="p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
-                <label className="flex items-center gap-3 mb-3">
-                  <input
-                    type="checkbox"
+                <label className="flex items-center gap-3 mb-3 cursor-pointer">
+                  <Checkbox
                     checked={towerConfig.hasPodium}
-                    onChange={(e) => setTowerConfig({ ...towerConfig, hasPodium: e.target.checked })}
-                    className="w-5 h-5 text-yellow-600 rounded"
+                    onCheckedChange={(checked) =>
+                      setConfigFlag("hasPodium", checked)
+                    }
+                    className="w-5 h-5 border-yellow-500 data-[state=checked]:bg-yellow-600 data-[state=checked]:border-yellow-600 data-[state=checked]:text-white"
                   />
                   <span className="text-sm font-semibold text-gray-700">
                     🏛️ Does this tower have Podium?
@@ -773,29 +822,39 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                 </label>
                 {towerConfig.hasPodium && (
                   <div>
-                    <label className="block text-xs text-gray-600 mb-2">Number of Podiums</label>
+                    <label className="block text-xs text-gray-600 mb-2">
+                      Number of Podiums
+                    </label>
                     <input
                       type="number"
                       min="1"
                       max="10"
                       value={towerConfig.podiumCount}
-                      onChange={(e) => setTowerConfig({ ...towerConfig, podiumCount: e.target.value })}
+                      onChange={(e) =>
+                        setTowerConfig({
+                          ...towerConfig,
+                          podiumCount: e.target.value,
+                        })
+                      }
                       placeholder="Enter number (e.g., 1, 2, 3)"
                       className="w-full px-4 py-2 border-2 border-yellow-300 rounded-lg focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Will generate: P1, P2, P3...</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Will generate: P1, P2, P3...
+                    </p>
                   </div>
                 )}
               </div>
 
               {/* Common Area Configuration */}
               <div className="p-4 bg-cyan-50 border-2 border-cyan-200 rounded-lg">
-                <label className="flex items-center gap-3 mb-3">
-                  <input
-                    type="checkbox"
+                <label className="flex items-center gap-3 mb-3 cursor-pointer">
+                  <Checkbox
                     checked={towerConfig.hasCommonArea}
-                    onChange={(e) => setTowerConfig({ ...towerConfig, hasCommonArea: e.target.checked })}
-                    className="w-5 h-5 text-cyan-600 rounded"
+                    onCheckedChange={(checked) =>
+                      setConfigFlag("hasCommonArea", checked)
+                    }
+                    className="w-5 h-5 border-cyan-500 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600 data-[state=checked]:text-white"
                   />
                   <span className="text-sm font-semibold text-gray-700">
                     🏢 Does this tower have Common Areas?
@@ -803,29 +862,39 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                 </label>
                 {towerConfig.hasCommonArea && (
                   <div>
-                    <label className="block text-xs text-gray-600 mb-2">Number of Common Areas</label>
+                    <label className="block text-xs text-gray-600 mb-2">
+                      Number of Common Areas
+                    </label>
                     <input
                       type="number"
                       min="1"
                       max="10"
                       value={towerConfig.commonAreaCount}
-                      onChange={(e) => setTowerConfig({ ...towerConfig, commonAreaCount: e.target.value })}
+                      onChange={(e) =>
+                        setTowerConfig({
+                          ...towerConfig,
+                          commonAreaCount: e.target.value,
+                        })
+                      }
                       placeholder="Enter number (e.g., 1, 2, 3)"
                       className="w-full px-4 py-2 border-2 border-cyan-300 rounded-lg focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Will generate: CA1, CA2, CA3... (Gym, Pool, etc.)</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Will generate: CA1, CA2, CA3... (Gym, Pool, etc.)
+                    </p>
                   </div>
                 )}
               </div>
 
               {/* Staircase Configuration */}
               <div className="p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
-                <label className="flex items-center gap-3 mb-3">
-                  <input
-                    type="checkbox"
+                <label className="flex items-center gap-3 mb-3 cursor-pointer">
+                  <Checkbox
                     checked={towerConfig.hasStaircase}
-                    onChange={(e) => setTowerConfig({ ...towerConfig, hasStaircase: e.target.checked })}
-                    className="w-5 h-5 text-purple-600 rounded"
+                    onCheckedChange={(checked) =>
+                      setConfigFlag("hasStaircase", checked)
+                    }
+                    className="w-5 h-5 border-purple-500 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
                   />
                   <span className="text-sm font-semibold text-gray-700">
                     🪜 Does this tower have Staircases?
@@ -833,17 +902,26 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                 </label>
                 {towerConfig.hasStaircase && (
                   <div>
-                    <label className="block text-xs text-gray-600 mb-2">Number of Staircases</label>
+                    <label className="block text-xs text-gray-600 mb-2">
+                      Number of Staircases
+                    </label>
                     <input
                       type="number"
                       min="1"
                       max="10"
                       value={towerConfig.staircaseCount}
-                      onChange={(e) => setTowerConfig({ ...towerConfig, staircaseCount: e.target.value })}
+                      onChange={(e) =>
+                        setTowerConfig({
+                          ...towerConfig,
+                          staircaseCount: e.target.value,
+                        })
+                      }
                       placeholder="Enter number (e.g., 1, 2, 3)"
                       className="w-full px-4 py-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Will generate: Staircase 1, Staircase 2, Staircase 3...</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Will generate: Staircase 1, Staircase 2, Staircase 3...
+                    </p>
                   </div>
                 )}
               </div>
@@ -855,32 +933,42 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
-                    { value: 'none', label: 'No Basement' },
-                    { value: 'b1', label: 'B1' },
-                    { value: 'b1_b2', label: 'B1 + B2' },
-                    { value: 'custom', label: 'Custom' }
-                  ].map(option => (
+                    { value: "none", label: "No Basement" },
+                    { value: "b1", label: "B1" },
+                    { value: "b1_b2", label: "B1 + B2" },
+                    { value: "custom", label: "Custom" },
+                  ].map((option) => (
                     <button
                       key={option.value}
                       type="button"
-                      onClick={() => setTowerConfig({ ...towerConfig, basementType: option.value })}
+                      onClick={() =>
+                        setTowerConfig({
+                          ...towerConfig,
+                          basementType: option.value,
+                        })
+                      }
                       className={`px-4 py-3 rounded-lg border-2 transition-all font-medium ${
                         towerConfig.basementType === option.value
-                          ? 'border-orange-500 bg-orange-50 text-orange-700 shadow-md'
-                          : 'border-gray-200 bg-white text-gray-700 hover:border-orange-400 hover:bg-orange-50 hover:shadow-sm'
+                          ? "border-orange-500 bg-orange-50 text-orange-700 shadow-md"
+                          : "border-gray-200 bg-white text-gray-700 hover:border-orange-400 hover:bg-orange-50 hover:shadow-sm"
                       }`}
                     >
                       {option.label}
                     </button>
                   ))}
                 </div>
-                {towerConfig.basementType === 'custom' && (
+                {towerConfig.basementType === "custom" && (
                   <input
                     type="number"
                     min="1"
                     max="10"
                     value={towerConfig.customBasements}
-                    onChange={(e) => setTowerConfig({ ...towerConfig, customBasements: e.target.value })}
+                    onChange={(e) =>
+                      setTowerConfig({
+                        ...towerConfig,
+                        customBasements: e.target.value,
+                      })
+                    }
                     placeholder="Number of basement levels"
                     className="mt-3 w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
                   />
@@ -897,233 +985,380 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
                   min="0"
                   max="100"
                   value={towerConfig.totalFloors}
-                  onChange={(e) => setTowerConfig({ ...towerConfig, totalFloors: e.target.value })}
+                  onChange={(e) =>
+                    setTowerConfig({
+                      ...towerConfig,
+                      totalFloors: e.target.value,
+                    })
+                  }
                   placeholder="Enter floors above ground (e.g., 0, 10, 20, 40)"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 text-lg font-semibold"
                 />
-                <p className="text-xs text-gray-500 mt-2">System will auto-generate: Ground Floor + {towerConfig.totalFloors || 0} upper floors</p>
+                <p className="text-xs text-gray-500 mt-2">
+                  System will auto-generate: Ground Floor +{" "}
+                  {towerConfig.totalFloors || 0} upper floors
+                </p>
               </div>
 
-              {['commercial', 'mixed'].includes(towerConfig.buildingUse) && (
+              {["commercial", "mixed"].includes(towerConfig.buildingUse) && (
                 <div className="p-4 bg-slate-50 border-2 border-slate-200 rounded-lg space-y-4">
-                  <h4 className="text-sm font-semibold text-gray-700">Commercial Configuration</h4>
-                  {towerConfig.buildingUse === 'mixed' && (
+                  <h4 className="text-sm font-semibold text-gray-700">
+                    Commercial Configuration
+                  </h4>
+                  {towerConfig.buildingUse === "mixed" && (
                     <div>
-                      <label className="block text-xs text-gray-600 mb-2">Commercial Floors Above Ground</label>
-	                      <input
-	                        type="number"
-	                        min="0"
-	                        max={parseNonNegativeInt(towerConfig.totalFloors, 0)}
-	                        value={towerConfig.commercialFloors}
-	                        onChange={(e) => handleNumberInputChange('commercialFloors', e.target.value)}
-	                        placeholder="e.g., 1 for 1st floor commercial"
-	                        className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
-	                      />
-                      <p className="text-xs text-gray-500 mt-1">Ground floor is commercial by default; upper floors after this count become residential.</p>
+                      <label className="block text-xs text-gray-600 mb-2">
+                        Commercial Floors Above Ground
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max={parseNonNegativeInt(towerConfig.totalFloors, 0)}
+                        value={towerConfig.commercialFloors}
+                        onChange={(e) =>
+                          handleNumberInputChange(
+                            "commercialFloors",
+                            e.target.value
+                          )
+                        }
+                        placeholder="e.g., 1 for 1st floor commercial"
+                        className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Ground floor is commercial by default; upper floors
+                        after this count become residential.
+                      </p>
                     </div>
                   )}
-	                  {renderMixControls({
-	                    title: 'Commercial Floor Mix',
-	                    subtitle: 'Pick a preset, then adjust only the small changes you need.',
-	                    presetField: 'commercialPreset',
-	                    mixField: 'commercialMix',
-	                    presets: COMMERCIAL_MIX_PRESETS
-	                  })}
-	                  {towerConfig.basementType !== 'none' && (
-	                    <div className="pt-4 border-t border-slate-200">
-	                      {renderMixControls({
-	                        title: 'Basement Unit Mix',
-	                        subtitle: 'Use this when basement has godowns, offices, stores, or support rooms.',
-	                        presetField: 'basementPreset',
-	                        mixField: 'basementMix',
-	                        presets: BASEMENT_MIX_PRESETS
-	                      })}
-	                    </div>
-	                  )}
-	                </div>
-	              )}
+                  {renderMixControls({
+                    title: "Commercial Floor Mix",
+                    subtitle:
+                      "Pick a preset, then adjust only the small changes you need.",
+                    presetField: "commercialPreset",
+                    mixField: "commercialMix",
+                    presets: COMMERCIAL_MIX_PRESETS,
+                  })}
+                  {towerConfig.basementType !== "none" && (
+                    <div className="pt-4 border-t border-slate-200">
+                      {renderMixControls({
+                        title: "Basement Unit Mix",
+                        subtitle:
+                          "Use this when basement has godowns, offices, stores, or support rooms.",
+                        presetField: "basementPreset",
+                        mixField: "basementMix",
+                        presets: BASEMENT_MIX_PRESETS,
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Default Flats per Floor */}
-              {towerConfig.buildingUse !== 'commercial' && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  🚪 Residential Flats Per Floor
-                </label>
-                <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
-                  {[1, 2, 3, 4, 6, 8].map(num => (
-                    <button
-                      key={num}
-	                      type="button"
-	                      onClick={() => setTowerConfig({ ...towerConfig, defaultFlatsPerFloor: num })}
-	                      className={`px-4 py-3 rounded-lg border-2 transition-all font-bold text-lg ${
-	                        parsePositiveInt(towerConfig.defaultFlatsPerFloor, 1) === num
-	                          ? 'border-green-500 bg-green-50 text-green-700 shadow-md'
-	                          : 'border-gray-200 bg-white text-gray-700 hover:border-green-400 hover:bg-green-50 hover:shadow-sm'
-	                      }`}
-                    >
-                      {num}
-                    </button>
-                  ))}
+              {towerConfig.buildingUse !== "commercial" && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    🚪 Residential Flats Per Floor
+                  </label>
+                  <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
+                    {[1, 2, 3, 4, 6, 8].map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() =>
+                          setTowerConfig({
+                            ...towerConfig,
+                            defaultFlatsPerFloor: num,
+                          })
+                        }
+                        className={`px-4 py-3 rounded-lg border-2 transition-all font-bold text-lg ${
+                          parsePositiveInt(
+                            towerConfig.defaultFlatsPerFloor,
+                            1
+                          ) === num
+                            ? "border-green-500 bg-green-50 text-green-700 shadow-md"
+                            : "border-gray-200 bg-white text-gray-700 hover:border-green-400 hover:bg-green-50 hover:shadow-sm"
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={towerConfig.defaultFlatsPerFloor}
+                    onChange={(e) =>
+                      handleNumberInputChange(
+                        "defaultFlatsPerFloor",
+                        e.target.value
+                      )
+                    }
+                    placeholder="Or enter custom number (e.g., 5, 7, 10)"
+                    className="mt-2 w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 font-semibold text-lg"
+                  />
                 </div>
-                <input
-                  type="number"
-	                  min="1"
-	                  max="50"
-	                  value={towerConfig.defaultFlatsPerFloor}
-	                  onChange={(e) => handleNumberInputChange('defaultFlatsPerFloor', e.target.value)}
-	                  placeholder="Or enter custom number (e.g., 5, 7, 10)"
-	                  className="mt-2 w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 font-semibold text-lg"
-	                />
-              </div>
               )}
 
               {/* Default Flat Type */}
-              {towerConfig.buildingUse !== 'commercial' && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  🏠 Residential Flat Type
-                </label>
-                <select
-                  value={towerConfig.defaultFlatType}
-                  onChange={(e) => handleResidentialFlatTypeChange(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 font-medium"
-                >
-                  {FLAT_TYPES.map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
+              {towerConfig.buildingUse !== "commercial" && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    🏠 Residential Flat Type
+                  </label>
+                  <Select
+                    value={towerConfig.defaultFlatType}
+                    onValueChange={handleResidentialFlatTypeChange}
+                  >
+                    <SelectTrigger className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-medium focus:ring-2 focus:ring-orange-200 focus:ring-offset-0">
+                      <SelectValue placeholder="Select flat type" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {FLAT_TYPES.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
 
               {/* Bedroom & Bathroom Configuration */}
-              {towerConfig.buildingUse !== 'commercial' && (
-              <div className="p-4 bg-indigo-50 border-2 border-indigo-200 rounded-lg">
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">🛏️ Room Configuration</h4>
-                <div className="grid grid-cols-3 gap-4 mb-3">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-2">Bedrooms</label>
-                    <input
-                      type="number"
-	                      min="0"
-	                      max="10"
-	                      value={towerConfig.bedroomCount}
-	                      onChange={(e) => handleNumberInputChange('bedroomCount', e.target.value)}
-	                      className="w-full px-4 py-2 border-2 border-indigo-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 font-semibold"
-	                    />
+              {towerConfig.buildingUse !== "commercial" && (
+                <div className="p-4 bg-indigo-50 border-2 border-indigo-200 rounded-lg">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                    🛏️ Room Configuration
+                  </h4>
+                  <div className="grid grid-cols-3 gap-4 mb-3">
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-2">
+                        Bedrooms
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="10"
+                        value={towerConfig.bedroomCount}
+                        onChange={(e) =>
+                          handleNumberInputChange(
+                            "bedroomCount",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-4 py-2 border-2 border-indigo-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-2">
+                        Bathrooms
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="10"
+                        value={towerConfig.bathroomCount}
+                        onChange={(e) =>
+                          handleNumberInputChange(
+                            "bathroomCount",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-4 py-2 border-2 border-indigo-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-2">
+                        Balconies
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="10"
+                        value={towerConfig.balconyCount}
+                        onChange={(e) =>
+                          handleNumberInputChange(
+                            "balconyCount",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-4 py-2 border-2 border-indigo-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 font-semibold"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-2">Bathrooms</label>
-                    <input
-                      type="number"
-	                      min="0"
-	                      max="10"
-	                      value={towerConfig.bathroomCount}
-	                      onChange={(e) => handleNumberInputChange('bathroomCount', e.target.value)}
-	                      className="w-full px-4 py-2 border-2 border-indigo-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 font-semibold"
-	                    />
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <Checkbox
+                        checked={towerConfig.hasLivingRoom}
+                        onCheckedChange={(checked) =>
+                          setConfigFlag("hasLivingRoom", checked)
+                        }
+                        className="w-4 h-4 border-indigo-500 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 data-[state=checked]:text-white"
+                      />
+                      <span>Living Room / Hall</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <Checkbox
+                        checked={towerConfig.hasKitchen}
+                        onCheckedChange={(checked) =>
+                          setConfigFlag("hasKitchen", checked)
+                        }
+                        className="w-4 h-4 border-indigo-500 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 data-[state=checked]:text-white"
+                      />
+                      <span>Kitchen</span>
+                    </label>
                   </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-2">Balconies</label>
-                    <input
-                      type="number"
-	                      min="0"
-	                      max="10"
-	                      value={towerConfig.balconyCount}
-	                      onChange={(e) => handleNumberInputChange('balconyCount', e.target.value)}
-	                      className="w-full px-4 py-2 border-2 border-indigo-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 font-semibold"
-	                    />
+                  <div className="mt-3 p-2 bg-white rounded border border-indigo-200">
+                    <p className="text-xs text-gray-600">
+                      <strong>Will generate:</strong>
+                      {towerConfig.hasLivingRoom && " Living Room/Hall,"}
+                      {parseNonNegativeInt(towerConfig.bedroomCount, 0) > 0 &&
+                        ` Bedroom 1-${towerConfig.bedroomCount},`}
+                      {towerConfig.hasKitchen && " Kitchen,"}
+                      {parseNonNegativeInt(towerConfig.bathroomCount, 0) > 0 &&
+                        ` Bathroom 1-${towerConfig.bathroomCount},`}
+                      {parseNonNegativeInt(towerConfig.balconyCount, 0) > 0 &&
+                        ` Balcony 1-${towerConfig.balconyCount}`}
+                    </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={towerConfig.hasLivingRoom}
-                      onChange={(e) => setTowerConfig({ ...towerConfig, hasLivingRoom: e.target.checked })}
-                      className="w-4 h-4 text-indigo-600 rounded"
-                    />
-                    <span>Living Room / Hall</span>
-                  </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={towerConfig.hasKitchen}
-                      onChange={(e) => setTowerConfig({ ...towerConfig, hasKitchen: e.target.checked })}
-                      className="w-4 h-4 text-indigo-600 rounded"
-                    />
-                    <span>Kitchen</span>
-                  </label>
-                </div>
-                <div className="mt-3 p-2 bg-white rounded border border-indigo-200">
-                  <p className="text-xs text-gray-600">
-                    <strong>Will generate:</strong> 
-                    {towerConfig.hasLivingRoom && ' Living Room/Hall,'}
-	                    {parseNonNegativeInt(towerConfig.bedroomCount, 0) > 0 && ` Bedroom 1-${towerConfig.bedroomCount},`}
-	                    {towerConfig.hasKitchen && ' Kitchen,'}
-	                    {parseNonNegativeInt(towerConfig.bathroomCount, 0) > 0 && ` Bathroom 1-${towerConfig.bathroomCount},`}
-	                    {parseNonNegativeInt(towerConfig.balconyCount, 0) > 0 && ` Balcony 1-${towerConfig.balconyCount}`}
-                  </p>
-                </div>
-              </div>
               )}
 
               {/* Additional Room Types (Optional) */}
-              {towerConfig.buildingUse !== 'commercial' && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  🏠 Additional Room Types (Optional - for special rooms)
-                </label>
-                <p className="text-xs text-gray-500 mb-3">Select additional rooms like Dining, Study, Pooja Room, Terrace, etc.</p>
-                <div className="grid grid-cols-2 gap-3">
-                  {ROOM_TYPES.map(room => (
-                    <label
-                      key={room.value}
-                      className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                        towerConfig.defaultRooms.includes(room.value)
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-300 hover:border-blue-300 bg-white'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={towerConfig.defaultRooms.includes(room.value)}
-                        onChange={() => toggleRoom(room.value)}
-                        className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                      />
-                      <span className="text-2xl">{room.icon}</span>
-                      <span className="font-medium text-gray-700">{room.label}</span>
-                    </label>
-                  ))}
+              {towerConfig.buildingUse !== "commercial" && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    🏠 Additional Room Types (Optional - for special rooms)
+                  </label>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Select additional rooms like Dining, Study, Pooja Room,
+                    Terrace, etc.
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {ROOM_TYPES.map((room) => (
+                      <label
+                        key={room.value}
+                        className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                          towerConfig.defaultRooms.includes(room.value)
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-300 hover:border-blue-300 bg-white"
+                        }`}
+                      >
+                        <Checkbox
+                          checked={towerConfig.defaultRooms.includes(
+                            room.value
+                          )}
+                          onCheckedChange={() => toggleRoom(room.value)}
+                          className="w-5 h-5 border-blue-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
+                        />
+                        <span className="text-2xl">{room.icon}</span>
+                        <span className="font-medium text-gray-700">
+                          {room.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3">
+                    Selected: {towerConfig.defaultRooms.length} room types
+                  </p>
                 </div>
-                <p className="text-xs text-gray-500 mt-3">
-                  Selected: {towerConfig.defaultRooms.length} room types
-                </p>
-              </div>
               )}
 
               {/* Preview */}
               <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border-2 border-green-200">
-                <p className="text-sm font-semibold text-gray-700 mb-2">✨ Preview:</p>
+                <p className="text-sm font-semibold text-gray-700 mb-2">
+                  ✨ Preview:
+                </p>
                 <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• Usage: {BUILDING_USE_OPTIONS.find((option) => option.value === towerConfig.buildingUse)?.label}</li>
-                  {towerConfig.hasPodium && <li>• 🏛️ Podiums: {towerConfig.podiumCount || 1} (P1, P2, P3...)</li>}
-                  {towerConfig.hasCommonArea && <li>• 🏢 Common Areas: {towerConfig.commonAreaCount || 1} (CA1, CA2, CA3...)</li>}
-                  {towerConfig.hasStaircase && <li>• 🪜 Staircases: {towerConfig.staircaseCount || 1} (Staircase 1, Staircase 2...)</li>}
-                  <li>• {towerConfig.basementType !== 'none' ? `Basements: ${towerConfig.basementType === 'custom' ? (towerConfig.customBasements || 0) : towerConfig.basementType === 'b1_b2' ? '2 (B2, B1)' : '1 (B1)'}` : 'No basements'}</li>
-	                  <li>• Floors: Ground Floor + {towerConfig.totalFloors || 0} upper floors + {getPreviewCounts().basementCount} basements = {getPreviewCounts().totalFloors} total</li>
-	                  {['commercial', 'mixed'].includes(towerConfig.buildingUse) && (
-	                    <li>• Commercial: {getPreviewCounts().commercialFloorsWithGround} floor(s), {formatCommercialMix(towerConfig.commercialMix)} per commercial floor</li>
-	                  )}
-	                  {['commercial', 'mixed'].includes(towerConfig.buildingUse) && towerConfig.basementType !== 'none' && (
-	                    <li>• Basement: {formatCommercialMix(towerConfig.basementMix)} per basement level</li>
-	                  )}
-	                  {towerConfig.buildingUse !== 'commercial' && (
-	                    <li>• Residential: {getPreviewCounts().residentialFloorsWithGround} floor(s), {towerConfig.defaultFlatsPerFloor} flat(s) per residential floor</li>
-	                  )}
-	                  <li>• Total units: {getPreviewCounts().commercialUnits + getPreviewCounts().residentialUnits}</li>
-	                  {towerConfig.buildingUse !== 'commercial' && (
-	                    <li>• Rooms per residential flat: {parseNonNegativeInt(towerConfig.bedroomCount, 0)} Bedrooms, {parseNonNegativeInt(towerConfig.bathroomCount, 0)} Bathrooms, {parseNonNegativeInt(towerConfig.balconyCount, 0)} Balconies + {(towerConfig.hasLivingRoom ? 1 : 0) + (towerConfig.hasKitchen ? 1 : 0)} other rooms</li>
-	                  )}
+                  <li>
+                    • Usage:{" "}
+                    {
+                      BUILDING_USE_OPTIONS.find(
+                        (option) => option.value === towerConfig.buildingUse
+                      )?.label
+                    }
+                  </li>
+                  {towerConfig.hasPodium && (
+                    <li>
+                      • 🏛️ Podiums: {towerConfig.podiumCount || 1} (P1, P2,
+                      P3...)
+                    </li>
+                  )}
+                  {towerConfig.hasCommonArea && (
+                    <li>
+                      • 🏢 Common Areas: {towerConfig.commonAreaCount || 1}{" "}
+                      (CA1, CA2, CA3...)
+                    </li>
+                  )}
+                  {towerConfig.hasStaircase && (
+                    <li>
+                      • 🪜 Staircases: {towerConfig.staircaseCount || 1}{" "}
+                      (Staircase 1, Staircase 2...)
+                    </li>
+                  )}
+                  <li>
+                    •{" "}
+                    {towerConfig.basementType !== "none"
+                      ? `Basements: ${
+                          towerConfig.basementType === "custom"
+                            ? towerConfig.customBasements || 0
+                            : towerConfig.basementType === "b1_b2"
+                            ? "2 (B2, B1)"
+                            : "1 (B1)"
+                        }`
+                      : "No basements"}
+                  </li>
+                  <li>
+                    • Floors: Ground Floor + {towerConfig.totalFloors || 0}{" "}
+                    upper floors + {getPreviewCounts().basementCount} basements
+                    = {getPreviewCounts().totalFloors} total
+                  </li>
+                  {["commercial", "mixed"].includes(
+                    towerConfig.buildingUse
+                  ) && (
+                    <li>
+                      • Commercial:{" "}
+                      {getPreviewCounts().commercialFloorsWithGround} floor(s),{" "}
+                      {formatCommercialMix(towerConfig.commercialMix)} per
+                      commercial floor
+                    </li>
+                  )}
+                  {["commercial", "mixed"].includes(towerConfig.buildingUse) &&
+                    towerConfig.basementType !== "none" && (
+                      <li>
+                        • Basement:{" "}
+                        {formatCommercialMix(towerConfig.basementMix)} per
+                        basement level
+                      </li>
+                    )}
+                  {towerConfig.buildingUse !== "commercial" && (
+                    <li>
+                      • Residential:{" "}
+                      {getPreviewCounts().residentialFloorsWithGround} floor(s),{" "}
+                      {towerConfig.defaultFlatsPerFloor} flat(s) per residential
+                      floor
+                    </li>
+                  )}
+                  <li>
+                    • Total units:{" "}
+                    {getPreviewCounts().commercialUnits +
+                      getPreviewCounts().residentialUnits}
+                  </li>
+                  {towerConfig.buildingUse !== "commercial" && (
+                    <li>
+                      • Rooms per residential flat:{" "}
+                      {parseNonNegativeInt(towerConfig.bedroomCount, 0)}{" "}
+                      Bedrooms,{" "}
+                      {parseNonNegativeInt(towerConfig.bathroomCount, 0)}{" "}
+                      Bathrooms,{" "}
+                      {parseNonNegativeInt(towerConfig.balconyCount, 0)}{" "}
+                      Balconies +{" "}
+                      {(towerConfig.hasLivingRoom ? 1 : 0) +
+                        (towerConfig.hasKitchen ? 1 : 0)}{" "}
+                      other rooms
+                    </li>
+                  )}
                 </ul>
               </div>
             </div>
@@ -1146,7 +1381,6 @@ const SmartTowerBuilder = ({ buildings, onChange }) => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

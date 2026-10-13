@@ -1,5 +1,5 @@
 // src/pages/AdminLeaves.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import axios from "../utils/axios";
 import DashboardLayout from "../layouts/DashboardLayout";
 import dayjs from "dayjs";
@@ -10,8 +10,21 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '../components/ui/Select';
 //import "react-toastify/dist/ReactToastify.css";
 
+// Radix SelectItem cannot use an empty-string value, so "All ..." options use
+// this sentinel in the UI. It is mapped back to "" before touching filters state.
+const ALL = "__all__";
+
+const selectTriggerClass =
+    "rounded-lg border-gray-300 dark:border-gray-600 px-3 py-2 text-sm bg-background text-foreground focus:ring-2 focus:ring-orange-500 focus:ring-offset-0";
 
 const StatusBadge = ({ status }) => {
     const cls =
@@ -57,17 +70,17 @@ export default function AdminLeaves() {
     );
 
     // 🔹 Load branches for dropdown
-    const loadBranches = async () => {
+    const loadBranches = useCallback(async () => {
         try {
             const res = await axios.get("/branches");
             setBranches(res.data || []);
         } catch (e) {
             console.error("Failed to fetch branches", e);
         }
-    };
+    }, []);
 
     // 🔹 Load leave requests
-    const loadLeaves = async () => {
+    const loadLeaves = useCallback(async () => {
         setLoading(true);
         try {
             const res = await axios.get("/leaves", { params: { ...filters, page, limit } });
@@ -79,13 +92,12 @@ export default function AdminLeaves() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filters, page, limit]);
 
     useEffect(() => {
         loadBranches();
         loadLeaves();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page, limit]);
+    }, [loadBranches, loadLeaves]);
 
     const onSearch = (e) => {
         e.preventDefault();
@@ -119,63 +131,79 @@ export default function AdminLeaves() {
                             onSubmit={onSearch}
                             className="grid grid-cols-1 md:grid-cols-7 gap-3"
                         >
-                            <select
-                                value={filters.role}
-                                onChange={(e) =>
-                                    setFilters((f) => ({ ...f, role: e.target.value }))
+                            <Select
+                                value={filters.role || ALL}
+                                onValueChange={(value) =>
+                                    setFilters((f) => ({ ...f, role: value === ALL ? "" : value }))
                                 }
-                                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
                             >
-                                <option value="">All Roles</option>
-                                <option value="admin">Admin</option>
-                                <option value="staff">Staff</option>
-                                <option value="supervisor">Supervisor</option>
-                                <option value="subcontractor">Subcontractor</option>
-                                <option value="labour">Labour</option>
-                            </select>
+                                <SelectTrigger aria-label="Filter by role" className={selectTriggerClass}>
+                                    <SelectValue placeholder="All Roles" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={ALL}>All Roles</SelectItem>
+                                    <SelectItem value="admin">Admin</SelectItem>
+                                    <SelectItem value="staff">Staff</SelectItem>
+                                    <SelectItem value="supervisor">Supervisor</SelectItem>
+                                    <SelectItem value="subcontractor">Subcontractor</SelectItem>
+                                    <SelectItem value="labour">Labour</SelectItem>
+                                </SelectContent>
+                            </Select>
 
                             {/* 🔹 Branch dropdown */}
-                            <select
-                                value={filters.branchId}
-                                onChange={(e) =>
-                                    setFilters((f) => ({ ...f, branchId: e.target.value }))
+                            <Select
+                                value={filters.branchId || ALL}
+                                onValueChange={(value) =>
+                                    setFilters((f) => ({ ...f, branchId: value === ALL ? "" : value }))
                                 }
-                                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
                             >
-                                <option value="">All Branches</option>
-                                {branches.map((b) => (
-                                    <option key={b._id} value={b._id}>
-                                        {b.name}
-                                    </option>
-                                ))}
-                            </select>
+                                <SelectTrigger aria-label="Filter by branch" className={selectTriggerClass}>
+                                    <SelectValue placeholder="All Branches" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={ALL}>All Branches</SelectItem>
+                                    {branches.map((b) => (
+                                        <SelectItem key={b._id} value={String(b._id)}>
+                                            {b.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
 
-                            <select
-                                value={filters.status}
-                                onChange={(e) =>
-                                    setFilters((f) => ({ ...f, status: e.target.value }))
+                            <Select
+                                value={filters.status || ALL}
+                                onValueChange={(value) =>
+                                    setFilters((f) => ({ ...f, status: value === ALL ? "" : value }))
                                 }
-                                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
                             >
-                                <option value="">All Status</option>
-                                <option value="pending">Pending</option>
-                                <option value="approved">Approved</option>
-                                <option value="rejected">Rejected</option>
-                            </select>
+                                <SelectTrigger aria-label="Filter by status" className={selectTriggerClass}>
+                                    <SelectValue placeholder="All Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={ALL}>All Status</SelectItem>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="approved">Approved</SelectItem>
+                                    <SelectItem value="rejected">Rejected</SelectItem>
+                                </SelectContent>
+                            </Select>
 
-                            <select
-                                value={filters.type}
-                                onChange={(e) =>
-                                    setFilters((f) => ({ ...f, type: e.target.value }))
+                            <Select
+                                value={filters.type || ALL}
+                                onValueChange={(value) =>
+                                    setFilters((f) => ({ ...f, type: value === ALL ? "" : value }))
                                 }
-                                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
                             >
-                                <option value="">All Types</option>
-                                <option value="paid">Paid</option>
-                                <option value="unpaid">Unpaid</option>
-                                <option value="sick">Sick</option>
-                                <option value="casual">Casual</option>
-                            </select>
+                                <SelectTrigger aria-label="Filter by leave type" className={selectTriggerClass}>
+                                    <SelectValue placeholder="All Types" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={ALL}>All Types</SelectItem>
+                                    <SelectItem value="paid">Paid</SelectItem>
+                                    <SelectItem value="unpaid">Unpaid</SelectItem>
+                                    <SelectItem value="sick">Sick</SelectItem>
+                                    <SelectItem value="casual">Casual</SelectItem>
+                                </SelectContent>
+                            </Select>
 
                             <Input
                                 type="date"
@@ -353,20 +381,27 @@ export default function AdminLeaves() {
                             <span className="font-semibold text-gray-900 dark:text-white">{total}</span> records
                         </div>
                         <div className="flex items-center gap-2">
-                            <select
-                                value={limit}
-                                onChange={(e) => {
-                                    setLimit(Number(e.target.value));
+                            <Select
+                                value={String(limit)}
+                                onValueChange={(value) => {
+                                    setLimit(Number(value));
                                     setPage(1);
                                 }}
-                                className="border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
                             >
-                                {[10, 20, 50, 100].map((n) => (
-                                    <option key={n} value={n}>
-                                        {n} / page
-                                    </option>
-                                ))}
-                            </select>
+                                <SelectTrigger
+                                    aria-label="Rows per page"
+                                    className="h-8 w-auto gap-2 rounded-lg border-gray-300 dark:border-gray-600 px-2 py-1 text-sm bg-background text-foreground focus:ring-2 focus:ring-orange-500 focus:ring-offset-0"
+                                >
+                                    <SelectValue placeholder="20 / page" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {[10, 20, 50, 100].map((n) => (
+                                        <SelectItem key={n} value={String(n)}>
+                                            {n} / page
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                             <Button
                                 variant="outline"
                                 size="sm"
