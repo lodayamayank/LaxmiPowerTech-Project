@@ -16,7 +16,7 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '../components/ui/Select';
+} from '../components/ui/select';
 //import "react-toastify/dist/ReactToastify.css";
 
 // Radix SelectItem cannot use an empty-string value, so "All ..." options use
