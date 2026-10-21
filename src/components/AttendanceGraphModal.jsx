@@ -171,7 +171,7 @@ const AttendanceGraphModal = ({ user, onClose }) => {
       setError("");
 
       try {
-        const response = await axios.get("/attendance", {
+        const response = await axios.get(`/attendance/user/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
           params: {
             startDate: toDateKey(range.start),
