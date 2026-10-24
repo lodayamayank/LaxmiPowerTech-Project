@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
 import axios from "../utils/axios";
 import { useNavigate } from "react-router-dom";
 
@@ -80,7 +81,7 @@ const RequestLeave = () => {
           className="w-full border p-2 rounded"
         />
 
-        <textarea
+        <Textarea
           name="reason"
           value={form.reason}
           onChange={handleChange}

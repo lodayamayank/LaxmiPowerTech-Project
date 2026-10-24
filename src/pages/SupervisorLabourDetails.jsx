@@ -1,35 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import axios from '../utils/axios';
-import { FaArrowLeft, FaSave, FaTrash } from 'react-icons/fa';
-import { toast } from 'react-toastify';
-import logo from '../assets/logo.png';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "../utils/axios";
+import { FaArrowLeft, FaSave, FaTrash } from "react-icons/fa";
+import { toast } from "react-toastify";
+import logo from "../assets/logo.png";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const SupervisorLabourDetails = () => {
   const navigate = useNavigate();
   const { branchId, labourId } = useParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [projectName, setProjectName] = useState('');
-  const token = localStorage.getItem('token');
+  const [projectName, setProjectName] = useState("");
+  const token = localStorage.getItem("token");
 
   const [formData, setFormData] = useState({
-    name: '',
-    labourType: '',
-    wageType: 'daily',
-    workingHours: '8',
-    dailyWage: '',
-    overtimeWage: '',
-    username: '',
-    mobileNumber: '',
-    emergencyContact: ''
+    name: "",
+    labourType: "",
+    wageType: "daily",
+    workingHours: "8",
+    dailyWage: "",
+    overtimeWage: "",
+    username: "",
+    mobileNumber: "",
+    emergencyContact: "",
   });
 
   useEffect(() => {
-    const storedBranchName = localStorage.getItem('selectedBranchName');
+    const storedBranchName = localStorage.getItem("selectedBranchName");
     if (storedBranchName) {
       setProjectName(storedBranchName);
     }
@@ -40,24 +39,24 @@ const SupervisorLabourDetails = () => {
     try {
       setLoading(true);
       const res = await axios.get(`/users/${labourId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       const labour = res.data;
       setFormData({
-        name: labour.name || '',
-        labourType: labour.jobTitle || '',
-        wageType: labour.salaryType || 'daily',
-        workingHours: labour.standardDailyHours?.toString() || '8',
-        dailyWage: labour.ctcAmount?.toString() || '',
-        overtimeWage: labour.overtimeRateMultiplier?.toString() || '',
-        username: labour.username || '',
-        mobileNumber: labour.mobileNumber || '',
-        emergencyContact: labour.emergencyContact || ''
+        name: labour.name || "",
+        labourType: labour.jobTitle || "",
+        wageType: labour.salaryType || "daily",
+        workingHours: labour.standardDailyHours?.toString() || "8",
+        dailyWage: labour.ctcAmount?.toString() || "",
+        overtimeWage: labour.overtimeRateMultiplier?.toString() || "",
+        username: labour.username || "",
+        mobileNumber: labour.mobileNumber || "",
+        emergencyContact: labour.emergencyContact || "",
       });
     } catch (err) {
-      console.error('Failed to fetch labour details:', err);
-      toast.error('Failed to load labour details');
+      console.error("Failed to fetch labour details:", err);
+      toast.error("Failed to load labour details");
       navigate(`/branch/${branchId}/labours`);
     } finally {
       setLoading(false);
@@ -66,23 +65,23 @@ const SupervisorLabourDetails = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.labourType) {
-      toast.error('Please fill in name and labour type');
+      toast.error("Please fill in name and labour type");
       return;
     }
 
     try {
       setSaving(true);
-      
+
       const payload = {
         name: formData.name,
         username: formData.username,
@@ -91,38 +90,46 @@ const SupervisorLabourDetails = () => {
         emergencyContact: formData.emergencyContact,
         ctcAmount: formData.dailyWage ? parseFloat(formData.dailyWage) : 0,
         salaryType: formData.wageType,
-        standardDailyHours: formData.workingHours ? parseFloat(formData.workingHours) : 8,
-        overtimeRateMultiplier: formData.overtimeWage ? parseFloat(formData.overtimeWage) : 0
+        standardDailyHours: formData.workingHours
+          ? parseFloat(formData.workingHours)
+          : 8,
+        overtimeRateMultiplier: formData.overtimeWage
+          ? parseFloat(formData.overtimeWage)
+          : 0,
       };
 
       await axios.put(`/users/${labourId}`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      toast.success('Labour updated successfully!');
+      toast.success("Labour updated successfully!");
       navigate(`/branch/${branchId}/labours`);
     } catch (err) {
-      console.error('Failed to update labour:', err);
-      toast.error(err.response?.data?.message || 'Failed to update labour');
+      console.error("Failed to update labour:", err);
+      toast.error(err.response?.data?.message || "Failed to update labour");
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(`Are you sure you want to delete ${formData.name}? This action cannot be undone.`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${formData.name}? This action cannot be undone.`
+      )
+    ) {
       return;
     }
 
     try {
       await axios.delete(`/users/${labourId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      toast.success('Labour deleted successfully');
+      toast.success("Labour deleted successfully");
       navigate(`/branch/${branchId}/labours`);
     } catch (err) {
-      console.error('Failed to delete labour:', err);
-      toast.error('Failed to delete labour');
+      console.error("Failed to delete labour:", err);
+      toast.error("Failed to delete labour");
     }
   };
 
@@ -143,7 +150,11 @@ const SupervisorLabourDetails = () => {
         {/* Header */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg sticky top-0 z-10">
           <div className="flex items-center justify-between mb-4">
-            <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
+            <img
+              src={logo}
+              alt="Logo"
+              className="h-16 w-50 bg-white box-shadow rounded-2xl"
+            />
             <Button
               variant="ghost"
               onClick={() => navigate(`/branch/${branchId}/labours`)}
@@ -156,7 +167,9 @@ const SupervisorLabourDetails = () => {
 
           <div className="mt-6">
             <h2 className="text-white text-2xl font-bold">Labour Details</h2>
-            <p className="text-white/80 text-sm mt-1">Project: {projectName || 'Loading...'}</p>
+            <p className="text-white/80 text-sm mt-1">
+              Project: {projectName || "Loading..."}
+            </p>
           </div>
         </div>
 
@@ -164,21 +177,27 @@ const SupervisorLabourDetails = () => {
         <form onSubmit={handleSubmit} className="px-6 py-6 space-y-6">
           {/* Personal Details Section */}
           <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-            <h3 className="text-orange-600 font-bold text-sm mb-4">Personal Details</h3>
-            
+            <h3 className="text-orange-600 font-bold text-sm mb-4">
+              Personal Details
+            </h3>
+
             <div className="space-y-4">
               {/* Name */}
               <div>
-                <label className="text-gray-700 text-sm font-medium mb-2 block">
+                <label
+                  htmlFor="labour-name"
+                  className="text-gray-700 text-sm font-medium mb-2 block"
+                >
                   Name <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
+                  id="labour-name"
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Enter full name"
-                  className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                  className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
                   required
                   disabled={saving}
                 />
@@ -186,19 +205,23 @@ const SupervisorLabourDetails = () => {
 
               {/* Labour Type */}
               <div>
-                <label className="text-gray-700 text-sm font-medium mb-2 block">
+                <label
+                  htmlFor="labour-type"
+                  className="text-gray-700 text-sm font-medium mb-2 block"
+                >
                   Labour Type <span className="text-red-500">*</span>
                 </label>
                 <select
+                  id="labour-type"
                   name="labourType"
                   value={formData.labourType}
                   onChange={handleChange}
                   className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 appearance-none"
                   style={{
                     backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                    backgroundPosition: 'right 0.5rem center',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundSize: '1.25em 1.25em'
+                    backgroundPosition: "right 0.5rem center",
+                    backgroundRepeat: "no-repeat",
+                    backgroundSize: "1.25em 1.25em",
                   }}
                   required
                   disabled={saving}
@@ -217,49 +240,63 @@ const SupervisorLabourDetails = () => {
 
               {/* Username */}
               <div>
-                <label className="text-gray-700 text-sm font-medium mb-2 block">
+                <label
+                  htmlFor="labour-username"
+                  className="text-gray-700 text-sm font-medium mb-2 block"
+                >
                   Username
                 </label>
-                <input
+                <Input
+                  id="labour-username"
                   type="text"
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
                   placeholder="Username"
-                  className="w-full bg-gray-100 border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-600 cursor-not-allowed"
+                  className="h-auto w-full bg-gray-100 border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-600 cursor-not-allowed shadow-none disabled:opacity-100"
                   disabled
                 />
-                <p className="text-xs text-gray-500 mt-1">Username cannot be changed</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Username cannot be changed
+                </p>
               </div>
 
               {/* Mobile Number */}
               <div>
-                <label className="text-gray-700 text-sm font-medium mb-2 block">
+                <label
+                  htmlFor="labour-mobile"
+                  className="text-gray-700 text-sm font-medium mb-2 block"
+                >
                   Mobile Number (Optional)
                 </label>
-                <input
+                <Input
+                  id="labour-mobile"
                   type="tel"
                   name="mobileNumber"
                   value={formData.mobileNumber}
                   onChange={handleChange}
                   placeholder="Enter mobile number"
-                  className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                  className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
                   disabled={saving}
                 />
               </div>
 
               {/* Emergency Contact */}
               <div>
-                <label className="text-gray-700 text-sm font-medium mb-2 block">
+                <label
+                  htmlFor="labour-emergency"
+                  className="text-gray-700 text-sm font-medium mb-2 block"
+                >
                   Emergency Contact (Optional)
                 </label>
-                <input
+                <Input
+                  id="labour-emergency"
                   type="tel"
                   name="emergencyContact"
                   value={formData.emergencyContact}
                   onChange={handleChange}
                   placeholder="Enter emergency contact"
-                  className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                  className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
                   disabled={saving}
                 />
               </div>
@@ -268,25 +305,31 @@ const SupervisorLabourDetails = () => {
 
           {/* Wage Details Section */}
           <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-            <h3 className="text-orange-600 font-bold text-sm mb-4">Wage Details (Optional)</h3>
+            <h3 className="text-orange-600 font-bold text-sm mb-4">
+              Wage Details (Optional)
+            </h3>
 
             <div className="space-y-4">
               {/* Wage Type and Working Hours */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-gray-700 text-sm font-medium mb-2 block">
+                  <label
+                    htmlFor="labour-wage-type"
+                    className="text-gray-700 text-sm font-medium mb-2 block"
+                  >
                     Wage Type
                   </label>
                   <select
+                    id="labour-wage-type"
                     name="wageType"
                     value={formData.wageType}
                     onChange={handleChange}
                     className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 appearance-none"
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                      backgroundPosition: 'right 0.5rem center',
-                      backgroundRepeat: 'no-repeat',
-                      backgroundSize: '1.25em 1.25em'
+                      backgroundPosition: "right 0.5rem center",
+                      backgroundRepeat: "no-repeat",
+                      backgroundSize: "1.25em 1.25em",
                     }}
                     disabled={saving}
                   >
@@ -297,19 +340,23 @@ const SupervisorLabourDetails = () => {
                 </div>
 
                 <div>
-                  <label className="text-gray-700 text-sm font-medium mb-2 block">
+                  <label
+                    htmlFor="labour-working-hours"
+                    className="text-gray-700 text-sm font-medium mb-2 block"
+                  >
                     Working Hours
                   </label>
                   <select
+                    id="labour-working-hours"
                     name="workingHours"
                     value={formData.workingHours}
                     onChange={handleChange}
                     className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 appearance-none"
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                      backgroundPosition: 'right 0.5rem center',
-                      backgroundRepeat: 'no-repeat',
-                      backgroundSize: '1.25em 1.25em'
+                      backgroundPosition: "right 0.5rem center",
+                      backgroundRepeat: "no-repeat",
+                      backgroundSize: "1.25em 1.25em",
                     }}
                     disabled={saving}
                   >
@@ -325,30 +372,38 @@ const SupervisorLabourDetails = () => {
               {/* Wage Amounts */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-gray-700 text-sm font-medium mb-2 block">
+                  <label
+                    htmlFor="labour-daily-wage"
+                    className="text-gray-700 text-sm font-medium mb-2 block"
+                  >
                     Daily Wage (₹)
                   </label>
-                  <input
+                  <Input
+                    id="labour-daily-wage"
                     type="number"
                     name="dailyWage"
                     value={formData.dailyWage}
                     onChange={handleChange}
                     placeholder="Enter amount"
-                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                    className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
                     disabled={saving}
                   />
                 </div>
                 <div>
-                  <label className="text-gray-700 text-sm font-medium mb-2 block">
+                  <label
+                    htmlFor="labour-overtime-rate"
+                    className="text-gray-700 text-sm font-medium mb-2 block"
+                  >
                     Overtime Rate (₹/hr)
                   </label>
-                  <input
+                  <Input
+                    id="labour-overtime-rate"
                     type="number"
                     name="overtimeWage"
                     value={formData.overtimeWage}
                     onChange={handleChange}
                     placeholder="Enter rate"
-                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                    className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
                     disabled={saving}
                   />
                 </div>
@@ -380,6 +435,8 @@ const SupervisorLabourDetails = () => {
               type="button"
               onClick={handleDelete}
               disabled={saving}
+              aria-label="Delete labour"
+              title="Delete labour"
               className="px-6 py-3 h-auto bg-red-500 text-white rounded-xl font-semibold text-sm hover:bg-red-600 shadow-md"
             >
               <FaTrash size={14} />

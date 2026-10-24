@@ -11,7 +11,6 @@ import { MdInventory } from 'react-icons/md';
 import axios from '../utils/axios';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 
 const LabourDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -80,21 +79,25 @@ const LabourDashboard = () => {
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
             <div className="flex items-center gap-2">
               {isSupervisorVPSView && (
-                <button
+                <Button
+                  type="button"
+                  variant="ghost"
                   onClick={() => navigate('/supervisor/projects')}
-                  className="mobile-back-button px-4 py-2"
+                  className="mobile-back-button h-auto px-4 py-2 hover:bg-transparent hover:text-current"
                 >
-                  <FaArrowLeft size={14} />
+                  <FaArrowLeft size={14} className="size-3.5" />
                   <span className="text-sm font-medium">Back</span>
-                </button>
+                </Button>
               )}
-              <button
+              <Button
+                type="button"
+                variant="ghost"
                 onClick={handleLogout}
-                className="mobile-back-button px-4 py-2"
+                className="mobile-back-button h-auto px-4 py-2 has-[>svg]:px-4 hover:bg-transparent hover:text-current"
               >
-                <FaSignOutAlt size={14} />
+                <FaSignOutAlt size={14} className="size-3.5" />
                 <span className="text-sm font-medium">Logout</span>
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -260,31 +263,32 @@ const LabourDashboard = () => {
 };
 
 const DashboardCard = ({ label, icon, iconComponent, onClick, gradient, bgColor }) => (
-  <div
+  <button
+    type="button"
     onClick={onClick}
-    className={`${bgColor} rounded-2xl p-5 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 border border-gray-100 group`}
+    className={`${bgColor} block w-full h-full text-center rounded-2xl p-5 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 border border-gray-100 group`}
   >
-    <div className="flex flex-col items-center justify-center h-full">
+    <span className="flex flex-col items-center justify-center h-full">
       {/* Icon Container with Gradient */}
-      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} p-3 mb-3 shadow-lg transform transition-transform duration-300 group-hover:rotate-6`}>
+      <span className={`block w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} p-3 mb-3 shadow-lg transform transition-transform duration-300 group-hover:rotate-6`}>
         {iconComponent ? (
           iconComponent
         ) : (
           <img src={icon} alt={label} className="w-full h-full object-contain filter brightness-0 invert" />
         )}
-      </div>
+      </span>
       
       {/* Label */}
-      <p className="font-semibold text-gray-800 text-sm text-center leading-tight mb-0">
+      <span className="block font-semibold text-gray-800 text-sm text-center leading-tight mb-0">
         {label}
-      </p>
+      </span>
 
       {/* Arrow Icon */}
-      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <span className="block opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <FaChevronRight className="text-gray-400" size={12} />
-      </div>
-    </div>
-  </div>
+      </span>
+    </span>
+  </button>
 );
 
 export default LabourDashboard;

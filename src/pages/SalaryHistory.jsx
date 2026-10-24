@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import {
     FaRupeeSign,
@@ -20,7 +21,31 @@ import {
     FaEye,
     FaTrash,
 } from 'react-icons/fa';
-import Select from '../components/Select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const SalaryHistory = () => {
     const [slips, setSlips] = useState([]);
@@ -32,6 +57,7 @@ const SalaryHistory = () => {
     });
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSlip, setSelectedSlip] = useState(null);
+    const [confirmAction, setConfirmAction] = useState(null);
 
     const token = localStorage.getItem('token');
 
@@ -101,7 +127,7 @@ const SalaryHistory = () => {
 
     // Mark as paid
     const markAsPaid = async (slipId) => {
-        if (!window.confirm('Mark this salary slip as paid?')) return;
+        //if (!window.confirm('Mark this salary slip as paid?')) return;
 
         try {
             await axios.patch(
@@ -125,7 +151,7 @@ const SalaryHistory = () => {
 
     // Delete slip
     const deleteSlip = async (slipId) => {
-        if (!window.confirm('Are you sure you want to delete this salary slip?')) return;
+        //if (!window.confirm('Are you sure you want to delete this salary slip?')) return;
 
         try {
             await axios.delete(`/salary-slips/${slipId}`, {
@@ -145,186 +171,296 @@ const SalaryHistory = () => {
     ];
 
     return (
-        <DashboardLayout title="Salary History">
-            <div className="space-y-6">
-                {/* Header with Filters */}
-                <Card>
-                    <CardContent className="p-6">
-                    <div className="flex flex-col md:flex-row gap-4 mb-6">
-                        <div className="flex-1">
-                            <div className="relative">
-                                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Search by name, username, or employee ID..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                />
-                            </div>
-                        </div>
-                        <div className="flex gap-4">
-                            <Select
-                                value={filters.month}
-                                onChange={(e) => setFilters({ ...filters, month: e.target.value })}
-                                options={[
-                                    { value: '', label: 'All Months' },
-                                    ...monthNames.map((name, index) => ({
-                                        value: (index + 1).toString(),
-                                        label: name
-                                    }))
-                                ]}
-                                className="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-700"
-                            />
-                            <Select
-                                value={filters.year}
-                                onChange={(e) => setFilters({ ...filters, year: e.target.value })}
-                                options={[2024, 2025, 2026, 2027].map((y) => ({
-                                    value: y.toString(),
-                                    label: y.toString()
-                                }))}
-                                className="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-700"
-                            />
-                            <Select
-                                value={filters.paymentStatus}
-                                onChange={(e) => setFilters({ ...filters, paymentStatus: e.target.value })}
-                                options={[
-                                    { value: '', label: 'All Status' },
-                                    { value: 'pending', label: 'Pending' },
-                                    { value: 'processing', label: 'Processing' },
-                                    { value: 'paid', label: 'Paid' },
-                                    { value: 'failed', label: 'Failed' }
-                                ]}
-                                className="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-700"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Table */}
-                    {!loading && filteredSlips.length > 0 && (
-                        <div className="overflow-x-auto">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Employee</TableHead>
-                                        <TableHead className="text-center">Period</TableHead>
-                                        <TableHead className="text-right">Gross</TableHead>
-                                        <TableHead className="text-right">Deductions</TableHead>
-                                        <TableHead className="text-right">Net</TableHead>
-                                        <TableHead className="text-center">Status</TableHead>
-                                        <TableHead className="text-center">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredSlips.map((slip) => (
-                                        <TableRow key={slip._id}>
-                                            <TableCell>
-                                                <div>
-                                                    <p className="font-semibold text-gray-900 dark:text-white">{slip.employeeDetails.name}</p>
-                                                    <p className="text-sm text-gray-500">@{slip.employeeDetails.username}</p>
-                                                    <p className="text-xs text-gray-400">{slip.employeeDetails.employeeId}</p>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-center">
-                                                <div className="flex flex-col items-center">
-                                                    <span className="font-medium">{monthNames[slip.month - 1]}</span>
-                                                    <span className="text-xs text-gray-500">{slip.year}</span>
-                                                    {slip.locked && <FaLock className="text-orange-500 mt-1" size={12} />}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-right font-medium">
-                                                {formatCurrency(slip.grossSalary)}
-                                            </TableCell>
-                                            <TableCell className="text-right text-red-600">
-                                                {formatCurrency(slip.deductions.total)}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <p className="font-bold text-green-600">
-                                                    {formatCurrency(slip.netSalary)}
-                                                </p>
-                                            </TableCell>
-                                            <TableCell className="text-center">
-                                                {getStatusBadge(slip.paymentStatus)}
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <Button
-                                                        onClick={() => setSelectedSlip(slip)}
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="text-blue-500 hover:text-blue-600 h-8 w-8"
-                                                        title="View Details"
-                                                    >
-                                                        <FaEye size={16} />
-                                                    </Button>
-                                                    {slip.paymentStatus === 'pending' && !slip.locked && (
-                                                        <>
-                                                            <Button
-                                                                onClick={() => markAsPaid(slip._id)}
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="text-green-500 hover:text-green-600 h-8 w-8"
-                                                                title="Mark as Paid"
-                                                            >
-                                                                <FaCheckCircle size={16} />
-                                                            </Button>
-                                                            <Button
-                                                                onClick={() => deleteSlip(slip._id)}
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="text-red-500 hover:text-red-600 h-8 w-8"
-                                                                title="Delete"
-                                                            >
-                                                                <FaTrash size={16} />
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    )}
-
-                    {/* Results Summary */}
-                    {!loading && filteredSlips.length > 0 && (
-                        <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 text-center">
-                            Showing {filteredSlips.length} of {slips.length} salary slips
-                        </div>
-                    )}
-
-                    {/* No Data */}
-                    {!loading && filteredSlips.length === 0 && (
-                        <div className="text-center py-12">
-                            <FaFileDownload size={48} className="mx-auto text-gray-300 mb-4" />
-                            <h3 className="text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">No Salary Slips</h3>
-                            <p className="text-gray-500 dark:text-gray-400">No salary slips found for the selected filters.</p>
-                        </div>
-                    )}
-
-                    {/* Loading */}
-                    {loading && (
-                        <div className="text-center py-12">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                            <p className="text-gray-600 dark:text-gray-400">Loading salary history...</p>
-                        </div>
-                    )}
-                    </CardContent>
-                </Card>
-
-                {/* Slip Detail Modal */}
-                {selectedSlip && (
-                    <SlipDetailModal
-                        slip={selectedSlip}
-                        onClose={() => setSelectedSlip(null)}
-                        formatCurrency={formatCurrency}
-                        monthNames={monthNames}
+      <DashboardLayout title="Salary History">
+        <div className="space-y-6">
+          {/* Header with Filters */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="flex-1">
+                  <div className="relative">
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <Input
+                      type="text"
+                      placeholder="Search by name, username, or employee ID..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
-                )}
-            </div>
-        </DashboardLayout>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <Select
+                    value={filters.month || "all"}
+                    onValueChange={(value) =>
+                      setFilters({
+                        ...filters,
+                        month: value === "all" ? "" : value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="w-full md:w-[160px]">
+                      <SelectValue placeholder="All Months" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      <SelectItem value="all">All Months</SelectItem>
+
+                      {monthNames.map((name, index) => (
+                        <SelectItem key={name} value={(index + 1).toString()}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={String(filters.year)}
+                    onValueChange={(value) =>
+                      setFilters({
+                        ...filters,
+                        year: Number(value),
+                      })
+                    }
+                  >
+                    <SelectTrigger className="w-full md:w-[120px]">
+                      <SelectValue placeholder="Year" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {[2024, 2025, 2026, 2027].map((year) => (
+                        <SelectItem key={year} value={String(year)}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={filters.paymentStatus || "all"}
+                    onValueChange={(value) =>
+                      setFilters({
+                        ...filters,
+                        paymentStatus: value === "all" ? "" : value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="w-full md:w-[150px]">
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="failed">Failed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Table */}
+              {!loading && filteredSlips.length > 0 && (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Employee</TableHead>
+                        <TableHead className="text-center">Period</TableHead>
+                        <TableHead className="text-right">Gross</TableHead>
+                        <TableHead className="text-right">Deductions</TableHead>
+                        <TableHead className="text-right">Net</TableHead>
+                        <TableHead className="text-center">Status</TableHead>
+                        <TableHead className="text-center">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredSlips.map((slip) => (
+                        <TableRow key={slip._id}>
+                          <TableCell>
+                            <div>
+                              <p className="font-semibold text-gray-900 dark:text-white">
+                                {slip.employeeDetails.name}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                @{slip.employeeDetails.username}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                {slip.employeeDetails.employeeId}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex flex-col items-center">
+                              <span className="font-medium">
+                                {monthNames[slip.month - 1]}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {slip.year}
+                              </span>
+                              {slip.locked && (
+                                <FaLock
+                                  className="text-orange-500 mt-1"
+                                  size={12}
+                                />
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            {formatCurrency(slip.grossSalary)}
+                          </TableCell>
+                          <TableCell className="text-right text-red-600">
+                            {formatCurrency(slip.deductions.total)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <p className="font-bold text-green-600">
+                              {formatCurrency(slip.netSalary)}
+                            </p>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {getStatusBadge(slip.paymentStatus)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-center gap-2">
+                              <Button
+                                onClick={() => setSelectedSlip(slip)}
+                                variant="ghost"
+                                size="icon"
+                                className="text-blue-500 hover:text-blue-600 h-8 w-8"
+                                title="View Details"
+                              >
+                                <FaEye size={16} />
+                              </Button>
+                              {slip.paymentStatus === "pending" &&
+                                !slip.locked && (
+                                  <>
+                                    <Button
+                                      onClick={() =>
+                                        setConfirmAction({
+                                          type: "paid",
+                                          slipId: slip._id,
+                                        })
+                                      }
+                                      variant="ghost"
+                                      size="icon"
+                                      className="text-green-500 hover:text-green-600 h-8 w-8"
+                                      title="Mark as Paid"
+                                    >
+                                      <FaCheckCircle size={16} />
+                                    </Button>
+                                    <Button
+                                      onClick={() =>
+                                        setConfirmAction({
+                                          type: "delete",
+                                          slipId: slip._id,
+                                        })
+                                      }
+                                      variant="ghost"
+                                      size="icon"
+                                      className="text-red-500 hover:text-red-600 h-8 w-8"
+                                      title="Delete"
+                                    >
+                                      <FaTrash size={16} />
+                                    </Button>
+                                  </>
+                                )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+
+              {/* Results Summary */}
+              {!loading && filteredSlips.length > 0 && (
+                <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 text-center">
+                  Showing {filteredSlips.length} of {slips.length} salary slips
+                </div>
+              )}
+
+              {/* No Data */}
+              {!loading && filteredSlips.length === 0 && (
+                <div className="text-center py-12">
+                  <FaFileDownload
+                    size={48}
+                    className="mx-auto text-gray-300 mb-4"
+                  />
+                  <h3 className="text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">
+                    No Salary Slips
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    No salary slips found for the selected filters.
+                  </p>
+                </div>
+              )}
+
+              {/* Loading */}
+              {loading && (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Loading salary history...
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          <AlertDialog
+            open={!!confirmAction}
+            onOpenChange={(open) => {
+              if (!open) setConfirmAction(null);
+            }}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {confirmAction?.type === "paid"
+                    ? "Mark salary as paid?"
+                    : "Delete salary slip?"}
+                </AlertDialogTitle>
+
+                <AlertDialogDescription>
+                  {confirmAction?.type === "paid"
+                    ? "Are you sure you want to mark this salary slip as paid?"
+                    : "Are you sure you want to delete this salary slip? This action cannot be undone."}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                <AlertDialogAction
+                  onClick={async (event) => {
+                    event.preventDefault();
+
+                    const action = confirmAction;
+                    setConfirmAction(null);
+
+                    if (action?.type === "paid") {
+                      await markAsPaid(action.slipId);
+                    } else if (action?.type === "delete") {
+                      await deleteSlip(action.slipId);
+                    }
+                  }}
+                >
+                  Confirm
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          {/* Slip Detail Modal */}
+          {selectedSlip && (
+            <SlipDetailModal
+              slip={selectedSlip}
+              onClose={() => setSelectedSlip(null)}
+              formatCurrency={formatCurrency}
+              monthNames={monthNames}
+            />
+          )}
+        </div>
+      </DashboardLayout>
     );
 };
 

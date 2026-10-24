@@ -1,11 +1,51 @@
 import { useEffect, useState } from "react";
 import axios from "../utils/axios";
 import DashboardLayout from "../layouts/DashboardLayout";
-import { toast } from "react-toastify";
-import { FaPlus, FaFilter, FaSearch, FaTimes } from "react-icons/fa";
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { toast } from "sonner";
+import { FaPlus, FaFilter, FaSearch } from "react-icons/fa";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+// shadcn SelectItem can't use value="", so "All" options use a sentinel
+const ALL = "all";
+
+const thClass =
+  "h-auto px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider";
+const labelClass = "block text-sm font-medium text-gray-700 mb-1";
+const orangeFocus =
+  "focus-visible:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-500/30";
+const purpleFocus =
+  "focus-visible:border-purple-500 focus-visible:ring-2 focus-visible:ring-purple-500/30";
 
 const StatusPill = ({ value }) => {
   const statusColors = {
@@ -15,13 +55,62 @@ const StatusPill = ({ value }) => {
     cancelled: "bg-red-100 text-red-700",
     triggered: "bg-purple-100 text-purple-700",
   };
-  
+
   return (
-    <Badge variant="outline" className={`border-transparent ${statusColors[value] || "bg-gray-100 text-gray-700"}`}>
+    <Badge
+      variant="outline"
+      className={`border-transparent ${
+        statusColors[value] || "bg-gray-100 text-gray-700"
+      }`}
+    >
       {value || "N/A"}
     </Badge>
   );
 };
+
+const FieldSelect = ({
+  id,
+  value,
+  onValueChange,
+  placeholder,
+  items,
+  disabled = false,
+}) => (
+  <Select value={value || ""} onValueChange={onValueChange} disabled={disabled}>
+    <SelectTrigger
+      id={id}
+      className={`w-full text-sm data-[size=default]:h-10 ${orangeFocus}`}
+    >
+      <SelectValue placeholder={placeholder} />
+    </SelectTrigger>
+    <SelectContent>
+      {items.map((item) => (
+        <SelectItem key={item.value} value={item.value}>
+          {item.label}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+);
+
+const todayISO = () => new Date().toISOString().split("T")[0];
+
+const emptyWorkOrderForm = () => ({
+  workOrderNo: "",
+  workOrderName: "",
+  workOrderDate: todayISO(),
+  totalValue: "",
+  description: "",
+});
+
+const emptyBillForm = () => ({
+  billNo: "",
+  billDate: todayISO(),
+  totalBillValue: "",
+  retentionAmount: "",
+  holdingAmount: "",
+  notes: "",
+});
 
 export default function ManageWorkOrder() {
   const [projects, setProjects] = useState([]);
@@ -42,37 +131,25 @@ export default function ManageWorkOrder() {
     status: "",
     search: "",
   });
-  const [formData, setFormData] = useState({
-    workOrderNo: "",
-    workOrderName: "",
-    workOrderDate: new Date().toISOString().split('T')[0],
-    totalValue: "",
-    description: "",
-  });
-  const [billFormData, setBillFormData] = useState({
-    billNo: "",
-    billDate: new Date().toISOString().split('T')[0],
-    totalBillValue: "",
-    retentionAmount: "",
-    holdingAmount: "",
-    notes: "",
-  });
+  const [formData, setFormData] = useState(emptyWorkOrderForm());
+  const [billFormData, setBillFormData] = useState(emptyBillForm());
   const [triggerFormData, setTriggerFormData] = useState({
     retentionAmount: "",
     retentionDueDate: "",
     retentionNotes: "",
   });
 
-  const formatCurrency = (value) => `₹${(Number(value) || 0).toLocaleString('en-IN')}`;
+  const formatCurrency = (value) =>
+    `₹${(Number(value) || 0).toLocaleString("en-IN")}`;
 
   const formatDate = (dateValue) => {
     if (!dateValue) return "N/A";
     const date = new Date(dateValue);
     if (Number.isNaN(date.getTime())) return "N/A";
-    return date.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
+    return date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
     });
   };
 
@@ -83,7 +160,7 @@ export default function ManageWorkOrder() {
     if (date.getDate() !== originalDay) {
       date.setDate(0);
     }
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   };
 
   const getDateAfterMonths = (months) => {
@@ -93,11 +170,15 @@ export default function ManageWorkOrder() {
     if (date.getDate() !== originalDay) {
       date.setDate(0);
     }
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   };
 
   const getRetentionState = (order) => {
-    if (!order?.isTriggered || !order.retentionAmount || !order.retentionDueDate) {
+    if (
+      !order?.isTriggered ||
+      !order.retentionAmount ||
+      !order.retentionDueDate
+    ) {
       return null;
     }
 
@@ -105,16 +186,44 @@ export default function ManageWorkOrder() {
     today.setHours(0, 0, 0, 0);
     const dueDate = new Date(order.retentionDueDate);
     dueDate.setHours(0, 0, 0, 0);
-    const reminderDate = new Date(order.retentionReminderDate || subtractOneMonth(order.retentionDueDate));
+    const reminderDate = new Date(
+      order.retentionReminderDate || subtractOneMonth(order.retentionDueDate)
+    );
     reminderDate.setHours(0, 0, 0, 0);
 
     if (today > dueDate) {
-      return { label: "Retention Overdue", color: "bg-red-100 text-red-700", isNotifiable: true };
+      return {
+        label: "Retention Overdue",
+        color: "bg-red-100 text-red-700",
+        isNotifiable: true,
+      };
     }
     if (today >= reminderDate) {
-      return { label: "Retention Due Soon", color: "bg-yellow-100 text-yellow-700", isNotifiable: true };
+      return {
+        label: "Retention Due Soon",
+        color: "bg-yellow-100 text-yellow-700",
+        isNotifiable: true,
+      };
     }
-    return { label: "Reminder Scheduled", color: "bg-blue-100 text-blue-700", isNotifiable: false };
+    return {
+      label: "Reminder Scheduled",
+      color: "bg-blue-100 text-blue-700",
+      isNotifiable: false,
+    };
+  };
+
+  const RetentionBadge = ({ order, fallback }) => {
+    const state = getRetentionState(order);
+    return (
+      <Badge
+        variant="outline"
+        className={`border-transparent ${
+          state?.color || "bg-gray-100 text-gray-700"
+        }`}
+      >
+        {state?.label || fallback}
+      </Badge>
+    );
   };
 
   // Fetch projects on mount
@@ -126,7 +235,7 @@ export default function ManageWorkOrder() {
     try {
       const res = await axios.get("/projects");
       setProjects(res.data || []);
-      
+
       // Auto-select first project if available
       if (res.data && res.data.length > 0) {
         setSelectedProject(res.data[0]._id);
@@ -144,12 +253,13 @@ export default function ManageWorkOrder() {
 
     setLoading(true);
     try {
-      const activeFilters = overrideFilters !== undefined ? overrideFilters : filters;
+      const activeFilters =
+        overrideFilters !== undefined ? overrideFilters : filters;
       const params = {
         project: selectedProject,
         ...activeFilters,
       };
-      
+
       const res = await axios.get("/work-orders", { params });
       setWorkOrders(res.data?.data || []);
     } catch (error) {
@@ -168,12 +278,18 @@ export default function ManageWorkOrder() {
   }, [selectedProject]);
 
   useEffect(() => {
-    const notifiableOrders = workOrders.filter((order) => getRetentionState(order)?.isNotifiable);
+    const notifiableOrders = workOrders.filter(
+      (order) => getRetentionState(order)?.isNotifiable
+    );
     notifiableOrders.slice(0, 3).forEach((order) => {
       const retentionState = getRetentionState(order);
       toast.warning(
-        `${order.workOrderName || order.workOrderNo}: ${retentionState.label}. Pay ${formatCurrency(order.retentionAmount)} by ${formatDate(order.retentionDueDate)}.`,
-        { toastId: `retention-${order._id}`, autoClose: 8000 }
+        `${order.workOrderName || order.workOrderNo}: ${
+          retentionState.label
+        }. Pay ${formatCurrency(order.retentionAmount)} by ${formatDate(
+          order.retentionDueDate
+        )}.`,
+        { id: `retention-${order._id}`, duration: 8000 }
       );
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -184,26 +300,13 @@ export default function ManageWorkOrder() {
       toast.warning("Please select a project first");
       return;
     }
+    setFormData(emptyWorkOrderForm());
     setShowAddModal(true);
-    // Reset form
-    setFormData({
-      workOrderNo: "",
-      workOrderName: "",
-      workOrderDate: new Date().toISOString().split('T')[0],
-      totalValue: "",
-      description: "",
-    });
   };
 
   const handleCloseModal = () => {
     setShowAddModal(false);
-    setFormData({
-      workOrderNo: "",
-      workOrderName: "",
-      workOrderDate: new Date().toISOString().split('T')[0],
-      totalValue: "",
-      description: "",
-    });
+    setFormData(emptyWorkOrderForm());
   };
 
   const validateForm = () => {
@@ -228,7 +331,7 @@ export default function ManageWorkOrder() {
 
   const handleSubmitWorkOrder = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -247,13 +350,15 @@ export default function ManageWorkOrder() {
       };
 
       await axios.post("/work-orders", payload);
-      
+
       toast.success("Work Order created successfully!");
       handleCloseModal();
       fetchWorkOrders(); // Refresh list
     } catch (error) {
       console.error("Error creating work order:", error);
-      toast.error(error.response?.data?.message || "Failed to create work order");
+      toast.error(
+        error.response?.data?.message || "Failed to create work order"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -285,38 +390,17 @@ export default function ManageWorkOrder() {
     setShowAddBillForm(false);
     setSelectedWorkOrder(null);
     setBills([]);
-    setBillFormData({
-      billNo: "",
-      billDate: new Date().toISOString().split('T')[0],
-      totalBillValue: "",
-      retentionAmount: "",
-      holdingAmount: "",
-      notes: "",
-    });
+    setBillFormData(emptyBillForm());
   };
 
   const handleAddBillClick = () => {
     setShowAddBillForm(true);
-    setBillFormData({
-      billNo: "",
-      billDate: new Date().toISOString().split('T')[0],
-      totalBillValue: "",
-      retentionAmount: "",
-      holdingAmount: "",
-      notes: "",
-    });
+    setBillFormData(emptyBillForm());
   };
 
   const handleCancelAddBill = () => {
     setShowAddBillForm(false);
-    setBillFormData({
-      billNo: "",
-      billDate: new Date().toISOString().split('T')[0],
-      totalBillValue: "",
-      retentionAmount: "",
-      holdingAmount: "",
-      notes: "",
-    });
+    setBillFormData(emptyBillForm());
   };
 
   const validateBillForm = () => {
@@ -328,7 +412,10 @@ export default function ManageWorkOrder() {
       toast.error("Bill Date is required");
       return false;
     }
-    if (!billFormData.totalBillValue || parseFloat(billFormData.totalBillValue) <= 0) {
+    if (
+      !billFormData.totalBillValue ||
+      parseFloat(billFormData.totalBillValue) <= 0
+    ) {
       toast.error("Total Bill Value must be greater than 0");
       return false;
     }
@@ -340,14 +427,21 @@ export default function ManageWorkOrder() {
     const remainingAmount = workOrderTotalValue - currentTotalBills;
 
     if (newBillValue > remainingAmount) {
-      toast.error(
-        `Total bill amount cannot exceed Work Order Total Value.\n\n` +
-        `Work Order Total: ₹${workOrderTotalValue.toLocaleString('en-IN')}\n` +
-        `Already Billed: ₹${currentTotalBills.toLocaleString('en-IN')}\n` +
-        `Remaining: ₹${remainingAmount.toLocaleString('en-IN')}\n` +
-        `Your Bill: ₹${newBillValue.toLocaleString('en-IN')}`,
-        { autoClose: 5000 }
-      );
+      toast.error("Total bill amount cannot exceed Work Order Total Value", {
+        description: (
+          <div className="space-y-0.5">
+            <div>
+              Work Order Total: ₹{workOrderTotalValue.toLocaleString("en-IN")}
+            </div>
+            <div>
+              Already Billed: ₹{currentTotalBills.toLocaleString("en-IN")}
+            </div>
+            <div>Remaining: ₹{remainingAmount.toLocaleString("en-IN")}</div>
+            <div>Your Bill: ₹{newBillValue.toLocaleString("en-IN")}</div>
+          </div>
+        ),
+        duration: 5000,
+      });
       return false;
     }
 
@@ -356,7 +450,7 @@ export default function ManageWorkOrder() {
 
   const handleSubmitBill = async (e) => {
     e.preventDefault();
-    
+
     if (!validateBillForm()) {
       return;
     }
@@ -373,7 +467,7 @@ export default function ManageWorkOrder() {
       };
 
       await axios.post(`/work-orders/${selectedWorkOrder._id}/bills`, payload);
-      
+
       toast.success("Bill added successfully!");
       handleCancelAddBill();
 
@@ -458,821 +552,1006 @@ export default function ManageWorkOrder() {
         retentionDueDate: triggerFormData.retentionDueDate,
         retentionNotes: triggerFormData.retentionNotes.trim(),
       });
-      toast.success(`Work Order "${triggerWorkOrder.workOrderNo}" has been triggered and locked.`);
+      toast.success(
+        `Work Order "${triggerWorkOrder.workOrderNo}" has been triggered and locked.`
+      );
       closeTriggerModal();
       fetchWorkOrders();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to trigger work order");
+      toast.error(
+        error.response?.data?.message || "Failed to trigger work order"
+      );
     } finally {
       setSubmitting(false);
     }
   };
+
+  const remainingFor = (order) =>
+    (order?.totalValue || 0) - (order?.totalBillsAmount || 0);
 
   return (
     <DashboardLayout>
       <div className="p-6 bg-gray-50 min-h-screen">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Manage Work Orders</h1>
-          <p className="text-gray-600 text-sm mt-1">Create, manage, and track work orders</p>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Manage Work Orders
+          </h1>
+          <p className="text-gray-600 text-sm mt-1">
+            Create, manage, and track work orders
+          </p>
         </div>
 
         {/* Top Section - Project Dropdown and Add Button */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            {/* Project Dropdown */}
-            <div className="flex-1 w-full sm:w-auto">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Project
-              </label>
-              <select
-                value={selectedProject}
-                onChange={(e) => setSelectedProject(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
-              >
-                <option value="">-- Select Project --</option>
-                {projects.map((project) => (
-                  <option key={project._id} value={project._id}>
-                    {project.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <Card className="gap-0 py-0 mb-6 rounded-lg shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end justify-between">
+              <div className="flex-1 w-full sm:max-w-md">
+                <Label
+                  htmlFor="wo-project-select"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Select Project
+                </Label>
+                <FieldSelect
+                  id="wo-project-select"
+                  value={selectedProject}
+                  placeholder="-- Select Project --"
+                  items={projects.map((p) => ({ value: p._id, label: p.name }))}
+                  onValueChange={setSelectedProject}
+                />
+              </div>
 
-            {/* Add Work Order Button */}
-            <div className="w-full sm:w-auto sm:mt-6">
               <Button
                 onClick={handleAddWorkOrder}
-                className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white"
+                className="w-full sm:w-auto h-10 bg-orange-500 hover:bg-orange-600 text-white"
               >
                 <FaPlus />
                 Add Work Order
               </Button>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Filters Section */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-              <FaFilter className="text-orange-500" />
-              Filters
-            </h2>
-            <Button variant="ghost" size="sm" onClick={() => setShowFilters(!showFilters)} className="text-orange-500">
-              {showFilters ? "Hide" : "Show"} Filters
-            </Button>
-          </div>
-
-          {showFilters && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Search */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Search
-                </label>
-                <input
-                  type="text"
-                  placeholder="Work Order No, Name..."
-                  value={filters.search}
-                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none text-sm"
-                />
-              </div>
-
-              {/* Status */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
-                <select
-                  value={filters.status}
-                  onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none text-sm"
-                >
-                  <option value="">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="completed">Completed</option>
-                  <option value="on-hold">On Hold</option>
-                  <option value="cancelled">Cancelled</option>
-                  <option value="triggered">Triggered</option>
-                </select>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="col-span-1 sm:col-span-2 flex gap-2">
-                <Button onClick={handleSearch} className="bg-orange-500 hover:bg-orange-600 text-white">
-                  <FaSearch />
-                  Search
-                </Button>
-                <Button variant="outline" onClick={clearFilters}>
-                  Clear Filters
-                </Button>
-              </div>
+        <Card className="gap-0 py-0 mb-6 rounded-lg shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <FaFilter className="text-orange-500" />
+                Filters
+              </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="text-orange-500"
+              >
+                {showFilters ? "Hide" : "Show"} Filters
+              </Button>
             </div>
-          )}
-        </div>
+
+            {showFilters && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                <div>
+                  <Label htmlFor="wo-filter-search" className={labelClass}>
+                    Search
+                  </Label>
+                  <Input
+                    id="wo-filter-search"
+                    type="text"
+                    placeholder="Work Order No, Name..."
+                    value={filters.search}
+                    onChange={(e) =>
+                      setFilters({ ...filters, search: e.target.value })
+                    }
+                    className={`w-full h-10 text-sm ${orangeFocus}`}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="wo-filter-status" className={labelClass}>
+                    Status
+                  </Label>
+                  <FieldSelect
+                    id="wo-filter-status"
+                    value={filters.status || ALL}
+                    placeholder="All Status"
+                    items={[
+                      { value: ALL, label: "All Status" },
+                      { value: "active", label: "Active" },
+                      { value: "completed", label: "Completed" },
+                      { value: "on-hold", label: "On Hold" },
+                      { value: "cancelled", label: "Cancelled" },
+                      { value: "triggered", label: "Triggered" },
+                    ]}
+                    onValueChange={(val) =>
+                      setFilters({ ...filters, status: val === ALL ? "" : val })
+                    }
+                  />
+                </div>
+
+                <div className="sm:col-span-2 flex gap-2">
+                  <Button
+                    onClick={handleSearch}
+                    className="h-10 bg-orange-500 hover:bg-orange-600 text-white"
+                  >
+                    <FaSearch />
+                    Search
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-10"
+                    onClick={clearFilters}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Work Order List/Table Section */}
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Work Orders</h2>
+        <Card className="gap-0 py-0 rounded-lg shadow-sm">
+          <CardContent className="p-4">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Work Orders
+            </h2>
 
-          {!selectedProject ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">Please select a project to view work orders</p>
-            </div>
-          ) : loading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-              <p className="text-gray-500 mt-2">Loading work orders...</p>
-            </div>
-          ) : workOrders.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 mb-2">No work orders found</p>
-              <p className="text-gray-400 text-sm">Click "Add Work Order" to create your first work order</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Work Order No
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Work Order Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            {!selectedProject ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">
+                  Please select a project to view work orders
+                </p>
+              </div>
+            ) : loading ? (
+              <div className="space-y-3" aria-label="Loading work orders">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
+              </div>
+            ) : workOrders.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500 mb-2">No work orders found</p>
+                <p className="text-gray-400 text-sm">
+                  Click "Add Work Order" to create your first work order
+                </p>
+              </div>
+            ) : (
+              <Table className="min-w-full">
+                <TableHeader className="bg-gray-50">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className={thClass}>Work Order No</TableHead>
+                    <TableHead className={thClass}>Work Order Name</TableHead>
+                    <TableHead className={thClass}>
                       Total Work Order Value
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className={thClass}>
                       Total Bills Amount Used
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Remaining Amount
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Number of Bills
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className={thClass}>Remaining Amount</TableHead>
+                    <TableHead className={thClass}>Number of Bills</TableHead>
+                    <TableHead className={thClass}>
                       Retention Reminder
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                    </TableHead>
+                    <TableHead className={thClass}>Status</TableHead>
+                    <TableHead className={thClass}>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="bg-white">
                   {workOrders.map((order) => (
-                    <tr key={order._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {order.workOrderNo || order.workOrderId || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {order.workOrderName || order.name || order.title || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
-                        ₹{order.totalValue?.toLocaleString('en-IN') || '0'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        ₹{order.totalBillsAmount?.toLocaleString('en-IN') || '0'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">
-                        <span className={`${
-                          (order.totalValue - (order.totalBillsAmount || 0)) < 0 
-                            ? 'text-red-600' 
-                            : 'text-green-600'
-                        }`}>
-                          ₹{((order.totalValue || 0) - (order.totalBillsAmount || 0)).toLocaleString('en-IN')}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                        <span className="inline-flex items-center justify-center bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
+                    <TableRow key={order._id} className="hover:bg-gray-50">
+                      <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {order.workOrderNo || order.workOrderId || "N/A"}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 whitespace-normal text-sm text-gray-900">
+                        {order.workOrderName ||
+                          order.name ||
+                          order.title ||
+                          "N/A"}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                        ₹{order.totalValue?.toLocaleString("en-IN") || "0"}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        ₹
+                        {order.totalBillsAmount?.toLocaleString("en-IN") || "0"}
+                      </TableCell>
+                      <TableCell
+                        className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${
+                          remainingFor(order) < 0
+                            ? "text-red-600"
+                            : "text-green-600"
+                        }`}
+                      >
+                        ₹{remainingFor(order).toLocaleString("en-IN")}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                        <Badge
+                          variant="secondary"
+                          className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 rounded-full hover:bg-blue-100"
+                        >
                           {order.billsCount || 0}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm">
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="px-6 py-4 whitespace-normal text-sm">
                         {order.retentionAmount && order.retentionDueDate ? (
                           <div className="space-y-1">
-                            <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${getRetentionState(order)?.color || 'bg-gray-100 text-gray-700'}`}>
-                              {getRetentionState(order)?.label || 'Scheduled'}
-                            </span>
-                            <p className="text-gray-900 font-semibold">{formatCurrency(order.retentionAmount)}</p>
+                            <RetentionBadge
+                              order={order}
+                              fallback="Scheduled"
+                            />
+                            <p className="text-gray-900 font-semibold">
+                              {formatCurrency(order.retentionAmount)}
+                            </p>
                             <p className="text-xs text-gray-500">
                               Pay by {formatDate(order.retentionDueDate)}
                             </p>
                             <p className="text-xs text-gray-400">
-                              Notify from {formatDate(order.retentionReminderDate)}
+                              Notify from{" "}
+                              {formatDate(order.retentionReminderDate)}
                             </p>
                           </div>
                         ) : (
                           <span className="text-gray-400">-</span>
                         )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      </TableCell>
+                      <TableCell className="px-6 py-4 whitespace-nowrap text-sm">
                         <StatusPill value={order.status} />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      </TableCell>
+                      <TableCell className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex items-center gap-2">
-                          <button 
+                          <Button
+                            type="button"
+                            size="sm"
                             onClick={() => handleViewBills(order)}
-                            className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-medium transition-colors text-xs"
+                            className="bg-orange-500 hover:bg-orange-600 text-white text-xs"
                           >
                             View Bills
-                          </button>
+                          </Button>
                           {order.isTriggered ? (
-                            <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-2 rounded-lg">
+                            <Badge
+                              variant="secondary"
+                              className="bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1.5 hover:bg-purple-100"
+                            >
                               🔒 Triggered
-                            </span>
+                            </Badge>
                           ) : (
-                            <button
+                            <Button
+                              type="button"
+                              size="sm"
                               onClick={() => openTriggerModal(order)}
-                              className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-xs"
+                              className="bg-purple-600 hover:bg-purple-700 text-white text-xs"
                             >
                               Trigger WO
-                            </button>
+                            </Button>
                           )}
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
 
-        {/* Add Work Order Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-800">Create Work Order</h2>
-                <button
-                  onClick={handleCloseModal}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <FaTimes size={24} />
-                </button>
+        {/* Add Work Order Dialog */}
+        <Dialog
+          open={showAddModal}
+          onOpenChange={(open) => {
+            if (!open) handleCloseModal();
+          }}
+        >
+          <DialogContent className="max-w-2xl sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-gray-800">
+                Create Work Order
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                Enter the work order number, name, date and total value.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleSubmitWorkOrder} className="space-y-4">
+              <div>
+                <Label htmlFor="wo-project-display" className={labelClass}>
+                  Project <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="wo-project-display"
+                  type="text"
+                  value={
+                    projects.find((p) => p._id === selectedProject)?.name || ""
+                  }
+                  disabled
+                  className="w-full bg-gray-100 text-gray-600 cursor-not-allowed disabled:opacity-100"
+                />
               </div>
 
-              {/* Modal Body */}
-              <form onSubmit={handleSubmitWorkOrder} className="p-6">
-                <div className="space-y-4">
-                  {/* Project (Display Only) */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Project <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={projects.find(p => p._id === selectedProject)?.name || ""}
-                      disabled
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                    />
-                  </div>
+              <div>
+                <Label htmlFor="wo-number" className={labelClass}>
+                  Work Order Number <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="wo-number"
+                  type="text"
+                  placeholder="Enter Work Order Number (e.g., WO001)"
+                  value={formData.workOrderNo}
+                  onChange={(e) =>
+                    setFormData({ ...formData, workOrderNo: e.target.value })
+                  }
+                  className={`w-full ${orangeFocus}`}
+                  required
+                />
+              </div>
 
-                  {/* Work Order Number */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Work Order Number <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter Work Order Number (e.g., WO001)"
-                      value={formData.workOrderNo}
-                      onChange={(e) => setFormData({ ...formData, workOrderNo: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
-                      required
-                    />
-                  </div>
+              <div>
+                <Label htmlFor="wo-name" className={labelClass}>
+                  Work Order Name / Title{" "}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="wo-name"
+                  type="text"
+                  placeholder="Enter Work Order Name"
+                  value={formData.workOrderName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, workOrderName: e.target.value })
+                  }
+                  className={`w-full ${orangeFocus}`}
+                  required
+                />
+              </div>
 
-                  {/* Work Order Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Work Order Name / Title <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter Work Order Name"
-                      value={formData.workOrderName}
-                      onChange={(e) => setFormData({ ...formData, workOrderName: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
-                      required
-                    />
-                  </div>
-
-                  {/* Work Order Date */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Work Order Date <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.workOrderDate}
-                      onChange={(e) => setFormData({ ...formData, workOrderDate: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
-                      required
-                    />
-                  </div>
-
-                  {/* Total Work Order Value */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Total Work Order Value (₹) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="Enter Total Value"
-                      value={formData.totalValue}
-                      onChange={(e) => setFormData({ ...formData, totalValue: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
-                      min="1"
-                      step="0.01"
-                      required
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      This will be the maximum billing limit for this work order
-                    </p>
-                  </div>
-
-                  {/* Description / Notes */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description / Notes
-                    </label>
-                    <textarea
-                      placeholder="Enter description or notes (optional)"
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      rows="4"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none resize-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Modal Footer */}
-                <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
-                  <button
-                    type="button"
-                    onClick={handleCloseModal}
-                    className="flex-1 px-6 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-                    disabled={submitting}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={submitting}
-                  >
-                    {submitting ? "Creating..." : "+ Add Work Order"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Trigger Work Order Modal */}
-        {showTriggerModal && triggerWorkOrder && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-xl w-full">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-800">Trigger Work Order</h2>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {triggerWorkOrder.workOrderNo} - {triggerWorkOrder.workOrderName}
-                  </p>
+                  <Label htmlFor="wo-date" className={labelClass}>
+                    Work Order Date <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="wo-date"
+                    type="date"
+                    value={formData.workOrderDate}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        workOrderDate: e.target.value,
+                      })
+                    }
+                    className={`w-full ${orangeFocus}`}
+                    required
+                  />
                 </div>
-                <button
-                  onClick={closeTriggerModal}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+
+                <div>
+                  <Label htmlFor="wo-total-value" className={labelClass}>
+                    Total Work Order Value (₹){" "}
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="wo-total-value"
+                    type="number"
+                    placeholder="Enter Total Value"
+                    value={formData.totalValue}
+                    onChange={(e) =>
+                      setFormData({ ...formData, totalValue: e.target.value })
+                    }
+                    className={`w-full ${orangeFocus}`}
+                    min="1"
+                    step="0.01"
+                    required
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 -mt-2">
+                This will be the maximum billing limit for this work order
+              </p>
+
+              <div>
+                <Label htmlFor="wo-description" className={labelClass}>
+                  Description / Notes
+                </Label>
+                <Textarea
+                  id="wo-description"
+                  placeholder="Enter description or notes (optional)"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  rows={4}
+                  className={`w-full resize-none ${orangeFocus}`}
+                />
+              </div>
+
+              <Separator />
+
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCloseModal}
                   disabled={submitting}
                 >
-                  <FaTimes size={24} />
-                </button>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                  disabled={submitting}
+                >
+                  {submitting ? "Creating..." : "+ Add Work Order"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Trigger Work Order Dialog */}
+        <Dialog
+          open={showTriggerModal && !!triggerWorkOrder}
+          onOpenChange={(open) => {
+            if (!open && !submitting) closeTriggerModal();
+          }}
+        >
+          <DialogContent className="max-w-xl sm:max-w-xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-gray-800">
+                Trigger Work Order
+              </DialogTitle>
+              <DialogDescription>
+                {triggerWorkOrder?.workOrderNo} -{" "}
+                {triggerWorkOrder?.workOrderName}
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleTriggerWorkOrder} className="space-y-4">
+              <Alert className="border-purple-200 bg-purple-50 text-purple-800">
+                <AlertTitle className="text-sm font-semibold text-purple-800">
+                  This will lock the work order.
+                </AlertTitle>
+                <AlertDescription className="text-xs text-purple-700">
+                  After triggering, no new bills can be added. The retention
+                  reminder starts one month before the due date.
+                </AlertDescription>
+              </Alert>
+
+              <div>
+                <Label
+                  htmlFor="trigger-retention-amount"
+                  className={labelClass}
+                >
+                  Retention Amount (₹) <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="trigger-retention-amount"
+                  type="number"
+                  placeholder="Amount to pay to client"
+                  value={triggerFormData.retentionAmount}
+                  onChange={(e) =>
+                    setTriggerFormData({
+                      ...triggerFormData,
+                      retentionAmount: e.target.value,
+                    })
+                  }
+                  className={`w-full ${purpleFocus}`}
+                  min="1"
+                  step="0.01"
+                  required
+                />
               </div>
 
-              <form onSubmit={handleTriggerWorkOrder} className="p-6">
-                <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 mb-5">
-                  <p className="text-sm font-semibold text-purple-800">This will lock the work order.</p>
-                  <p className="text-xs text-purple-700 mt-1">
-                    After triggering, no new bills can be added. The retention reminder starts one month before the due date.
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Retention Amount (₹) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="Amount to pay to client"
-                      value={triggerFormData.retentionAmount}
-                      onChange={(e) => setTriggerFormData({ ...triggerFormData, retentionAmount: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
-                      min="1"
-                      step="0.01"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Retention Due Date <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {[
-                        { label: "After 6 Months", months: 6 },
-                        { label: "After 9 Months", months: 9 },
-                        { label: "After 1 Year", months: 12 },
-                      ].map((option) => (
-                        <button
-                          key={option.months}
-                          type="button"
-                          onClick={() => setTriggerFormData({
+              <div>
+                <Label htmlFor="trigger-due-date" className={labelClass}>
+                  Retention Due Date <span className="text-red-500">*</span>
+                </Label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {[
+                    { label: "After 6 Months", months: 6 },
+                    { label: "After 9 Months", months: 9 },
+                    { label: "After 1 Year", months: 12 },
+                  ].map((option) => {
+                    const isActive =
+                      triggerFormData.retentionDueDate ===
+                      getDateAfterMonths(option.months);
+                    return (
+                      <Button
+                        key={option.months}
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          setTriggerFormData({
                             ...triggerFormData,
                             retentionDueDate: getDateAfterMonths(option.months),
-                          })}
-                          className={`px-3 py-1.5 rounded-md border text-xs font-semibold transition-colors ${
-                            triggerFormData.retentionDueDate === getDateAfterMonths(option.months)
-                              ? 'bg-purple-600 border-purple-600 text-white'
-                              : 'bg-white border-purple-200 text-purple-700 hover:bg-purple-50'
-                          }`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                    <input
-                      type="date"
-                      value={triggerFormData.retentionDueDate}
-                      onChange={(e) => setTriggerFormData({ ...triggerFormData, retentionDueDate: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
-                      required
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Reminder starts from {triggerFormData.retentionDueDate ? formatDate(subtractOneMonth(triggerFormData.retentionDueDate)) : 'one month before due date'}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Notes
-                    </label>
-                    <textarea
-                      placeholder="Optional retention/payment note"
-                      value={triggerFormData.retentionNotes}
-                      onChange={(e) => setTriggerFormData({ ...triggerFormData, retentionNotes: e.target.value })}
-                      rows="3"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none resize-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
-                  <button
-                    type="button"
-                    onClick={closeTriggerModal}
-                    className="flex-1 px-6 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-                    disabled={submitting}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={submitting}
-                  >
-                    {submitting ? "Triggering..." : "Trigger & Save Reminder"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Bills Management Modal */}
-        {showBillsModal && selectedWorkOrder && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-              {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-800">Manage Bills</h2>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Work Order: {selectedWorkOrder.workOrderNo} - {selectedWorkOrder.workOrderName}
-                  </p>
-                </div>
-                <button
-                  onClick={handleCloseBillsModal}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <FaTimes size={24} />
-                </button>
-              </div>
-
-              {/* Triggered Lock Banner */}
-              {selectedWorkOrder.isTriggered && (
-                <div className="px-6 py-3 bg-purple-50 border-b border-purple-200 flex items-center gap-3">
-                  <span className="text-purple-700 text-lg">🔒</span>
-                  <div>
-                    <p className="text-sm font-semibold text-purple-800">This Work Order is Triggered and Locked</p>
-                    <p className="text-xs text-purple-600">
-                      No new bills can be added. Retention payment: {formatCurrency(selectedWorkOrder.retentionAmount)} by {formatDate(selectedWorkOrder.retentionDueDate)}.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Work Order Summary */}
-              <div className="p-6 bg-blue-50 border-b border-blue-100">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">Total Work Order Value</p>
-                    <p className="text-lg font-bold text-gray-900">
-                      ₹{selectedWorkOrder.totalValue?.toLocaleString('en-IN') || '0'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">Total Bills Amount</p>
-                    <p className="text-lg font-bold text-blue-600">
-                      ₹{selectedWorkOrder.totalBillsAmount?.toLocaleString('en-IN') || '0'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">Remaining Amount</p>
-                    <p className={`text-lg font-bold ${
-                      (selectedWorkOrder.totalValue - (selectedWorkOrder.totalBillsAmount || 0)) < 0
-                        ? 'text-red-600'
-                        : 'text-green-600'
-                    }`}>
-                      ₹{((selectedWorkOrder.totalValue || 0) - (selectedWorkOrder.totalBillsAmount || 0)).toLocaleString('en-IN')}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">Number of Bills</p>
-                    <p className="text-lg font-bold text-gray-900">
-                      {bills.length}
-                    </p>
-                  </div>
-                </div>
-                {selectedWorkOrder.retentionAmount && selectedWorkOrder.retentionDueDate && (
-                  <div className="mt-4 rounded-lg border border-blue-200 bg-white p-4">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${getRetentionState(selectedWorkOrder)?.color || 'bg-gray-100 text-gray-700'}`}>
-                        {getRetentionState(selectedWorkOrder)?.label || 'Retention Reminder'}
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900">
-                        {formatCurrency(selectedWorkOrder.retentionAmount)}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        Pay by {formatDate(selectedWorkOrder.retentionDueDate)}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        Notify from {formatDate(selectedWorkOrder.retentionReminderDate)}
-                      </span>
-                    </div>
-                    {selectedWorkOrder.retentionNotes && (
-                      <p className="text-sm text-gray-600 mt-2">{selectedWorkOrder.retentionNotes}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Modal Body */}
-              <div className="p-6">
-                {/* Add Bill Button — hidden when triggered */}
-                {!showAddBillForm && (
-                  <div className="mb-6">
-                    {selectedWorkOrder.isTriggered ? (
-                      <div className="inline-flex items-center gap-2 bg-purple-50 border border-purple-200 text-purple-700 text-sm font-medium px-4 py-2 rounded-lg">
-                        🔒 Work Order is locked — adding bills is disabled
-                      </div>
-                    ) : (
-                      <button
-                        onClick={handleAddBillClick}
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
-                        disabled={loadingBills}
+                          })
+                        }
+                        className={`text-xs font-semibold ${
+                          isActive
+                            ? "bg-purple-600 border-purple-600 text-white hover:bg-purple-600 hover:text-white"
+                            : "bg-white border-purple-200 text-purple-700 hover:bg-purple-50 hover:text-purple-700"
+                        }`}
                       >
-                        <FaPlus />
-                        Add Bill
-                      </button>
+                        {option.label}
+                      </Button>
+                    );
+                  })}
+                </div>
+                <Input
+                  id="trigger-due-date"
+                  type="date"
+                  value={triggerFormData.retentionDueDate}
+                  onChange={(e) =>
+                    setTriggerFormData({
+                      ...triggerFormData,
+                      retentionDueDate: e.target.value,
+                    })
+                  }
+                  className={`w-full ${purpleFocus}`}
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Reminder starts from{" "}
+                  {triggerFormData.retentionDueDate
+                    ? formatDate(
+                        subtractOneMonth(triggerFormData.retentionDueDate)
+                      )
+                    : "one month before due date"}
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="trigger-notes" className={labelClass}>
+                  Notes
+                </Label>
+                <Textarea
+                  id="trigger-notes"
+                  placeholder="Optional retention/payment note"
+                  value={triggerFormData.retentionNotes}
+                  onChange={(e) =>
+                    setTriggerFormData({
+                      ...triggerFormData,
+                      retentionNotes: e.target.value,
+                    })
+                  }
+                  rows={3}
+                  className={`w-full resize-none ${purpleFocus}`}
+                />
+              </div>
+
+              <Separator />
+
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeTriggerModal}
+                  disabled={submitting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  disabled={submitting}
+                >
+                  {submitting ? "Triggering..." : "Trigger & Save Reminder"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Bills Management Dialog */}
+        <Dialog
+          open={showBillsModal && !!selectedWorkOrder}
+          onOpenChange={(open) => {
+            if (!open) handleCloseBillsModal();
+          }}
+        >
+          <DialogContent className="max-w-6xl sm:max-w-6xl max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col">
+            <DialogHeader className="shrink-0 px-6 py-4 border-b border-gray-200 bg-gray-50 text-left">
+              <DialogTitle className="text-xl font-bold text-gray-800">
+                Manage Bills
+              </DialogTitle>
+              <DialogDescription>
+                Work Order: {selectedWorkOrder?.workOrderNo} -{" "}
+                {selectedWorkOrder?.workOrderName}
+              </DialogDescription>
+            </DialogHeader>
+
+            {selectedWorkOrder && (
+              <div className="flex-1 overflow-y-auto">
+                {/* Triggered Lock Banner */}
+                {selectedWorkOrder.isTriggered && (
+                  <Alert className="rounded-none border-x-0 border-t-0 border-purple-200 bg-purple-50">
+                    <AlertTitle className="text-sm font-semibold text-purple-800">
+                      🔒 This Work Order is Triggered and Locked
+                    </AlertTitle>
+                    <AlertDescription className="text-xs text-purple-600">
+                      No new bills can be added. Retention payment:{" "}
+                      {formatCurrency(selectedWorkOrder.retentionAmount)} by{" "}
+                      {formatDate(selectedWorkOrder.retentionDueDate)}.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Work Order Summary */}
+                <div className="p-6 bg-blue-50 border-b border-blue-100">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1">
+                        Total Work Order Value
+                      </p>
+                      <p className="text-lg font-bold text-gray-900">
+                        ₹
+                        {selectedWorkOrder.totalValue?.toLocaleString(
+                          "en-IN"
+                        ) || "0"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1">
+                        Total Bills Amount
+                      </p>
+                      <p className="text-lg font-bold text-blue-600">
+                        ₹
+                        {selectedWorkOrder.totalBillsAmount?.toLocaleString(
+                          "en-IN"
+                        ) || "0"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1">
+                        Remaining Amount
+                      </p>
+                      <p
+                        className={`text-lg font-bold ${
+                          remainingFor(selectedWorkOrder) < 0
+                            ? "text-red-600"
+                            : "text-green-600"
+                        }`}
+                      >
+                        ₹
+                        {remainingFor(selectedWorkOrder).toLocaleString(
+                          "en-IN"
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1">
+                        Number of Bills
+                      </p>
+                      <p className="text-lg font-bold text-gray-900">
+                        {bills.length}
+                      </p>
+                    </div>
+                  </div>
+
+                  {selectedWorkOrder.retentionAmount &&
+                    selectedWorkOrder.retentionDueDate && (
+                      <Card className="gap-0 py-0 mt-4 rounded-lg border-blue-200 shadow-none">
+                        <CardContent className="p-4">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <RetentionBadge
+                              order={selectedWorkOrder}
+                              fallback="Retention Reminder"
+                            />
+                            <span className="text-sm font-semibold text-gray-900">
+                              {formatCurrency(
+                                selectedWorkOrder.retentionAmount
+                              )}
+                            </span>
+                            <span className="text-sm text-gray-600">
+                              Pay by{" "}
+                              {formatDate(selectedWorkOrder.retentionDueDate)}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              Notify from{" "}
+                              {formatDate(
+                                selectedWorkOrder.retentionReminderDate
+                              )}
+                            </span>
+                          </div>
+                          {selectedWorkOrder.retentionNotes && (
+                            <p className="text-sm text-gray-600 mt-2">
+                              {selectedWorkOrder.retentionNotes}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
                     )}
-                  </div>
-                )}
+                </div>
 
-                {/* Add Bill Form */}
-                {showAddBillForm && (
-                  <div className="mb-6 bg-orange-50 border border-orange-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Add New Bill</h3>
-                    <form onSubmit={handleSubmitBill}>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Bill No */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Bill No <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="Enter Bill Number"
-                            value={billFormData.billNo}
-                            onChange={(e) => setBillFormData({ ...billFormData, billNo: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
-                            required
-                          />
-                        </div>
-
-                        {/* Bill Date */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Bill Date <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="date"
-                            value={billFormData.billDate}
-                            onChange={(e) => setBillFormData({ ...billFormData, billDate: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
-                            required
-                          />
-                        </div>
-
-                        {/* Total Bill Value */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Total Bill Value (₹) <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            placeholder="Enter Bill Amount"
-                            value={billFormData.totalBillValue}
-                            onChange={(e) => setBillFormData({ ...billFormData, totalBillValue: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
-                            min="1"
-                            step="0.01"
-                            required
-                          />
-                          <p className="text-xs text-gray-500 mt-1">
-                            Remaining: ₹{((selectedWorkOrder.totalValue || 0) - (selectedWorkOrder.totalBillsAmount || 0)).toLocaleString('en-IN')}
-                          </p>
-                        </div>
-
-                        {/* Retention Amount */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Retention Amount (₹)
-                          </label>
-                          <input
-                            type="number"
-                            placeholder="Enter Retention Amount"
-                            value={billFormData.retentionAmount}
-                            onChange={(e) => setBillFormData({ ...billFormData, retentionAmount: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
-
-                        {/* Holding Amount */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Holding Amount (₹)
-                          </label>
-                          <input
-                            type="number"
-                            placeholder="Enter Holding Amount"
-                            value={billFormData.holdingAmount}
-                            onChange={(e) => setBillFormData({ ...billFormData, holdingAmount: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
-
-                        {/* Notes */}
-                        <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Notes
-                          </label>
-                          <textarea
-                            placeholder="Enter notes (optional)"
-                            value={billFormData.notes}
-                            onChange={(e) => setBillFormData({ ...billFormData, notes: e.target.value })}
-                            rows="3"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none resize-none"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Form Actions */}
-                      <div className="flex gap-3 mt-4">
-                        <button
+                {/* Body */}
+                <div className="p-6">
+                  {/* Add Bill Button — hidden when triggered */}
+                  {!showAddBillForm && (
+                    <div className="mb-6">
+                      {selectedWorkOrder.isTriggered ? (
+                        <Badge
+                          variant="outline"
+                          className="border-purple-200 bg-purple-50 text-purple-700 text-sm font-medium px-4 py-2"
+                        >
+                          🔒 Work Order is locked — adding bills is disabled
+                        </Badge>
+                      ) : (
+                        <Button
                           type="button"
-                          onClick={handleCancelAddBill}
-                          className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-                          disabled={submitting}
+                          onClick={handleAddBillClick}
+                          className="bg-orange-500 hover:bg-orange-600 text-white"
+                          disabled={loadingBills}
                         >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          disabled={submitting}
-                        >
-                          {submitting ? "Adding..." : "Add Bill"}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-
-                {/* Bills List */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Bills List</h3>
-                  
-                  {loadingBills ? (
-                    <div className="text-center py-12">
-                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                      <p className="text-gray-500 mt-2">Loading bills...</p>
-                    </div>
-                  ) : bills.length === 0 ? (
-                    <div className="text-center py-12 bg-gray-50 rounded-lg">
-                      <p className="text-gray-500">No bills found</p>
-                      <p className="text-gray-400 text-sm mt-1">Click "Add Bill" to create the first bill</p>
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Bill No
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Bill Date
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Total Value
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Retention
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Holding
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Notes
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {bills.map((bill, index) => (
-                            <tr key={bill._id || index} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {bill.billNo}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {bill.billDate ? new Date(bill.billDate).toLocaleDateString() : 'N/A'}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                                ₹{bill.totalBillValue?.toLocaleString('en-IN') || '0'}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                ₹{bill.retentionAmount?.toLocaleString('en-IN') || '0'}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                ₹{bill.holdingAmount?.toLocaleString('en-IN') || '0'}
-                              </td>
-                              <td className="px-6 py-4 text-sm text-gray-600">
-                                {bill.notes || '-'}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          <FaPlus />
+                          Add Bill
+                        </Button>
+                      )}
                     </div>
                   )}
+
+                  {/* Add Bill Form */}
+                  {showAddBillForm && (
+                    <Card className="gap-0 py-0 mb-6 rounded-lg border-orange-200 bg-orange-50 shadow-none">
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                          Add New Bill
+                        </h3>
+                        <form onSubmit={handleSubmitBill}>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="bill-no" className={labelClass}>
+                                Bill No <span className="text-red-500">*</span>
+                              </Label>
+                              <Input
+                                id="bill-no"
+                                type="text"
+                                placeholder="Enter Bill Number"
+                                value={billFormData.billNo}
+                                onChange={(e) =>
+                                  setBillFormData({
+                                    ...billFormData,
+                                    billNo: e.target.value,
+                                  })
+                                }
+                                className={`w-full bg-white ${orangeFocus}`}
+                                required
+                              />
+                            </div>
+
+                            <div>
+                              <Label htmlFor="bill-date" className={labelClass}>
+                                Bill Date{" "}
+                                <span className="text-red-500">*</span>
+                              </Label>
+                              <Input
+                                id="bill-date"
+                                type="date"
+                                value={billFormData.billDate}
+                                onChange={(e) =>
+                                  setBillFormData({
+                                    ...billFormData,
+                                    billDate: e.target.value,
+                                  })
+                                }
+                                className={`w-full bg-white ${orangeFocus}`}
+                                required
+                              />
+                            </div>
+
+                            <div>
+                              <Label
+                                htmlFor="bill-total-value"
+                                className={labelClass}
+                              >
+                                Total Bill Value (₹){" "}
+                                <span className="text-red-500">*</span>
+                              </Label>
+                              <Input
+                                id="bill-total-value"
+                                type="number"
+                                placeholder="Enter Bill Amount"
+                                value={billFormData.totalBillValue}
+                                onChange={(e) =>
+                                  setBillFormData({
+                                    ...billFormData,
+                                    totalBillValue: e.target.value,
+                                  })
+                                }
+                                className={`w-full bg-white ${orangeFocus}`}
+                                min="1"
+                                step="0.01"
+                                required
+                              />
+                              <p className="text-xs text-gray-500 mt-1">
+                                Remaining: ₹
+                                {remainingFor(selectedWorkOrder).toLocaleString(
+                                  "en-IN"
+                                )}
+                              </p>
+                            </div>
+
+                            <div>
+                              <Label
+                                htmlFor="bill-retention-amount"
+                                className={labelClass}
+                              >
+                                Retention Amount (₹)
+                              </Label>
+                              <Input
+                                id="bill-retention-amount"
+                                type="number"
+                                placeholder="Enter Retention Amount"
+                                value={billFormData.retentionAmount}
+                                onChange={(e) =>
+                                  setBillFormData({
+                                    ...billFormData,
+                                    retentionAmount: e.target.value,
+                                  })
+                                }
+                                className={`w-full bg-white ${orangeFocus}`}
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+
+                            <div>
+                              <Label
+                                htmlFor="bill-holding-amount"
+                                className={labelClass}
+                              >
+                                Holding Amount (₹)
+                              </Label>
+                              <Input
+                                id="bill-holding-amount"
+                                type="number"
+                                placeholder="Enter Holding Amount"
+                                value={billFormData.holdingAmount}
+                                onChange={(e) =>
+                                  setBillFormData({
+                                    ...billFormData,
+                                    holdingAmount: e.target.value,
+                                  })
+                                }
+                                className={`w-full bg-white ${orangeFocus}`}
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+
+                            <div className="md:col-span-2">
+                              <Label
+                                htmlFor="bill-notes"
+                                className={labelClass}
+                              >
+                                Notes
+                              </Label>
+                              <Textarea
+                                id="bill-notes"
+                                placeholder="Enter notes (optional)"
+                                value={billFormData.notes}
+                                onChange={(e) =>
+                                  setBillFormData({
+                                    ...billFormData,
+                                    notes: e.target.value,
+                                  })
+                                }
+                                rows={3}
+                                className={`w-full bg-white resize-none ${orangeFocus}`}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex gap-3 mt-4">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={handleCancelAddBill}
+                              disabled={submitting}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              type="submit"
+                              className="bg-orange-500 hover:bg-orange-600 text-white"
+                              disabled={submitting}
+                            >
+                              {submitting ? "Adding..." : "Add Bill"}
+                            </Button>
+                          </div>
+                        </form>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Bills List */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                      Bills List
+                    </h3>
+
+                    {loadingBills ? (
+                      <div className="space-y-3" aria-label="Loading bills">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                      </div>
+                    ) : bills.length === 0 ? (
+                      <div className="text-center py-12 bg-gray-50 rounded-lg">
+                        <p className="text-gray-500">No bills found</p>
+                        <p className="text-gray-400 text-sm mt-1">
+                          Click "Add Bill" to create the first bill
+                        </p>
+                      </div>
+                    ) : (
+                      <Table className="min-w-full">
+                        <TableHeader className="bg-gray-50">
+                          <TableRow className="hover:bg-transparent">
+                            <TableHead className={thClass}>Bill No</TableHead>
+                            <TableHead className={thClass}>Bill Date</TableHead>
+                            <TableHead className={thClass}>
+                              Total Value
+                            </TableHead>
+                            <TableHead className={thClass}>Retention</TableHead>
+                            <TableHead className={thClass}>Holding</TableHead>
+                            <TableHead className={thClass}>Notes</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody className="bg-white">
+                          {bills.map((bill, index) => (
+                            <TableRow
+                              key={bill._id || index}
+                              className="hover:bg-gray-50"
+                            >
+                              <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {bill.billNo}
+                              </TableCell>
+                              <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                {bill.billDate
+                                  ? new Date(bill.billDate).toLocaleDateString()
+                                  : "N/A"}
+                              </TableCell>
+                              <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                ₹
+                                {bill.totalBillValue?.toLocaleString("en-IN") ||
+                                  "0"}
+                              </TableCell>
+                              <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                ₹
+                                {bill.retentionAmount?.toLocaleString(
+                                  "en-IN"
+                                ) || "0"}
+                              </TableCell>
+                              <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                ₹
+                                {bill.holdingAmount?.toLocaleString("en-IN") ||
+                                  "0"}
+                              </TableCell>
+                              <TableCell className="px-6 py-4 whitespace-normal text-sm text-gray-600">
+                                {bill.notes || "-"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </div>
                 </div>
               </div>
+            )}
 
-              {/* Modal Footer */}
-              <div className="p-6 border-t border-gray-200 bg-gray-50">
-                <button
-                  onClick={handleCloseBillsModal}
-                  className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+            <DialogFooter className="shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCloseBillsModal}
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );

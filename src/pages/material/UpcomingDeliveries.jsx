@@ -4,6 +4,11 @@ import { upcomingDeliveryAPI, branchesAPI } from "../../utils/materialAPI";
 import { Search, Filter, Package, Plus } from "lucide-react";
 import { FaArrowLeft } from 'react-icons/fa';
 import { getSelectedBranchId, getSelectedBranchName } from "../../utils/branchContext";
+// NOTE: import paths assume the standard shadcn "@/" alias. Adjust if this project uses relative paths.
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function UpcomingDeliveries({ isTabView = false }) {
     const navigate = useNavigate();
@@ -280,16 +285,18 @@ export default function UpcomingDeliveries({ isTabView = false }) {
         }
     };
 
-    // Render content only (for tab view)
-    const renderContent = () => (
-        <div className="px-6 py-6">
+    // Shared body (filters + list). Plain render function (NOT a nested component),
+    // so inputs keep focus across re-renders. Each mode supplies its own wrapper padding.
+    const renderBody = () => (
+        <>
             {/* Filter and Search */}
             <div className="mb-4 space-y-3">
                 {/* ✅ Additional Filters Toggle Button */}
                 <div>
-                    <button
+                    <Button
+                        type="button"
                         onClick={() => setShowFilters(!showFilters)}
-                        className="w-full flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+                        className="w-full h-auto flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all"
                     >
                         <span className="font-semibold flex items-center gap-2 text-sm">
                             <Filter size={16} />
@@ -298,7 +305,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                         <span className="text-xs">
                             {showFilters ? '▲' : '▼'}
                         </span>
-                    </button>
+                    </Button>
                 </div>
                 
                 {/* ✅ Additional Filters Panel */}
@@ -306,8 +313,9 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                     <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm space-y-2.5">
                         {/* Site Filter */}
                         <div>
-                            <label className="block text-xs font-semibold text-gray-700 mb-1">Site</label>
+                            <Label htmlFor="upcoming-deliveries-site" className="block text-xs font-semibold text-gray-700 mb-1">Site</Label>
                             <select
+                                id="upcoming-deliveries-site"
                                 value={filterSite}
                                 onChange={(e) => setFilterSite(e.target.value)}
                                 className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800"
@@ -321,8 +329,9 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                         
                         {/* Status Filter */}
                         <div>
-                            <label className="block text-xs font-semibold text-gray-700 mb-1">Status</label>
+                            <Label htmlFor="upcoming-deliveries-status" className="block text-xs font-semibold text-gray-700 mb-1">Status</Label>
                             <select
+                                id="upcoming-deliveries-status"
                                 value={filterStatus}
                                 onChange={(e) => setFilterStatus(e.target.value)}
                                 className="w-full border border-gray-300 rounded-md px-2.5 py-2 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
@@ -339,43 +348,48 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                         {/* Date Range */}
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label className="block text-xs font-semibold text-gray-700 mb-1">From</label>
-                                <input
+                                <Label htmlFor="upcoming-deliveries-date-from" className="block text-xs font-semibold text-gray-700 mb-1">From</Label>
+                                <Input
+                                    id="upcoming-deliveries-date-from"
                                     type="date"
                                     value={filterDateFrom}
                                     onChange={(e) => setFilterDateFrom(e.target.value)}
-                                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-xs text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800"
+                                    className="w-full h-auto border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-xs md:text-xs text-gray-900 dark:text-gray-100 font-medium shadow-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-orange-500 bg-white dark:bg-gray-800"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-gray-700 mb-1">To</label>
-                                <input
+                                <Label htmlFor="upcoming-deliveries-date-to" className="block text-xs font-semibold text-gray-700 mb-1">To</Label>
+                                <Input
+                                    id="upcoming-deliveries-date-to"
                                     type="date"
                                     value={filterDateTo}
                                     onChange={(e) => setFilterDateTo(e.target.value)}
-                                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-xs text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800"
+                                    className="w-full h-auto border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-xs md:text-xs text-gray-900 dark:text-gray-100 font-medium shadow-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-orange-500 bg-white dark:bg-gray-800"
                                 />
                             </div>
                         </div>
                         
                         {/* Clear Additional Filters Button */}
-                        <button
+                        <Button
+                            type="button"
+                            variant="ghost"
                             onClick={() => {
                                 setFilterSite('');
                                 setFilterStatus('');
                                 setFilterDateFrom('');
                                 setFilterDateTo('');
                             }}
-                            className="w-full px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-md transition-colors"
+                            className="w-full h-auto px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-700 text-xs font-semibold rounded-md transition-colors"
                         >
                             Clear Filters
-                        </button>
+                        </Button>
                     </div>
                 )}
                 
-                {/* Type Filter */}
+                {/* Type Filter (native select retained: custom chevron styling + exact ALL/ST/PO values) */}
                 <div>
                     <select
+                        aria-label="Delivery type"
                         value={typeFilter}
                         onChange={(e) => setTypeFilter(e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
@@ -395,14 +409,15 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                 
                 {/* Search bar */}
                 <div className="relative">
-                    <input
+                    <Input
                         type="text"
                         placeholder="Search by ST-ID or Transfer Number..."
+                        aria-label="Search deliveries"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full px-4 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-muted-foreground"
+                        className="w-full h-auto px-4 py-2 pl-10 text-base md:text-base border-gray-300 dark:border-gray-600 rounded-lg shadow-none focus-visible:ring-2 focus-visible:ring-orange-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-muted-foreground"
                     />
-                    <Search size={18} className="absolute left-3 top-3 text-gray-400" />
+                    <Search size={18} className="absolute left-3 top-3 text-gray-400 pointer-events-none" />
                 </div>
             </div>
 
@@ -414,12 +429,14 @@ export default function UpcomingDeliveries({ isTabView = false }) {
             ) : error ? (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                     <p className="text-red-600 text-sm">{error}</p>
-                    <button
+                    <Button
+                        type="button"
+                        variant="ghost"
                         onClick={fetchDeliveries}
-                        className="mt-2 text-sm text-red-600 hover:text-red-700 underline"
+                        className="mt-2 h-auto p-0 text-sm font-normal text-red-600 hover:text-red-700 hover:bg-transparent underline"
                     >
                         Try Again
-                    </button>
+                    </Button>
                 </div>
             ) : filteredDeliveries.length === 0 ? (
                 <div className="text-center py-16">
@@ -434,80 +451,82 @@ export default function UpcomingDeliveries({ isTabView = false }) {
             ) : (
                 <div className="space-y-4">
                     {filteredDeliveries.map((delivery) => (
-                        <div
+                        <Card
                             key={delivery._id}
                             onClick={() => handleClick(delivery)}
-                            className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
+                            className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
                         >
-                            {/* Header */}
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-16 h-16 rounded-lg bg-gradient-to-br border-2 flex items-center justify-center flex-shrink-0 ${
-                                        delivery.type === 'PO' 
-                                            ? 'from-blue-100 to-blue-200 border-blue-300' 
-                                            : 'from-purple-100 to-purple-200 border-purple-300'
-                                    }`}>
-                                        <Package size={28} className={delivery.type === 'PO' ? 'text-blue-600' : 'text-purple-600'} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-gray-900 text-base">
-                                            {delivery.transfer_number || delivery.st_id}
-                                        </h3>
-                                        <p className="text-xs text-gray-900 font-medium mt-1">
-                                            {formatDate(delivery.createdAt)}
-                                        </p>
-                                        <p className="text-xs text-gray-500 mt-0.5">
-                                            Intent Request Date
-                                        </p>
-                                        <p className={`text-xs font-medium mt-1 ${
-                                            delivery.type === 'PO' ? 'text-blue-600' : 'text-purple-600'
+                            <CardContent className="p-5">
+                                {/* Header */}
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-16 h-16 rounded-lg bg-gradient-to-br border-2 flex items-center justify-center flex-shrink-0 ${
+                                            delivery.type === 'PO' 
+                                                ? 'from-blue-100 to-blue-200 border-blue-300' 
+                                                : 'from-purple-100 to-purple-200 border-purple-300'
                                         }`}>
-                                            {delivery.type === 'PO' ? '📋 Purchase Order' : '🚚 Site Transfer'}
-                                        </p>
+                                            <Package size={28} className={delivery.type === 'PO' ? 'text-blue-600' : 'text-purple-600'} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 text-base">
+                                                {delivery.transfer_number || delivery.st_id}
+                                            </h3>
+                                            <p className="text-xs text-gray-900 font-medium mt-1">
+                                                {formatDate(delivery.createdAt)}
+                                            </p>
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                                Intent Request Date
+                                            </p>
+                                            <p className={`text-xs font-medium mt-1 ${
+                                                delivery.type === 'PO' ? 'text-blue-600' : 'text-purple-600'
+                                            }`}>
+                                                {delivery.type === 'PO' ? '📋 Purchase Order' : '🚚 Site Transfer'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span className={`text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm ${getStatusBadge(delivery.status)}`}>
+                                        {getStatusText(delivery.status)}
+                                    </span>
+                                </div>
+
+                                {/* Details */}
+                                <div className="space-y-2.5 text-sm">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600 font-medium">Delivery ID</span>
+                                        <span className="font-semibold text-gray-900">{delivery.transfer_number || delivery.st_id}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600 font-medium">From</span>
+                                        <span className="font-semibold text-gray-900">{delivery.from || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600 font-medium">To</span>
+                                        <span className="font-semibold text-gray-900">{delivery.to || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600 font-medium">Requested By</span>
+                                        <span className="font-semibold text-gray-900">{delivery.requested_by || delivery.createdBy || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600 font-medium">Intent Request Date</span>
+                                        <span className="font-semibold text-gray-900">{formatDate(delivery.createdAt)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600 font-medium">Materials</span>
+                                        <span className="font-semibold text-blue-600">{delivery.items?.length || 0} items</span>
                                     </div>
                                 </div>
-                                <span className={`text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm ${getStatusBadge(delivery.status)}`}>
-                                    {getStatusText(delivery.status)}
-                                </span>
-                            </div>
-
-                            {/* Details */}
-                            <div className="space-y-2.5 text-sm">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600 font-medium">Delivery ID</span>
-                                    <span className="font-semibold text-gray-900">{delivery.transfer_number || delivery.st_id}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600 font-medium">From</span>
-                                    <span className="font-semibold text-gray-900">{delivery.from || 'N/A'}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600 font-medium">To</span>
-                                    <span className="font-semibold text-gray-900">{delivery.to || 'N/A'}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600 font-medium">Requested By</span>
-                                    <span className="font-semibold text-gray-900">{delivery.requested_by || delivery.createdBy || 'N/A'}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600 font-medium">Intent Request Date</span>
-                                    <span className="font-semibold text-gray-900">{formatDate(delivery.createdAt)}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600 font-medium">Materials</span>
-                                    <span className="font-semibold text-blue-600">{delivery.items?.length || 0} items</span>
-                                </div>
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
                     ))}
                 </div>
             )}
-        </div>
+        </>
     );
 
-    // If in tab view mode, return content only
+    // Tab view: body inside the standard padded wrapper
     if (isTabView) {
-        return renderContent();
+        return <div className="px-6 py-6">{renderBody()}</div>;
     }
 
     // Standalone mode with full page layout
@@ -517,13 +536,15 @@ export default function UpcomingDeliveries({ isTabView = false }) {
             <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
                 {/* Header with Gradient */}
                 <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-                    <button
-                        className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        className="absolute top-6 left-6 h-auto text-white hover:text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
                         onClick={() => navigate(-1)}
                     >
                         <FaArrowLeft size={16} />
                         <span className="text-sm font-medium">Back</span>
-                    </button>
+                    </Button>
 
                     <div className="text-center pt-8">
                         <h1 className="text-white text-2xl font-bold mb-2">Upcoming Deliveries</h1>
@@ -531,9 +552,9 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                     </div>
                 </div>
 
-                {/* Main Content */}
+                {/* Main Content (same padding as before, plus the -mt-4 overlap) */}
                 <div className="px-6 py-6 -mt-4">
-                    {renderContent().props.children}
+                    {renderBody()}
                 </div>
 
                 {/* Footer */}

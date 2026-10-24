@@ -3,6 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { upcomingDeliveryAPI } from "../../utils/materialAPI";
 import { AlertCircle, CheckCircle, Upload, Trash2, Image as ImageIcon } from "lucide-react";
 import { FaArrowLeft } from 'react-icons/fa';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 export default function DeliveryChecklist() {
     const { id } = useParams();
@@ -271,7 +275,11 @@ export default function DeliveryChecklist() {
             'Transferred': 'bg-green-100 text-green-600'
         };
         const colorClass = statusColors[status] || 'bg-gray-100 text-gray-700';
-        return `text-xs px-2 py-1 rounded-full font-medium ${colorClass}`;
+        return (
+            <Badge className={`text-xs px-2 py-1 rounded-full font-medium ${colorClass}`}>
+                {status}
+            </Badge>
+        );
     };
 
     if (loading) {
@@ -288,12 +296,13 @@ export default function DeliveryChecklist() {
             <div className="p-4">
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                     <p className="text-red-600 text-sm">{error || "Delivery not found"}</p>
-                    <button
+                    <Button
+                        variant="link"
                         onClick={() => navigate(-1)}
-                        className="mt-2 text-sm text-red-600 hover:text-red-700 underline"
+                        className="mt-2 p-0 h-auto text-sm text-red-600 hover:text-red-700 underline"
                     >
                         Go Back
-                    </button>
+                    </Button>
                 </div>
             </div>
         );
@@ -305,13 +314,14 @@ export default function DeliveryChecklist() {
             <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
                 {/* Header with Gradient */}
                 <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-                    <button
-                        className="mobile-back-button absolute top-6 left-6"
+                    <Button
+                        variant="ghost"
                         onClick={() => navigate(-1)}
+                        className="mobile-back-button absolute top-6 left-6 text-white hover:bg-orange-600"
                     >
                         <FaArrowLeft size={16} />
                         <span className="text-sm font-medium">Back</span>
-                    </button>
+                    </Button>
 
                     <div className="text-center pt-8">
                         <h1 className="text-white text-2xl font-bold mb-2">Delivery Checklist</h1>
@@ -332,9 +342,7 @@ export default function DeliveryChecklist() {
                             </div>
                             <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
                                 <label className="text-xs font-semibold text-gray-600 block mb-1">Status</label>
-                                <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(delivery.status)}`}>
-                                    {delivery.status}
-                                </span>
+                                {getStatusBadge(delivery.status)}
                             </div>
                             <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
                                 <label className="text-xs font-semibold text-gray-600 block mb-1">Type</label>
@@ -437,7 +445,10 @@ export default function DeliveryChecklist() {
                                                 )}
                                                 
                                                 {/* Delete Button Overlay */}
-                                                <button
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    aria-label="Delete attachment"
                                                     onClick={() => handleDeleteAttachment(index)}
                                                     disabled={deletingAttachment === index}
                                                     className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
@@ -448,7 +459,7 @@ export default function DeliveryChecklist() {
                                                     ) : (
                                                         <Trash2 size={12} />
                                                     )}
-                                                </button>
+                                                </Button>
                                             </div>
                                             
                                             {/* File Info */}
@@ -482,72 +493,100 @@ export default function DeliveryChecklist() {
                     const isComplete = remainingQty <= 0 || projectedReceivedQty >= requestedQty;
 
                     return (
-                    <div key={item.itemId || item._id} className="bg-white rounded-xl border-2 border-gray-200 p-4 shadow-md">
+                      <div
+                        key={item.itemId || item._id}
+                        className="bg-white rounded-xl border-2 border-gray-200 p-4 shadow-md"
+                      >
                         <div className="space-y-3">
-                            {/* Item Info */}
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    <div className="text-sm font-bold text-gray-900">{getItemDisplayName(item)}</div>
-                                    <div className="text-xs text-gray-600 mt-1 font-medium">
-                                        Remaining: {formatQuantity(remainingQty)} {item.uom || item.unit || ''}
-                                    </div>
-                                </div>
-                                <input
-                                    type="checkbox"
-                                    checked={isComplete || currentReceivedQty > 0}
-                                    onChange={(e) => handleCheckboxChange(index, e.target.checked)}
-                                    disabled={remainingQty <= 0}
-                                    className="w-6 h-6 accent-orange-500 mt-1 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
-                                    title={remainingQty <= 0 ? 'Already fully received' : 'Fill remaining quantity'}
-                                />
+                          {/* Item Info */}
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="text-sm font-bold text-gray-900">
+                                {getItemDisplayName(item)}
+                              </div>
+                              <div className="text-xs text-gray-600 mt-1 font-medium">
+                                Remaining: {formatQuantity(remainingQty)}{" "}
+                                {item.uom || item.unit || ""}
+                              </div>
                             </div>
+                            <Checkbox
+                              checked={isComplete || currentReceivedQty > 0}
+                              onCheckedChange={(checked) =>
+                                handleCheckboxChange(index, checked === true)
+                              }
+                              disabled={remainingQty <= 0}
+                              aria-label="Fill remaining quantity"
+                              title={
+                                remainingQty <= 0
+                                  ? "Already fully received"
+                                  : "Fill remaining quantity"
+                              }
+                              className="w-6 h-6 mt-1 border-gray-400 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-white"
+                            />
+                          </div>
 
-                            {/* Quantities */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Requested</label>
-                                    <div className="px-3 py-2.5 bg-gradient-to-r from-gray-100 to-gray-50 rounded-lg text-sm font-bold text-gray-900 border border-gray-300">
-                                        {formatQuantity(requestedQty)}
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Previously Received</label>
-                                    <div className="px-3 py-2.5 bg-gradient-to-r from-green-50 to-white rounded-lg text-sm font-bold text-green-700 border border-green-200">
-                                        {formatQuantity(previouslyReceivedQty)}
-                                    </div>
-                                </div>
-                                <div className="col-span-2">
-                                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Received Now</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max={remainingQty}
-                                        value={item.currentReceivedQuantity}
-                                        onChange={(e) => handleReceivedQuantityChange(index, e.target.value)}
-                                        disabled={remainingQty <= 0}
-                                        placeholder={remainingQty <= 0 ? 'Already complete' : `Max ${formatQuantity(remainingQty)}`}
-                                        className={`w-full px-3 py-2.5 border-2 rounded-lg text-sm font-bold bg-white ${
-                                            validationErrors[index] 
-                                                ? 'border-red-500 focus:ring-red-500 text-red-900' 
-                                                : 'border-gray-300 focus:ring-orange-500 text-gray-900 disabled:bg-gray-100 disabled:text-gray-500'
-                                        } focus:ring-2 focus:outline-none`}
-                                        style={{ colorScheme: 'light' }}
-                                    />
-                                </div>
-                                <div className="col-span-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100 text-xs font-semibold text-blue-700">
-                                    After submit total received: {formatQuantity(projectedReceivedQty)} / {formatQuantity(requestedQty)}
-                                </div>
+                          {/* Quantities */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-semibold text-gray-600 block mb-1.5">
+                                Requested
+                              </label>
+                              <div className="px-3 py-2.5 bg-gradient-to-r from-gray-100 to-gray-50 rounded-lg text-sm font-bold text-gray-900 border border-gray-300">
+                                {formatQuantity(requestedQty)}
+                              </div>
                             </div>
+                            <div>
+                              <label className="text-xs font-semibold text-gray-600 block mb-1.5">
+                                Previously Received
+                              </label>
+                              <div className="px-3 py-2.5 bg-gradient-to-r from-green-50 to-white rounded-lg text-sm font-bold text-green-700 border border-green-200">
+                                {formatQuantity(previouslyReceivedQty)}
+                              </div>
+                            </div>
+                            <div className="col-span-2">
+                              <label className="text-xs font-semibold text-gray-600 block mb-1.5">
+                                Received Now
+                              </label>
+                              <Input
+                                type="number"
+                                min="0"
+                                max={remainingQty}
+                                value={item.currentReceivedQuantity}
+                                onChange={(e) =>
+                                  handleReceivedQuantityChange(index, e.target.value)
+                                }
+                                disabled={remainingQty <= 0}
+                                placeholder={
+                                  remainingQty <= 0
+                                    ? "Already complete"
+                                    : `Max ${formatQuantity(remainingQty)}`
+                                }
+                                className={`w-full px-3 py-2.5 border-2 rounded-lg text-sm font-bold bg-white ${
+                                  validationErrors[index]
+                                    ? "border-red-500 focus:ring-red-500 text-red-900"
+                                    : "border-gray-300 focus:ring-orange-500 text-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
+                                } focus:ring-2 focus:outline-none`}
+                                style={{ colorScheme: "light" }}
+                              />
+                            </div>
+                            <div className="col-span-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100 text-xs font-semibold text-blue-700">
+                              After submit total received:{" "}
+                              {formatQuantity(projectedReceivedQty)} /{" "}
+                              {formatQuantity(requestedQty)}
+                            </div>
+                          </div>
 
-                            {/* Validation Error */}
-                            {validationErrors[index] && (
-                                <div className="flex items-center gap-2 text-red-700 text-xs bg-red-50 border border-red-200 rounded-lg p-2">
-                                    <AlertCircle size={14} />
-                                    <span className="font-semibold">{validationErrors[index]}</span>
-                                </div>
-                            )}
+                          {/* Validation Error */}
+                          {validationErrors[index] && (
+                            <div className="flex items-center gap-2 text-red-700 text-xs bg-red-50 border border-red-200 rounded-lg p-2">
+                              <AlertCircle size={14} />
+                              <span className="font-semibold">
+                                {validationErrors[index]}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                    </div>
+                      </div>
                     );
                 })}
                     </div>
@@ -556,13 +595,13 @@ export default function DeliveryChecklist() {
                 {/* Fixed Bottom Button */}
                 <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-50">
                     <div className="max-w-md mx-auto">
-                    <button
+                    <Button
                         onClick={handleSubmit}
                         disabled={submitting || Object.keys(validationErrors).length > 0}
                         className="w-full py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors shadow-md"
                     >
                         {submitting ? "Submitting..." : "Submit Changes"}
-                    </button>
+                    </Button>
                     </div>
                 </div>
 

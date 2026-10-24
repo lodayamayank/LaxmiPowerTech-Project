@@ -1,10 +1,61 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, Package, Receipt, Edit2, Save, XCircle, DollarSign, Download, FileText, FileSpreadsheet, Trash2, X, MapPin, TrendingUp } from 'lucide-react';
+import { Search, Eye, Package, Receipt, Edit2, Save, XCircle, DollarSign, Download, FileText, FileSpreadsheet, Trash2, MapPin, TrendingUp } from 'lucide-react';
 import { upcomingDeliveryAPI, branchesAPI } from '../../utils/materialAPI';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { toast } from 'react-toastify';
 import DashboardLayout from '../../layouts/DashboardLayout';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function AdminGRN() {
   const [deliveries, setDeliveries] = useState([]);
@@ -35,7 +86,6 @@ export default function AdminGRN() {
   const [filterInvoiceNumber, setFilterInvoiceNumber] = useState('');
   const [filterType, setFilterType] = useState(''); // ✅ New: Type filter (Site Transfer / Intent)
   const [sites, setSites] = useState([]);
-  const [showExportMenu, setShowExportMenu] = useState(false);
   const [filteredDeliveries, setFilteredDeliveries] = useState([]);
   const [showAnalytics, setShowAnalytics] = useState(true);
   const [analytics, setAnalytics] = useState({
@@ -309,7 +359,7 @@ export default function AdminGRN() {
       
       if (response.success) {
         console.log('✅ All GRN data deleted successfully');
-        alert('✅ All GRN data has been deleted successfully!');
+        toast.success('All GRN data has been deleted successfully!');
         
         // Refresh the data
         setDeliveries([]);
@@ -320,11 +370,11 @@ export default function AdminGRN() {
         fetchGRNRecords();
       } else {
         console.error('❌ Failed to delete GRN data:', response.message);
-        alert('❌ Failed to delete GRN data: ' + response.message);
+        toast.error('Failed to delete GRN data: ' + response.message);
       }
     } catch (error) {
       console.error('❌ Error deleting GRN data:', error);
-      alert('❌ Error deleting GRN data. Please try again.');
+      toast.error('Error deleting GRN data. Please try again.');
     } finally {
       setIsDeleting(false);
     }
@@ -614,7 +664,7 @@ export default function AdminGRN() {
       });
       
       if (hasInvalidData) {
-        alert('Please enter valid price and discount values for all materials.');
+        toast.error('Please enter valid price and discount values for all materials.');
         setIsSaving(false);
         return;
       }
@@ -626,13 +676,13 @@ export default function AdminGRN() {
       });
       
       if (!allPricesEntered) {
-        alert('Please enter prices for all materials before saving the bill.');
+        toast.error('Please enter prices for all materials before saving the bill.');
         setIsSaving(false);
         return;
       }
 
       if (safeNumber(billingData.paidAmount) < 0) {
-        alert('Please enter a valid paid amount.');
+        toast.error('Please enter a valid paid amount.');
         setIsSaving(false);
         return;
       }
@@ -723,11 +773,11 @@ export default function AdminGRN() {
         fetchGRNRecords();
         
         setIsEditMode(false);
-        alert('Bill saved successfully! Invoice number, bill date, and payment status have been assigned.');
+        toast.success('Bill saved successfully! Invoice number, bill date, and payment status have been assigned.');
       }
     } catch (err) {
       console.error('Error updating billing:', err);
-      alert('Failed to update billing details. Please try again.');
+      toast.error('Failed to update billing details. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -927,11 +977,10 @@ export default function AdminGRN() {
       // Save file
       XLSX.writeFile(wb, filename);
       
-      setShowExportMenu(false);
-      alert('Excel file exported successfully!');
+      toast.success('Excel file exported successfully!');
     } catch (error) {
       console.error('Export to Excel error:', error);
-      alert('Failed to export Excel file. Please try again.');
+      toast.error('Failed to export Excel file. Please try again.');
     }
   };
 
@@ -1073,38 +1122,56 @@ export default function AdminGRN() {
       // Save PDF
       doc.save(filename);
       
-      setShowExportMenu(false);
-      alert('PDF file exported successfully!');
+      toast.success('PDF file exported successfully!');
     } catch (error) {
       console.error('Export to PDF error:', error);
-      alert('Failed to export PDF file. Please try again.');
+      toast.error('Failed to export PDF file. Please try again.');
     }
   };
 
+  // Shared class for filter inputs / select triggers (keeps the previous look)
+  const filterControlClass =
+    "w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg h-10 text-sm font-medium focus-visible:ring-orange-500 focus-visible:border-orange-500 bg-white dark:bg-gray-800";
+
+  // Shared class for billing-modal inputs
+  const billingInputClass =
+    "w-full bg-white border-2 border-orange-300 rounded text-gray-900 font-bold focus-visible:ring-orange-500 focus-visible:border-orange-500";
+
+  // Shared class for material table inputs / select triggers
+  const materialControlClass =
+    "border-2 border-blue-400 bg-white rounded-lg text-sm font-semibold text-gray-900 focus-visible:ring-blue-500 focus-visible:border-blue-600 shadow-sm";
+
   return (
     <DashboardLayout title="GRN (Goods Receipt Note)">
+      <TooltipProvider>
       <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">GRN (Goods Receipt Note)</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">View all completed deliveries</p>
+            <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">
+              GRN (Goods Receipt Note)
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              View all completed deliveries
+            </p>
           </div>
           <div className="flex items-center gap-3">
-            <button
+            <Button
+              variant="outline"
               onClick={() => setShowAnalytics(!showAnalytics)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-md"
+              className="bg-blue-600 text-white hover:bg-blue-700 hover:text-white border-blue-600 shadow-md"
             >
-              <TrendingUp size={18} />
-              {showAnalytics ? 'Hide Analytics' : 'Show Analytics'}
-            </button>
-            <button
+              <TrendingUp className="mr-2 h-4 w-4" />
+              {showAnalytics ? "Hide Analytics" : "Show Analytics"}
+            </Button>
+            <Button
+              variant="destructive"
               onClick={() => setShowDeleteConfirmModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm shadow-md"
               title="Delete all GRN data (Admin only)"
+              className="shadow-md"
             >
-              <Trash2 size={18} />
+              <Trash2 className="mr-2 h-4 w-4" />
               Delete All GRN
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -1114,44 +1181,64 @@ export default function AdminGRN() {
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Total GRNs Card */}
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white shadow-lg">
-                <div className="flex items-center justify-between mb-2">
+              <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg gap-0 py-4">
+                <CardHeader className="flex flex-row items-center justify-between px-4 pb-2">
                   <Package size={24} className="opacity-80" />
-                  <span className="text-2xl font-bold">{analytics.totalGRNs}</span>
-                </div>
-                <p className="text-sm opacity-90">Total GRNs</p>
-                <p className="text-xs opacity-75 mt-1">Completed deliveries</p>
-              </div>
+                  <span className="text-2xl font-bold">
+                    {analytics.totalGRNs}
+                  </span>
+                </CardHeader>
+                <CardContent className="px-4">
+                  <CardTitle className="text-sm font-normal opacity-90">Total GRNs</CardTitle>
+                  <p className="text-xs opacity-75 mt-1">Completed deliveries</p>
+                </CardContent>
+              </Card>
 
               {/* Total Invoices Card */}
-              <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white shadow-lg">
-                <div className="flex items-center justify-between mb-2">
+              <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-lg gap-0 py-4">
+                <CardHeader className="flex flex-row items-center justify-between px-4 pb-2">
                   <Receipt size={24} className="opacity-80" />
-                  <span className="text-2xl font-bold">{analytics.totalInvoices}</span>
-                </div>
-                <p className="text-sm opacity-90">Total Invoices</p>
-                <p className="text-xs opacity-75 mt-1">Unique invoice numbers</p>
-              </div>
+                  <span className="text-2xl font-bold">
+                    {analytics.totalInvoices}
+                  </span>
+                </CardHeader>
+                <CardContent className="px-4">
+                  <CardTitle className="text-sm font-normal opacity-90">Total Invoices</CardTitle>
+                  <p className="text-xs opacity-75 mt-1">
+                    Unique invoice numbers
+                  </p>
+                </CardContent>
+              </Card>
 
               {/* Total Spend Card */}
-              <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-4 text-white shadow-lg">
-                <div className="flex items-center justify-between mb-2">
+              <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white border-0 shadow-lg gap-0 py-4">
+                <CardHeader className="flex flex-row items-center justify-between px-4 pb-2">
                   <DollarSign size={24} className="opacity-80" />
-                  <span className="text-2xl font-bold">₹{(analytics.totalSpend / 1000).toFixed(1)}K</span>
-                </div>
-                <p className="text-sm opacity-90">Total Spend</p>
-                <p className="text-xs opacity-75 mt-1">₹{analytics.totalSpend.toLocaleString('en-IN')}</p>
-              </div>
+                  <span className="text-2xl font-bold">
+                    ₹{(analytics.totalSpend / 1000).toFixed(1)}K
+                  </span>
+                </CardHeader>
+                <CardContent className="px-4">
+                  <CardTitle className="text-sm font-normal opacity-90">Total Spend</CardTitle>
+                  <p className="text-xs opacity-75 mt-1">
+                    ₹{analytics.totalSpend.toLocaleString("en-IN")}
+                  </p>
+                </CardContent>
+              </Card>
 
               {/* Total Materials Card */}
-              <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white shadow-lg">
-                <div className="flex items-center justify-between mb-2">
+              <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0 shadow-lg gap-0 py-4">
+                <CardHeader className="flex flex-row items-center justify-between px-4 pb-2">
                   <Package size={24} className="opacity-80" />
-                  <span className="text-2xl font-bold">{analytics.totalMaterials}</span>
-                </div>
-                <p className="text-sm opacity-90">Total Materials</p>
-                <p className="text-xs opacity-75 mt-1">Material line items</p>
-              </div>
+                  <span className="text-2xl font-bold">
+                    {analytics.totalMaterials}
+                  </span>
+                </CardHeader>
+                <CardContent className="px-4">
+                  <CardTitle className="text-sm font-normal opacity-90">Total Materials</CardTitle>
+                  <p className="text-xs opacity-75 mt-1">Material line items</p>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Detailed Analytics Sections */}
@@ -1160,71 +1247,83 @@ export default function AdminGRN() {
               <div className="p-5">
                 <div className="flex items-center gap-2 mb-4">
                   <MapPin size={20} className="text-orange-600" />
-                  <h3 className="text-lg font-bold text-gray-800 dark:text-white">Site-wise Summary</h3>
+                  <h3 className="text-lg font-bold text-gray-800 dark:text-white">
+                    Site-wise Summary
+                  </h3>
                 </div>
                 <p className="text-xs text-gray-600 dark:text-gray-300 mb-4 bg-orange-50 dark:bg-orange-950/40 p-3 rounded-lg border border-orange-200 dark:border-orange-800">
-                  💡 <strong>Note:</strong> Shows total materials delivered to each site, total GRN entries, total amount spent, and invoice count per site.
+                  💡 <strong>Note:</strong> Shows total materials delivered to
+                  each site, total GRN entries, total amount spent, and invoice
+                  count per site.
                 </p>
-                
+
                 {/* Table Layout */}
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50 dark:bg-gray-700">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
-                          Site Name
-                        </th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
-                          Total Amount
-                        </th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
-                          GRN Count
-                        </th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
-                          Materials
-                        </th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
-                          Invoices
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                      {analytics.siteSummary.length > 0 ? (
-                        analytics.siteSummary.slice(0, 10).map((site, idx) => (
-                          <tr key={idx} className="hover:bg-orange-50 dark:hover:bg-gray-700 transition-colors">
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <span className="text-sm font-semibold text-gray-900 dark:text-white">{site.siteName}</span>
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-right">
-                              <span className="text-sm font-bold text-orange-600">₹{site.totalAmount.toLocaleString('en-IN')}</span>
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-center">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {site.grnCount} GRNs
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-center">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                {site.materialCount} Items
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-center">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                {site.invoiceCount} Invoices
-                              </span>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="5" className="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                            No sites found
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                <Table>
+                  <TableHeader className="bg-gray-50 dark:bg-gray-700">
+                    <TableRow>
+                      <TableHead className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
+                        Site Name
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
+                        Total Amount
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
+                        GRN Count
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
+                        Materials
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
+                        Invoices
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {analytics.siteSummary.length > 0 ? (
+                      analytics.siteSummary.slice(0, 10).map((site, idx) => (
+                        <TableRow
+                          key={idx}
+                          className="hover:bg-orange-50 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <TableCell className="px-4 py-3 whitespace-nowrap">
+                            <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                              {site.siteName}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-4 py-3 whitespace-nowrap text-right">
+                            <span className="text-sm font-bold text-orange-600">
+                              ₹{site.totalAmount.toLocaleString("en-IN")}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-4 py-3 whitespace-nowrap text-center">
+                            <Badge variant="outline" className="border-transparent bg-blue-100 text-blue-800">
+                              {site.grnCount} GRNs
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="px-4 py-3 whitespace-nowrap text-center">
+                            <Badge variant="outline" className="border-transparent bg-green-100 text-green-800">
+                              {site.materialCount} Items
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="px-4 py-3 whitespace-nowrap text-center">
+                            <Badge variant="outline" className="border-transparent bg-purple-100 text-purple-800">
+                              {site.invoiceCount} Invoices
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={5}
+                          className="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400"
+                        >
+                          No sites found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             </div>
           </div>
@@ -1240,46 +1339,42 @@ export default function AdminGRN() {
             <div className="mb-4">
               <div className="flex justify-between items-center mb-3">
                 <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-100">
-                  GRN Records ({filteredDeliveries.length} of {deliveries.length} records)
+                  GRN Records ({filteredDeliveries.length} of{" "}
+                  {deliveries.length} records)
                 </h2>
                 <div className="flex gap-3 items-center">
-                  <input
+                  <Input
                     type="text"
                     placeholder="Search by ID, site..."
-                    className="border border-gray-300 dark:border-gray-600 rounded p-2 w-80 bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-orange-400 text-sm"
+                    className="w-80 text-sm focus-visible:ring-orange-400"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
-                  
+
                   {/* Export Button with Dropdown */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowExportMenu(!showExportMenu)}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm shadow-md"
-                    >
-                      <Download size={18} />
-                      Export
-                    </button>
-                    
-                    {showExportMenu && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50">
-                        <button
-                          onClick={handleExportExcel}
-                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-green-50 dark:hover:bg-gray-700 transition-colors text-left border-b border-gray-100 dark:border-gray-700"
-                        >
-                          <FileSpreadsheet size={18} className="text-green-600" />
-                          <span className="font-medium text-gray-700 dark:text-gray-200">Export as Excel</span>
-                        </button>
-                        <button
-                          onClick={handleExportPDF}
-                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 dark:hover:bg-gray-700 transition-colors text-left"
-                        >
-                          <FileText size={18} className="text-red-600" />
-                          <span className="font-medium text-gray-700 dark:text-gray-200">Export as PDF</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="bg-green-600 text-white hover:bg-green-700 hover:text-white border-green-600 shadow-md"
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Export
+                      </Button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem onClick={handleExportExcel}>
+                        <FileSpreadsheet className="mr-2 h-4 w-4 text-green-600" />
+                        Export as Excel
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem onClick={handleExportPDF}>
+                        <FileText className="mr-2 h-4 w-4 text-red-600" />
+                        Export as PDF
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
@@ -1289,102 +1384,134 @@ export default function AdminGRN() {
                   <Search size={16} className="text-orange-600" />
                   Advanced Filters
                 </h3>
-                
+
                 {/* First Row */}
                 <div className="flex gap-4 items-end flex-wrap mb-3">
                   {/* Site Filter */}
                   <div className="flex-1 min-w-[180px]">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Site</label>
-                    <select
-                      value={filterSite}
-                      onChange={(e) => setFilterSite(e.target.value)}
-                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                      Site
+                    </label>
+                    <Select
+                      value={filterSite || "all"}
+                      onValueChange={(value) =>
+                        setFilterSite(value === "all" ? "" : value)
+                      }
                     >
-                      <option value="">All Sites</option>
-                      {sites.map(site => (
-                        <option key={site} value={site}>{site}</option>
-                      ))}
-                    </select>
+                      <SelectTrigger className={filterControlClass}>
+                        <SelectValue placeholder="Select Site" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Sites</SelectItem>
+                        {sites.map((site) => (
+                          <SelectItem key={site} value={site}>
+                            {site}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* ✅ Type Filter */}
                   <div className="flex-1 min-w-[180px]">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Type</label>
-                    <select
-                      value={filterType}
-                      onChange={(e) => setFilterType(e.target.value)}
-                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                      Type
+                    </label>
+                    <Select
+                      value={filterType || "all"}
+                      onValueChange={(value) =>
+                        setFilterType(value === "all" ? "" : value)
+                      }
                     >
-                      <option value="">All Types</option>
-                      <option value="Site Transfer">Site Transfer</option>
-                      <option value="Intent">Intent</option>
-                    </select>
+                      <SelectTrigger className={filterControlClass}>
+                        <SelectValue placeholder="Select Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="Site Transfer">Site Transfer</SelectItem>
+                        <SelectItem value="Intent">Intent</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Invoice Number Filter */}
                   <div className="flex-1 min-w-[180px]">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Invoice Number</label>
-                    <input
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                      Invoice Number
+                    </label>
+                    <Input
                       type="text"
                       value={filterInvoiceNumber}
                       onChange={(e) => setFilterInvoiceNumber(e.target.value)}
                       placeholder="Search invoice..."
-                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder:text-muted-foreground font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
+                      className={filterControlClass}
                     />
                   </div>
 
                   <div className="flex-1 min-w-[180px]">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Payment</label>
-                    <select
-                      value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value)}
-                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                      Payment
+                    </label>
+                    <Select
+                      value={filterStatus || "all"}
+                      onValueChange={(value) =>
+                        setFilterStatus(value === "all" ? "" : value)
+                      }
                     >
-                      <option value="">All Payments</option>
-                      <option value="pending">Pending Payment</option>
-                      <option value="partial">Partial Payment</option>
-                      <option value="complete">Complete Payment</option>
-                    </select>
+                      <SelectTrigger className={filterControlClass}>
+                        <SelectValue placeholder="Select Payment" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Payments</SelectItem>
+                        <SelectItem value="pending">Pending Payment</SelectItem>
+                        <SelectItem value="partial">Partial Payment</SelectItem>
+                        <SelectItem value="complete">Complete Payment</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Date From */}
                   <div className="flex-1 min-w-[160px]">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">From Date</label>
-                    <input
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                      From Date
+                    </label>
+                    <Input
                       type="date"
                       value={filterDateFrom}
                       onChange={(e) => setFilterDateFrom(e.target.value)}
-                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
+                      className={filterControlClass}
                     />
                   </div>
 
                   {/* Date To */}
                   <div className="flex-1 min-w-[160px]">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">To Date</label>
-                    <input
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                      To Date
+                    </label>
+                    <Input
                       type="date"
                       value={filterDateTo}
                       onChange={(e) => setFilterDateTo(e.target.value)}
-                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
+                      className={filterControlClass}
                     />
                   </div>
                 </div>
 
                 {/* Clear Filters Button */}
                 <div className="flex justify-end mt-3">
-                  <button
+                  <Button
                     onClick={() => {
-                      setFilterSite('');
-                      setFilterType('');
-                      setFilterStatus('');
-                      setFilterDateFrom('');
-                      setFilterDateTo('');
-                      setFilterInvoiceNumber('');
+                      setFilterSite("");
+                      setFilterType("");
+                      setFilterStatus("");
+                      setFilterDateFrom("");
+                      setFilterDateTo("");
+                      setFilterInvoiceNumber("");
                     }}
-                    className="px-6 py-2.5 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium text-sm shadow-sm hover:shadow-md"
+                    className="px-6 bg-gray-500 text-white hover:bg-gray-600 shadow-sm hover:shadow-md"
                   >
                     Clear All Filters
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1392,231 +1519,404 @@ export default function AdminGRN() {
             {deliveries.length === 0 ? (
               <div className="text-center py-12">
                 <Package size={48} className="mx-auto text-gray-300 mb-3" />
-                <p className="text-gray-500 text-sm">No completed deliveries found</p>
+                <p className="text-gray-500 text-sm">
+                  No completed deliveries found
+                </p>
               </div>
             ) : (
-              <table className="min-w-full border-collapse border border-gray-200 dark:border-gray-700 text-xs">
-                <thead className="bg-gray-100 dark:bg-gray-700">
-                  <tr>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Sr No.</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Invoice No</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Date</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Category</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Category 1</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Category 2</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-center font-semibold text-gray-700 dark:text-gray-100">Quantity</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-right font-semibold text-gray-700 dark:text-gray-100">Price (₹)</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-right font-semibold text-gray-700 dark:text-gray-100">Amount (₹)</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-right font-semibold text-gray-700 dark:text-gray-100">Discount</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-right font-semibold text-gray-700 dark:text-gray-100 bg-green-50 dark:bg-green-950/40">Total (₹)</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Payment</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Project Name</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Vendor Name</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Remark</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">Company Name</th>
-                    <th className="border dark:border-gray-600 px-2 py-2 text-center font-semibold text-gray-700 dark:text-gray-100">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="min-w-full border-collapse border border-gray-200 dark:border-gray-700 text-xs">
+                <TableHeader className="bg-gray-100 dark:bg-gray-700">
+                  <TableRow>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">
+                      Sr No.
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">
+                      Invoice No
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">
+                      Date
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">
+                      Category
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">
+                      Category 1
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">
+                      Category 2
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-center font-semibold text-gray-700 dark:text-gray-100">
+                      Quantity
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-right font-semibold text-gray-700 dark:text-gray-100">
+                      Price (₹)
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-right font-semibold text-gray-700 dark:text-gray-100">
+                      Amount (₹)
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-right font-semibold text-gray-700 dark:text-gray-100">
+                      Discount
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-right font-semibold text-gray-700 dark:text-gray-100 bg-green-50 dark:bg-green-950/40">
+                      Total (₹)
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">
+                      Payment
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">
+                      Project Name
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">
+                      Vendor Name
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">
+                      Remark
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-left font-semibold text-gray-700 dark:text-gray-100">
+                      Company Name
+                    </TableHead>
+                    <TableHead className="border dark:border-gray-600 px-2 py-2 text-center font-semibold text-gray-700 dark:text-gray-100">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {filteredDeliveries.map((delivery, deliveryIndex) => {
                     // Expand each delivery to show all its materials
                     return delivery.items && delivery.items.length > 0 ? (
                       delivery.items.map((item, itemIndex) => {
                         const srNo = deliveryIndex * 100 + itemIndex + 1;
-                        const materialBilling = delivery.billing?.materialBilling?.find(
-                          mb => mb.materialName === item.name || mb.materialName === item.category
+                        const materialBilling =
+                          delivery.billing?.materialBilling?.find(
+                            (mb) =>
+                              mb.materialName === item.name ||
+                              mb.materialName === item.category
+                          );
+                        const quantity =
+                          item.received_quantity ||
+                          item.quantity ||
+                          item.st_quantity ||
+                          0;
+                        const grossAmount = materialBilling?.price
+                          ? materialBilling.price * quantity
+                          : 0;
+                        const paymentSummary = getPaymentSummary(
+                          delivery.billing
                         );
-                        const quantity = item.received_quantity || item.quantity || item.st_quantity || 0;
-                        const grossAmount = materialBilling?.price ? materialBilling.price * quantity : 0;
-                        const paymentSummary = getPaymentSummary(delivery.billing);
-                        
+
                         return (
-                          <tr key={`${delivery._id}-${itemIndex}`} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <td className="border dark:border-gray-700 px-2 py-2 text-center text-gray-700 dark:text-gray-300">{srNo}</td>
-                            <td className="border dark:border-gray-700 px-2 py-2 font-medium text-gray-900 dark:text-gray-100">
-                              {delivery.billing?.invoiceNumber || '-'}
-                            </td>
-                            <td className="border dark:border-gray-700 px-2 py-2 text-gray-700 dark:text-gray-300">
-                              {delivery.billing?.billDate 
-                                ? new Date(delivery.billing.billDate).toLocaleDateString('en-IN', { 
-                                    year: 'numeric', 
-                                    month: 'short', 
-                                    day: 'numeric' 
+                          <TableRow
+                            key={`${delivery._id}-${itemIndex}`}
+                            className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                          >
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 text-center text-gray-700 dark:text-gray-300">
+                              {srNo}
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 font-medium text-gray-900 dark:text-gray-100">
+                              {delivery.billing?.invoiceNumber || "-"}
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 text-gray-700 dark:text-gray-300">
+                              {delivery.billing?.billDate
+                                ? new Date(
+                                    delivery.billing.billDate
+                                  ).toLocaleDateString("en-IN", {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
                                   })
-                                : new Date(delivery.createdAt).toLocaleDateString('en-IN', { 
-                                    year: 'numeric', 
-                                    month: 'short', 
-                                    day: 'numeric' 
+                                : new Date(
+                                    delivery.createdAt
+                                  ).toLocaleDateString("en-IN", {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
                                   })}
-                            </td>
-                            <td className="border dark:border-gray-700 px-2 py-2 text-gray-900 dark:text-gray-100">{item.category || item.name || '-'}</td>
-                            <td className="border dark:border-gray-700 px-2 py-2 text-gray-700 dark:text-gray-300">{item.sub_category || '-'}</td>
-                            <td className="border dark:border-gray-700 px-2 py-2 text-gray-700 dark:text-gray-300">{item.sub_category1 || '-'}</td>
-                            <td className="border dark:border-gray-700 px-2 py-2 text-center font-medium text-gray-900 dark:text-gray-100">
-                              {quantity} {item.uom || ''}
-                            </td>
-                            <td className="border dark:border-gray-700 px-2 py-2 text-right text-gray-900 dark:text-gray-100">
-                              {materialBilling?.price ? `₹${materialBilling.price.toLocaleString('en-IN')}` : '-'}
-                            </td>
-                            <td className="border dark:border-gray-700 px-2 py-2 text-right font-medium text-gray-900 dark:text-gray-100">
-                              {grossAmount ? `₹${grossAmount.toLocaleString('en-IN')}` : '-'}
-                            </td>
-                            <td className="border dark:border-gray-700 px-2 py-2 text-right text-red-600">
-                              {materialBilling?.discount 
-                                ? materialBilling.discountType === 'percentage' 
-                                  ? `${materialBilling.discount}%` 
-                                  : `₹${materialBilling.discount.toLocaleString('en-IN')}`
-                                : '-'}
-                            </td>
-                            <td className="border dark:border-gray-700 px-2 py-2 text-right font-bold text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950/40">
-                              {materialBilling?.totalAmount ? `₹${materialBilling.totalAmount.toLocaleString('en-IN')}` : '-'}
-                            </td>
-                            <td className="border dark:border-gray-700 px-2 py-2">
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 text-gray-900 dark:text-gray-100">
+                              {item.category || item.name || "-"}
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 text-gray-700 dark:text-gray-300">
+                              {item.sub_category || "-"}
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 text-gray-700 dark:text-gray-300">
+                              {item.sub_category1 || "-"}
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 text-center font-medium text-gray-900 dark:text-gray-100">
+                              {quantity} {item.uom || ""}
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 text-right text-gray-900 dark:text-gray-100">
+                              {materialBilling?.price
+                                ? `₹${materialBilling.price.toLocaleString(
+                                    "en-IN"
+                                  )}`
+                                : "-"}
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 text-right font-medium text-gray-900 dark:text-gray-100">
+                              {grossAmount
+                                ? `₹${grossAmount.toLocaleString("en-IN")}`
+                                : "-"}
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 text-right text-red-600">
+                              {materialBilling?.discount
+                                ? materialBilling.discountType === "percentage"
+                                  ? `${materialBilling.discount}%`
+                                  : `₹${materialBilling.discount.toLocaleString(
+                                      "en-IN"
+                                    )}`
+                                : "-"}
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 text-right font-bold text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950/40">
+                              {materialBilling?.totalAmount
+                                ? `₹${materialBilling.totalAmount.toLocaleString(
+                                    "en-IN"
+                                  )}`
+                                : "-"}
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2">
                               <div className="space-y-1">
-                                <span className={`inline-block px-2 py-1 rounded-full text-[11px] font-semibold ${getPaymentStatusColor(paymentSummary.paymentStatus)}`}>
-                                  {getPaymentStatusLabel(paymentSummary.paymentStatus)}
-                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className={`border-transparent text-[11px] font-semibold ${getPaymentStatusColor(
+                                    paymentSummary.paymentStatus
+                                  )}`}
+                                >
+                                  {getPaymentStatusLabel(
+                                    paymentSummary.paymentStatus
+                                  )}
+                                </Badge>
                                 <p className="text-[11px] text-gray-600 dark:text-gray-300">
-                                  Paid {formatCurrency(paymentSummary.paidAmount)}
+                                  Paid{" "}
+                                  {formatCurrency(paymentSummary.paidAmount)}
                                 </p>
                               </div>
-                            </td>
-                            <td className="border dark:border-gray-700 px-2 py-2 text-gray-900 dark:text-gray-100">{delivery.to || '-'}</td>
-                            <td className="border dark:border-gray-700 px-2 py-2 text-gray-900 dark:text-gray-100">{delivery.from || delivery.vendor || '-'}</td>
-                            <td className="border dark:border-gray-700 px-2 py-2 text-gray-700 dark:text-gray-300">{item.remarks || '-'}</td>
-                            <td className="border dark:border-gray-700 px-2 py-2 font-medium text-gray-900 dark:text-gray-100">Laxmi Powertech Private Limited</td>
-                            <td className="border dark:border-gray-700 px-2 py-2 text-center">
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 text-gray-900 dark:text-gray-100">
+                              {delivery.to || "-"}
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 text-gray-900 dark:text-gray-100">
+                              {delivery.from || delivery.vendor || "-"}
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 text-gray-700 dark:text-gray-300">
+                              {item.remarks || "-"}
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 font-medium text-gray-900 dark:text-gray-100">
+                              Laxmi Powertech Private Limited
+                            </TableCell>
+                            <TableCell className="border dark:border-gray-700 px-2 py-2 text-center">
                               {itemIndex === 0 && (
-                                <button
-                                  onClick={() => handleViewDetails(delivery)}
-                                  className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                  title="View Details"
-                                >
-                                  <Eye size={16} />
-                                </button>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      aria-label="View Details"
+                                      onClick={() => handleViewDetails(delivery)}
+                                      className="text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>View Details</TooltipContent>
+                                </Tooltip>
                               )}
-                            </td>
-                          </tr>
+                            </TableCell>
+                          </TableRow>
                         );
                       })
                     ) : (
-                      <tr key={delivery._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td className="border px-2 py-2 text-center text-gray-700">{deliveryIndex + 1}</td>
-                        <td className="border px-2 py-2 font-medium text-gray-900">
-                          {delivery.billing?.invoiceNumber || '-'}
-                        </td>
-                        <td className="border px-2 py-2 text-gray-700">
-                          {delivery.billing?.billDate 
-                            ? new Date(delivery.billing.billDate).toLocaleDateString('en-IN', { 
-                                year: 'numeric', 
-                                month: 'short', 
-                                day: 'numeric' 
+                      <TableRow
+                        key={delivery._id}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        <TableCell className="border px-2 py-2 text-center text-gray-700">
+                          {deliveryIndex + 1}
+                        </TableCell>
+                        <TableCell className="border px-2 py-2 font-medium text-gray-900">
+                          {delivery.billing?.invoiceNumber || "-"}
+                        </TableCell>
+                        <TableCell className="border px-2 py-2 text-gray-700">
+                          {delivery.billing?.billDate
+                            ? new Date(
+                                delivery.billing.billDate
+                              ).toLocaleDateString("en-IN", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
                               })
-                            : new Date(delivery.createdAt).toLocaleDateString('en-IN', { 
-                                year: 'numeric', 
-                                month: 'short', 
-                                day: 'numeric' 
-                              })}
-                        </td>
-                        <td className="border px-2 py-2 text-gray-500" colSpan="3">No items</td>
-                        <td className="border px-2 py-2 text-center">-</td>
-                        <td className="border px-2 py-2 text-right">-</td>
-                        <td className="border px-2 py-2 text-right">-</td>
-                        <td className="border px-2 py-2 text-right">-</td>
-                        <td className="border px-2 py-2 text-right bg-green-50">-</td>
-                        <td className="border px-2 py-2">
+                            : new Date(delivery.createdAt).toLocaleDateString(
+                                "en-IN",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                }
+                              )}
+                        </TableCell>
+                        <TableCell
+                          className="border px-2 py-2 text-gray-500"
+                          colSpan={3}
+                        >
+                          No items
+                        </TableCell>
+                        <TableCell className="border px-2 py-2 text-center">-</TableCell>
+                        <TableCell className="border px-2 py-2 text-right">-</TableCell>
+                        <TableCell className="border px-2 py-2 text-right">-</TableCell>
+                        <TableCell className="border px-2 py-2 text-right">-</TableCell>
+                        <TableCell className="border px-2 py-2 text-right bg-green-50">
+                          -
+                        </TableCell>
+                        <TableCell className="border px-2 py-2">
                           {(() => {
-                            const paymentSummary = getPaymentSummary(delivery.billing);
+                            const paymentSummary = getPaymentSummary(
+                              delivery.billing
+                            );
                             return (
                               <div className="space-y-1">
-                                <span className={`inline-block px-2 py-1 rounded-full text-[11px] font-semibold ${getPaymentStatusColor(paymentSummary.paymentStatus)}`}>
-                                  {getPaymentStatusLabel(paymentSummary.paymentStatus)}
-                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className={`border-transparent text-[11px] font-semibold ${getPaymentStatusColor(
+                                    paymentSummary.paymentStatus
+                                  )}`}
+                                >
+                                  {getPaymentStatusLabel(
+                                    paymentSummary.paymentStatus
+                                  )}
+                                </Badge>
                                 <p className="text-[11px] text-gray-600">
-                                  Paid {formatCurrency(paymentSummary.paidAmount)}
+                                  Paid{" "}
+                                  {formatCurrency(paymentSummary.paidAmount)}
                                 </p>
                               </div>
                             );
                           })()}
-                        </td>
-                        <td className="border px-2 py-2">{delivery.to || '-'}</td>
-                        <td className="border px-2 py-2">{delivery.from || delivery.vendor || '-'}</td>
-                        <td className="border px-2 py-2">-</td>
-                        <td className="border px-2 py-2 font-medium">Laxmi Powertech Private Limited</td>
-                        <td className="border px-2 py-2 text-center">
-                          <button
-                            onClick={() => handleViewDetails(delivery)}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="View Details"
-                          >
-                            <Eye size={16} />
-                          </button>
-                        </td>
-                      </tr>
+                        </TableCell>
+                        <TableCell className="border px-2 py-2">
+                          {delivery.to || "-"}
+                        </TableCell>
+                        <TableCell className="border px-2 py-2">
+                          {delivery.from || delivery.vendor || "-"}
+                        </TableCell>
+                        <TableCell className="border px-2 py-2">-</TableCell>
+                        <TableCell className="border px-2 py-2 font-medium">
+                          Laxmi Powertech Private Limited
+                        </TableCell>
+                        <TableCell className="border px-2 py-2 text-center">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label="View Details"
+                                onClick={() => handleViewDetails(delivery)}
+                                className="text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>View Details</TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
                     );
                   })}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             )}
           </div>
         )}
       </div>
 
       {/* Details Modal */}
-      {showDetailsModal && selectedDelivery && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">GRN Details</h3>
-                <p className="text-sm text-gray-500">{selectedDelivery.st_id || selectedDelivery.transfer_number}</p>
-              </div>
-              <button
-                onClick={() => setShowDetailsModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X size={24} />
-              </button>
-            </div>
+      <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
+        <DialogContent className="max-w-5xl sm:max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>GRN Details</DialogTitle>
+            <DialogDescription>
+              {selectedDelivery
+                ? `${selectedDelivery.st_id || selectedDelivery.transfer_number} - `
+                : ""}
+              View and manage GRN billing information.
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="p-6 space-y-6">
+          {selectedDelivery && (
+            <div className="space-y-6">
               {/* Header Information */}
               <div className="grid grid-cols-2 gap-4 pb-4 border-b">
                 <div>
                   <label className="text-sm font-medium text-gray-600">
-                    {selectedDelivery.type === 'PO' ? 'Intent PO ID' : 'Site Transfer ID'}
+                    {selectedDelivery.type === "PO"
+                      ? "Intent PO ID"
+                      : "Site Transfer ID"}
                   </label>
-                  <p className="text-gray-900 font-semibold">{selectedDelivery.transfer_number || selectedDelivery.st_id}</p>
+                  <p className="text-gray-900 font-semibold">
+                    {selectedDelivery.transfer_number || selectedDelivery.st_id}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Type</label>
-                  <p className="text-gray-900">{selectedDelivery.type === 'PO' ? 'Purchase Order' : 'Site Transfer'}</p>
+                  <label className="text-sm font-medium text-gray-600">
+                    Type
+                  </label>
+                  <p className="text-gray-900">
+                    {selectedDelivery.type === "PO"
+                      ? "Purchase Order"
+                      : "Site Transfer"}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">From</label>
-                  <p className="text-gray-900">{selectedDelivery.from || 'N/A'}</p>
+                  <label className="text-sm font-medium text-gray-600">
+                    From
+                  </label>
+                  <p className="text-gray-900">
+                    {selectedDelivery.from || "N/A"}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">To</label>
-                  <p className="text-gray-900">{selectedDelivery.to || 'N/A'}</p>
+                  <label className="text-sm font-medium text-gray-600">
+                    To
+                  </label>
+                  <p className="text-gray-900">
+                    {selectedDelivery.to || "N/A"}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Requested By</label>
-                  <p className="text-gray-900">{selectedDelivery.createdBy || 'N/A'}</p>
+                  <label className="text-sm font-medium text-gray-600">
+                    Requested By
+                  </label>
+                  <p className="text-gray-900">
+                    {selectedDelivery.createdBy || "N/A"}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Intent Request Date & Time</label>
-                  <p className="text-gray-900">{formatDate(selectedDelivery.createdAt)}</p>
+                  <label className="text-sm font-medium text-gray-600">
+                    Intent Request Date & Time
+                  </label>
+                  <p className="text-gray-900">
+                    {formatDate(selectedDelivery.createdAt)}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Delivery Date & Time (Challan Upload)</label>
-                  <p className="text-green-600 font-medium">{formatDate(selectedDelivery.updatedAt)}</p>
+                  <label className="text-sm font-medium text-gray-600">
+                    Delivery Date & Time (Challan Upload)
+                  </label>
+                  <p className="text-green-600 font-medium">
+                    {formatDate(selectedDelivery.updatedAt)}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Status</label>
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedDelivery.status)}`}>
-                    {selectedDelivery.status}
-                  </span>
+                  <label className="text-sm font-medium text-gray-600">
+                    Status
+                  </label>
+                  <div>
+                    <Badge
+                      variant="outline"
+                      className={`border-transparent text-xs font-medium ${getStatusColor(
+                        selectedDelivery.status
+                      )}`}
+                    >
+                      {selectedDelivery.status}
+                    </Badge>
+                  </div>
                 </div>
               </div>
 
@@ -1629,39 +1929,40 @@ export default function AdminGRN() {
                   </h4>
                   {!isEditMode ? (
                     <div className="flex gap-2">
-                      <button
+                      <Button
                         onClick={handleEditClick}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-md"
+                        className="bg-green-600 text-white hover:bg-green-700 shadow-md"
                       >
-                        <DollarSign size={16} />
+                        <DollarSign className="mr-2 h-4 w-4" />
                         Add Payment
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={handleEditClick}
-                        className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white text-sm font-semibold rounded-lg hover:bg-orange-600 transition-colors shadow-md"
+                        className="bg-orange-500 text-white hover:bg-orange-600 shadow-md"
                       >
-                        <Edit2 size={16} />
+                        <Edit2 className="mr-2 h-4 w-4" />
                         Edit Billing
-                      </button>
+                      </Button>
                     </div>
                   ) : (
                     <div className="flex gap-2">
-                      <button
+                      <Button
+                        variant="secondary"
                         onClick={handleCancelEdit}
                         disabled={isSaving}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
+                        className="bg-gray-200 text-gray-700 hover:bg-gray-300"
                       >
-                        <XCircle size={16} />
+                        <XCircle className="mr-2 h-4 w-4" />
                         Cancel
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={handleSaveBilling}
                         disabled={isSaving}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white text-sm font-semibold rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 shadow-md"
+                        className="bg-green-500 text-white hover:bg-green-600 shadow-md"
                       >
-                        <Save size={16} />
-                        {isSaving ? 'Saving...' : 'Save Billing'}
-                      </button>
+                        <Save className="mr-2 h-4 w-4" />
+                        {isSaving ? "Saving..." : "Save Billing"}
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -1673,27 +1974,41 @@ export default function AdminGRN() {
                       Invoice Number
                     </label>
                     {isEditMode ? (
-                      <input
+                      <Input
                         type="text"
-                        value={billingData.invoiceNumber || ''}
-                        onChange={(e) => setBillingData({ ...billingData, invoiceNumber: e.target.value })}
-                        className="w-full bg-white border-2 border-orange-300 rounded px-3 py-2 text-gray-900 font-bold focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        value={billingData.invoiceNumber || ""}
+                        onChange={(e) =>
+                          setBillingData({
+                            ...billingData,
+                            invoiceNumber: e.target.value,
+                          })
+                        }
+                        className={billingInputClass}
                         placeholder="Enter invoice number"
                       />
                     ) : (
                       <div className="bg-white border-2 border-orange-300 rounded px-3 py-2">
-                        <p className="text-gray-900 font-bold">{billingData.invoiceNumber || 'Not set'}</p>
+                        <p className="text-gray-900 font-bold">
+                          {billingData.invoiceNumber || "Not set"}
+                        </p>
                       </div>
                     )}
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 block mb-1">Bill Date</label>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">
+                      Bill Date
+                    </label>
                     {isEditMode ? (
-                      <input
+                      <Input
                         type="date"
-                        value={billingData.billDate || ''}
-                        onChange={(e) => setBillingData({ ...billingData, billDate: e.target.value })}
-                        className="w-full bg-white dark:bg-gray-800 border-2 border-orange-300 dark:border-orange-700 rounded px-3 py-2 text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        value={billingData.billDate || ""}
+                        onChange={(e) =>
+                          setBillingData({
+                            ...billingData,
+                            billDate: e.target.value,
+                          })
+                        }
+                        className={`${billingInputClass} font-medium`}
                       />
                     ) : (
                       <div className="bg-white border-2 border-orange-300 rounded px-3 py-2">
@@ -1704,13 +2019,15 @@ export default function AdminGRN() {
                     )}
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 block mb-1">Client Paid Amount</label>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">
+                      Client Paid Amount
+                    </label>
                     {isEditMode ? (
-                      <input
+                      <Input
                         type="number"
                         value={safeNumber(billingData.paidAmount)}
                         onChange={(e) => handlePaymentChange(e.target.value)}
-                        className="w-full bg-white border-2 border-orange-300 rounded px-3 py-2 text-gray-900 font-bold focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        className={billingInputClass}
                         placeholder="Enter paid amount"
                         step="0.01"
                         min="0"
@@ -1718,31 +2035,53 @@ export default function AdminGRN() {
                       />
                     ) : (
                       <div className="bg-white border-2 border-orange-300 rounded px-3 py-2">
-                        <p className="text-gray-900 font-bold">{formatCurrency(billingData.paidAmount)}</p>
+                        <p className="text-gray-900 font-bold">
+                          {formatCurrency(billingData.paidAmount)}
+                        </p>
                       </div>
                     )}
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 block mb-1">Payment Status</label>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">
+                      Payment Status
+                    </label>
                     <div className="bg-white border-2 border-orange-300 rounded px-3 py-2">
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getPaymentStatusColor(billingData.paymentStatus)}`}>
+                      <Badge
+                        variant="outline"
+                        className={`border-transparent text-xs font-semibold ${getPaymentStatusColor(
+                          billingData.paymentStatus
+                        )}`}
+                      >
                         {getPaymentStatusLabel(billingData.paymentStatus)}
-                      </span>
+                      </Badge>
                     </div>
                   </div>
                   <div className="col-span-2">
-                    <label className="text-sm font-semibold text-gray-700 block mb-1">Company Name</label>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">
+                      Company Name
+                    </label>
                     {isEditMode ? (
-                      <input
+                      <Input
                         type="text"
-                        value={billingData.companyName || 'Laxmi Powertech Private Limited'}
-                        onChange={(e) => setBillingData({ ...billingData, companyName: e.target.value })}
-                        className="w-full bg-white border-2 border-orange-300 rounded px-3 py-2 text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        value={
+                          billingData.companyName ||
+                          "Laxmi Powertech Private Limited"
+                        }
+                        onChange={(e) =>
+                          setBillingData({
+                            ...billingData,
+                            companyName: e.target.value,
+                          })
+                        }
+                        className={`${billingInputClass} font-medium`}
                         placeholder="Enter company name"
                       />
                     ) : (
                       <div className="bg-white border-2 border-orange-300 rounded px-3 py-2">
-                        <p className="text-gray-900 font-medium">{billingData.companyName || 'Laxmi Powertech Private Limited'}</p>
+                        <p className="text-gray-900 font-medium">
+                          {billingData.companyName ||
+                            "Laxmi Powertech Private Limited"}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -1751,24 +2090,44 @@ export default function AdminGRN() {
                 {/* Summary Totals */}
                 <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 p-4 bg-white rounded-lg border-2 border-orange-200">
                   <div className="text-center">
-                    <p className="text-xs font-semibold text-gray-600 mb-1">Total Price</p>
-                    <p className="text-xl font-bold text-blue-700">{formatCurrency(billingData.totalPrice)}</p>
+                    <p className="text-xs font-semibold text-gray-600 mb-1">
+                      Total Price
+                    </p>
+                    <p className="text-xl font-bold text-blue-700">
+                      {formatCurrency(billingData.totalPrice)}
+                    </p>
                   </div>
                   <div className="text-center sm:border-l-2 border-orange-200">
-                    <p className="text-xs font-semibold text-gray-600 mb-1">Total Discount</p>
-                    <p className="text-xl font-bold text-red-600">{formatCurrency(billingData.totalDiscount)}</p>
+                    <p className="text-xs font-semibold text-gray-600 mb-1">
+                      Total Discount
+                    </p>
+                    <p className="text-xl font-bold text-red-600">
+                      {formatCurrency(billingData.totalDiscount)}
+                    </p>
                   </div>
                   <div className="text-center sm:border-l-2 border-orange-200">
-                    <p className="text-xs font-semibold text-gray-600 mb-1">Final Amount</p>
-                    <p className="text-xl font-bold text-green-700">{formatCurrency(billingData.finalAmount)}</p>
+                    <p className="text-xs font-semibold text-gray-600 mb-1">
+                      Final Amount
+                    </p>
+                    <p className="text-xl font-bold text-green-700">
+                      {formatCurrency(billingData.finalAmount)}
+                    </p>
                   </div>
                   <div className="text-center sm:border-l-2 border-orange-200">
-                    <p className="text-xs font-semibold text-gray-600 mb-1">Paid Amount</p>
-                    <p className="text-xl font-bold text-green-700">{formatCurrency(billingData.paidAmount)}</p>
+                    <p className="text-xs font-semibold text-gray-600 mb-1">
+                      Paid Amount
+                    </p>
+                    <p className="text-xl font-bold text-green-700">
+                      {formatCurrency(billingData.paidAmount)}
+                    </p>
                   </div>
                   <div className="text-center sm:border-l-2 border-orange-200">
-                    <p className="text-xs font-semibold text-gray-600 mb-1">Pending Amount</p>
-                    <p className="text-xl font-bold text-orange-700">{formatCurrency(billingData.pendingAmount)}</p>
+                    <p className="text-xs font-semibold text-gray-600 mb-1">
+                      Pending Amount
+                    </p>
+                    <p className="text-xl font-bold text-orange-700">
+                      {formatCurrency(billingData.pendingAmount)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1781,85 +2140,150 @@ export default function AdminGRN() {
                     Material-wise Billing
                   </h4>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="border px-4 py-3 text-left font-semibold text-gray-700">Material Name</th>
-                        <th className="border px-4 py-3 text-center font-semibold text-gray-700">Qty</th>
-                        <th className="border px-4 py-3 text-left font-semibold text-gray-700">Unit Price (₹)</th>
-                        <th className="border px-4 py-3 text-left font-semibold text-gray-700">Discount</th>
-                        <th className="border px-4 py-3 text-left font-semibold text-gray-700 bg-green-50">Total Amount (₹)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {billingData.materialBilling.map((material) => (
-                        <tr key={material.materialId} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                          <td className="border px-4 py-3 font-medium text-gray-900">{material.materialName}</td>
-                          <td className="border px-4 py-3 text-center font-semibold text-gray-900">
-                            {safeNumber(material.quantity)}
-                          </td>
-                          <td className="border px-4 py-3">
-                            {isEditMode ? (
-                              <input
+                <Table className="min-w-full">
+                  <TableHeader className="bg-gray-100">
+                    <TableRow>
+                      <TableHead className="border px-4 py-3 text-left font-semibold text-gray-700">
+                        Material Name
+                      </TableHead>
+                      <TableHead className="border px-4 py-3 text-center font-semibold text-gray-700">
+                        Qty
+                      </TableHead>
+                      <TableHead className="border px-4 py-3 text-left font-semibold text-gray-700">
+                        Unit Price (₹)
+                      </TableHead>
+                      <TableHead className="border px-4 py-3 text-left font-semibold text-gray-700">
+                        Discount
+                      </TableHead>
+                      <TableHead className="border px-4 py-3 text-left font-semibold text-gray-700 bg-green-50">
+                        Total Amount (₹)
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {billingData.materialBilling.map((material) => (
+                      <TableRow
+                        key={material.materialId}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        <TableCell className="border px-4 py-3 font-medium text-gray-900">
+                          {material.materialName}
+                        </TableCell>
+                        <TableCell className="border px-4 py-3 text-center font-semibold text-gray-900">
+                          {safeNumber(material.quantity)}
+                        </TableCell>
+                        <TableCell className="border px-4 py-3">
+                          {isEditMode ? (
+                            <Input
+                              type="number"
+                              value={safeNumber(material.price)}
+                              onChange={(e) =>
+                                handleMaterialBillingChange(
+                                  material.materialId,
+                                  "price",
+                                  e.target.value
+                                )
+                              }
+                              className={`w-full ${materialControlClass}`}
+                              placeholder="Unit price"
+                              step="0.01"
+                              min="0"
+                            />
+                          ) : (
+                            <span className="font-semibold text-gray-900">
+                              {formatCurrency(material.price)}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="border px-4 py-3">
+                          {isEditMode ? (
+                            <div className="flex gap-2">
+                              <Select
+                                value={material.discountType || "flat"}
+                                onValueChange={(value) =>
+                                  handleMaterialBillingChange(
+                                    material.materialId,
+                                    "discountType",
+                                    value
+                                  )
+                                }
+                              >
+                                <SelectTrigger className={materialControlClass}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="flat">₹</SelectItem>
+                                  <SelectItem value="percentage">%</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Select
+                                value={material.discountScope || "total"}
+                                onValueChange={(value) =>
+                                  handleMaterialBillingChange(
+                                    material.materialId,
+                                    "discountScope",
+                                    value
+                                  )
+                                }
+                              >
+                                <SelectTrigger className={materialControlClass}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="perUnit">Per Qty</SelectItem>
+                                  <SelectItem value="total">Total</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Input
                                 type="number"
-                                value={safeNumber(material.price)}
-                                onChange={(e) => handleMaterialBillingChange(material.materialId, 'price', e.target.value)}
-                                className="w-full border-2 border-blue-400 bg-white rounded-lg px-3 py-2 text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-600 shadow-sm"
-                                placeholder="Unit price"
-                                step="0.01"
+                                value={safeNumber(material.discount)}
+                                onChange={(e) =>
+                                  handleMaterialBillingChange(
+                                    material.materialId,
+                                    "discount",
+                                    e.target.value
+                                  )
+                                }
+                                className={`flex-1 ${materialControlClass}`}
+                                placeholder="Enter discount"
+                                step={
+                                  material.discountType === "percentage"
+                                    ? "1"
+                                    : "0.01"
+                                }
                                 min="0"
+                                max={
+                                  material.discountType === "percentage"
+                                    ? "100"
+                                    : undefined
+                                }
                               />
-                            ) : (
-                              <span className="font-semibold text-gray-900">{formatCurrency(material.price)}</span>
-                            )}
-                          </td>
-                          <td className="border px-4 py-3">
-                            {isEditMode ? (
-                              <div className="flex gap-2">
-                                <select
-                                  value={material.discountType || 'flat'}
-                                  onChange={(e) => handleMaterialBillingChange(material.materialId, 'discountType', e.target.value)}
-                                  className="border-2 border-blue-400 bg-white rounded-lg px-3 py-2 text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-600 shadow-sm"
-                                >
-                                  <option value="flat">₹</option>
-                                  <option value="percentage">%</option>
-                                </select>
-                                <select
-                                  value={material.discountScope || 'total'}
-                                  onChange={(e) => handleMaterialBillingChange(material.materialId, 'discountScope', e.target.value)}
-                                  className="border-2 border-blue-400 bg-white rounded-lg px-3 py-2 text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-600 shadow-sm"
-                                >
-                                  <option value="perUnit">Per Qty</option>
-                                  <option value="total">Total</option>
-                                </select>
-                                <input
-                                  type="number"
-                                  value={safeNumber(material.discount)}
-                                  onChange={(e) => handleMaterialBillingChange(material.materialId, 'discount', e.target.value)}
-                                  className="flex-1 border-2 border-blue-400 bg-white rounded-lg px-3 py-2 text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-600 shadow-sm"
-                                  placeholder="Enter discount"
-                                  step={material.discountType === 'percentage' ? '1' : '0.01'}
-                                  min="0"
-                                  max={material.discountType === 'percentage' ? '100' : undefined}
-                                />
-                              </div>
-                            ) : (
-                              <span className="text-gray-900">
-                                {safeNumber(material.discount) > 0 
-                                  ? `${material.discountType === 'percentage' ? `${safeNumber(material.discount)}%` : `₹${safeNumber(material.discount)}`} ${material.discountScope === 'perUnit' ? '/ qty' : 'total'}`
-                                  : '-'}
-                              </span>
-                            )}
-                          </td>
-                          <td className="border px-4 py-3 bg-green-50">
-                            <span className="font-bold text-green-700 text-lg">{formatCurrency(material.totalAmount)}</span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                            </div>
+                          ) : (
+                            <span className="text-gray-900">
+                              {safeNumber(material.discount) > 0
+                                ? `${
+                                    material.discountType === "percentage"
+                                      ? `${safeNumber(material.discount)}%`
+                                      : `₹${safeNumber(material.discount)}`
+                                  } ${
+                                    material.discountScope === "perUnit"
+                                      ? "/ qty"
+                                      : "total"
+                                  }`
+                                : "-"}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="border px-4 py-3 bg-green-50">
+                          <span className="font-bold text-green-700 text-lg">
+                            {formatCurrency(material.totalAmount)}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
 
               {/* Materials Table */}
@@ -1868,212 +2292,234 @@ export default function AdminGRN() {
                   <Package size={18} />
                   Materials Received
                 </h4>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full border border-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="border px-3 py-2 text-left text-xs font-medium text-gray-700">Item</th>
-                        <th className="border px-3 py-2 text-left text-xs font-medium text-gray-700">Category</th>
-                        <th className="border px-3 py-2 text-center text-xs font-medium text-gray-700">Approved Qty</th>
-                        <th className="border px-3 py-2 text-center text-xs font-medium text-gray-700">Received Qty</th>
-                        <th className="border px-3 py-2 text-center text-xs font-medium text-gray-700">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedDelivery.items?.map((item, index) => {
-                        const approvedQty = item.st_quantity || 0;
-                        const receivedQty = item.received_quantity || 0;
-                        const isFullyReceived = receivedQty >= approvedQty;
-                        
-                        return (
-                          <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <td className="border px-3 py-2 text-sm text-gray-900">
-                              {item.category || item.name || 'N/A'}
-                            </td>
-                            <td className="border px-3 py-2 text-sm text-gray-600">
-                              {[item.sub_category, item.sub_category1, item.sub_category2]
-                                .filter(Boolean)
-                                .join(' - ') || '-'}
-                            </td>
-                            <td className="border px-3 py-2 text-center text-sm font-medium text-gray-900">
-                              {approvedQty}
-                            </td>
-                            <td className="border px-3 py-2 text-center text-sm font-semibold text-green-600">
-                              {receivedQty}
-                            </td>
-                            <td className="border px-3 py-2 text-center">
-                              <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                isFullyReceived 
-                                  ? 'bg-green-100 text-green-600' 
-                                  : 'bg-orange-100 text-orange-600'
-                              }`}>
-                                {isFullyReceived ? 'Complete' : 'Partial'}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                <Table className="min-w-full border border-gray-200">
+                  <TableHeader className="bg-gray-50">
+                    <TableRow>
+                      <TableHead className="border px-3 py-2 text-left text-xs font-medium text-gray-700">
+                        Item
+                      </TableHead>
+                      <TableHead className="border px-3 py-2 text-left text-xs font-medium text-gray-700">
+                        Category
+                      </TableHead>
+                      <TableHead className="border px-3 py-2 text-center text-xs font-medium text-gray-700">
+                        Approved Qty
+                      </TableHead>
+                      <TableHead className="border px-3 py-2 text-center text-xs font-medium text-gray-700">
+                        Received Qty
+                      </TableHead>
+                      <TableHead className="border px-3 py-2 text-center text-xs font-medium text-gray-700">
+                        Status
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedDelivery.items?.map((item, index) => {
+                      const approvedQty = item.st_quantity || 0;
+                      const receivedQty = item.received_quantity || 0;
+                      const isFullyReceived = receivedQty >= approvedQty;
+
+                      return (
+                        <TableRow
+                          key={index}
+                          className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                        >
+                          <TableCell className="border px-3 py-2 text-sm text-gray-900">
+                            {item.category || item.name || "N/A"}
+                          </TableCell>
+                          <TableCell className="border px-3 py-2 text-sm text-gray-600">
+                            {[
+                              item.sub_category,
+                              item.sub_category1,
+                              item.sub_category2,
+                            ]
+                              .filter(Boolean)
+                              .join(" - ") || "-"}
+                          </TableCell>
+                          <TableCell className="border px-3 py-2 text-center text-sm font-medium text-gray-900">
+                            {approvedQty}
+                          </TableCell>
+                          <TableCell className="border px-3 py-2 text-center text-sm font-semibold text-green-600">
+                            {receivedQty}
+                          </TableCell>
+                          <TableCell className="border px-3 py-2 text-center">
+                            <Badge
+                              variant="outline"
+                              className={`border-transparent text-xs font-medium ${
+                                isFullyReceived
+                                  ? "bg-green-100 text-green-600"
+                                  : "bg-orange-100 text-orange-600"
+                              }`}
+                            >
+                              {isFullyReceived ? "Complete" : "Partial"}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
               </div>
 
               {/* Attachments (Challan) */}
-              {selectedDelivery.attachments && selectedDelivery.attachments.length > 0 && (
-                <div>
-                  <h4 className="text-md font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <FileText size={18} />
-                    Attachments ({selectedDelivery.attachments.length})
-                  </h4>
-                  <div className="space-y-3">
-                    {selectedDelivery.attachments.map((attachment, index) => {
-                      const attachmentUrl = typeof attachment === 'string' ? attachment : attachment.url;
-                      const fileName = attachmentUrl.split('/').pop();
-                      const isImage = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(attachmentUrl);
-                      
-                      return (
-                        <div key={index} className="border rounded-lg overflow-hidden bg-white shadow-sm">
-                          {/* Image Preview */}
-                          {isImage ? (
-                            <div className="relative bg-gray-100">
-                              <img 
-                                src={attachmentUrl} 
-                                alt={`Challan ${index + 1}`}
-                                className="w-full h-48 object-contain"
-                              />
-                            </div>
-                          ) : (
-                            <div className="flex items-center justify-center h-48 bg-gray-100">
-                              <FileText size={48} className="text-gray-400" />
-                            </div>
-                          )}
-                          
-                          {/* File Info & Actions */}
-                          <div className="p-3 bg-white border-t">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <FileText size={16} className="text-orange-500 flex-shrink-0" />
-                                <span className="text-sm text-gray-700 truncate">{fileName}</span>
+              {selectedDelivery.attachments &&
+                selectedDelivery.attachments.length > 0 && (
+                  <div>
+                    <h4 className="text-md font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <FileText size={18} />
+                      Attachments ({selectedDelivery.attachments.length})
+                    </h4>
+                    <div className="space-y-3">
+                      {selectedDelivery.attachments.map((attachment, index) => {
+                        const attachmentUrl =
+                          typeof attachment === "string"
+                            ? attachment
+                            : attachment.url;
+                        const fileName = attachmentUrl.split("/").pop();
+                        const isImage =
+                          /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(
+                            attachmentUrl
+                          );
+
+                        return (
+                          <div
+                            key={index}
+                            className="border rounded-lg overflow-hidden bg-white shadow-sm"
+                          >
+                            {/* Image Preview */}
+                            {isImage ? (
+                              <div className="relative bg-gray-100">
+                                <img
+                                  src={attachmentUrl}
+                                  alt={`Challan ${index + 1}`}
+                                  className="w-full h-48 object-contain"
+                                />
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center h-48 bg-gray-100">
+                                <FileText size={48} className="text-gray-400" />
+                              </div>
+                            )}
+
+                            {/* File Info & Actions */}
+                            <div className="p-3 bg-white border-t">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <FileText
+                                    size={16}
+                                    className="text-orange-500 flex-shrink-0"
+                                  />
+                                  <span className="text-sm text-gray-700 truncate">
+                                    {fileName}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Action Buttons */}
+                              <div className="flex gap-2">
+                                <Button
+                                  asChild
+                                  size="sm"
+                                  className="flex-1 bg-blue-500 text-white hover:bg-blue-600 text-xs"
+                                >
+                                  <a
+                                    href={attachmentUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <Eye className="mr-1 h-3.5 w-3.5" />
+                                    View
+                                  </a>
+                                </Button>
+                                <Button
+                                  asChild
+                                  size="sm"
+                                  className="flex-1 bg-green-500 text-white hover:bg-green-600 text-xs"
+                                >
+                                  <a href={attachmentUrl} download>
+                                    <Download className="mr-1 h-3.5 w-3.5" />
+                                    Download
+                                  </a>
+                                </Button>
                               </div>
                             </div>
-                            
-                            {/* Action Buttons */}
-                            <div className="flex gap-2">
-                              <a
-                                href={attachmentUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-500 text-white text-xs font-medium rounded hover:bg-blue-600 transition-colors"
-                              >
-                                <Eye size={14} />
-                                View
-                              </a>
-                              <a
-                                href={attachmentUrl}
-                                download
-                                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors"
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Download
-                              </a>
-                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
+          )}
 
-            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 border-t flex justify-end">
-              <button
-                onClick={() => setShowDetailsModal(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => setShowDetailsModal(false)}
+              className="bg-gray-200 text-gray-700 hover:bg-gray-300"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteConfirmModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full">
-            {/* Header */}
-            <div className="bg-red-600 text-white px-6 py-4 rounded-t-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                  <Trash2 size={24} />
+      <AlertDialog
+        open={showDeleteConfirmModal}
+        onOpenChange={(open) => {
+          if (!isDeleting) {
+            setShowDeleteConfirmModal(open);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <Trash2 className="h-5 w-5" />
+              Delete All GRN Data?
+            </AlertDialogTitle>
+
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <div className="rounded-lg border-2 border-red-200 bg-red-50 p-4">
+                  <p className="font-semibold text-red-800">
+                    ⚠️ This action is irreversible.
+                  </p>
+
+                  <p className="mt-2 text-sm text-red-700">
+                    You are about to permanently delete all GRN data, including:
+                  </p>
+
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
+                    <li>All GRN records</li>
+                    <li>All billing information</li>
+                    <li>All material delivery records</li>
+                    <li>All associated attachments</li>
+                  </ul>
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold">Delete All GRN Data</h2>
-                  <p className="text-sm opacity-90">Permanent Action</p>
-                </div>
-              </div>
-            </div>
 
-            {/* Content */}
-            <div className="p-6">
-              <div className="mb-4 p-4 bg-red-50 border-2 border-red-200 rounded-lg">
-                <p className="text-red-800 font-semibold mb-2">⚠️ Warning: This action is irreversible!</p>
-                <p className="text-sm text-red-700">
-                  You are about to delete <strong>ALL GRN data</strong> from the system. This includes:
-                </p>
-                <ul className="text-sm text-red-700 mt-2 ml-4 space-y-1">
-                  <li>• All GRN records</li>
-                  <li>• All billing information</li>
-                  <li>• All material delivery records</li>
-                  <li>• All associated attachments</li>
-                </ul>
-              </div>
-
-              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800">
-                  <strong>Note:</strong> This will affect both Admin and Client panels. The data cannot be recovered once deleted.
+                <p className="text-sm text-muted-foreground">
+                  This will affect both Admin and Client panels and the data
+                  cannot be recovered.
                 </p>
               </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-              <p className="text-gray-700 font-medium mb-2">Are you absolutely sure you want to proceed?</p>
-              <p className="text-sm text-gray-600">
-                This action is only available to administrators and should be used with extreme caution.
-              </p>
-            </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
 
-            {/* Actions */}
-            <div className="px-6 py-4 bg-gray-50 rounded-b-lg flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirmModal(false)}
-                disabled={isDeleting}
-                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteAllGRN}
-                disabled={isDeleting}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isDeleting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 size={18} />
-                    Yes, Delete All
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            <AlertDialogAction
+              onClick={handleDeleteAllGRN}
+              disabled={isDeleting}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              {isDeleting ? "Deleting..." : "Yes, Delete All"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      </TooltipProvider>
     </DashboardLayout>
   );
 }

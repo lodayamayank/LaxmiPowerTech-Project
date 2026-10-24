@@ -14,6 +14,9 @@ import { toast } from "react-toastify";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const CreateReimbursement = () => {
   const navigate = useNavigate();
@@ -177,14 +180,14 @@ const CreateReimbursement = () => {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-md font-semibold text-gray-800">Expense Items</h3>
-              <button
+              <Button
                 type="button"
                 onClick={addItem}
-                className="flex items-center gap-2 px-3 py-1.5 bg-orange-500 text-white rounded-xl text-sm font-medium hover:bg-orange-600 transition-all"
+                className="h-auto flex items-center gap-2 px-3 py-1.5 has-[>svg]:px-3 bg-orange-500 text-white rounded-xl text-sm font-medium hover:bg-orange-600 transition-all"
               >
-                <FaPlus size={12} />
+                <FaPlus size={12} className="size-3" />
                 Add Item
-              </button>
+              </Button>
             </div>
 
             <div className="space-y-4">
@@ -193,29 +196,31 @@ const CreateReimbursement = () => {
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-sm font-semibold text-gray-700">Item {index + 1}</span>
                     {items.length > 1 && (
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
                         onClick={() => removeItem(index)}
-                        className="text-red-500 hover:text-red-600 p-2"
+                        className="h-auto p-2 has-[>svg]:p-2 text-red-500 hover:text-red-600 hover:bg-transparent"
                       >
-                        <FaTrash size={14} />
-                      </button>
+                        <FaTrash size={14} className="size-3.5" />
+                      </Button>
                     )}
                   </div>
 
                   <div className="space-y-3">
                     {/* Amount */}
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      <Label htmlFor={`reimbursement-amount-${index}`} className="block text-xs font-semibold text-gray-700 mb-1">
                         Amount (₹) <span className="text-red-500">*</span>
-                      </label>
-                      <input
+                      </Label>
+                      <Input
+                        id={`reimbursement-amount-${index}`}
                         type="number"
                         step="0.01"
                         min="0"
                         value={item.amount}
                         onChange={(e) => updateItem(index, "amount", e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        className="w-full h-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-gray-300"
                         placeholder="0.00"
                         required
                       />
@@ -223,25 +228,27 @@ const CreateReimbursement = () => {
 
                     {/* Date */}
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      <Label htmlFor={`reimbursement-date-${index}`} className="block text-xs font-semibold text-gray-700 mb-1">
                         Expense Date <span className="text-red-500">*</span>
-                      </label>
-                      <input
+                      </Label>
+                      <Input
+                        id={`reimbursement-date-${index}`}
                         type="date"
                         value={item.expenseDate}
                         onChange={(e) => updateItem(index, "expenseDate", e.target.value)}
                         max={new Date().toISOString().split("T")[0]}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        className="w-full h-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-gray-300"
                         required
                       />
                     </div>
 
                     {/* Category */}
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      <Label htmlFor={`reimbursement-category-${index}`} className="block text-xs font-semibold text-gray-700 mb-1">
                         Category <span className="text-red-500">*</span>
-                      </label>
+                      </Label>
                       <select
+                        id={`reimbursement-category-${index}`}
                         value={item.category}
                         onChange={(e) => updateItem(index, "category", e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
@@ -257,10 +264,11 @@ const CreateReimbursement = () => {
 
                     {/* Description */}
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      <Label htmlFor={`reimbursement-description-${index}`} className="block text-xs font-semibold text-gray-700 mb-1">
                         Description <span className="text-red-500">*</span>
-                      </label>
-                      <textarea
+                      </Label>
+                      <Textarea
+                        id={`reimbursement-description-${index}`}
                         value={item.description}
                         onChange={(e) => updateItem(index, "description", e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none"
@@ -272,9 +280,9 @@ const CreateReimbursement = () => {
 
                     {/* Receipts */}
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      <Label htmlFor={`receipts-${index}`} className="block text-xs font-semibold text-gray-700 mb-1">
                         Receipts (Optional)
-                      </label>
+                      </Label>
                       
                       {/* File Input */}
                       <div className="relative mb-2">
@@ -307,13 +315,13 @@ const CreateReimbursement = () => {
                                 alt={`Receipt ${receiptIndex + 1}`}
                                 className="w-full h-20 object-cover rounded-lg border border-gray-200"
                               />
-                              <button
+                              <Button
                                 type="button"
                                 onClick={() => removeReceipt(index, receiptIndex)}
-                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute -top-2 -right-2 h-auto w-auto p-1 has-[>svg]:p-1 bg-red-500 hover:bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                               >
-                                <FaTimes size={10} />
-                              </button>
+                                <FaTimes size={10} className="size-2.5" />
+                              </Button>
                             </div>
                           ))}
                         </div>
@@ -327,10 +335,11 @@ const CreateReimbursement = () => {
 
           {/* Overall Note */}
           <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <Label htmlFor="reimbursement-note" className="block text-sm font-semibold text-gray-700 mb-2">
               Additional Note (Optional)
-            </label>
-            <textarea
+            </Label>
+            <Textarea
+              id="reimbursement-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none"

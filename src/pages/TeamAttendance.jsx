@@ -5,6 +5,7 @@ import logo from '../assets/logo.png';
 import { FaArrowLeft, FaCalendarAlt, FaCheckCircle, FaTimesCircle, FaClock, FaUsers, FaEdit } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const statusBadgeClass = {
   in:         'bg-green-100 text-green-800',
@@ -290,12 +291,12 @@ const TeamAttendance = () => {
             {/* Single Date Filter */}
             <div className="px-6 py-4 bg-white border-b">
               <label className="text-xs font-medium text-gray-600 mb-1 block">View Date</label>
-              <input
+              <Input
                 type="date"
                 value={viewDate}
                 max={new Date().toISOString().split('T')[0]}
                 onChange={e => setViewDate(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                className="h-auto w-full px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-orange-500 text-sm"
               />
             </div>
 
@@ -410,12 +411,12 @@ const TeamAttendance = () => {
             {/* Date picker */}
             <div className="px-6 py-4 bg-white border-b">
               <label className="text-xs font-medium text-gray-600 mb-1 block">Attendance Date</label>
-              <input
+              <Input
                 type="date"
                 value={markDate}
                 max={new Date().toISOString().split('T')[0]}
                 onChange={e => setMarkDate(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                className="h-auto w-full px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-orange-500 text-sm"
               />
             </div>
 
@@ -502,11 +503,11 @@ const TeamAttendance = () => {
 
                       {/* Punch In row */}
                       <div className="flex items-center gap-2 mb-2">
-                        <input
+                        <Input
                           type="time"
                           value={member.inTime}
                           onChange={e => updateMember(member._id, { inTime: e.target.value })}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          className="h-auto flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-none text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:border-green-500"
                         />
                         <button
                           onClick={() => punchMember(member, 'in')}
@@ -523,11 +524,11 @@ const TeamAttendance = () => {
 
                       {/* Punch Out row */}
                       <div className="flex items-center gap-2 mb-2">
-                        <input
+                        <Input
                           type="time"
                           value={member.outTime}
                           onChange={e => updateMember(member._id, { outTime: e.target.value })}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="h-auto flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-none text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                         />
                         <button
                           onClick={() => punchMember(member, 'out')}

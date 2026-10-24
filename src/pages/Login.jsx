@@ -4,6 +4,7 @@ import axios from '../utils/axios';
 import logo from "../assets/logo.png";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { FaUser, FaLock, FaSignInAlt, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Login = () => {
@@ -107,7 +108,7 @@ const Login = () => {
 
             {/* Username Input */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="login-username" className="block text-sm font-semibold text-gray-700 mb-2">
                 <div className="flex items-center gap-2">
                   <FaUser className="text-gray-400" size={14} />
                   <span>Username</span>
@@ -117,12 +118,13 @@ const Login = () => {
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                   <FaUser size={16} />
                 </div>
-                <input
+                <Input
+                  id="login-username"
                   type="text"
                   placeholder="Enter your username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-gray-50 border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-800 transition-all"
+                  className="w-full h-auto pl-6 pr-4 py-3.5 rounded-xl bg-gray-50 border-2 border-gray-200 shadow-none text-base md:text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-transparent text-gray-800 transition-all"
                   required
                 />
               </div>
@@ -130,7 +132,7 @@ const Login = () => {
 
             {/* Password Input */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="login-password" className="block text-sm font-semibold text-gray-700 mb-2">
                 <div className="flex items-center gap-2">
                   <FaLock className="text-gray-400" size={14} />
                   <span>Password</span>
@@ -140,17 +142,20 @@ const Login = () => {
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                   <FaLock size={16} />
                 </div>
-                <input
+                <Input
+                  id="login-password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3.5 rounded-xl bg-gray-50 border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-800 transition-all"
+                  className="w-full h-auto pl-6 pr-12 py-3.5 rounded-xl bg-gray-50 border-2 border-gray-200 shadow-none text-base md:text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-transparent text-gray-800 transition-all"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showPassword}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
@@ -159,11 +164,11 @@ const Login = () => {
             </div>
 
             {/* Forgot Password Link */}
-            <div className="text-right">
+            {/* <div className="text-right">
               <a href="#" className="text-sm text-orange-600 hover:text-orange-700 font-medium hover:underline transition-colors">
                 Forgot Password?
               </a>
-            </div>
+            </div> */}
 
             {/* Login Button */}
             <Button
@@ -200,7 +205,7 @@ const Login = () => {
             Need help? <a href="#" className="text-orange-600 font-medium hover:underline">Contact Support</a>
           </p>
           <p className="text-xs text-gray-400 mt-4">
-            © 2025 Laxmi Power Tech. All rights reserved.
+            © 2026 Laxmi Power Tech. All rights reserved.
           </p>
         </div>
       </div>

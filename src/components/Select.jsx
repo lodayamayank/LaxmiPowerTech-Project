@@ -2,6 +2,7 @@ import React from 'react';
 import { FaChevronDown } from 'react-icons/fa';
 
 const Select = ({ 
+  id,
   value, 
   onChange, 
   options = [], 
@@ -18,6 +19,7 @@ const Select = ({
         </div>
       )}
       <select
+        id={id}
         value={value}
         onChange={onChange}
         disabled={disabled}

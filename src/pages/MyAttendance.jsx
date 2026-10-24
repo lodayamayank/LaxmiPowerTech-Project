@@ -3,6 +3,7 @@ import axios from "../utils/axios";
 import { useNavigate } from "react-router-dom";
 import { Button } from '@/components/ui/button';
 import { toast } from 'react-toastify';
+import { Textarea } from '@/components/ui/textarea';
 import { computeDailyStatuses } from "../utils/attendanceCalculations";
 import {
   FaArrowLeft,
@@ -504,7 +505,7 @@ const MyAttendance = () => {
                   <FaEdit className="text-orange-500" />
                   Add Note
                 </label>
-                <textarea
+                <Textarea
                   className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all resize-none"
                   rows={4}
                   value={selectedDay.note || ""}

@@ -1,8 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, X, Trash2, Upload } from 'lucide-react';
 import { siteTransferAPI, materialCatalogAPI as materialAPI, branchesAPI } from '../../utils/materialAPI';
 import MaterialLineItem from './MaterialLineItem';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Class overrides so shadcn primitives keep the page's existing look
+const cardClass = 'bg-white rounded-lg border py-0 gap-0 shadow-none';
+const labelClass = 'text-xs text-gray-600 font-normal leading-normal';
+const readLabelClass = 'text-xs text-gray-500 block mb-1 font-normal leading-normal';
 
 export default function MaterialCardDetails() {
   const { id } = useParams();
@@ -23,7 +35,7 @@ export default function MaterialCardDetails() {
   const [newAttachments, setNewAttachments] = useState([]);
 
   // Toast notification helper - Same as Intent PO
-  const showToast = (message, type = 'success') => {
+  const showToast = useCallback((message, type = 'success') => {
     const toast = document.createElement('div');
     toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-[9999] ${
       type === 'success' ? 'bg-green-500' : 'bg-red-500'
@@ -34,14 +46,9 @@ export default function MaterialCardDetails() {
     setTimeout(() => {
       toast.remove();
     }, 3000);
-  };
+  }, []);
 
-  useEffect(() => {
-    fetchTransferDetails();
-    fetchMaterialsAndSites();
-  }, [id]);
-
-  const fetchMaterialsAndSites = async () => {
+  const fetchMaterialsAndSites = useCallback(async () => {
     try {
       // ✅ FETCH SITES FROM BACKEND - NO HARDCODED VALUES
       const branches = await branchesAPI.getAll();
@@ -70,9 +77,9 @@ export default function MaterialCardDetails() {
       setAllMaterials([]);
       setCategories([]);
     }
-  };
+  }, []);
 
-  const fetchTransferDetails = async () => {
+  const fetchTransferDetails = useCallback(async () => {
     try {
       setLoading(true);
       const response = await siteTransferAPI.getById(id);
@@ -113,7 +120,12 @@ export default function MaterialCardDetails() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, showToast]);
+
+  useEffect(() => {
+    fetchTransferDetails();
+    fetchMaterialsAndSites();
+  }, [fetchTransferDetails, fetchMaterialsAndSites]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -287,15 +299,6 @@ export default function MaterialCardDetails() {
     }
   };
 
-  const updateMaterial = (index, field, value) => {
-    const updatedMaterials = [...formData.materials];
-    updatedMaterials[index] = {
-      ...updatedMaterials[index],
-      [field]: value
-    };
-    setFormData({ ...formData, materials: updatedMaterials });
-  };
-  
   const addMaterialRow = () => {
     const newMaterialId = Date.now();
     setFormData(prev => ({
@@ -422,10 +425,33 @@ export default function MaterialCardDetails() {
   // ✅ LOADING SCREEN - MATCHING INTENT PO STYLE (WHITE/LIGHT BACKGROUND)
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-700 font-medium text-sm">Loading Transfer Details...</p>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
+        <div className="max-w-md mx-auto bg-white shadow-xl min-h-screen">
+          {/* Header skeleton */}
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
+            <div className="flex flex-col items-center pt-8 space-y-2">
+              <Skeleton className="h-7 w-44 bg-white/30" />
+              <Skeleton className="h-4 w-28 bg-white/30" />
+            </div>
+          </div>
+
+          {/* Content skeleton */}
+          <div className="px-6 py-6 -mt-4 space-y-4">
+            <div className="rounded-lg border p-4 space-y-3">
+              <Skeleton className="h-5 w-40" />
+              <div className="grid grid-cols-2 gap-3">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+            <div className="rounded-lg border p-4 space-y-3">
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -441,12 +467,12 @@ export default function MaterialCardDetails() {
           </div>
           <h2 className="text-lg font-bold text-gray-900 mb-2">Transfer Not Found</h2>
           <p className="text-gray-600 mb-6 text-sm">The material transfer you're looking for doesn't exist or has been deleted.</p>
-          <button
+          <Button
             onClick={() => navigate(-1)}
-            className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
+            className="h-auto px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
           >
             Go Back
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -459,13 +485,14 @@ export default function MaterialCardDetails() {
       <div className="max-w-md mx-auto bg-white shadow-xl">
         {/* Header - Matching Intent PO */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <button
-            className="mobile-back-button absolute top-6 left-6"
+          <Button
+            variant="ghost"
+            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
             onClick={() => navigate(-1)}
           >
             <ArrowLeft size={16} />
             <span className="text-sm font-medium">Back</span>
-          </button>
+          </Button>
 
           <div className="text-center pt-8">
             <h1 className="text-white text-2xl font-bold mb-2">Transfer Details</h1>
@@ -478,29 +505,33 @@ export default function MaterialCardDetails() {
           <div className="space-y-4">
 
           {/* Basic Information Section - Matching Intent PO Layout */}
-          <div className="bg-white rounded-lg border p-4 space-y-3">
+          <Card className={cardClass}>
+            <CardContent className="p-4 space-y-3">
             <h2 className="font-semibold text-gray-900">Basic Information</h2>
 
             <div className="grid grid-cols-2 gap-3">
               {/* ST-ID - Read Only */}
               <div>
-                <label className="text-xs text-gray-600">ST-ID</label>
+                <Label className={labelClass}>ST-ID</Label>
                 <p className="font-medium text-gray-900">{transfer.siteTransferId}</p>
               </div>
 
               {/* Status - Read Only */}
               <div>
-                <label className="text-xs text-gray-600">Status</label>
-                <p>
-                  <span className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(transfer.status)}`}>
+                <Label className={labelClass}>Status</Label>
+                <div>
+                  <Badge
+                    variant="outline"
+                    className={`inline-block px-2 py-1 text-xs rounded-full font-normal border-transparent ${getStatusColor(transfer.status)}`}
+                  >
                     {transfer.status?.charAt(0).toUpperCase() + transfer.status?.slice(1)}
-                  </span>
-                </p>
+                  </Badge>
+                </div>
               </div>
 
               {/* Delivery Site (From Site) */}
               <div>
-                <label className="text-xs text-gray-600">Delivery Site</label>
+                <Label className={labelClass}>Delivery Site</Label>
                 <select
                   value={formData.fromSite}
                   onChange={(e) => setFormData({ ...formData, fromSite: e.target.value })}
@@ -518,26 +549,26 @@ export default function MaterialCardDetails() {
 
               {/* Requested By - READ ONLY */}
               <div>
-                <label className="text-xs text-gray-600">Requested By</label>
-                <input
+                <Label className={labelClass}>Requested By</Label>
+                <Input
                   type="text"
                   value={formData.requestedBy}
                   disabled
-                  className="w-full px-3 py-2 bg-gray-800 text-white border-0 rounded-lg text-sm cursor-not-allowed opacity-75"
+                  className="h-auto w-full px-3 py-2 bg-gray-800 dark:bg-gray-800 text-white border-0 rounded-lg text-sm cursor-not-allowed shadow-none disabled:opacity-75"
                 />
               </div>
 
               {/* Request Date - Read Only - Full Width */}
               <div className="col-span-2">
-                <label className="text-xs text-gray-600">Request Date</label>
+                <Label className={labelClass}>Request Date</Label>
                 <p className="font-medium text-gray-900">{formatDate(transfer.createdAt)}</p>
               </div>
             </div>
 
             {/* Remarks - Full Width */}
             <div>
-              <label className="text-xs text-gray-600">Remarks</label>
-              <textarea
+              <Label className={labelClass}>Remarks</Label>
+              <Textarea
                 value={formData.remarks || ''}
                 onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
                 placeholder="Add remarks..."
@@ -546,20 +577,24 @@ export default function MaterialCardDetails() {
                 disabled={submitting}
               />
             </div>
-          </div>
+            </CardContent>
+          </Card>
 
             {/* Materials Section */}
-            <div className="bg-white rounded-lg border p-4 mb-4">
+            <Card className={`${cardClass} mb-4`}>
+              <CardContent className="p-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-gray-800">Materials</h3>
-                <button
+                <Button
+                  type="button"
+                  variant="ghost"
                   onClick={addMaterialRow}
-                  className="text-orange-600 text-sm font-medium hover:text-orange-700 flex items-center gap-1"
+                  className="h-auto p-0 hover:bg-transparent text-orange-600 text-sm font-medium hover:text-orange-700 flex items-center gap-1"
                   disabled={submitting}
                 >
                   <Plus size={16} />
                   Add Material
-                </button>
+                </Button>
               </div>
               {formData.materials.map((material, index) => (
                 <div key={material.id} className="mb-3">
@@ -579,10 +614,12 @@ export default function MaterialCardDetails() {
                   />
                 </div>
               ))}
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Attachments Section */}
-            <div className="bg-white rounded-lg border p-4 mb-4">
+            <Card className={`${cardClass} mb-4`}>
+              <CardContent className="p-4">
               <h3 className="text-sm font-semibold text-gray-800 mb-4">Attachments</h3>
               
               {/* Existing Attachments */}
@@ -613,18 +650,19 @@ export default function MaterialCardDetails() {
                           </div>
                         )}
                         
-                        <button
+                        <Button
+                          type="button"
                           onClick={() => handleDeleteAttachment(index)}
                           disabled={deletingAttachment === index}
-                          className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                          className="absolute top-2 right-2 h-auto w-auto p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                           title="Delete attachment"
                         >
                           {deletingAttachment === index ? (
                             <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                           ) : (
-                            <Trash2 size={12} />
+                            <Trash2 size={12} className="size-3" />
                           )}
-                        </button>
+                        </Button>
                         
                         <div className="p-2 bg-white border-t border-gray-200">
                           <p className="text-xs text-gray-600 truncate">{fileName}</p>
@@ -656,40 +694,46 @@ export default function MaterialCardDetails() {
                     {newAttachments.map((file, index) => (
                       <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
                         <span className="text-sm text-gray-700 truncate flex-1">{file.name}</span>
-                        <button
+                        <Button
+                          type="button"
+                          variant="ghost"
                           onClick={() => removeNewAttachment(index)}
-                          className="ml-2 p-1 text-red-500 hover:bg-red-50 rounded"
+                          className="ml-2 h-auto w-auto p-1 text-red-500 hover:text-red-500 hover:bg-red-50 rounded"
                           disabled={submitting}
                         >
                           <X size={16} />
-                        </button>
+                        </Button>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-            </div>
+              </CardContent>
+            </Card>
 
           </div>
           
           {/* Fixed Bottom Buttons */}
           <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-50">
             <div className="max-w-md mx-auto flex gap-3">
-              <button
+              <Button
+                type="button"
+                variant="outline"
                 onClick={handleCancelEdit}
-                className="flex-1 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                className="flex-1 h-auto py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
                 disabled={submitting}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                type="button"
                 onClick={handleSaveChanges}
-                className="flex-1 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="flex-1 h-auto py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium disabled:opacity-100 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 disabled={submitting}
               >
                 {submitting ? (
                   <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <svg className="size-5 animate-spin h-5 w-5" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
@@ -698,7 +742,7 @@ export default function MaterialCardDetails() {
                 ) : (
                   'Save'
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -714,13 +758,14 @@ export default function MaterialCardDetails() {
       <div className="max-w-md mx-auto bg-white shadow-xl">
         {/* Header with Gradient - EXACTLY matching Intent PO */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <button
-            className="mobile-back-button absolute top-6 left-6"
+          <Button
+            variant="ghost"
+            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
             onClick={() => navigate(-1)}
           >
             <ArrowLeft size={16} />
             <span className="text-sm font-medium">Back</span>
-          </button>
+          </Button>
 
           <div className="text-center pt-8">
             <h1 className="text-white text-2xl font-bold mb-2">Transfer Details</h1>
@@ -731,37 +776,42 @@ export default function MaterialCardDetails() {
         {/* Main Content - EXACTLY matching Intent PO layout */}
         <div className="px-6 py-6 -mt-4 pb-24">
           {/* Basic Information Card - Matching Intent Details */}
-          <div className="bg-white rounded-lg border p-4 space-y-3 mb-4">
+          <Card className={`${cardClass} mb-4`}>
+            <CardContent className="p-4 space-y-3">
             <h3 className="text-sm font-semibold text-gray-800 mb-3">Basic Information</h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-gray-600">ST-ID</label>
+                <Label className={labelClass}>ST-ID</Label>
                 <p className="font-medium text-gray-900">{transfer.siteTransferId}</p>
               </div>
               <div>
-                <label className="text-xs text-gray-600">Status</label>
-                <span className={`inline-block px-2 py-1 text-xs rounded-full font-medium ${getStatusColor(transfer.status)}`}>
+                <Label className={labelClass}>Status</Label>
+                <Badge
+                  variant="outline"
+                  className={`inline-block px-2 py-1 text-xs rounded-full font-medium border-transparent ${getStatusColor(transfer.status)}`}
+                >
                   {transfer.status?.charAt(0).toUpperCase() + transfer.status?.slice(1)}
-                </span>
+                </Badge>
               </div>
               <div>
-                <label className="text-xs text-gray-600">From Site</label>
+                <Label className={labelClass}>From Site</Label>
                 <p className="font-medium text-gray-900">{transfer.fromSite}</p>
               </div>
               <div>
-                <label className="text-xs text-gray-600">To Site</label>
+                <Label className={labelClass}>To Site</Label>
                 <p className="font-medium text-gray-900">{transfer.toSite}</p>
               </div>
               <div>
-                <label className="text-xs text-gray-600">Requested By</label>
+                <Label className={labelClass}>Requested By</Label>
                 <p className="font-medium text-gray-900">{transfer.requestedBy}</p>
               </div>
               <div>
-                <label className="text-xs text-gray-600">Request Date</label>
+                <Label className={labelClass}>Request Date</Label>
                 <p className="font-medium text-gray-900">{formatDate(transfer.createdAt)}</p>
               </div>
             </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Materials Section - Detailed Display Matching Snapshot */}
           <div className="mb-4">
@@ -785,11 +835,11 @@ export default function MaterialCardDetails() {
                       {/* Row 1: Category and Sub Category */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="text-xs text-gray-500 block mb-1">Category</label>
+                          <Label className={readLabelClass}>Category</Label>
                           <p className="text-sm font-medium text-gray-900">{category || '-'}</p>
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500 block mb-1">Sub Category</label>
+                          <Label className={readLabelClass}>Sub Category</Label>
                           <p className="text-sm font-medium text-gray-900">{subCategory || '-'}</p>
                         </div>
                       </div>
@@ -798,11 +848,11 @@ export default function MaterialCardDetails() {
                       {(subCategory1 || subCategory2) && (
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="text-xs text-gray-500 block mb-1">Sub Category 1</label>
+                            <Label className={readLabelClass}>Sub Category 1</Label>
                             <p className="text-sm font-medium text-gray-900">{subCategory1 || '-'}</p>
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500 block mb-1">Sub Category 2</label>
+                            <Label className={readLabelClass}>Sub Category 2</Label>
                             <p className="text-sm font-medium text-gray-900">{subCategory2 || '-'}</p>
                           </div>
                         </div>
@@ -811,11 +861,11 @@ export default function MaterialCardDetails() {
                       {/* Row 3: Quantity and Remarks */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="text-xs text-gray-500 block mb-1">Quantity</label>
+                          <Label className={readLabelClass}>Quantity</Label>
                           <p className="text-sm font-medium text-gray-900">{material.quantity || '-'}</p>
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500 block mb-1">Remarks</label>
+                          <Label className={readLabelClass}>Remarks</Label>
                           <p className="text-sm text-gray-700">{material.remarks || '-'}</p>
                         </div>
                       </div>
@@ -878,18 +928,20 @@ export default function MaterialCardDetails() {
         {/* Fixed Bottom Buttons - Only Edit and Delete (No Back Button) */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-50">
           <div className="max-w-md mx-auto flex gap-3">
-            <button
+            <Button
+              type="button"
               onClick={handleEdit}
-              className="flex-1 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
+              className="flex-1 h-auto py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
             >
               Edit
-            </button>
-            <button
+            </Button>
+            <Button
+              type="button"
               onClick={handleDelete}
-              className="flex-1 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
+              className="flex-1 h-auto py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
             >
               Delete
-            </button>
+            </Button>
           </div>
         </div>
       </div>

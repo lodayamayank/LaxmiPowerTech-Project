@@ -7,6 +7,7 @@ import MaterialTransfer from "./MaterialTransfer";
 import UpcomingDeliveries from "./UpcomingDeliveries";
 import GRN from "./GRN";
 import { getSelectedBranchName } from "../../utils/branchContext";
+import { Button } from "../../components/ui/button";
 
 export default function Material({ activeTab }) {
   const navigate = useNavigate();
@@ -58,13 +59,14 @@ export default function Material({ activeTab }) {
         {/* Modern Header */}
         <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 px-4 pt-4 pb-3 shadow-lg">
           <div className="flex items-center justify-between mb-3">
-            <button
-              className="mobile-back-button px-3 py-2"
+            <Button
+              variant="ghost"
+              className="mobile-back-button h-auto px-3 py-2 text-white hover:bg-white/20 hover:text-white"
               onClick={() => navigate('/dashboard')}
             >
-              <ArrowLeft size={18} />
+              <ArrowLeft size={18} className="size-[18px]" />
               <span className="text-sm font-semibold">Back</span>
-            </button>
+            </Button>
             <div className="text-right">
               <p className="text-white/90 text-xs font-medium">{user?.name || 'User'}</p>
             </div>
@@ -89,16 +91,18 @@ export default function Material({ activeTab }) {
               const Icon = tab.icon;
               const isActive = currentTab === tab.key;
               return (
-                <button
+                <Button
                   key={tab.key}
+                  type="button"
+                  variant="ghost"
                   onClick={() => navigate(tab.path, { state: { branchId } })}
-                  className={`flex-1 min-w-[90px] px-3 py-3 flex flex-col items-center gap-1.5 transition-all relative ${
+                  className={`flex-1 min-w-[90px] h-auto rounded-none whitespace-normal px-3 py-3 flex flex-col items-center gap-1.5 transition-all relative ${
                     isActive
-                      ? 'text-orange-600 bg-orange-50'
+                      ? 'text-orange-600 bg-orange-50 hover:text-orange-600 hover:bg-orange-50'
                       : 'text-gray-600 hover:text-orange-500 hover:bg-gray-50'
                   }`}
                 >
-                  <Icon size={20} className={isActive ? 'stroke-[2.5]' : 'stroke-[2]'} />
+                  <Icon size={20} className={`size-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
                   <span className={`text-[10px] font-semibold leading-tight text-center ${
                     isActive ? 'text-orange-600' : 'text-gray-600'
                   }`}>
@@ -107,7 +111,7 @@ export default function Material({ activeTab }) {
                   {isActive && (
                     <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-600"></div>
                   )}
-                </button>
+                </Button>
               );
             })}
           </div>

@@ -4,8 +4,10 @@ import axios from '../utils/axios';
 import { FaChartPie, FaHardHat, FaWarehouse, FaFileExcel, FaFilePdf } from 'react-icons/fa';
 import { MdOutlineWork } from 'react-icons/md';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -83,7 +85,7 @@ const AdminReports = () => {
     };
 
     fetchProjects();
-  }, []);
+  }, [selectedProject]);
 
   useEffect(() => {
     if (!selectedProject || !selectedMonth) {
@@ -366,28 +368,28 @@ const AdminReports = () => {
                   {wo.bills && wo.bills.length > 0 && (
                     <div className="overflow-x-auto">
                       <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2">Bill Details</p>
-                      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm border border-gray-200 dark:border-gray-700 rounded-lg">
-                        <thead className="bg-gray-50 dark:bg-gray-700">
-                          <tr>
-                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-200">Invoice No.</th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-200">Date</th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-200">Total</th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-200">Retention</th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-200">Holding</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      <Table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <TableHeader className="bg-gray-50 dark:bg-gray-700 [&_tr]:border-b-0">
+                          <TableRow className="border-b-0 hover:bg-transparent">
+                            <TableHead className="h-auto px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-200">Invoice No.</TableHead>
+                            <TableHead className="h-auto px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-200">Date</TableHead>
+                            <TableHead className="h-auto px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-200">Total</TableHead>
+                            <TableHead className="h-auto px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-200">Retention</TableHead>
+                            <TableHead className="h-auto px-4 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-200">Holding</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
                           {wo.bills.map((bill) => (
-                            <tr key={bill.id} className="hover:bg-orange-50/40 dark:hover:bg-gray-700">
-                              <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{bill.billNo || '-'}</td>
-                              <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{formatDate(bill.billDate)}</td>
-                              <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{formatCurrency(bill.totalBillValue)}</td>
-                              <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{formatCurrency(bill.retentionAmount)}</td>
-                              <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{formatCurrency(bill.holdingAmount)}</td>
-                            </tr>
+                            <TableRow key={bill.id} className="border-b-0 hover:bg-orange-50/40 dark:hover:bg-gray-700">
+                              <TableCell className="px-4 py-2 text-gray-700 dark:text-gray-300">{bill.billNo || '-'}</TableCell>
+                              <TableCell className="px-4 py-2 text-gray-700 dark:text-gray-300">{formatDate(bill.billDate)}</TableCell>
+                              <TableCell className="px-4 py-2 text-gray-700 dark:text-gray-300">{formatCurrency(bill.totalBillValue)}</TableCell>
+                              <TableCell className="px-4 py-2 text-gray-700 dark:text-gray-300">{formatCurrency(bill.retentionAmount)}</TableCell>
+                              <TableCell className="px-4 py-2 text-gray-700 dark:text-gray-300">{formatCurrency(bill.holdingAmount)}</TableCell>
+                            </TableRow>
                           ))}
-                        </tbody>
-                      </table>
+                        </TableBody>
+                      </Table>
                     </div>
                   )}
 
@@ -509,11 +511,11 @@ const AdminReports = () => {
               ))}
             </select>
 
-            <input
+            <Input
               type="month"
               value={selectedMonth}
               onChange={(event) => setSelectedMonth(event.target.value)}
-              className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-700 dark:text-gray-100 shadow-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 sm:w-40"
+              className="w-full sm:w-40"
             />
 
             {reportData && (
@@ -576,24 +578,25 @@ const AdminReports = () => {
           {REPORT_TYPES.map((type) => {
             const isActive = activeReportType === type.key;
             return (
-              <button
+              <Button
                 key={type.key}
                 type="button"
+                variant={isActive ? 'default' : 'outline'}
                 onClick={() => setActiveReportType(type.key)}
-                className={`flex h-full flex-col rounded-2xl border bg-white dark:bg-gray-800 p-5 text-left shadow-sm transition-all hover:-translate-y-1 hover:shadow-md ${
-                  isActive ? 'border-orange-400 ring-2 ring-orange-100' : 'border-gray-200 dark:border-gray-700'
+                className={`flex h-full flex-col items-start justify-start rounded-2xl border bg-white dark:bg-gray-800 p-5 text-left shadow-sm transition-all hover:-translate-y-1 hover:shadow-md ${
+                  isActive ? 'border-orange-400 bg-orange-500 text-white hover:bg-orange-600' : 'border-gray-200 bg-white text-gray-900 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700'
                 }`}
               >
                 <div
                   className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full ${
-                    isActive ? 'bg-orange-500 text-white' : 'bg-orange-50 text-orange-500'
+                    isActive ? 'bg-white/20 text-white' : 'bg-orange-50 text-orange-500'
                   }`}
                 >
                   {type.icon}
                 </div>
-                <h2 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">{type.label}</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{type.description}</p>
-              </button>
+                <h2 className={`mb-2 text-lg font-semibold ${isActive ? 'text-white' : 'text-gray-900 dark:text-gray-100'}`}>{type.label}</h2>
+                <p className={`text-sm ${isActive ? 'text-orange-50' : 'text-gray-500 dark:text-gray-400'}`}>{type.description}</p>
+              </Button>
             );
           })}
         </section>
@@ -652,36 +655,36 @@ const ReportTable = ({ columns, rows, emptyMessage }) => {
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-          <thead className="bg-gray-50 dark:bg-gray-700">
-            <tr>
+        <Table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+          <TableHeader className="bg-gray-50 dark:bg-gray-700 [&_tr]:border-b-0">
+            <TableRow className="border-b-0 hover:bg-transparent">
               {columns.map((column) => (
-                <th
+                <TableHead
                   key={column.key}
                   scope="col"
-                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-200"
+                  className="h-auto px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-200"
                 >
                   {column.label}
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-gray-800">
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-gray-800">
             {rows.map((row) => (
-              <tr key={row.id || row._id} className="hover:bg-orange-50/40 dark:hover:bg-gray-700">
+              <TableRow key={row.id || row._id} className="border-b-0 hover:bg-orange-50/40 dark:hover:bg-gray-700">
                 {columns.map((column) => {
                   const rawValue = row[column.key];
                   const content = column.render ? column.render(rawValue, row) : rawValue ?? '-';
                   return (
-                    <td key={column.key} className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                    <TableCell key={column.key} className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                       {content === '' ? '-' : content}
-                    </td>
+                    </TableCell>
                   );
                 })}
-              </tr>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

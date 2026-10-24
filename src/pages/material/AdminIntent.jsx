@@ -4,6 +4,43 @@ import { Eye, Trash2, X, Edit2, Save, Plus, Image as ImageIcon, ZoomIn, ZoomOut,
 import MaterialLineItem from "./MaterialLineItem";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import axios from "../../utils/axios";
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'react-toastify';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -42,6 +79,7 @@ export default function AdminIntent() {
   const [manualMaterialMode, setManualMaterialMode] = useState('add');
   const [editingManualMaterialId, setEditingManualMaterialId] = useState(null);
   const [materialToDelete, setMaterialToDelete] = useState(null);
+  const [confirmation, setConfirmation] = useState(null);
   const [imageZoom, setImageZoom] = useState(100);
   const [lastAddedMaterialId, setLastAddedMaterialId] = useState(null);
   const [materialSuccessMessage, setMaterialSuccessMessage] = useState('');
@@ -283,10 +321,6 @@ export default function AdminIntent() {
   };
 
   const handleDelete = async (id, indentId, type) => {
-    if (!window.confirm(`Are you sure you want to delete ${type === 'purchaseOrder' ? 'Purchase Order' : 'Intent'} ${indentId}?`)) {
-      return;
-    }
-
     try {
       setDeleting(true);
       
@@ -319,10 +353,6 @@ export default function AdminIntent() {
   };
 
   const handleDeleteAttachment = async (attachmentIndex) => {
-    if (!window.confirm('Are you sure you want to delete this attachment? The file will be permanently removed from the server.')) {
-      return;
-    }
-
     try {
       setDeletingAttachment(attachmentIndex);
       const isPurchaseOrder = selectedIndent.type === 'purchaseOrder';
@@ -966,25 +996,15 @@ export default function AdminIntent() {
 
   // Toast notification helper
   const showToast = (message, type = 'success') => {
-    const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-[9999] transition-opacity ${
-      type === 'success' ? 'bg-green-500' : 'bg-red-500'
-    }`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    if (type === 'success') {
+      toast.success(message);
+    } else {
+      toast.error(message);
+    }
   };
 
   // Delete All handler
   const handleDeleteAll = async () => {
-    if (!window.confirm('Are you sure you want to delete all records? This action cannot be undone.')) {
-      return;
-    }
-
     try {
       setDeleting(true);
       
@@ -1032,25 +1052,27 @@ export default function AdminIntent() {
           <p className="text-sm text-gray-500">View all purchase order requests</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={fetchIndents}
             disabled={loading}
             className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
             Refresh
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="outline"
             onClick={() => latestUploadedIndent && handleViewDetails(latestUploadedIndent._id)}
             disabled={!latestUploadedIndent}
             className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-600 ring-1 ring-blue-100 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Eye size={16} />
             Open Latest
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={() => latestUploadedIndent && handleQuickAddMaterial(latestUploadedIndent._id)}
             disabled={!latestUploadedIndent}
@@ -1058,15 +1080,19 @@ export default function AdminIntent() {
           >
             <Plus size={16} />
             Add to Latest
-          </button>
-          <button
-            onClick={handleDeleteAll}
+          </Button>
+          <Button
+            onClick={() => setConfirmation({
+              title: 'Delete all records?',
+              description: 'Are you sure you want to delete all records? This action cannot be undone.',
+              onConfirm: handleDeleteAll
+            })}
             disabled={indents.length === 0 || deleting}
             className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-300"
           >
             <Trash2 size={16} />
             {deleting ? 'Deleting...' : 'Delete All'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -1076,22 +1102,27 @@ export default function AdminIntent() {
             <span className="text-red-600 font-medium">Error:</span>
             <span className="text-red-700">{error}</span>
           </div>
-          <button
+          <Button
+            variant="link"
             onClick={fetchIndents}
-            className="mt-2 text-sm text-red-600 hover:text-red-700 underline"
+            className="mt-2 h-auto p-0 text-sm text-red-600 hover:text-red-700 underline"
           >
             Try Again
-          </button>
+          </Button>
         </div>
       )}
 
       {loading ? (
-        <div className="flex flex-col justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mb-4"></div>
+        <div className="space-y-4 rounded-lg bg-white p-6 shadow">
+          <Skeleton className="h-8 w-56" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
           <p className="text-gray-600 text-sm">Loading indents...</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 overflow-x-auto">
+        <Card className="bg-white dark:bg-gray-800 shadow rounded-lg border-0 p-4 overflow-x-auto">
           <div className="mb-4">
             <div className="flex flex-col gap-3 mb-3 lg:flex-row lg:items-center lg:justify-between">
               <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-100">
@@ -1099,7 +1130,7 @@ export default function AdminIntent() {
               </h2>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="relative w-full sm:w-80">
-                  <input
+                  <Input
                     type="text"
                     placeholder="Search by PO ID..."
                     className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-background text-foreground placeholder:text-muted-foreground py-2 pl-3 pr-10 text-sm focus:ring-2 focus:ring-orange-400"
@@ -1110,8 +1141,11 @@ export default function AdminIntent() {
                     }}
                   />
                   {search && (
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Clear search"
                       onClick={() => {
                         setSearch('');
                         setCurrentPage(1);
@@ -1120,11 +1154,11 @@ export default function AdminIntent() {
                       title="Clear search"
                     >
                       <X size={16} />
-                    </button>
+                    </Button>
                   )}
                 </div>
                 {(search || activeFilterCount > 0) && (
-                  <button
+                  <Button
                     type="button"
                     onClick={() => {
                       setSearch('');
@@ -1137,7 +1171,7 @@ export default function AdminIntent() {
                     className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-100"
                   >
                     Clear All
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -1148,43 +1182,51 @@ export default function AdminIntent() {
                 {/* Site Filter */}
                 <div className="flex-1 min-w-[200px]">
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Filter by Site</label>
-                  <select
-                    value={filterSite}
-                    onChange={(e) => {
-                      setFilterSite(e.target.value);
+                  <Select
+                    value={filterSite || 'all'}
+                    onValueChange={(value) => {
+                      setFilterSite(value === 'all' ? '' : value);
                       setCurrentPage(1);
                     }}
-                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
                   >
-                    <option value="" className="text-gray-500">All Sites</option>
+                    <SelectTrigger className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer">
+                      <SelectValue placeholder="All Sites" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Sites</SelectItem>
                     {sites.map(site => (
-                      <option key={site} value={site} className="text-gray-900">{site}</option>
+                      <SelectItem key={site} value={site}>{site}</SelectItem>
                     ))}
-                  </select>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 {/* Status Filter */}
                 <div className="flex-1 min-w-[180px]">
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Filter by Status</label>
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => {
-                      setFilterStatus(e.target.value);
+                  <Select
+                    value={filterStatus || 'all'}
+                    onValueChange={(value) => {
+                      setFilterStatus(value === 'all' ? '' : value);
                       setCurrentPage(1);
                     }}
-                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer"
                   >
-                    <option value="" className="text-gray-500">All Status</option>
-                    <option value="pending" className="text-gray-900">Pending</option>
-                    <option value="approved" className="text-gray-900">Approved</option>
-                    <option value="cancelled" className="text-gray-900">Cancelled</option>
-                  </select>
+                    <SelectTrigger className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer">
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 {/* Date From */}
                 <div className="flex-1 min-w-[160px]">
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">From Date</label>
-                  <input
+                  <Input
                     type="date"
                     value={filterDateFrom}
                     onChange={(e) => {
@@ -1198,7 +1240,7 @@ export default function AdminIntent() {
                 {/* Date To */}
                 <div className="flex-1 min-w-[160px]">
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">To Date</label>
-                  <input
+                  <Input
                     type="date"
                     value={filterDateTo}
                     onChange={(e) => {
@@ -1210,7 +1252,7 @@ export default function AdminIntent() {
                 </div>
                 
                 {/* Clear Filters Button */}
-                <button
+                <Button
                   onClick={() => {
                     setFilterSite('');
                     setFilterStatus('');
@@ -1221,40 +1263,40 @@ export default function AdminIntent() {
                   className="px-5 py-2.5 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-all"
                 >
                   Clear Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
           {indents.length > 0 ? (
             <>
-              <table className="min-w-full border text-sm">
-                <thead className="bg-orange-100 dark:bg-gray-700">
-                  <tr>
-                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">#</th>
-                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">PO-ID</th>
-                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Image</th>
-                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Site</th>
-                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Requested By</th>
-                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Status</th>
-                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Date</th>
-                    <th className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="min-w-full border text-sm">
+                <TableHeader className="bg-orange-100 dark:bg-gray-700">
+                  <TableRow>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">#</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">PO-ID</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Image</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Site</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Requested By</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Status</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Date</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {indents.map((indent, index) => (
-                    <tr
+                    <TableRow
                       key={indent._id}
                       className="cursor-pointer hover:bg-orange-50/40 dark:hover:bg-gray-700"
                       onDoubleClick={() => handleViewDetails(indent._id)}
                       title="Double-click to open details"
                     >
-                      <td className="border px-4 py-2 text-gray-600">
+                      <TableCell className="border px-4 py-2 text-gray-600">
                         {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
-                      </td>
-                      <td className="border px-4 py-2 font-medium text-gray-900">
+                      </TableCell>
+                      <TableCell className="border px-4 py-2 font-medium text-gray-900">
                         {indent.indentId || 'N/A'}
-                      </td>
-                      <td className="border px-4 py-2">
+                      </TableCell>
+                      <TableCell className="border px-4 py-2">
                         {indent.imageUrl ? (
                           <div className="flex items-center gap-2">
                             <img 
@@ -1274,20 +1316,23 @@ export default function AdminIntent() {
                         ) : (
                           <span className="text-gray-400 text-xs">No image</span>
                         )}
-                      </td>
-                      <td className="border px-4 py-2 text-gray-700">{indent.deliverySite || 'N/A'}</td>
-                      <td className="border px-4 py-2">{indent.requestedBy?.name || indent.requestedBy || 'N/A'}</td>
-                      <td className="border px-4 py-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(indent.status)}`}>
+                      </TableCell>
+                      <TableCell className="border px-4 py-2 text-gray-700">{indent.deliverySite || 'N/A'}</TableCell>
+                      <TableCell className="border px-4 py-2">{indent.requestedBy?.name || indent.requestedBy || 'N/A'}</TableCell>
+                      <TableCell className="border px-4 py-2">
+                        <Badge className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(indent.status)}`}>
                           {indent.status?.charAt(0).toUpperCase() + indent.status?.slice(1)}
-                        </span>
-                      </td>
-                      <td className="border px-4 py-2 text-gray-600">
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="border px-4 py-2 text-gray-600">
                         {formatDate(indent.createdAt)}
-                      </td>
-                      <td className="border px-4 py-2">
+                      </TableCell>
+                      <TableCell className="border px-4 py-2">
                         <div className="flex gap-2">
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="View details"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleViewDetails(indent._id);
@@ -1296,9 +1341,11 @@ export default function AdminIntent() {
                             title="View Details"
                           >
                             <Eye size={18} />
-                          </button>
+                          </Button>
                           {indent.status?.toLowerCase() === 'pending' && (
-                            <button
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleApproveIntent(indent);
@@ -1309,10 +1356,10 @@ export default function AdminIntent() {
                             >
                               <CheckCircle size={14} />
                               Approve
-                            </button>
+                            </Button>
                           )}
                           {indent.type === 'indent' && indent.imageUrl && (
-                            <button
+                            <Button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleQuickAddMaterial(indent._id);
@@ -1322,25 +1369,32 @@ export default function AdminIntent() {
                             >
                               <Plus size={14} />
                               Add
-                            </button>
+                            </Button>
                           )}
-                          <button
+                          <Button
+                            aria-label="Delete"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDelete(indent._id, indent.indentId || indent.purchaseOrderId, indent.type);
+                              const label = indent.type === 'purchaseOrder' ? 'Purchase Order' : 'Intent';
+                              const indentId = indent.indentId || indent.purchaseOrderId;
+                              setConfirmation({
+                                title: `Delete ${label} ${indentId}?`,
+                                description: `Are you sure you want to delete ${label} ${indentId}?`,
+                                onConfirm: () => handleDelete(indent._id, indentId, indent.type)
+                              });
                             }}
                             className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                             title="Delete"
                             disabled={deleting}
                           >
                             <Trash2 size={18} />
-                          </button>
+                          </Button>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
 
               {/* Pagination */}
               {totalPages > 1 && (
@@ -1349,20 +1403,24 @@ export default function AdminIntent() {
                     Page {currentPage} of {totalPages}
                   </div>
                   <div className="flex gap-2">
-                    <button
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
                       className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-sm"
                     >
                       Previous
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
                       className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-sm"
                     >
                       Next
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -1374,28 +1432,27 @@ export default function AdminIntent() {
               </p>
             </div>
           )}
-        </div>
+        </Card>
       )}
 
       {/* Details Modal */}
       {showDetailsModal && selectedIndent && (
-        <div 
-          className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black bg-opacity-50"
-          onClick={closeModal}
-        >
-          <div 
+        <Dialog open={showDetailsModal} onOpenChange={(open) => !open && closeModal()}>
+          <DialogContent
             className={`bg-white rounded-lg shadow-xl w-full max-h-[92vh] flex flex-col overflow-hidden transform transition-all duration-300 ease-out ${
               showManualMaterialForm ? 'max-w-7xl' : 'max-w-4xl'
-            }`}
-            onClick={(e) => e.stopPropagation()}
+            } p-0 [&>button]:hidden`}
           >
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 sm:px-6 py-4 rounded-t-lg">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0">
-                  <h2 className="text-xl font-bold text-white">
+                  <DialogTitle className="text-xl font-bold text-white">
                     Purchase Order Details
-                  </h2>
+                  </DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Details and materials for this purchase order
+                  </DialogDescription>
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-orange-50">
                     <span className="font-semibold">{selectedIndent.purchaseOrderId || selectedIndent.indentId}</span>
                     <span>{formatDate(selectedIndent.requestDate || selectedIndent.createdAt)}</span>
@@ -1419,7 +1476,7 @@ export default function AdminIntent() {
                     </a>
                   )}
                   {selectedIndent.status?.toLowerCase() === 'pending' && (
-                    <button
+                    <Button
                       type="button"
                       onClick={() => handleApproveIntent(selectedIndent)}
                       className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-orange-600 shadow-sm transition-colors hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-60"
@@ -1427,9 +1484,9 @@ export default function AdminIntent() {
                     >
                       <CheckCircle size={16} />
                       {saving ? 'Approving...' : 'Approve'}
-                    </button>
+                    </Button>
                   )}
-                  <button
+                  <Button
                     type="button"
                     onClick={handleOpenManualMaterialForm}
                     className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-sm transition-colors ${
@@ -1440,14 +1497,16 @@ export default function AdminIntent() {
                   >
                     <Plus size={16} />
                     Add Material
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
                     onClick={closeModal}
                     className="text-white hover:text-orange-100 transition-colors p-2 hover:bg-orange-600 rounded-lg"
                     title="Close"
+                    aria-label="Close"
                   >
                     <X size={24} />
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1468,29 +1527,32 @@ export default function AdminIntent() {
                   <div>
                     <p className="text-sm text-gray-500">Status</p>
                     {editing ? (
-                      <select
+                      <Select
                         value={formData.status}
-                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                        className="mt-1 w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white text-gray-900"
-                        style={{ color: '#111827' }}
+                        onValueChange={(value) => setFormData({ ...formData, status: value })}
                       >
-                        <option value="pending" style={{ color: '#111827', backgroundColor: '#FFFFFF' }}>Pending</option>
-                        <option value="approved" style={{ color: '#111827', backgroundColor: '#FFFFFF' }}>Approved</option>
-                        <option value="transferred" style={{ color: '#111827', backgroundColor: '#FFFFFF' }}>Transferred</option>
-                        <option value="cancelled" style={{ color: '#111827', backgroundColor: '#FFFFFF' }}>Cancelled</option>
-                      </select>
+                        <SelectTrigger className="mt-1 w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white text-gray-900">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="approved">Approved</SelectItem>
+                          <SelectItem value="transferred">Transferred</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
                     ) : (
                       <div className="mt-1">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(selectedIndent.status)}`}>
+                        <Badge className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(selectedIndent.status)}`}>
                           {selectedIndent.status?.charAt(0).toUpperCase() + selectedIndent.status?.slice(1)}
-                        </span>
+                        </Badge>
                       </div>
                     )}
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Delivery Site</p>
                     {editing ? (
-                      <input
+                      <Input
                         type="text"
                         value={formData.deliverySite}
                         onChange={(e) => setFormData({ ...formData, deliverySite: e.target.value })}
@@ -1575,14 +1637,14 @@ export default function AdminIntent() {
                           {materialSuccessMessage}
                         </div>
                       )}
-                      <button
+                      <Button
                         type="button"
                         onClick={closeManualMaterialForm}
                         className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50"
                         disabled={addingMaterial}
                       >
                         Close Form
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -1598,30 +1660,33 @@ export default function AdminIntent() {
                             <p className="text-xs text-gray-500">Zoom: {imageZoom}%</p>
                           </div>
                           <div className="flex items-center gap-2">
-                            <button
+                            <Button
                               type="button"
                               onClick={() => setImageZoom(prev => Math.max(60, prev - 20))}
                               className="rounded-lg border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-50"
                               title="Zoom out"
+                              aria-label="Zoom out"
                             >
                               <ZoomOut size={16} />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               type="button"
                               onClick={() => setImageZoom(100)}
                               className="rounded-lg border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-50"
                               title="Reset zoom"
+                              aria-label="Reset zoom"
                             >
                               <RotateCcw size={16} />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               type="button"
                               onClick={() => setImageZoom(prev => Math.min(220, prev + 20))}
                               className="rounded-lg border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-50"
                               title="Zoom in"
+                              aria-label="Zoom in"
                             >
                               <ZoomIn size={16} />
-                            </button>
+                            </Button>
                             <a
                               href={resolveFileUrl(selectedIndent.imageUrl)}
                               target="_blank"
@@ -1672,7 +1737,7 @@ export default function AdminIntent() {
                               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                                 Material / Category <span className="text-red-500">*</span>
                               </label>
-                              <input
+                              <Input
                                 value={manualMaterial.category}
                                 onChange={(e) => updateManualMaterial('category', e.target.value)}
                                 list="manual-material-categories"
@@ -1688,7 +1753,7 @@ export default function AdminIntent() {
 
                             <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sub Category</label>
-                              <input
+                              <Input
                                 value={manualMaterial.subCategory}
                                 onChange={(e) => updateManualMaterial('subCategory', e.target.value)}
                                 list="manual-material-subcategories"
@@ -1704,7 +1769,7 @@ export default function AdminIntent() {
 
                             <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sub Category 1</label>
-                              <input
+                              <Input
                                 value={manualMaterial.subCategory1}
                                 onChange={(e) => updateManualMaterial('subCategory1', e.target.value)}
                                 list="manual-material-subcategory1"
@@ -1720,7 +1785,7 @@ export default function AdminIntent() {
 
                             <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sub Category 2</label>
-                              <input
+                              <Input
                                 value={manualMaterial.subCategory2}
                                 onChange={(e) => updateManualMaterial('subCategory2', e.target.value)}
                                 list="manual-material-subcategory2"
@@ -1738,7 +1803,7 @@ export default function AdminIntent() {
                               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                                 Quantity <span className="text-red-500">*</span>
                               </label>
-                              <input
+                              <Input
                                 type="number"
                                 min="1"
                                 value={manualMaterial.quantity}
@@ -1750,41 +1815,49 @@ export default function AdminIntent() {
 
                             <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Unit</label>
-                              <select
+                              <Select
                                 value={manualMaterial.uom}
-                                onChange={(e) => updateManualMaterial('uom', e.target.value)}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 bg-white"
+                                onValueChange={(value) => updateManualMaterial('uom', value)}
                               >
-                                <option value="Nos">Nos</option>
-                                <option value="pcs">pcs</option>
-                                <option value="bags">bags</option>
-                                <option value="kg">kg</option>
-                                <option value="mtr">mtr</option>
-                                <option value="box">box</option>
-                                <option value="set">set</option>
-                              </select>
+                                <SelectTrigger className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 bg-white">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Nos">Nos</SelectItem>
+                                  <SelectItem value="pcs">pcs</SelectItem>
+                                  <SelectItem value="bags">bags</SelectItem>
+                                  <SelectItem value="kg">kg</SelectItem>
+                                  <SelectItem value="mtr">mtr</SelectItem>
+                                  <SelectItem value="box">box</SelectItem>
+                                  <SelectItem value="set">set</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
 
                             <div className="md:col-span-2">
                               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Vendor</label>
-                              <select
-                                value={manualMaterial.vendor}
-                                onChange={(e) => updateManualMaterial('vendor', e.target.value)}
+                              <Select
+                                value={manualMaterial.vendor || 'all'}
+                                onValueChange={(value) => updateManualMaterial('vendor', value === 'all' ? '' : value)}
                                 disabled={!vendors || vendors.length === 0}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 bg-white disabled:bg-gray-100"
                               >
-                                <option value="">Select Vendor</option>
-                                {vendors && Array.isArray(vendors) && vendors.map(vendor => (
-                                  <option key={vendor._id} value={vendor._id}>
-                                    {vendor.companyName}
-                                  </option>
-                                ))}
-                              </select>
+                                <SelectTrigger className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 bg-white disabled:bg-gray-100">
+                                  <SelectValue placeholder="Select Vendor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">Select Vendor</SelectItem>
+                                  {vendors && Array.isArray(vendors) && vendors.map(vendor => (
+                                    <SelectItem key={vendor._id} value={vendor._id}>
+                                      {vendor.companyName}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </div>
 
                             <div className="md:col-span-2">
                               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Remarks / Specification</label>
-                              <textarea
+                              <Textarea
                                 value={manualMaterial.remarks}
                                 onChange={(e) => updateManualMaterial('remarks', e.target.value)}
                                 rows={3}
@@ -1821,27 +1894,27 @@ export default function AdminIntent() {
                                             .join(' / ') || 'No category details'}
                                         </p>
                                       </div>
-                                      <span className="rounded-full bg-orange-50 px-2 py-1 text-xs font-semibold text-orange-600">
+                                      <Badge className="rounded-full bg-orange-50 px-2 py-1 text-xs font-semibold text-orange-600">
                                         {material.quantity || '-'} {material.uom || 'Nos'}
-                                      </span>
+                                      </Badge>
                                     </div>
                                     <div className="mt-3 flex flex-wrap items-center gap-2">
-                                      <button
+                                      <Button
                                         type="button"
                                         onClick={() => handleEditManualMaterial(material)}
                                         className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100"
                                       >
                                         <Edit2 size={14} />
                                         Edit
-                                      </button>
-                                      <button
+                                      </Button>
+                                      <Button
                                         type="button"
                                         onClick={() => setMaterialToDelete(material)}
                                         className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100"
                                       >
                                         <Trash2 size={14} />
                                         Delete
-                                      </button>
+                                      </Button>
                                     </div>
                                     <div className="mt-2 grid grid-cols-1 gap-2 text-xs text-gray-600 sm:grid-cols-2">
                                       <span>Vendor: {material.vendor?.companyName || 'N/A'}</span>
@@ -1863,25 +1936,25 @@ export default function AdminIntent() {
                       </div>
 
                       <div className="sticky bottom-0 flex flex-col gap-2 border-t bg-white px-4 py-3 sm:flex-row sm:justify-end">
-                        <button
+                        <Button
                           type="button"
                           onClick={closeManualMaterialForm}
                           className="rounded-lg bg-gray-200 px-4 py-2.5 font-medium text-gray-700 transition-colors hover:bg-gray-300"
                           disabled={addingMaterial}
                         >
                           Cancel
-                        </button>
+                        </Button>
                         {manualMaterialMode !== 'edit' && (
-                          <button
+                          <Button
                             type="button"
                             onClick={() => handleSaveManualMaterial(true)}
                             disabled={addingMaterial}
                             className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-50 px-4 py-2.5 font-semibold text-orange-600 ring-1 ring-orange-200 transition-colors hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             {addingMaterial ? 'Saving...' : 'Save & Add Another'}
-                          </button>
+                          </Button>
                         )}
-                        <button
+                        <Button
                           type="button"
                           onClick={() => handleSaveManualMaterial(false)}
                           disabled={addingMaterial}
@@ -1898,7 +1971,7 @@ export default function AdminIntent() {
                               {manualMaterialMode === 'edit' ? 'Update Material' : 'Save Material'}
                             </>
                           )}
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -1953,44 +2026,48 @@ export default function AdminIntent() {
                       <div className="mt-4">
                         <h4 className="text-sm font-semibold text-gray-700 mb-2">Assign Vendors to Materials</h4>
                         <div className="overflow-x-auto">
-                          <table className="min-w-full border text-sm">
-                            <thead className="bg-gray-50">
-                              <tr>
-                                <th className="border px-3 py-2 text-left font-medium text-gray-700">#</th>
-                                <th className="border px-3 py-2 text-left font-medium text-gray-700">Material</th>
-                                <th className="border px-3 py-2 text-left font-medium text-gray-700">Quantity</th>
-                                <th className="border px-3 py-2 text-left font-medium text-gray-700">Vendor</th>
-                              </tr>
-                            </thead>
-                            <tbody>
+                          <Table className="min-w-full border text-sm">
+                            <TableHeader className="bg-gray-50">
+                              <TableRow>
+                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">#</TableHead>
+                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Material</TableHead>
+                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Quantity</TableHead>
+                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Vendor</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
                               {formData.materials.map((material, index) => (
-                                <tr key={material.id} className="hover:bg-gray-50">
-                                  <td className="border px-3 py-2 text-gray-600">{index + 1}</td>
-                                  <td className="border px-3 py-2">
+                                <TableRow key={material.id} className="hover:bg-gray-50">
+                                  <TableCell className="border px-3 py-2 text-gray-600">{index + 1}</TableCell>
+                                  <TableCell className="border px-3 py-2">
                                     {material.category}{material.subCategory ? ` - ${material.subCategory}` : ''}
                                     {material.subCategory1 ? ` - ${material.subCategory1}` : ''}
                                     {material.subCategory2 ? ` - ${material.subCategory2}` : ''}
-                                  </td>
-                                  <td className="border px-3 py-2">{material.quantity || '-'} {material.uom || 'Nos'}</td>
-                                  <td className="border px-3 py-2">
-                                    <select
-                                      value={material.vendor || ''}
-                                      onChange={(e) => updateMaterial(material.id, { vendor: e.target.value })}
-                                      className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white"
+                                  </TableCell>
+                                  <TableCell className="border px-3 py-2">{material.quantity || '-'} {material.uom || 'Nos'}</TableCell>
+                                  <TableCell className="border px-3 py-2">
+                                    <Select
+                                      value={material.vendor || 'all'}
+                                      onValueChange={(value) => updateMaterial(material.id, { vendor: value === 'all' ? '' : value })}
                                       disabled={!vendors || vendors.length === 0}
                                     >
-                                      <option value="">Select Vendor</option>
-                                      {vendors && Array.isArray(vendors) && vendors.map(vendor => (
-                                        <option key={vendor._id} value={vendor._id}>
-                                          {vendor.companyName}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </td>
-                                </tr>
+                                      <SelectTrigger className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white">
+                                        <SelectValue placeholder="Select Vendor" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="all">Select Vendor</SelectItem>
+                                        {vendors && Array.isArray(vendors) && vendors.map(vendor => (
+                                          <SelectItem key={vendor._id} value={vendor._id}>
+                                            {vendor.companyName}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </TableCell>
+                                </TableRow>
                               ))}
-                            </tbody>
-                          </table>
+                            </TableBody>
+                          </Table>
                         </div>
                       </div>
                     )}
@@ -1998,63 +2075,63 @@ export default function AdminIntent() {
                 ) : (
                   selectedIndent.materials && selectedIndent.materials.length > 0 ? (
                     <div className="overflow-x-auto">
-                      <table className="min-w-full border text-sm">
-                        <thead className="bg-orange-50">
-                          <tr>
-                            <th className="border px-3 py-2 text-left font-medium text-gray-700">#</th>
-                            <th className="border px-3 py-2 text-left font-medium text-gray-700">Item Name</th>
-                            <th className="border px-3 py-2 text-left font-medium text-gray-700">Category/Type</th>
-                            <th className="border px-3 py-2 text-left font-medium text-gray-700">Quantity</th>
-                            <th className="border px-3 py-2 text-left font-medium text-gray-700">UOM</th>
-                            <th className="border px-3 py-2 text-left font-medium text-gray-700">VendorName</th>
-                            <th className="border px-3 py-2 text-left font-medium text-gray-700">Remarks</th>
-                            <th className="border px-3 py-2 text-left font-medium text-gray-700">Added Date</th>
-                            <th className="border px-3 py-2 text-left font-medium text-gray-700">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
+                      <Table className="min-w-full border text-sm">
+                        <TableHeader className="bg-orange-50">
+                          <TableRow>
+                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">#</TableHead>
+                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Item Name</TableHead>
+                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Category/Type</TableHead>
+                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Quantity</TableHead>
+                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">UOM</TableHead>
+                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">VendorName</TableHead>
+                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Remarks</TableHead>
+                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Added Date</TableHead>
+                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
                           {selectedIndent.materials.map((material, index) => (
-                            <tr key={index} className="hover:bg-gray-50">
-                              <td className="border px-3 py-2 text-gray-600">{index + 1}</td>
-                              <td className="border px-3 py-2 font-medium">{material.itemName || '-'}</td>
-                              <td className="border px-3 py-2 text-gray-600">
+                            <TableRow key={index} className="hover:bg-gray-50">
+                              <TableCell className="border px-3 py-2 text-gray-600">{index + 1}</TableCell>
+                              <TableCell className="border px-3 py-2 font-medium">{material.itemName || '-'}</TableCell>
+                              <TableCell className="border px-3 py-2 text-gray-600">
                                 {[material.category, material.subCategory, material.subCategory1, material.subCategory2]
                                   .filter(Boolean)
                                   .join(' / ') || '-'}
-                              </td>
-                              <td className="border px-3 py-2">{material.quantity || '-'}</td>
-                              <td className="border px-3 py-2">{material.uom || '-'}</td>
-                              <td className="border px-3 py-2 text-gray-600">
+                              </TableCell>
+                              <TableCell className="border px-3 py-2">{material.quantity || '-'}</TableCell>
+                              <TableCell className="border px-3 py-2">{material.uom || '-'}</TableCell>
+                              <TableCell className="border px-3 py-2 text-gray-600">
                                 {material.vendor?.companyName || 'N/A'}
-                              </td>
-                              <td className="border px-3 py-2 text-gray-600">{material.remarks || '-'}</td>
-                              <td className="border px-3 py-2 text-gray-600">
+                              </TableCell>
+                              <TableCell className="border px-3 py-2 text-gray-600">{material.remarks || '-'}</TableCell>
+                              <TableCell className="border px-3 py-2 text-gray-600">
                                 {material.createdAt ? formatDate(material.createdAt) : formatDate(selectedIndent.updatedAt || selectedIndent.createdAt)}
-                              </td>
-                              <td className="border px-3 py-2">
+                              </TableCell>
+                              <TableCell className="border px-3 py-2">
                                 <div className="flex flex-wrap gap-2">
-                                  <button
+                                  <Button
                                     type="button"
                                     onClick={() => handleEditManualMaterial(material)}
                                     className="inline-flex items-center gap-1.5 rounded bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100"
                                   >
                                     <Edit2 size={14} />
                                     Edit
-                                  </button>
-                                  <button
+                                  </Button>
+                                  <Button
                                     type="button"
                                     onClick={() => setMaterialToDelete(material)}
                                     className="inline-flex items-center gap-1.5 rounded bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100"
                                   >
                                     <Trash2 size={14} />
                                     Delete
-                                  </button>
+                                  </Button>
                                 </div>
-                              </td>
-                            </tr>
+                              </TableCell>
+                            </TableRow>
                           ))}
-                        </tbody>
-                      </table>
+                        </TableBody>
+                      </Table>
                     </div>
                   ) : (
                     <p className="text-gray-500 text-sm">No materials listed</p>
@@ -2122,22 +2199,26 @@ export default function AdminIntent() {
                               >
                                 Download
                               </a>
-                              <button
-                                onClick={() => handleDeleteAttachment(index)}
+                              <Button
+                                onClick={() => setConfirmation({
+                                  title: 'Delete attachment?',
+                                  description: 'Are you sure you want to delete this attachment? The file will be permanently removed from the server.',
+                                  onConfirm: () => handleDeleteAttachment(index)
+                                })}
                                 disabled={deletingAttachment === index}
                                 className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                                 title="Delete this attachment"
                               >
                                 <Trash2 size={12} />
                                 {deletingAttachment === index ? 'Deleting...' : 'Delete'}
-                              </button>
+                              </Button>
                             </div>
                           </div>
                         </div>
                       );
                     })}
-                  </div>
-                </div>
+                        </div>
+                      </div>
               )}
 
               {/* Timestamps */}
@@ -2164,14 +2245,14 @@ export default function AdminIntent() {
               <div className="bg-white border-t-2 border-orange-100 px-6 py-4 flex justify-end gap-3 rounded-b-lg">
               {editing ? (
                 <>
-                  <button
+                  <Button
                     onClick={handleCancelEdit}
                     className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2 font-medium"
                   >
                     <X size={16} />
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={handleSaveEdit}
                     disabled={saving}
                     className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
@@ -2187,72 +2268,93 @@ export default function AdminIntent() {
                         Save Changes
                       </>
                     )}
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <>
-                  <button
+                  <Button
                     onClick={handleEdit}
                     className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 font-medium shadow-sm"
                   >
                     <Edit2 size={16} />
                     Edit
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={closeModal}
                     className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition-colors"
                   >
                     Close
-                  </button>
+                  </Button>
                 </>
               )}
               </div>
             )}
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
 
-      {materialToDelete && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white shadow-xl">
-            <div className="border-b border-red-100 px-5 py-4">
-              <h3 className="text-lg font-semibold text-gray-900">Delete Material</h3>
-              <p className="mt-1 text-sm text-gray-600">
-                Are you sure you want to delete this material?
-              </p>
-            </div>
-            <div className="px-5 py-4">
-              <div className="rounded-lg bg-red-50 px-4 py-3">
-                <p className="font-semibold text-gray-900">
-                  {materialToDelete.itemName || materialToDelete.category || 'Selected material'}
-                </p>
-                <p className="mt-1 text-sm text-gray-600">
-                  Only this material will be removed. The Intent PO and uploaded image will stay unchanged.
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-col-reverse gap-2 border-t bg-gray-50 px-5 py-4 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={() => setMaterialToDelete(null)}
-                disabled={deletingMaterial}
-                className="rounded-lg bg-white px-4 py-2.5 font-semibold text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteManualMaterial}
-                disabled={deletingMaterial}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <Trash2 size={16} />
-                {deletingMaterial ? 'Deleting...' : 'Delete Material'}
-              </button>
-            </div>
+      <AlertDialog
+        open={Boolean(confirmation)}
+        onOpenChange={(open) => {
+          if (!open) setConfirmation(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{confirmation?.title}</AlertDialogTitle>
+            <AlertDialogDescription>{confirmation?.description}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                const onConfirm = confirmation?.onConfirm;
+                setConfirmation(null);
+                if (onConfirm) onConfirm();
+              }}
+            >
+              Confirm
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={Boolean(materialToDelete)}
+        onOpenChange={(open) => {
+          if (!open && !deletingMaterial) setMaterialToDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Material</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this material?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="rounded-lg bg-red-50 px-4 py-3">
+            <p className="font-semibold text-gray-900">
+              {materialToDelete?.itemName || materialToDelete?.category || 'Selected material'}
+            </p>
+            <p className="mt-1 text-sm text-gray-600">
+              Only this material will be removed. The Intent PO and uploaded image will stay unchanged.
+            </p>
           </div>
-        </div>
-      )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingMaterial}>Cancel</AlertDialogCancel>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteManualMaterial}
+              disabled={deletingMaterial}
+            >
+              <Trash2 size={16} />
+              {deletingMaterial ? 'Deleting...' : 'Delete Material'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
     </DashboardLayout>
   );

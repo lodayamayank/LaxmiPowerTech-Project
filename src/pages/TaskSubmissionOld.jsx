@@ -5,8 +5,7 @@ import logo from '../assets/logo.png';
 import { FaArrowLeft, FaCamera, FaCheckCircle, FaHistory } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 
 const TaskSubmission = () => {
   const navigate = useNavigate();
@@ -183,13 +182,15 @@ const TaskSubmission = () => {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
-            <button
+            <Button
+              type="button"
+              variant="ghost"
               onClick={() => navigate(-1)}
               className="mobile-back-button px-4 py-2"
             >
               <FaArrowLeft size={14} />
               <span className="text-sm font-medium">Back</span>
-            </button>
+            </Button>
           </div>
 
           <div className="mt-6">
@@ -356,16 +357,16 @@ const TaskSubmission = () => {
                       {photoPreview ? (
                         <div className="relative">
                           <img src={photoPreview} alt="Preview" className="w-full rounded-lg" />
-                          <button
+                          <Button
                             type="button"
                             onClick={() => {
                               setPhoto(null);
                               setPhotoPreview('');
                             }}
-                            className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-lg text-sm"
+                            className="absolute top-2 right-2 h-auto bg-red-500 hover:bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-normal"
                           >
                             Remove
-                          </button>
+                          </Button>
                         </div>
                       ) : (
                         <label className="flex flex-col items-center cursor-pointer">
@@ -387,7 +388,7 @@ const TaskSubmission = () => {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Notes (Optional)
                     </label>
-                    <textarea
+                    <Textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Add any additional notes..."
@@ -397,26 +398,27 @@ const TaskSubmission = () => {
                   </div>
 
                   {/* Submit Button */}
-                  <button
+                  <Button
                     type="submit"
                     disabled={submitting}
-                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full h-auto bg-gradient-to-r from-orange-500 to-orange-600 text-white text-base py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {submitting ? 'Submitting...' : 'SAVE'}
-                  </button>
+                  </Button>
                 </>
               )}
             </form>
           )}
 
           {/* View History Button */}
-          <button
+          <Button
+            type="button"
             onClick={() => setShowHistory(!showHistory)}
-            className="w-full mt-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+            className="w-full h-auto mt-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-base py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
           >
             <FaHistory />
             {showHistory ? 'Hide History' : 'View Task History'}
-          </button>
+          </Button>
 
           {/* Task History */}
           {showHistory && (

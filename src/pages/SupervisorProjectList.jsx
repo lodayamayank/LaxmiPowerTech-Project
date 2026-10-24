@@ -7,6 +7,7 @@ import { MdFolder } from 'react-icons/md';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 
 const SupervisorProjectList = () => {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -93,14 +94,16 @@ const SupervisorProjectList = () => {
                 <FaArrowLeft size={14} />
                 <span className="text-sm font-medium">Back</span>
               </Button>
-              <button
+              <Button
+                type="button"
+                variant="ghost"
                 onClick={handleLogout}
                 className="mobile-back-button px-3 py-2"
                 title="Logout"
               >
                 <FaSignOutAlt size={14} />
                 <span className="hidden sm:inline text-sm font-medium">Logout</span>
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -116,12 +119,12 @@ const SupervisorProjectList = () => {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-4">
             <div className="relative">
               <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-              <input
+              <Input
                 type="text"
                 placeholder="Search projects..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+                className="h-auto w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl text-sm shadow-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-orange-500 transition-all"
               />
             </div>
           </div>
@@ -145,10 +148,11 @@ const SupervisorProjectList = () => {
           ) : (
             <div className="space-y-3">
               {filteredProjects.map((project, index) => (
-                <div
+                <button
+                  type="button"
                   key={project._id || index}
                   onClick={() => handleProjectClick(project._id, project.name)}
-                  className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer transform transition-all duration-300 hover:scale-[1.02] hover:shadow-md active:scale-[0.98] group"
+                  className="block w-full text-left bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer transform transition-all duration-300 hover:scale-[1.02] hover:shadow-md active:scale-[0.98] group"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 flex-1">
@@ -163,13 +167,15 @@ const SupervisorProjectList = () => {
                           {project.location || 'No location specified'}
                         </p>
                         {project.status && (
-                          <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                            project.status === 'active' 
-                              ? 'bg-green-100 text-green-700' 
-                              : 'bg-gray-100 text-gray-700'
-                          }`}>
+                          <Badge
+                            className={`inline-block mt-1 px-2 py-0.5 rounded-full border-0 text-xs font-medium ${
+                              project.status === 'active' 
+                                ? 'bg-green-100 text-green-700 hover:bg-green-100' 
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
                             {project.status}
-                          </span>
+                          </Badge>
                         )}
                       </div>
                     </div>
@@ -178,7 +184,7 @@ const SupervisorProjectList = () => {
                       size={16} 
                     />
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           )}

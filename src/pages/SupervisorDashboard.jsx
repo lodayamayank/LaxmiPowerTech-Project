@@ -9,7 +9,9 @@ import leaves from '../assets/leave.png';
 import money from '../assets/salary.png';
 import { FaSignOutAlt, FaChevronRight, FaServer } from 'react-icons/fa';
 import { MdFolder } from 'react-icons/md';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+
 
 const SupervisorDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -21,17 +23,46 @@ const SupervisorDashboard = () => {
 
   useEffect(() => {
     const fetchAttendanceCodes = async () => {
-      try {
-        const response = await axios.get('/attendance/supervisor-codes', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setAttendanceCodes(response.data?.codes || []);
-      } catch (fetchError) {
-        console.error('Failed to load attendance codes:', fetchError);
-        setError('Unable to load attendance codes.');
-      } finally {
+      if (!navigator.geolocation) {
+        setError('Location access is required to retrieve the branch attendance code.');
         setLoading(false);
+        return;
       }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            const response = await axios.get('/attendance/supervisor-codes', {
+              params: { lat: latitude, lng: longitude },
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            setAttendanceCodes(response.data?.codes || []);
+            setError(response.data?.message || '');
+          } catch (fetchError) {
+            console.error('Failed to load attendance codes:', fetchError);
+            setError(
+              fetchError?.response?.data?.message ||
+              'Location access is required to retrieve the branch attendance code.'
+            );
+            setAttendanceCodes([]);
+          } finally {
+            setLoading(false);
+          }
+        },
+        (geoError) => {
+          console.error('Geolocation error:', geoError);
+          setError('Location access is required to retrieve the branch attendance code.');
+          setAttendanceCodes([]);
+          setLoading(false);
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 60000,
+          timeout: 20000,
+        }
+      );
     };
 
     fetchAttendanceCodes();
@@ -52,13 +83,14 @@ const SupervisorDashboard = () => {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
-            <button
+            <Button
+              variant="ghost"
               onClick={handleLogout}
-              className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
+              className="flex h-auto items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 hover:text-white transition-all duration-300 shadow-lg"
             >
               <FaSignOutAlt size={14} />
               <span className="text-sm font-medium">Logout</span>
-            </button>
+            </Button>
           </div>
 
           {/* User Welcome Section */}
@@ -223,9 +255,10 @@ const SupervisorDashboard = () => {
 };
 
 const DashboardCard = ({ label, icon, iconComponent, onClick, gradient, bgColor, fullWidth }) => (
-  <div
+  <button
+    type="button"
     onClick={onClick}
-    className={`${bgColor} rounded-2xl p-5 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 border border-gray-100 group ${fullWidth ? 'w-full' : ''}`}
+    className={`${bgColor} block w-full text-center rounded-2xl p-5 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 border border-gray-100 group ${fullWidth ? 'w-full' : ''}`}
   >
     <div className="flex flex-col items-center justify-center h-full">
       {/* Icon Container with Gradient */}
@@ -247,7 +280,7 @@ const DashboardCard = ({ label, icon, iconComponent, onClick, gradient, bgColor,
         <FaChevronRight className="text-gray-400" size={12} />
       </div>
     </div>
-  </div>
+  </button>
 );
 
 export default SupervisorDashboard;

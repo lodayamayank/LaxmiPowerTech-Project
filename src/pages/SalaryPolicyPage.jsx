@@ -4,12 +4,48 @@ import axios from '../utils/axios';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FaShieldAlt, FaSave } from 'react-icons/fa';
 
 const ALL_ROLES = ['staff', 'supervisor', 'subcontractor', 'labour'];
 
+const RoleCheckboxGroup = ({ groupId, label, description, selectedRoles, onToggle }) => (
+  <div className="space-y-3">
+    <div>
+      <h3 className="font-semibold text-gray-800 dark:text-white">{label}</h3>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>
+    </div>
+    <div className="flex flex-wrap gap-3">
+      {ALL_ROLES.map((role) => {
+        const id = `${groupId}-${role}`;
+        const checked = selectedRoles.includes(role);
+        return (
+          <label
+            key={role}
+            htmlFor={id}
+            className={`flex items-center gap-2 cursor-pointer bg-white dark:bg-gray-700 border rounded-lg px-4 py-2 hover:border-orange-400 transition-colors ${
+              checked
+                ? 'border-orange-400'
+                : 'border-gray-200 dark:border-gray-600'
+            }`}
+          >
+            <Checkbox
+              id={id}
+              checked={checked}
+              onCheckedChange={() => onToggle(role)}
+              className="border-gray-400 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-white"
+            />
+            <span className="capitalize text-sm font-medium text-gray-700 dark:text-gray-300">
+              {role}
+            </span>
+          </label>
+        );
+      })}
+    </div>
+  </div>
+);
+
 const SalaryPolicyPage = () => {
-  const [policy, setPolicy] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [holidayRoles, setHolidayRoles] = useState([]);
@@ -20,7 +56,6 @@ const SalaryPolicyPage = () => {
     setLoading(true);
     try {
       const res = await axios.get('/salary-policy');
-      setPolicy(res.data);
       setHolidayRoles(res.data.holidayPaidLeaveEligibleRoles || []);
       setSundayExcludedRoles(res.data.sundayHolidayExcludedRoles || []);
       setOvertimeRoles(res.data.overtimeEligibleRoles || []);
@@ -35,7 +70,7 @@ const SalaryPolicyPage = () => {
     fetchPolicy();
   }, []);
 
-  const toggleRole = (role, list, setList) => {
+  const toggleRole = (role, setList) => {
     setList((prev) =>
       prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
     );
@@ -67,31 +102,6 @@ const SalaryPolicyPage = () => {
     );
   }
 
-  const RoleCheckboxGroup = ({ label, description, selectedRoles, onToggle }) => (
-    <div className="space-y-3">
-      <div>
-        <h3 className="font-semibold text-gray-800 dark:text-white">{label}</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>
-      </div>
-      <div className="flex flex-wrap gap-3">
-        {ALL_ROLES.map((role) => (
-          <label
-            key={role}
-            className="flex items-center gap-2 cursor-pointer bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-2 hover:border-orange-400 transition-colors"
-          >
-            <input
-              type="checkbox"
-              checked={selectedRoles.includes(role)}
-              onChange={() => onToggle(role)}
-              className="accent-orange-500 w-4 h-4"
-            />
-            <span className="capitalize text-sm font-medium text-gray-700 dark:text-gray-300">{role}</span>
-          </label>
-        ))}
-      </div>
-    </div>
-  );
-
   return (
     <DashboardLayout title="Salary Policy">
       <div className="space-y-6 max-w-3xl">
@@ -99,33 +109,38 @@ const SalaryPolicyPage = () => {
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-6">
               <FaShieldAlt className="text-orange-500" size={22} />
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white">Payroll Policy Configuration</h2>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                Payroll Policy Configuration
+              </h2>
             </div>
 
             <div className="space-y-8">
               <RoleCheckboxGroup
+                groupId="holiday"
                 label="Paid Public Holiday Eligibility"
                 description="Employees in selected roles will receive full pay on public holidays. Others will have holidays counted as absent."
                 selectedRoles={holidayRoles}
-                onToggle={(role) => toggleRole(role, holidayRoles, setHolidayRoles)}
+                onToggle={(role) => toggleRole(role, setHolidayRoles)}
               />
 
               <hr className="border-gray-200 dark:border-gray-700" />
 
               <RoleCheckboxGroup
+                groupId="sunday"
                 label="Sunday as Working Day (no week-off)"
                 description="Employees in selected roles will have Sundays treated as regular working days for attendance and salary purposes."
                 selectedRoles={sundayExcludedRoles}
-                onToggle={(role) => toggleRole(role, sundayExcludedRoles, setSundayExcludedRoles)}
+                onToggle={(role) => toggleRole(role, setSundayExcludedRoles)}
               />
 
               <hr className="border-gray-200 dark:border-gray-700" />
 
               <RoleCheckboxGroup
+                groupId="overtime"
                 label="Overtime Pay Eligibility"
                 description="Only employees in selected roles will receive overtime compensation. Roles not selected will have overtime hours tracked but no overtime pay added to their salary."
                 selectedRoles={overtimeRoles}
-                onToggle={(role) => toggleRole(role, overtimeRoles, setOvertimeRoles)}
+                onToggle={(role) => toggleRole(role, setOvertimeRoles)}
               />
             </div>
 
@@ -144,7 +159,9 @@ const SalaryPolicyPage = () => {
 
         <Card>
           <CardContent className="p-6">
-            <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Current Policy Summary</h3>
+            <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Current Policy Summary
+            </h3>
             <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
               <p>
                 <span className="font-medium">Paid holiday eligible: </span>
@@ -152,11 +169,15 @@ const SalaryPolicyPage = () => {
               </p>
               <p>
                 <span className="font-medium">Sunday = working day for: </span>
-                {sundayExcludedRoles.length > 0 ? sundayExcludedRoles.join(', ') : 'None (all get Sunday off)'}
+                {sundayExcludedRoles.length > 0
+                  ? sundayExcludedRoles.join(', ')
+                  : 'None (all get Sunday off)'}
               </p>
               <p>
                 <span className="font-medium">Overtime pay eligible: </span>
-                {overtimeRoles.length > 0 ? overtimeRoles.join(', ') : 'None (no overtime pay for anyone)'}
+                {overtimeRoles.length > 0
+                  ? overtimeRoles.join(', ')
+                  : 'None (no overtime pay for anyone)'}
               </p>
             </div>
           </CardContent>

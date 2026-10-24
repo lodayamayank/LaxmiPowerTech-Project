@@ -1,14 +1,15 @@
 import DashboardLayout from '../layouts/DashboardLayout';
 import React, { useEffect, useState } from 'react';
 import axios from '../utils/axios';
-import Select from '../components/Select';
+import DateRangeFilter from '../components/DateRangeFilter';
+import { getCurrentMonthDateRange } from '../utils/dateRange';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import {
   FaUser,
-  FaCalendarAlt,
   FaChevronLeft,
   FaChevronRight,
   FaAngleDoubleLeft,
@@ -17,9 +18,15 @@ import {
   FaSearch,
   FaCheckCircle,
   FaTimesCircle,
-  FaUserClock,
   FaClock
 } from 'react-icons/fa';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const LeaveBadge = ({ count, type }) => {
   if (!count || count === 0) return null;
@@ -60,8 +67,7 @@ const LeaveBadge = ({ count, type }) => {
 const SupervisorAttendanceDashboard = () => {
   const [records, setRecords] = useState([]);
   const [searchSupervisor, setSearchSupervisor] = useState('');
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [dateRange, setDateRange] = useState(getCurrentMonthDateRange);
   const [loading, setLoading] = useState(false);
 
   // Pagination state
@@ -76,7 +82,7 @@ const SupervisorAttendanceDashboard = () => {
         setLoading(true);
         const res = await axios.get('/attendance/summary', {
           headers: { Authorization: `Bearer ${token}` },
-          params: { role: 'supervisor', month, year },
+          params: { role: 'supervisor', ...dateRange },
         });
         setRecords(res.data || []);
       } catch (err) {
@@ -86,7 +92,7 @@ const SupervisorAttendanceDashboard = () => {
       }
     };
     fetchData();
-  }, [token, month, year]);
+  }, [token, dateRange]);
 
   const filtered = records.filter((r) =>
     r.name?.toLowerCase().includes(searchSupervisor.toLowerCase())
@@ -112,7 +118,7 @@ const SupervisorAttendanceDashboard = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchSupervisor, itemsPerPage]);
+  }, [searchSupervisor, itemsPerPage, dateRange]);
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -195,7 +201,7 @@ const SupervisorAttendanceDashboard = () => {
 
     const link = document.createElement("a");
     link.href = encodeURI(csvContent);
-    link.download = `Supervisor_Attendance_${month}_${year}.csv`;
+    link.download = `Supervisor_Attendance_${dateRange.startDate}_to_${dateRange.endDate}.csv`;
     link.click();
   };
 
@@ -206,7 +212,9 @@ const SupervisorAttendanceDashboard = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             {/* <h1 className="text-2xl font-bold text-gray-800">Supervisor Attendance Summary</h1> */}
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Monthly attendance overview for supervisor members</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Attendance overview for supervisor members
+            </p>
           </div>
           <Button
             onClick={exportToCSV}
@@ -223,11 +231,18 @@ const SupervisorAttendanceDashboard = () => {
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Supervisors</p>
-                  <p className="text-3xl font-bold text-gray-800 dark:text-white mt-1">{filtered.length}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                    Total Supervisors
+                  </p>
+                  <p className="text-3xl font-bold text-gray-800 dark:text-white mt-1">
+                    {filtered.length}
+                  </p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                  <FaUser className="text-gray-600 dark:text-gray-300" size={20} />
+                  <FaUser
+                    className="text-gray-600 dark:text-gray-300"
+                    size={20}
+                  />
                 </div>
               </div>
             </CardContent>
@@ -237,8 +252,12 @@ const SupervisorAttendanceDashboard = () => {
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Present</p>
-                  <p className="text-3xl font-bold text-green-600 mt-1">{totals.present}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                    Total Present
+                  </p>
+                  <p className="text-3xl font-bold text-green-600 mt-1">
+                    {totals.present}
+                  </p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
                   <FaCheckCircle className="text-green-600" size={20} />
@@ -251,8 +270,12 @@ const SupervisorAttendanceDashboard = () => {
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Absent</p>
-                  <p className="text-3xl font-bold text-red-600 mt-1">{totals.absent}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                    Total Absent
+                  </p>
+                  <p className="text-3xl font-bold text-red-600 mt-1">
+                    {totals.absent}
+                  </p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                   <FaTimesCircle className="text-red-600" size={20} />
@@ -265,8 +288,12 @@ const SupervisorAttendanceDashboard = () => {
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Overtime</p>
-                  <p className="text-3xl font-bold text-orange-600 mt-1">{totals.overtime}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                    Total Overtime
+                  </p>
+                  <p className="text-3xl font-bold text-orange-600 mt-1">
+                    {totals.overtime}
+                  </p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
                   <FaClock className="text-orange-600" size={20} />
@@ -279,49 +306,29 @@ const SupervisorAttendanceDashboard = () => {
         {/* Filters */}
         <Card>
           <CardContent className="p-5">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-100 mb-3">Filters</h3>
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-100 mb-3">
+              Filters
+            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Search Supervisors</label>
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
-                  <FaSearch size={14} />
+              <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">
+                  Search Supervisors
+                </label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
+                    <FaSearch size={14} />
+                  </div>
+                  <Input
+                    type="text"
+                    className="h-auto w-full  pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-foreground placeholder:text-muted-foreground text-sm shadow-none focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-transparent transition-all"
+                    placeholder="Search by name..."
+                    value={searchSupervisor}
+                    onChange={(e) => setSearchSupervisor(e.target.value)}
+                  />
                 </div>
-                <input
-                  type="text"
-                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                  placeholder="Search by name..."
-                  value={searchSupervisor}
-                  onChange={(e) => setSearchSupervisor(e.target.value)}
-                />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Month</label>
-              <Select
-                value={month}
-                onChange={(e) => setMonth(e.target.value)}
-                options={[...Array(12).keys()].map((m) => ({
-                  value: m + 1,
-                  label: new Date(0, m).toLocaleString('default', { month: 'long' })
-                }))}
-                icon={<FaCalendarAlt size={14} />}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Year</label>
-              <Select
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                options={Array.from({ length: 5 }, (_, i) => {
-                  const y = new Date().getFullYear() - i;
-                  return { value: y, label: y.toString() };
-                })}
-                icon={<FaCalendarAlt size={14} />}
-              />
-            </div>
+              <DateRangeFilter value={dateRange} onApply={setDateRange} />
             </div>
           </CardContent>
         </Card>
@@ -330,24 +337,39 @@ const SupervisorAttendanceDashboard = () => {
         {!loading && filtered.length > 0 && (
           <Card>
             <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-3">
-            <div className="text-sm text-gray-600">
-              Showing <span className="font-semibold text-gray-900">{startIndex + 1}</span> to{' '}
-              <span className="font-semibold text-gray-900">{Math.min(endIndex, totalItems)}</span> of{' '}
-              <span className="font-semibold text-gray-900">{totalItems}</span> records
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">Rows per page:</label>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-            </div>
+              <div className="text-sm text-gray-600">
+                Showing{" "}
+                <span className="font-semibold text-gray-900">
+                  {startIndex + 1}
+                </span>{" "}
+                to{" "}
+                <span className="font-semibold text-gray-900">
+                  {Math.min(endIndex, totalItems)}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold text-gray-900">
+                  {totalItems}
+                </span>{" "}
+                records
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600">Rows per page:</label>
+                <Select
+                  value={String(itemsPerPage)}
+                  onValueChange={(value) => setItemsPerPage(Number(value))}
+                >
+                  <SelectTrigger className="h-9 w-[90px] rounded-lg border-gray-300 text-sm focus:ring-2 focus:ring-orange-500">
+                    <SelectValue placeholder="Per page" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -371,13 +393,19 @@ const SupervisorAttendanceDashboard = () => {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-6">
+                    <TableCell
+                      colSpan={8}
+                      className="text-center text-muted-foreground py-6"
+                    >
                       Loading...
                     </TableCell>
                   </TableRow>
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-6">
+                    <TableCell
+                      colSpan={8}
+                      className="text-center text-muted-foreground py-6"
+                    >
                       No records found
                     </TableCell>
                   </TableRow>
@@ -385,17 +413,25 @@ const SupervisorAttendanceDashboard = () => {
                   currentItems.map((item, i) => (
                     <TableRow key={i}>
                       <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.employeeId}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {item.employeeId}
+                      </TableCell>
                       <TableCell>{item.present}</TableCell>
                       <TableCell>{item.absent}</TableCell>
                       <TableCell>{item.halfDay}</TableCell>
                       <TableCell>{item.weekOff}</TableCell>
                       <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        <LeaveBadge count={item.paidLeave} type="paidLeave" />
-                        <LeaveBadge count={item.unpaidLeave} type="unpaidLeave" />
-                        <LeaveBadge count={item.sickLeave} type="sickLeave" />
-                        <LeaveBadge count={item.casualLeave} type="casualLeave" />
+                        <div className="flex flex-wrap gap-1">
+                          <LeaveBadge count={item.paidLeave} type="paidLeave" />
+                          <LeaveBadge
+                            count={item.unpaidLeave}
+                            type="unpaidLeave"
+                          />
+                          <LeaveBadge count={item.sickLeave} type="sickLeave" />
+                          <LeaveBadge
+                            count={item.casualLeave}
+                            type="casualLeave"
+                          />
                         </div>
                       </TableCell>
                       <TableCell>{item.overtime}</TableCell>
@@ -411,72 +447,85 @@ const SupervisorAttendanceDashboard = () => {
         {!loading && filtered.length > 0 && totalPages > 1 && (
           <Card>
             <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 py-3">
-            <div className="text-sm text-gray-600">
-              Page <span className="font-semibold text-gray-900">{currentPage}</span> of{' '}
-              <span className="font-semibold text-gray-900">{totalPages}</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={() => goToPage(1)}
-                disabled={currentPage === 1}
-                variant="outline"
-                size="icon"
-                title="First Page"
-              >
-                <FaAngleDoubleLeft size={14} />
-              </Button>
-
-              <Button
-                onClick={() => goToPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                variant="outline"
-                size="icon"
-                title="Previous Page"
-              >
-                <FaChevronLeft size={14} />
-              </Button>
-
-              <div className="flex items-center gap-1">
-                {getPageNumbers().map((page, index) => (
-                  page === '...' ? (
-                    <span key={`ellipsis-${index}`} className="px-3 py-1 text-muted-foreground">
-                      ...
-                    </span>
-                  ) : (
-                    <Button
-                      key={page}
-                      onClick={() => goToPage(page)}
-                      variant={currentPage === page ? "default" : "outline"}
-                      size="sm"
-                      className={currentPage === page ? "bg-orange-500 hover:bg-orange-600" : ""}
-                    >
-                      {page}
-                    </Button>
-                  )
-                ))}
+              <div className="text-sm text-gray-600">
+                Page{" "}
+                <span className="font-semibold text-gray-900">
+                  {currentPage}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold text-gray-900">
+                  {totalPages}
+                </span>
               </div>
 
-              <Button
-                onClick={() => goToPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                variant="outline"
-                size="icon"
-                title="Next Page"
-              >
-                <FaChevronRight size={14} />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => goToPage(1)}
+                  disabled={currentPage === 1}
+                  variant="outline"
+                  size="icon"
+                  title="First Page"
+                >
+                  <FaAngleDoubleLeft size={14} />
+                </Button>
 
-              <Button
-                onClick={() => goToPage(totalPages)}
-                disabled={currentPage === totalPages}
-                variant="outline"
-                size="icon"
-                title="Last Page"
-              >
-                <FaAngleDoubleRight size={14} />
-              </Button>
-            </div>
+                <Button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  variant="outline"
+                  size="icon"
+                  title="Previous Page"
+                >
+                  <FaChevronLeft size={14} />
+                </Button>
+
+                <div className="flex items-center gap-1">
+                  {getPageNumbers().map((page, index) =>
+                    page === "..." ? (
+                      <span
+                        key={`ellipsis-${index}`}
+                        className="px-3 py-1 text-muted-foreground"
+                      >
+                        ...
+                      </span>
+                    ) : (
+                      <Button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        className={
+                          currentPage === page
+                            ? "bg-orange-500 hover:bg-orange-600"
+                            : ""
+                        }
+                      >
+                        {page}
+                      </Button>
+                    )
+                  )}
+                </div>
+
+                <Button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  variant="outline"
+                  size="icon"
+                  title="Next Page"
+                >
+                  <FaChevronRight size={14} />
+                </Button>
+
+                <Button
+                  onClick={() => goToPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  variant="outline"
+                  size="icon"
+                  title="Last Page"
+                >
+                  <FaAngleDoubleRight size={14} />
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}

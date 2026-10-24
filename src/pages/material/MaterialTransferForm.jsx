@@ -4,6 +4,13 @@ import { siteTransferAPI, materialCatalogAPI as materialAPI, upcomingDeliveryAPI
 import { useNavigate } from 'react-router-dom';
 import axios from '../../utils/axios';
 import { getSelectedBranchName } from '../../utils/branchContext';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 // SearchableDropdown Component - Same as Intent PO
 function SearchableDropdown({ value, onChange, options, placeholder, disabled }) {
@@ -630,7 +637,7 @@ export default function MaterialTransferForm() {
                 <label className="text-gray-700 text-sm font-medium mb-2 block">
                   Remarks (Optional)
                 </label>
-                <textarea
+                <Textarea
                   value={formData.remarks}
                   onChange={(e) => setFormData(prev => ({ ...prev, remarks: e.target.value }))}
                   className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 resize-none"
@@ -690,59 +697,84 @@ export default function MaterialTransferForm() {
                     // Collapsed view when complete and not editing
                     if (!isEditing && isComplete) {
                       return (
-                        <div key={material.id} className="bg-white border border-gray-300 rounded-md p-3 relative">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <p className="text-xs text-gray-700 font-medium mb-2">Material #{index + 1}</p>
-                              <div className="grid grid-cols-2 gap-2 text-xs">
+                        <Accordion
+                          key={material.id}
+                          type="single"
+                          collapsible
+                          value=""
+                          onValueChange={(value) => setEditingMaterialId(value ? material.id : null)}
+                        >
+                          <AccordionItem value={String(material.id)} className="rounded-md border border-gray-300 bg-white">
+                            <div className="flex items-center justify-between">
+                              <AccordionTrigger className="flex-1 p-3 text-left hover:no-underline">
                                 <div>
-                                  <span className="text-gray-500">Category:</span>
-                                  <p className="text-gray-900 font-medium truncate">{material.category}</p>
+                                  <p className="text-xs text-gray-700 font-medium mb-2">Material #{index + 1}</p>
+                                  <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div>
+                                      <span className="text-gray-500">Category:</span>
+                                      <p className="text-gray-900 font-medium truncate">{material.category}</p>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">Sub Category:</span>
+                                      <p className="text-gray-900 font-medium truncate">{material.subCategory}</p>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">Sub Category 1:</span>
+                                      <p className="text-gray-900 font-medium truncate">{material.subCategory1}</p>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">Sub Category 2:</span>
+                                      <p className="text-gray-900 font-medium truncate">{material.subCategory2}</p>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">Quantity:</span>
+                                      <p className="text-gray-900 font-medium">{material.quantity}</p>
+                                    </div>
+                                  </div>
                                 </div>
-                                <div>
-                                  <span className="text-gray-500">Sub Category:</span>
-                                  <p className="text-gray-900 font-medium truncate">{material.subCategory}</p>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Sub Category 1:</span>
-                                  <p className="text-gray-900 font-medium truncate">{material.subCategory1}</p>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Sub Category 2:</span>
-                                  <p className="text-gray-900 font-medium truncate">{material.subCategory2}</p>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Quantity:</span>
-                                  <p className="text-gray-900 font-medium">{material.quantity}</p>
-                                </div>
+                              </AccordionTrigger>
+                              <div className="flex gap-1 flex-shrink-0 pr-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingMaterialId(material.id)}
+                                  className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                                  disabled={submitting}
+                                >
+                                  <X size={16} className="text-gray-600" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => removeMaterialRow(material.id)}
+                                  className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                                  disabled={submitting}
+                                >
+                                  <X size={16} className="text-red-500" />
+                                </button>
                               </div>
                             </div>
-                            <div className="flex gap-1 flex-shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => setEditingMaterialId(material.id)}
-                                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                                disabled={submitting}
-                              >
-                                <X size={16} className="text-gray-600" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => removeMaterialRow(material.id)}
-                                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                                disabled={submitting}
-                              >
-                                <X size={16} className="text-red-500" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
+                            <AccordionContent className="p-0" />
+                          </AccordionItem>
+                        </Accordion>
                       );
                     }
 
                     // Expanded edit view
                     return (
-                      <div key={material.id} className="bg-gray-50 border border-gray-300 rounded-md p-4 relative">
+                      <Accordion
+                        key={material.id}
+                        type="single"
+                        collapsible
+                        value={String(material.id)}
+                        onValueChange={(value) => {
+                          if (!value && isComplete) setEditingMaterialId(null);
+                        }}
+                      >
+                        <AccordionItem value={String(material.id)} className="border-0">
+                          <AccordionTrigger className="px-4 py-3 text-left hover:no-underline">
+                            Material #{index + 1}
+                          </AccordionTrigger>
+                          <AccordionContent className="p-0">
+                      <div className="bg-gray-50 border border-gray-300 rounded-md p-4 relative">
                         <button
                           type="button"
                           onClick={() => removeMaterialRow(material.id)}
@@ -751,8 +783,6 @@ export default function MaterialTransferForm() {
                         >
                           <X size={16} />
                         </button>
-
-                        <p className="text-xs text-gray-700 font-medium mb-3">Material #{index + 1}</p>
 
                         {/* Row 1: Category and Sub Category */}
                         <div className="grid grid-cols-2 gap-3 mb-3">
@@ -856,6 +886,9 @@ export default function MaterialTransferForm() {
                           </button>
                         )}
                       </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
                     );
                   })}
                 </div>

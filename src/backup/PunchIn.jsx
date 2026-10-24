@@ -4,7 +4,18 @@ import Webcam from "react-webcam";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import ConfirmModal from "../components/ConfirmModal";
+import {ToastContainer, toast } from "react-toastify";
+// import ConfirmModal from "../components/ConfirmModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Fix Leaflet marker icon issues
 delete L.Icon.Default.prototype._getIconUrl;
@@ -42,7 +53,7 @@ const PunchInScreen = ({ user }) => {
         setLoadingLocation(false);
       },
       () => {
-        alert("Failed to fetch location");
+        toast.error("Failed to fetch location");
         setLoadingLocation(false);
       }
     );
@@ -80,9 +91,9 @@ const PunchInScreen = ({ user }) => {
       });
 
       if (res.ok) {
-        alert("Punch recorded!");
+        toast.success("Punch recorded!");
       } else {
-        alert("Failed to punch");
+        toast.error("Failed to punch");
       }
     } catch (err) {
       console.error("Punch failed:", err);
@@ -156,15 +167,41 @@ const PunchInScreen = ({ user }) => {
         </div>
       )}
 
-      {showConfirm && (
-        <ConfirmModal
-          image={capturedImage}
-          user={user}
-          punchType={punchType}
-          onCancel={() => setShowConfirm(false)}
-          onConfirm={confirmPunch}
-        />
-      )}
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Confirm Punch {punchType === "in" ? "In" : "Out"}
+            </AlertDialogTitle>
+
+            <AlertDialogDescription>
+              Are you sure you want to record your{" "}
+              {punchType === "in" ? "punch in" : "punch out"}?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {capturedImage && (
+            <div className="flex justify-center">
+              <img
+                src={capturedImage}
+                alt="Captured selfie"
+                className="w-48 h-48 rounded-full object-cover border-4 border-orange-500"
+              />
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={confirmPunch}
+              className="bg-orange-500 hover:bg-orange-600"
+            >
+              Confirm Punch
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

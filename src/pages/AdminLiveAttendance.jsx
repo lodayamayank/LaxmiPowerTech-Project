@@ -1,38 +1,82 @@
 import React, { useEffect, useState } from "react";
 import axios from "../utils/axios";
 import DashboardLayout from "../layouts/DashboardLayout";
-import Select from "../components/Select";
-import { 
-  FaUserCircle, 
-  FaUser, 
-  FaMapMarkerAlt, 
-  FaCheckCircle, 
+
+import {
+  FaUserCircle,
+  FaUser,
+  FaMapMarkerAlt,
+  FaCheckCircle,
   FaTimesCircle,
   FaUserClock,
   FaDownload,
-  FaSearch
+  FaSearch,
 } from "react-icons/fa";
+
 import { formatIST } from "../utils/date";
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 const AdminLiveAttendance = () => {
   const [staffData, setStaffData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState({ role: "", branch: "" });
+
+  const [filters, setFilters] = useState({
+    role: "",
+    branch: "",
+  });
+
   const [branches, setBranches] = useState([]);
 
+  // Status filter configuration
   const statusTabs = [
-    { label: "All", value: "all", icon: <FaUser size={14} />, color: "gray" },
-    { label: "Punched In", value: "in", icon: <FaCheckCircle size={14} />, color: "green" },
-    { label: "Punched Out", value: "out", icon: <FaUserClock size={14} />, color: "yellow" },
-    { label: "No Punch In", value: "no_punch", icon: <FaTimesCircle size={14} />, color: "red" },
+    {
+      label: "All",
+      value: "all",
+      icon: <FaUser size={14} />,
+      color: "gray",
+    },
+    {
+      label: "Punched In",
+      value: "in",
+      icon: <FaCheckCircle size={14} />,
+      color: "green",
+    },
+    {
+      label: "Punched Out",
+      value: "out",
+      icon: <FaUserClock size={14} />,
+      color: "yellow",
+    },
+    {
+      label: "No Punch In",
+      value: "no_punch",
+      icon: <FaTimesCircle size={14} />,
+      color: "red",
+    },
   ];
 
-  // Fetch branches only
+  // Fetch branches
   useEffect(() => {
     const fetchBranches = async () => {
       try {
@@ -42,18 +86,26 @@ const AdminLiveAttendance = () => {
         console.error("Failed to fetch branches", err);
       }
     };
+
     fetchBranches();
   }, []);
 
-  // Fetch live attendance with filters
+  // Fetch live attendance with role and branch filters
   useEffect(() => {
     const fetchData = async () => {
       try {
         const params = {};
-        if (filters.role) params.role = filters.role;
-        if (filters.branch) params.branch = filters.branch;
+
+        if (filters.role) {
+          params.role = filters.role;
+        }
+
+        if (filters.branch) {
+          params.branch = filters.branch;
+        }
 
         const res = await axios.get("/attendance/live", { params });
+
         if (Array.isArray(res.data)) {
           setStaffData(res.data);
         } else {
@@ -65,269 +117,448 @@ const AdminLiveAttendance = () => {
         setStaffData([]);
       }
     };
+
     fetchData();
-    const interval = setInterval(fetchData, 30000); // Poll every 30s
+
+    const interval = setInterval(fetchData, 30000);
+
     return () => clearInterval(interval);
   }, [filters]);
 
-  // Apply search & status filters
+  // Apply search and status filters
   useEffect(() => {
     const filtered = Array.isArray(staffData)
       ? staffData.filter((user) => {
           const matchesStatus =
             statusFilter === "all" || user.status === statusFilter;
-          const matchesSearch = user.name
+
+          const matchesSearch = (user.name || "")
             .toLowerCase()
             .includes(searchQuery.toLowerCase());
+
           return matchesStatus && matchesSearch;
         })
       : [];
+
     setFilteredData(filtered);
   }, [statusFilter, searchQuery, staffData]);
 
+  // Calculate status counts
   const statusCounts = staffData.reduce(
     (acc, user) => {
       acc[user.status] = (acc[user.status] || 0) + 1;
       return acc;
     },
-    { in: 0, out: 0, no_punch: 0 }
+    {
+      in: 0,
+      out: 0,
+      no_punch: 0,
+    }
   );
 
+  // Export attendance data to CSV
   const downloadCSV = () => {
-    const csvHeader = "Name,Status,Punch In Time,Punch Out Time,Role,Branch,Location";
-    const csvRows = filteredData.map(
-      (u) => `${u.name},${u.status},${formatIST(u.punchInTime) || "-"},${formatIST(u.punchOutTime) || "-"},${u.role || "-"},${u.branch || "-"},${u.location || "-"}`
+    const csvHeader =
+      "Name,Status,Punch In Time,Punch Out Time,Role,Branch,Location";
+
+    const csvRows = filteredData.map((user) =>
+      [
+        user.name || "-",
+        user.status || "-",
+        formatIST(user.punchInTime) || "-",
+        formatIST(user.punchOutTime) || "-",
+        user.role || "-",
+        user.branch || "-",
+        user.location || "-",
+      ]
+        .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+        .join(",")
     );
+
     const csvContent = [csvHeader, ...csvRows].join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv" });
+
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `live_attendance_${new Date().toISOString().split('T')[0]}.csv`;
+    const url = URL.createObjectURL(blob);
+
+    link.href = url;
+    link.download = `live_attendance_${
+      new Date().toISOString().split("T")[0]
+    }.csv`;
+
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+  };
+
+  // Status badge component
+  const renderStatusBadge = (status) => {
+    if (status === "in") {
+      return (
+        <Badge className="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-100 px-3 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-100">
+          <FaCheckCircle size={12} />
+          Punched In
+        </Badge>
+      );
+    }
+
+    if (status === "out") {
+      return (
+        <Badge className="inline-flex items-center gap-1.5 rounded-full border border-yellow-200 bg-yellow-100 px-3 py-1.5 text-xs font-semibold text-yellow-700 hover:bg-yellow-100">
+          <FaUserClock size={12} />
+          Punched Out
+        </Badge>
+      );
+    }
+
+    return (
+      <Badge className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100">
+        <FaTimesCircle size={12} />
+        No Punch In
+      </Badge>
+    );
   };
 
   return (
     <DashboardLayout title="Live Attendance">
       <div className="space-y-6">
-        {/* Header with Stats */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        {/* Header */}
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Real-time attendance tracking • Auto-refreshes every 30s</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Real-time attendance tracking • Auto-refreshes every 30s
+            </p>
           </div>
-          <Button onClick={downloadCSV} className="bg-orange-500 hover:bg-orange-600 text-white shadow-md">
+
+          <Button
+            onClick={downloadCSV}
+            className="gap-2 bg-orange-500 text-white shadow-md hover:bg-orange-600"
+          >
             <FaDownload size={14} />
             Export CSV
           </Button>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between">
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Total Staff */}
+          <Card>
+            <CardContent className="flex items-center justify-between p-5">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Staff</p>
-                <p className="text-3xl font-bold text-gray-800 dark:text-white mt-1">{staffData.length}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                <FaUser className="text-gray-600 dark:text-gray-300" size={20} />
-              </div>
-            </div>
-          </div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Total Staff
+                </p>
 
-          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Punched In</p>
-                <p className="text-3xl font-bold text-green-600 mt-1">{statusCounts.in || 0}</p>
+                <p className="mt-1 text-3xl font-bold">
+                  {staffData.length}
+                </p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700">
+                <FaUser
+                  className="text-gray-600 dark:text-gray-300"
+                  size={20}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Punched In */}
+          <Card>
+            <CardContent className="flex items-center justify-between p-5">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Punched In
+                </p>
+
+                <p className="mt-1 text-3xl font-bold text-green-600">
+                  {statusCounts.in || 0}
+                </p>
+              </div>
+
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
                 <FaCheckCircle className="text-green-600" size={20} />
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between">
+          {/* Punched Out */}
+          <Card>
+            <CardContent className="flex items-center justify-between p-5">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Punched Out</p>
-                <p className="text-3xl font-bold text-yellow-600 mt-1">{statusCounts.out || 0}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Punched Out
+                </p>
+
+                <p className="mt-1 text-3xl font-bold text-yellow-600">
+                  {statusCounts.out || 0}
+                </p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
+
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
                 <FaUserClock className="text-yellow-600" size={20} />
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between">
+          {/* No Punch In */}
+          <Card>
+            <CardContent className="flex items-center justify-between p-5">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">No Punch In</p>
-                <p className="text-3xl font-bold text-red-600 mt-1">{statusCounts.no_punch || 0}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  No Punch In
+                </p>
+
+                <p className="mt-1 text-3xl font-bold text-red-600">
+                  {statusCounts.no_punch || 0}
+                </p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
                 <FaTimesCircle className="text-red-600" size={20} />
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-100 mb-3">Filters</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Role</label>
-              <Select
-                value={filters.role}
-                onChange={(e) => setFilters({ ...filters, role: e.target.value })}
-                placeholder="All Roles"
-                options={[
-                  { value: "staff", label: "Staff" },
-                  { value: "labour", label: "Labour" },
-                  { value: "subcontractor", label: "Subcontractor" },
-                  { value: "supervisor", label: "Supervisor" },
-                ]}
-                icon={<FaUser size={14} />}
-              />
-            </div>
+        <Card>
+          <CardContent className="p-5">
+            <h3 className="mb-4 text-sm font-semibold">Filters</h3>
 
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Branch</label>
-              <Select
-                value={filters.branch}
-                onChange={(e) => setFilters({ ...filters, branch: e.target.value })}
-                placeholder="All Branches"
-                options={branches.map((b) => ({ value: b._id, label: b.name }))}
-                icon={<FaMapMarkerAlt size={14} />}
-              />
-            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {/* Role Filter */}
+              <div className="space-y-1.5">
+                <Label htmlFor="attendance-role" className="text-xs">
+                  Role
+                </Label>
 
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">Search</label>
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
-                  <FaSearch size={14} />
+                <Select
+                  value={filters.role || "all"}
+                  onValueChange={(value) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      role: value === "all" ? "" : value,
+                    }))
+                  }
+                >
+                  <SelectTrigger
+                    id="attendance-role"
+                    className="w-full"
+                  >
+                    <SelectValue placeholder="All Roles" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="all">All Roles</SelectItem>
+                    <SelectItem value="staff">Staff</SelectItem>
+                    <SelectItem value="labour">Labour</SelectItem>
+                    <SelectItem value="subcontractor">
+                      Subcontractor
+                    </SelectItem>
+                    <SelectItem value="supervisor">Supervisor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Branch Filter */}
+              <div className="space-y-1.5">
+                <Label htmlFor="attendance-branch" className="text-xs">
+                  Branch
+                </Label>
+
+                <Select
+                  value={filters.branch || "all"}
+                  onValueChange={(value) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      branch: value === "all" ? "" : value,
+                    }))
+                  }
+                >
+                  <SelectTrigger
+                    id="attendance-branch"
+                    className="w-full"
+                  >
+                    <SelectValue placeholder="All Branches" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="all">All Branches</SelectItem>
+
+                    {branches.map((branch) => (
+                      <SelectItem
+                        key={branch._id}
+                        value={branch._id}
+                      >
+                        {branch.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Search */}
+              <div className="space-y-1.5">
+                <Label htmlFor="attendance-search" className="text-xs">
+                  Search
+                </Label>
+
+                <div className="relative">
+                  <FaSearch
+                    size={14}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  />
+
+                  <Input
+                    id="attendance-search"
+                    type="text"
+                    placeholder="Search by name..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-10 pl-2 focus-visible:ring-orange-500"
+                  />
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search by name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                />
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Status Tabs */}
-        <div className="flex gap-3 flex-wrap">
-          {statusTabs.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setStatusFilter(tab.value)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border-2 transition-all ${
-                statusFilter === tab.value
-                  ? tab.color === "gray"
-                    ? "bg-gray-500 text-white border-gray-500 shadow-md"
-                    : tab.color === "green"
-                    ? "bg-green-500 text-white border-green-500 shadow-md"
-                    : tab.color === "yellow"
-                    ? "bg-yellow-500 text-white border-yellow-500 shadow-md"
-                    : "bg-red-500 text-white border-red-500 shadow-md"
-                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700"
-              }`}
-            >
-              {tab.icon}
-              <span>{tab.label}</span>
-              {tab.value !== "all" && (
-                <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
-                  statusFilter === tab.value ? "bg-white/20" : "bg-gray-100 dark:bg-gray-700"
-                }`}>
-                  {statusCounts[tab.value] || 0}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+        {/* Status Filters */}
+        <Tabs
+          value={statusFilter}
+          onValueChange={setStatusFilter}
+          className="w-full"
+        >
+          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-2 bg-transparent p-0">
+            {statusTabs.map((tab) => {
+              const activeClasses = {
+                gray: "data-[state=active]:border-gray-500 data-[state=active]:bg-gray-500",
+                green: "data-[state=active]:border-green-500 data-[state=active]:bg-green-500",
+                yellow:
+                  "data-[state=active]:border-yellow-500 data-[state=active]:bg-yellow-500",
+                red: "data-[state=active]:border-red-500 data-[state=active]:bg-red-500",
+              };
+
+              return (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className={`flex h-auto items-center gap-2 rounded-lg border-2 border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground shadow-none transition-all hover:bg-muted data-[state=active]:text-white data-[state=active]:shadow-md ${activeClasses[tab.color]}`}
+                >
+                  {tab.icon}
+
+                  <span>{tab.label}</span>
+
+                  {tab.value !== "all" && (
+                    <span
+                      className={`ml-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                        statusFilter === tab.value
+                          ? "bg-white/20"
+                          : "bg-muted"
+                      }`}
+                    >
+                      {statusCounts[tab.value] || 0}
+                    </span>
+                  )}
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
+        </Tabs>
 
         {/* Staff List */}
         <div className="space-y-3">
           {filteredData.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-12 text-center">
-              <FaUserCircle className="mx-auto text-gray-300 dark:text-gray-600 mb-4" size={64} />
-              <p className="text-gray-500 dark:text-gray-300 text-lg font-medium">No staff found</p>
-              <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Try adjusting your filters or search query</p>
-            </div>
+            /* Empty State */
+            <Card>
+              <CardContent className="p-12 text-center">
+                <FaUserCircle
+                  className="mx-auto mb-4 text-muted-foreground/40"
+                  size={64}
+                />
+
+                <p className="text-lg font-medium">No staff found</p>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Try adjusting your filters or search query
+                </p>
+              </CardContent>
+            </Card>
           ) : (
             filteredData.map((user) => (
-              <div
+              /* Staff Card */
+              <Card
                 key={user._id}
-                className="flex items-center justify-between p-5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                className="transition-shadow hover:shadow-md"
               >
-                <div className="flex items-center gap-4">
-                  {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt="avatar"
-                      className="w-14 h-14 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
-                    />
-                  ) : (
-                    <div className="w-14 h-14 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                      <FaUserCircle className="w-10 h-10 text-gray-400 dark:text-gray-500" />
-                    </div>
-                  )}
+                <CardContent className="flex items-center justify-between gap-4 p-5">
+                  {/* Staff Information */}
+                  <div className="flex min-w-0 items-center gap-4">
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={`${user.name || "Staff"} avatar`}
+                        className="h-14 w-14 shrink-0 rounded-full border-2 border-border object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-muted">
+                        <FaUserCircle className="h-10 w-10 text-muted-foreground" />
+                      </div>
+                    )}
 
-                  <div>
-                    <p className="font-semibold text-gray-900 dark:text-white text-lg">{user.name}</p>
-                    <div className="flex items-center gap-3 mt-1">
-                      {user.role && (
-                        <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 rounded-full font-medium capitalize">
-                          {user.role}
-                        </span>
-                      )}
-                      {user.location && (
-                        <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                          <FaMapMarkerAlt size={10} />
-                          {user.location}
-                        </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-lg font-semibold">
+                        {user.name}
+                      </p>
+
+                      <div className="mt-1 flex flex-wrap items-center gap-3">
+                        {user.role && (
+                          <Badge
+                            variant="secondary"
+                            className="capitalize"
+                          >
+                            {user.role}
+                          </Badge>
+                        )}
+
+                        {user.location && (
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <FaMapMarkerAlt size={10} />
+                            {user.location}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Attendance Status */}
+                  <div className="shrink-0 text-right">
+                    <div className="space-y-1">
+                      {renderStatusBadge(user.status)}
+
+                      {(user.status === "in" ||
+                        user.status === "out") && (
+                        <div className="text-sm font-medium text-muted-foreground">
+                          {user.punchTime || "-"}
+                        </div>
                       )}
                     </div>
                   </div>
-                </div>
-
-                <div className="text-right">
-                  {user.status === "in" ? (
-                    <div className="space-y-1">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-green-100 text-green-700 border border-green-200">
-                        <FaCheckCircle size={12} />
-                        Punched In
-                      </span>
-                      <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">{user.punchTime}</div>
-                    </div>
-                  ) : user.status === "out" ? (
-                    <div className="space-y-1">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700 border border-yellow-200">
-                        <FaUserClock size={12} />
-                        Punched Out
-                      </span>
-                      <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">{user.punchTime}</div>
-                    </div>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-red-100 text-red-700 border border-red-200">
-                      <FaTimesCircle size={12} />
-                      No Punch In
-                    </span>
-                  )}
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))
           )}
         </div>
 
-        {/* Results count */}
+        {/* Results Count */}
         {filteredData.length > 0 && (
-          <div className="text-center text-sm text-gray-500 dark:text-gray-400"> 
+          <div className="text-center text-sm text-muted-foreground">
             Showing {filteredData.length} of {staffData.length} staff members
           </div>
         )}
