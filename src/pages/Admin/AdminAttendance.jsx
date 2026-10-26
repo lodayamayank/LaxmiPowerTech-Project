@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import DashboardLayout from '../layouts/DashboardLayout';
+import DashboardLayout from '../../layouts/DashboardLayout';
 import axios from '../utils/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
