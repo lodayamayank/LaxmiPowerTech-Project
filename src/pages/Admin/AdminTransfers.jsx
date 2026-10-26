@@ -8,7 +8,7 @@ import {
   getAllTransfers,
   decideTransfer,
   completeTransfer,
-} from "../api/materialTransfers.api";
+} from "../../api/materialTransfers.api";
 import StatusBadge, { TRANSFER_STATUS_COLORS } from "../components/common/StatusBadge";
 import useDebounce from "../hooks/useDebounce";
 import { useBranches } from "../hooks/useBranches";
