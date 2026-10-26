@@ -10,8 +10,8 @@ import {
   completeTransfer,
 } from "../../api/materialTransfers.api";
 import StatusBadge, { TRANSFER_STATUS_COLORS } from "../components/common/StatusBadge";
-import useDebounce from "../hooks/useDebounce";
-import { useBranches } from "../hooks/useBranches";
+import useDebounce from "../../hooks/useDebounce";
+import { useBranches } from "../../hooks/useBranches";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
