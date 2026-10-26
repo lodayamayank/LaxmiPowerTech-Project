@@ -1,7 +1,7 @@
 // src/pages/AdminLeaves.jsx
 import { useEffect, useMemo, useState, useCallback } from "react";
-import axios from "../utils/axios";
-import DashboardLayout from "../layouts/DashboardLayout";
+import axios from "@/utils/axios";
+import DashboardLayout from "@/layouts/DashboardLayout";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import { Button } from '@/components/ui/button';
@@ -13,10 +13,10 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import {
     Select,
     SelectContent,
-    SelectItem,
+    SelectItem, 
     SelectTrigger,
     SelectValue,
-} from '../components/ui/select';
+} from '@/components/ui/select';
 //import "react-toastify/dist/ReactToastify.css";
 
 // Radix SelectItem cannot use an empty-string value, so "All ..." options use

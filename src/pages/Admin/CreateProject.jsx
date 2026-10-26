@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "../utils/axios";
-import DashboardLayout from "../layouts/DashboardLayout";
-import SmartTowerBuilder from "../components/SmartTowerBuilder";
+import axios from "@/utils/axios";
+import DashboardLayout from "@/layouts/DashboardLayout";
+import SmartTowerBuilder from "@/components/SmartTowerBuilder";
 import {
   FaProjectDiagram,
   FaMapMarkerAlt,

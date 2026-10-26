@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
-import axios from "../utils/axios";
-import DashboardLayout from "../layouts/DashboardLayout";
+import axios from "../../utils/axios";
+import DashboardLayout from "../../layouts/DashboardLayout";
 import {
   FaClock,
   FaCheckCircle,

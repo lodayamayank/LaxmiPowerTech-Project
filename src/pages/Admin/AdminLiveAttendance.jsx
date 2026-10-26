@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "../utils/axios";
-import DashboardLayout from "../layouts/DashboardLayout";
+import axios from "@/utils/axios";
+import DashboardLayout from "@/layouts/DashboardLayout";
 
 import {
   FaUserCircle,
@@ -13,7 +13,7 @@ import {
   FaSearch,
 } from "react-icons/fa";
 
-import { formatIST } from "../utils/date";
+import { formatIST } from "@/utils/date";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

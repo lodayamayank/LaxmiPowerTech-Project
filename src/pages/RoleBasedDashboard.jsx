@@ -1,7 +1,7 @@
 // RoleBasedDashboard.jsx - Add error handling
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Dashboard from './AdminDashboard';
+import Dashboard from './Admin/AdminDashboard'; 
 import LabourDashboard from './LabourDashboard';
 import SupervisorDashboard from './SupervisorDashboard';
 import { Button } from '@/components/ui/button';

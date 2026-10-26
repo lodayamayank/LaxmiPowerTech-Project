@@ -1,214 +1,340 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from '../utils/axios';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "../utils/axios";
 import logo from "../assets/logo.png";
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { FaUser, FaLock, FaSignInAlt, FaEye, FaEyeSlash } from 'react-icons/fa';
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+
+import {
+  User,
+  Lock,
+  Eye,
+  EyeOff,
+  LogIn,
+  Users,
+  ShieldCheck,
+  BarChart3,
+} from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
+/*
+  Palette (from the reference design)
+  - Left panel bg:   #1c1512  (warm near-black)
+  - Glow:            rgba(180, 90, 40, 0.28)
+  - Right panel bg:  #f7f3ef  (warm off-white)
+  - Accent orange:   #e87a30  (hover #d56d25)
+  - Input bg:        #f7f3ef
+*/
 
 const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
   const navigate = useNavigate();
 
+  const features = [
+    [Users, "500 employees across 6 branches"],
+    [BarChart3, "Live attendance & project analytics"],
+    [ShieldCheck, "Role-based access for every team"],
+  ];
+
   const handleLogin = async (e) => {
-    // Prevent form default behavior
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    console.log('🔐 Login form submitted');
-    console.log('📝 Username:', username);
-    console.log('📝 Password length:', password.length);
-    
-    setError('');
+    e.preventDefault();
+    e.stopPropagation();
+
+    setError("");
     setLoading(true);
 
     try {
-      console.log('📡 Sending login request to:', axios.defaults.baseURL);
-      const res = await axios.post('/auth/login', { username, password });
-      console.log('✅ Login successful! Response:', res.data);
+      const res = await axios.post("/auth/login", {
+        username,
+        password,
+      });
+
       const data = res.data;
 
-      console.log('💾 Saving to localStorage...');
-      console.log('👤 User data from backend:', data.user);
-      console.log('🎭 User role:', data.user.role);
-      
-      const userToSave = { ...data.user, _id: data.user.id || data.user._id };
-      console.log('📦 User object to save:', userToSave);
-      
-      localStorage.setItem('token', data.token);
-      localStorage.setItem("user", JSON.stringify(userToSave));
-      localStorage.setItem('loginTime', Date.now());
-      
-      console.log('✅ Saved to localStorage');
-      console.log('🔍 Verify saved user:', localStorage.getItem('user'));
+      const userToSave = {
+        ...data.user,
+        _id: data.user.id || data.user._id,
+      };
 
-      console.log('🚀 Navigating to /dashboard...');
-      navigate('/dashboard');
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(userToSave));
+      localStorage.setItem("loginTime", Date.now());
+
+      navigate("/dashboard");
     } catch (err) {
-      console.error('❌ Login error:', err);
-      console.error('❌ Error response:', err?.response);
-      console.error('❌ Error data:', err?.response?.data);
-      
+      console.error("Login error:", err);
+
       let errorMessage;
-      if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
-        errorMessage = '❌ Cannot connect to server. Please ensure backend is running on port 5000.';
+
+      if (err.code === "ERR_NETWORK" || err.message === "Network Error") {
+        errorMessage =
+          "Cannot connect to server. Please ensure the backend is running and accessible.";
       } else if (err.response?.status === 401) {
-        errorMessage = 'Invalid username or password. Please try again.';
+        errorMessage = "Invalid username or password. Please try again.";
       } else {
-        errorMessage = err?.response?.data?.message || err?.message || 'Login failed. Please try again.';
+        errorMessage =
+          err?.response?.data?.message ||
+          err?.message ||
+          "Login failed. Please try again.";
       }
-      
-      console.error('❌ Final error message:', errorMessage);
+
       setError(errorMessage);
     } finally {
-      console.log('🏁 Login process finished, loading:', false);
       setLoading(false);
     }
   };
 
+  const inputClass =
+    "h-[54px] w-full rounded-xl border border-stone-200 bg-[#f7f3ef] px-4 text-base text-stone-900 shadow-none placeholder:text-stone-500 focus-visible:border-[#e87a30] focus-visible:ring-2 focus-visible:ring-[#e87a30]/20";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center px-4">
-      {/* Container with consistent mobile width */}
-      <div className="max-w-md w-full">
-        {/* Logo Section */}
-        <div className="text-center mb-8">
-          <div className="bg-white rounded-3xl shadow-2xl p-6 mb-6 inline-block">
-            <img src={logo} alt="Laxmi Powertech" className="h-24 w-auto" />
+    <div className="flex min-h-screen bg-[#f7f3ef]">
+      {/* Left branding panel */}
+      <aside className="relative hidden w-[45%] flex-col justify-between overflow-hidden bg-[#1c1512] p-[60px] lg:flex">
+        {/* Warm glow, top right */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(700px 450px at 85% 0%, rgba(180, 90, 40, 0.28), transparent 70%)",
+          }}
+        />
+
+        {/* Company branding */}
+        <div className="relative flex items-center gap-3">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#e87a30]">
+            <img
+              src={logo}
+              alt="Laxmi PowerTech"
+              className="max-h-7 max-w-7 object-contain"
+            />
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome Back!</h1>
-          <p className="text-gray-600 text-sm">Sign in to continue to your account</p>
+
+          <div className="leading-tight">
+            <div className="text-[15px] font-bold tracking-tight text-white">
+              LAXMI POWERTECH
+            </div>
+            <div className="mt-0.5 text-[11px] font-medium tracking-[0.18em] text-stone-400">
+              PRIVATE LIMITED
+            </div>
+          </div>
         </div>
 
-        {/* Login Form Card */}
-        <Card className="rounded-3xl shadow-2xl">
-          <CardContent className="p-8">
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="text-center mb-6">
-              <h2 className="text-xl font-bold text-gray-800 tracking-wide">
-                LOGIN TO YOUR ACCOUNT
-              </h2>
-            </div>
+        {/* Branding content */}
+        <div className="relative max-w-xl">
+          <h1 className="text-4xl font-bold leading-[1.2] tracking-tight text-white xl:text-[48px]">
+            Workforce & operations, in one place.
+          </h1>
 
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 flex items-center gap-3 animate-shake">
-                <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-bold">!</span>
-                </div>
-                <p className="text-red-700 text-sm font-medium">{error}</p>
+          <p className="mt-6 max-w-lg text-base leading-7 text-stone-400">
+            Attendance, leaves, projects, work orders and inventory across all
+            your branches — tracked live.
+          </p>
+
+          <div className="mt-10 space-y-5">
+            {features.map(([Icon, label]) => (
+              <div
+                key={label}
+                className="flex items-center gap-4 text-base text-stone-100"
+              >
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#e87a30]/15 text-[#e87a30]">
+                  <Icon className="size-[18px]" strokeWidth={1.8} />
+                </span>
+                <span>{label}</span>
               </div>
-            )}
+            ))}
+          </div>
+        </div>
 
-            {/* Username Input */}
-            <div>
-              <label htmlFor="login-username" className="block text-sm font-semibold text-gray-700 mb-2">
-                <div className="flex items-center gap-2">
-                  <FaUser className="text-gray-400" size={14} />
-                  <span>Username</span>
-                </div>
-              </label>
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  <FaUser size={16} />
-                </div>
-                <Input
-                  id="login-username"
-                  type="text"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full h-auto pl-6 pr-4 py-3.5 rounded-xl bg-gray-50 border-2 border-gray-200 shadow-none text-base md:text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-transparent text-gray-800 transition-all"
-                  required
-                />
-              </div>
+        {/* Desktop footer */}
+        <div className="relative text-sm text-stone-500">
+          © 2026 Laxmi Power Tech. All rights reserved.
+        </div>
+      </aside>
+
+      {/* Right login panel */}
+      <main className="flex flex-1 items-center justify-center bg-[#f7f3ef] px-6 py-12 lg:px-12">
+        <div className="w-full max-w-[500px]">
+          {/* Mobile branding */}
+          <div className="mb-8 flex items-center gap-3 lg:hidden">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#e87a30]">
+              <img
+                src={logo}
+                alt="Laxmi PowerTech"
+                className="max-h-6 max-w-6 object-contain"
+              />
             </div>
-
-            {/* Password Input */}
-            <div>
-              <label htmlFor="login-password" className="block text-sm font-semibold text-gray-700 mb-2">
-                <div className="flex items-center gap-2">
-                  <FaLock className="text-gray-400" size={14} />
-                  <span>Password</span>
-                </div>
-              </label>
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  <FaLock size={16} />
-                </div>
-                <Input
-                  id="login-password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-auto pl-6 pr-12 py-3.5 rounded-xl bg-gray-50 border-2 border-gray-200 shadow-none text-base md:text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-transparent text-gray-800 transition-all"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  aria-pressed={showPassword}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
-                </button>
+            <div className="leading-tight">
+              <div className="text-sm font-bold tracking-tight text-stone-950">
+                LAXMI POWERTECH
+              </div>
+              <div className="mt-0.5 text-[10px] font-medium tracking-[0.16em] text-stone-500">
+                PRIVATE LIMITED
               </div>
             </div>
+          </div>
 
-            {/* Forgot Password Link */}
-            {/* <div className="text-right">
-              <a href="#" className="text-sm text-orange-600 hover:text-orange-700 font-medium hover:underline transition-colors">
-                Forgot Password?
-              </a>
-            </div> */}
-
-            {/* Login Button */}
-            <Button
-              type="submit"
-              className="w-full py-4 h-auto rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all flex items-center justify-center gap-3 transform hover:scale-[1.02] active:scale-[0.98]"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Logging in...</span>
-                </>
-              ) : (
-                <>
-                  <FaSignInAlt size={18} />
-                  <span>LOG IN</span>
-                </>
-              )}
-            </Button>
-          </form>
-
-          {/* Additional Info */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-center text-xs text-gray-500">
-              By logging in, you agree to our Terms of Service and Privacy Policy
+          {/* Welcome heading */}
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold tracking-tight text-stone-950">
+              Welcome back
+            </h2>
+            <p className="mt-2 text-base text-stone-600">
+              Sign in to continue to your account
             </p>
           </div>
-          </CardContent>
-        </Card>
 
-        {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-600">
-            Need help? <a href="#" className="text-orange-600 font-medium hover:underline">Contact Support</a>
+          {/* Login card */}
+          <Card className="rounded-[20px] border border-stone-200 bg-white shadow-[0_1px_3px_rgba(28,21,18,0.05)]">
+            <CardContent className="p-7 sm:p-[30px]">
+              <form onSubmit={handleLogin} className="space-y-6">
+                {/* Error message */}
+                {error && (
+                  <div
+                    role="alert"
+                    className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4"
+                  >
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-red-500">
+                      <span className="font-bold text-white">!</span>
+                    </div>
+                    <p className="text-sm font-medium text-red-700">{error}</p>
+                  </div>
+                )}
+
+                {/* Username */}
+                <div>
+                  <label
+                    htmlFor="login-username"
+                    className="mb-2 flex items-center gap-2 text-sm font-semibold text-stone-900"
+                  >
+                    <User className="size-4 text-stone-500" strokeWidth={1.8} />
+                    Username
+                  </label>
+                  <Input
+                    id="login-username"
+                    type="text"
+                    placeholder="Enter your username"
+                    autoComplete="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    disabled={loading}
+                    required
+                    className={inputClass}
+                  />
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label
+                    htmlFor="login-password"
+                    className="mb-2 flex items-center gap-2 text-sm font-semibold text-stone-900"
+                  >
+                    <Lock className="size-4 text-stone-500" strokeWidth={1.8} />
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Input
+                      id="login-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={loading}
+                      required
+                      className={cn(inputClass, "pr-12")}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      aria-pressed={showPassword}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-500 transition-colors hover:text-stone-900"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="size-[18px]" />
+                      ) : (
+                        <Eye className="size-[18px]" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Login button */}
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className={cn(
+                    "flex h-[54px] w-full items-center justify-center gap-2 rounded-xl",
+                    "bg-[#e87a30] text-base font-bold tracking-wide text-white",
+                    "shadow-none transition-colors hover:bg-[#d56d25]",
+                    "focus-visible:ring-2 focus-visible:ring-[#e87a30] focus-visible:ring-offset-2",
+                    loading && "cursor-not-allowed opacity-70",
+                  )}
+                >
+                  {loading ? (
+                    <>
+                      <span className="size-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <span>Logging in...</span>
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="size-[18px]" />
+                      <span>LOG IN</span>
+                    </>
+                  )}
+                </Button>
+
+                {/* Terms and privacy */}
+                <div className="border-t border-stone-200 pt-5">
+                  <p className="text-center text-sm leading-6 text-stone-600">
+                    By logging in, you agree to our{" "}
+                    <a
+                      href="#"
+                      className="font-medium text-[#e87a30] hover:underline"
+                    >
+                      Terms of Service
+                    </a>{" "}
+                    and{" "}
+                    <a
+                      href="#"
+                      className="font-medium text-[#e87a30] hover:underline"
+                    >
+                      Privacy Policy
+                    </a>
+                  </p>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Support */}
+          <p className="mt-8 text-center text-base text-stone-600">
+            Need help?{" "}
+            <a
+              href="#"
+              className="font-semibold text-[#e87a30] hover:underline"
+            >
+              Contact Support
+            </a>
           </p>
-          <p className="text-xs text-gray-400 mt-4">
+
+          {/* Mobile copyright */}
+          <p className="mt-6 text-center text-xs text-stone-500 lg:hidden">
             © 2026 Laxmi Power Tech. All rights reserved.
           </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

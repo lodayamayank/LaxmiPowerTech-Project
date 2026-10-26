@@ -9,7 +9,6 @@ import {
   FaPowerOff,
   FaSitemap,
   FaTimes,
-  FaUserCircle,
   FaFileUpload,
   FaTruck,
   FaClipboardCheck,
@@ -50,16 +49,36 @@ const ROW_BASE =
   "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-3 " +
   "group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!h-auto";
 
-// Thin, white-tinted scrollbar that suits the orange sidebar.
-// When collapsed it stays scrollable but the bar is hidden.
+// Row colour states (light sidebar, orange accent)
+const ROW_IDLE =
+  "text-gray-700 hover:bg-orange-50 hover:text-orange-600 active:bg-orange-100 active:text-orange-600 " +
+  "dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-orange-300 dark:active:bg-gray-800 dark:active:text-orange-300";
+const ROW_ACTIVE =
+  "relative bg-orange-50 text-orange-600 font-semibold hover:bg-orange-50 hover:text-orange-600 active:bg-orange-50 active:text-orange-600 " +
+  "dark:bg-orange-500/15 dark:text-orange-300 dark:hover:bg-orange-500/15 dark:hover:text-orange-300 " +
+  "before:absolute before:-left-2 before:top-2 before:bottom-2 before:w-1 before:rounded-r-full before:bg-orange-500";
+
+// Small grey count pill (Leaves, Tasks, ...)
+const BADGE =
+  "min-w-[20px] h-5 px-1.5 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-200 text-xs font-semibold flex items-center justify-center shrink-0";
+
+// Thin grey scrollbar; when collapsed it stays scrollable but the bar is hidden.
 const SCROLL_CLASSES =
   "overflow-y-auto overflow-x-hidden " +
-  "[scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.35)_transparent] " +
+  "[scrollbar-width:thin] [scrollbar-color:rgb(209_213_219)_transparent] dark:[scrollbar-color:rgba(255,255,255,0.2)_transparent] " +
   "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent " +
-  "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/35 " +
+  "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-white/20 " +
   "group-data-[collapsible=icon]:!overflow-y-auto group-data-[collapsible=icon]:!overflow-x-hidden " +
   "group-data-[collapsible=icon]:[scrollbar-width:none] " +
   "group-data-[collapsible=icon]:[&::-webkit-scrollbar]:hidden";
+
+const initialsOf = (name = "") =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0].toUpperCase())
+    .join("") || "U";
 
 const AppSidebar = ({
   user,
@@ -143,6 +162,10 @@ const AppSidebar = ({
     { label: "Settings", icon: <MdSettings />, path: "/dashboard/settings", disabled: true },
   ];
 
+  // Settings sits in the footer (above Logout), everything else in the scroll area
+  const mainItems = menuItems.filter((item) => item.label !== "Settings");
+  const settingsItem = menuItems.find((item) => item.label === "Settings");
+
   // Does this group (or any nested group) contain the current page?
   const groupHasActiveChild = (item) =>
     (item.children || []).some((child) =>
@@ -179,9 +202,9 @@ const AppSidebar = ({
                   title={item.label}
                   className={cn(
                     ROW_BASE,
-                    "justify-between text-white bg-white/20 hover:bg-white/30 hover:text-white active:bg-white/30 active:text-white hover:no-underline group-data-[collapsible=icon]:[&>svg]:hidden",
-                    (isOpen || containsActive) && "font-semibold",
-                    containsActive && "group-data-[collapsible=icon]:bg-white/40"
+                    "justify-between hover:no-underline group-data-[collapsible=icon]:[&>svg]:hidden",
+                    containsActive ? ROW_ACTIVE : ROW_IDLE,
+                    isOpen && "font-semibold"
                   )}
                 >
                   <div className="flex items-center gap-3 min-w-0 group-data-[collapsible=icon]:gap-0">
@@ -190,7 +213,7 @@ const AppSidebar = ({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="p-0">
-                  <SidebarMenuSub className="border-white/20 mt-1 space-y-1 group-data-[collapsible=icon]:hidden">
+                  <SidebarMenuSub className="border-gray-200 dark:border-gray-700 mt-1 space-y-1 group-data-[collapsible=icon]:hidden">
                     {item.children.map((child) => renderMenuItem(child, depth + 1, key))}
                   </SidebarMenuSub>
                 </AccordionContent>
@@ -213,7 +236,8 @@ const AppSidebar = ({
               <AccordionTrigger
                 className={cn(
                   "flex items-center justify-between w-full h-auto py-2 px-3 text-sm transition-all rounded-lg cursor-pointer hover:no-underline",
-                  "text-white/90 bg-white/10 hover:bg-white/20 hover:text-white active:bg-white/20 active:text-white",
+                  "text-gray-600 hover:bg-orange-50 hover:text-orange-600 active:bg-orange-100 active:text-orange-600",
+                  "dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-orange-300 dark:active:bg-gray-800",
                   isOpen && "font-semibold"
                 )}
               >
@@ -223,7 +247,7 @@ const AppSidebar = ({
                 </span>
               </AccordionTrigger>
               <AccordionContent className="p-0">
-                <SidebarMenuSub className="border-white/20 mt-1 space-y-1 ml-2">
+                <SidebarMenuSub className="border-gray-200 dark:border-gray-700 mt-1 space-y-1 ml-2">
                   {item.children.map((child) => renderMenuItem(child, depth + 1, key))}
                 </SidebarMenuSub>
               </AccordionContent>
@@ -240,7 +264,7 @@ const AppSidebar = ({
           <SidebarMenuButton
             tooltip={`${item.label} (Coming Soon)`}
             disabled
-            className={cn(ROW_BASE, "text-white/70 cursor-not-allowed my-1 disabled:opacity-100")}
+            className={cn(ROW_BASE, "text-gray-400 dark:text-gray-500 cursor-not-allowed disabled:opacity-100")}
           >
             <span className="text-sm shrink-0">{item.icon}</span>
             <span className="group-data-[collapsible=icon]:hidden truncate">{item.label}</span>
@@ -258,12 +282,7 @@ const AppSidebar = ({
           <SidebarMenuButton
             asChild
             tooltip={item.label}
-            className={cn(
-              ROW_BASE,
-              active
-                ? "bg-white text-orange-500 font-semibold shadow-md hover:bg-white hover:text-orange-500 active:bg-white active:text-orange-500"
-                : "text-white hover:bg-white/20 hover:text-white active:bg-white/30 active:text-white"
-            )}
+            className={cn(ROW_BASE, active ? ROW_ACTIVE : ROW_IDLE)}
           >
             <NavLink to={item.path} onClick={closeMobile}>
               <span className="text-sm shrink-0">{item.icon}</span>
@@ -271,7 +290,7 @@ const AppSidebar = ({
                 {item.label}
               </span>
               {item.badge > 0 && (
-                <span className="group-data-[collapsible=icon]:hidden min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center shrink-0">
+                <span className={cn(BADGE, "group-data-[collapsible=icon]:hidden")}>
                   {item.badge > 99 ? "99+" : item.badge}
                 </span>
               )}
@@ -289,17 +308,15 @@ const AppSidebar = ({
           className={cn(
             "flex items-center w-full h-auto py-2 px-3 text-sm transition-all rounded-lg",
             active
-              ? "bg-white/40 text-white font-semibold hover:bg-white/40 hover:text-white active:bg-white/40 active:text-white"
-              : "text-white/80 hover:bg-white/20 hover:text-white active:bg-white/30 active:text-white"
+              ? "bg-orange-50 text-orange-600 font-semibold hover:bg-orange-50 hover:text-orange-600 active:bg-orange-50 active:text-orange-600 dark:bg-orange-500/15 dark:text-orange-300 dark:hover:bg-orange-500/15 dark:hover:text-orange-300"
+              : "text-gray-600 hover:bg-orange-50 hover:text-orange-600 active:bg-orange-100 active:text-orange-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-orange-300 dark:active:bg-gray-800"
           )}
         >
           <NavLink to={item.path} onClick={closeMobile}>
             {item.icon && <span className="text-sm mr-2 shrink-0">{item.icon}</span>}
             <span className="flex-1 truncate">{item.label}</span>
             {item.badge > 0 && (
-              <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center shrink-0">
-                {item.badge > 99 ? "99+" : item.badge}
-              </span>
+              <span className={BADGE}>{item.badge > 99 ? "99+" : item.badge}</span>
             )}
           </NavLink>
         </SidebarMenuSubButton>
@@ -310,19 +327,19 @@ const AppSidebar = ({
   return (
     <Sidebar
       collapsible="icon"
-      className="bg-orange-500 dark:bg-gray-800 text-white rounded-r-2xl shadow-2xl border-0 overflow-hidden [&_[data-sidebar=sidebar]]:bg-transparent"
+      className="bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-r border-gray-200 dark:border-gray-800 shadow-none overflow-hidden [&_[data-sidebar=sidebar]]:bg-transparent"
     >
-      {/* ── Header: logo (or LP badge when collapsed) + close (mobile) + user ── */}
-      <SidebarHeader className="p-4 border-b border-white/20 group-data-[collapsible=icon]:px-2">
+      {/* ── Header: logo (or LP badge when collapsed) + close (mobile) + user card ── */}
+      <SidebarHeader className="p-4 group-data-[collapsible=icon]:px-2">
         <div className="flex items-center justify-between">
           {/* Full logo — expanded / mobile */}
-          <div className="flex-1 rounded-lg bg-white/80 p-2 flex items-center justify-center group-data-[collapsible=icon]:hidden">
-            <img src={logo} alt="Laxmi Powertech" className="w-full" />
+          <div className="flex-1 flex items-center justify-start group-data-[collapsible=icon]:hidden">
+            <img src={logo} alt="Laxmi Powertech" className="w-full max-h-12 object-contain object-left" />
           </div>
 
           {/* Compact badge — collapsed rail only */}
           <div
-            className="hidden group-data-[collapsible=icon]:flex mx-auto h-12 w-12 items-center justify-center rounded-lg bg-white/90 text-lg font-extrabold text-orange-500"
+            className="hidden group-data-[collapsible=icon]:flex mx-auto h-12 w-12 items-center justify-center rounded-lg bg-orange-500 text-lg font-extrabold text-white"
             title="Laxmi Powertech"
           >
             LP
@@ -331,7 +348,7 @@ const AppSidebar = ({
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden ml-2 text-white hover:bg-white/30 hover:text-white rounded-full shrink-0"
+            className="lg:hidden ml-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 rounded-full shrink-0"
             onClick={() => setOpenMobile(false)}
             aria-label="Close sidebar"
           >
@@ -340,15 +357,17 @@ const AppSidebar = ({
         </div>
 
         {user && (
-          <div className="pt-4 border-t border-white/20 mt-4">
-            <div
-              className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center"
-              title={user.name || "User"}
-            >
-              <FaUserCircle className="text-3xl text-white/90 shrink-0" />
+          <div
+            className="mt-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0"
+            title={user.name || "User"}
+          >
+            <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
+              <div className="h-9 w-9 shrink-0 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-300 text-xs font-bold flex items-center justify-center">
+                {initialsOf(user.name)}
+              </div>
               <div className="group-data-[collapsible=icon]:hidden min-w-0">
-                <div className="text-sm font-semibold truncate">{user.name || "User"}</div>
-                <div className="text-xs text-white/70 capitalize truncate">{user.role || "Supervisor"}</div>
+                <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{user.name || "User"}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 capitalize truncate">{user.role || "Supervisor"}</div>
               </div>
             </div>
           </div>
@@ -358,21 +377,19 @@ const AppSidebar = ({
       {/* ── Navigation: this is the only scroll container ── */}
       <SidebarContent className={cn("p-2", SCROLL_CLASSES)}>
         <SidebarMenu className="gap-1 pb-2">
-          {menuItems.map((item) => renderMenuItem(item))}
+          {mainItems.map((item) => renderMenuItem(item))}
         </SidebarMenu>
       </SidebarContent>
 
-      {/* ── Footer: logout (always visible) ── */}
-      <SidebarFooter className="p-2 border-t border-white/20 mt-auto">
+      {/* ── Footer: settings + logout (always visible) ── */}
+      <SidebarFooter className="p-2 border-t border-gray-200 dark:border-gray-800 mt-auto">
         <SidebarMenu>
+          {settingsItem && renderMenuItem(settingsItem)}
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="Logout"
               onClick={onLogout}
-              className={cn(
-                ROW_BASE,
-                "text-white hover:bg-white/20 hover:text-white active:bg-white/30 active:text-white"
-              )}
+              className={cn(ROW_BASE, ROW_IDLE)}
             >
               <FaPowerOff className="shrink-0 text-sm" />
               <span className="group-data-[collapsible=icon]:hidden">Logout</span>

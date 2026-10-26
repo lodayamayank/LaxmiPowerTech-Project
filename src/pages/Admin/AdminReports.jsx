@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import DashboardLayout from '../layouts/DashboardLayout';
-import axios from '../utils/axios';
+import DashboardLayout from '@/layouts/DashboardLayout';
+import axios from '@/utils/axios';
 import { FaChartPie, FaHardHat, FaWarehouse, FaFileExcel, FaFilePdf } from 'react-icons/fa';
 import { MdOutlineWork } from 'react-icons/md';
 import { Button } from '@/components/ui/button';

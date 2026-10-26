@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import DashboardLayout from '../layouts/DashboardLayout';
-import axios from '../utils/axios';
+import DashboardLayout from '../../layouts/DashboardLayout';
+import axios from '../../utils/axios';
 import { FaExclamationTriangle, FaTrash, FaImage } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';

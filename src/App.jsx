@@ -15,27 +15,27 @@ import InstallPWA from './components/InstallPWA';
 // Lazy load all pages for code-splitting
 const Login = lazy(() => import('./pages/Login'));
 const RoleBasedDashboard = lazy(() => import('./pages/RoleBasedDashboard'));
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'));
 const MyAttendance = lazy(() => import('./pages/MyAttendance'));
-const AdminMyTeam = lazy(() => import('./pages/AdminMyTeam'));
-const CreateProject = lazy(() => import('./pages/CreateProject'));
-const AdminAttendance = lazy(() => import('./pages/AdminAttendance'));
+const AdminMyTeam = lazy(() => import('./pages/Admin/AdminMyTeam'));
+const CreateProject = lazy(() => import('./pages/Admin/CreateProject'));
+const AdminAttendance = lazy(() => import('./pages/Admin/AdminAttendance'));
 const AttendancePage = lazy(() => import('./pages/AttendancePage'));
-const AdminVendors = lazy(() => import('./pages/AdminVendors'));
+const AdminVendors = lazy(() => import('./pages/Admin/AdminVendors'));
 const PunchInScreen = lazy(() => import('./pages/PunchInScreen'));
 const SelfieCaptureScreen = lazy(() => import('./pages/SelfieCaptureScreen'));
-const AdminBranches = lazy(() => import('./pages/AdminBranches'));
+const AdminBranches = lazy(() => import('./pages/Admin/AdminBranches'));
 const ProfileScreen = lazy(() => import('./pages/ProfileScreen'));
-const AdminLiveAttendance = lazy(() => import('./pages/AdminLiveAttendance'));
+const AdminLiveAttendance = lazy(() => import('./pages/Admin/AdminLiveAttendance'));
 const SupervisorAttendanceDashboard = lazy(() => import('./pages/SupervisorAttendanceDashboard'));
 const SubcontractorAttendanceDashboard = lazy(() => import('./pages/SubcontractorAttendanceDashboard'));
 const LabourAttendanceDashboard = lazy(() => import('./pages/LabourAttendanceDashboard'));
 const NotesDashboard = lazy(() => import('./pages/NotesDashboard'));
 const Leaves = lazy(() => import('./pages/Leaves'));
-const AdminLeaves = lazy(() => import('./pages/AdminLeaves'));
+const AdminLeaves = lazy(() => import('./pages/Admin/AdminLeaves'));
 const MyReimbursements = lazy(() => import('./pages/MyReimbursements'));
 const CreateReimbursement = lazy(() => import('./pages/CreateReimbursement'));
-const AdminReimbursements = lazy(() => import('./pages/AdminReimbursements'));
+const AdminReimbursements = lazy(() => import('./pages/Admin/AdminReimbursements'));
 const SupervisorDashboard = lazy(() => import('./pages/SupervisorDashboard'));
 const SupervisorProjectList = lazy(() => import('./pages/SupervisorProjectList'));
 const SupervisorLabourList = lazy(() => import('./pages/SupervisorLabourList'));
@@ -44,9 +44,10 @@ const SupervisorLabourDetails = lazy(() => import('./pages/SupervisorLabourDetai
 const LabourDashboard = lazy(() => import('./pages/LabourDashboard'));
 const TaskSubmission = lazy(() => import('./pages/TaskSubmission'));
 const TeamAttendance = lazy(() => import('./pages/TeamAttendance'));
-const AdminDeleteAttendance = lazy(() => import('./pages/AdminDeleteAttendance'));
+const AdminDeleteAttendance = lazy(() => import('./pages/Admin/AdminDeleteAttendance'));
+const AddEmployee = lazy(() => import('./pages/AddEmployee'));   
 
-// Material Management Pages - Lazy loaded
+// Material Management Pages - Lazy loaded  
 const Material = lazy(() => import('./pages/material/Material'));
 const MaterialTransferForm = lazy(() => import('./pages/material/MaterialTransferForm'));
 const IntentForm = lazy(() => import('./pages/material/IntentForm'));
@@ -71,15 +72,15 @@ const HolidayCalendar = lazy(() => import('./pages/HolidayCalendar'));
 const SalaryPolicyPage = lazy(() => import('./pages/SalaryPolicyPage'));
 
 // Task Management Pages - Lazy loaded
-const AdminTasks = lazy(() => import('./pages/AdminTasks'));
+const AdminTasks = lazy(() => import('./pages/Admin/AdminTasks'));
 
 // Work Order Management Pages - Lazy loaded
 const ManageWorkOrder = lazy(() => import('./pages/ManageWorkOrder'));
 const ManageInventoryLabour = lazy(() => import('./pages/ManageInventoryLabour'));
 
 // Reports Page
-const AdminReports = lazy(() => import('./pages/AdminReports'));
-const AdminTransfers = lazy(() => import('./pages/AdminTransfers'));
+const AdminReports = lazy(() => import('./pages/Admin/AdminReports'));
+const AdminTransfers = lazy(() => import('./pages/Admin/AdminTransfers'));
 const MobileMyIndents = lazy(() => import('./pages/MobileMyIndents'));
 const MaterialTransferMobile = lazy(() => import('./pages/MaterialTransferMobile'));
 const ConnectServer = lazy(() => import('./pages/ConnectServer'));
@@ -131,6 +132,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/my-attendance" element={<MyAttendance />} />
           <Route path="/admin/my-team" element={<AdminMyTeam />} />
+          <Route path="/admin/my-team" element={<AdminMyTeam />} />
+          <Route path="/admin/my-team/new" element={<AddEmployee />} />
           <Route path="/admin/projects" element={<CreateProject />} />
           <Route
             path="/admin/attendance/Supervisor"
@@ -158,7 +161,6 @@ function App() {
               </PrivateRoute>
             }
           />
-
           <Route
             path="/punch"
             element={
@@ -209,7 +211,6 @@ function App() {
             path="/admin/reimbursements"
             element={<AdminReimbursements />}
           />
-
           {/* Supervisor/Subcontractor Routes */}
           <Route
             path="/supervisor/projects"
@@ -236,10 +237,8 @@ function App() {
             path="/branch/:branchId/team-attendance"
             element={<TeamAttendance />}
           />
-
           {/* Admin Dashboard Route */}
           <Route path="/admindashboard" element={<AdminDashboard />} />
-
           {/* Client-Side Material Routes */}
           <Route
             path="/material/intent"
@@ -270,7 +269,6 @@ function App() {
           />
           <Route path="/material/grn" element={<Material activeTab="grn" />} />
           <Route path="/material/grn/:id" element={<GRNCardDetails />} />
-
           {/* Material Management Routes - Following existing flat route pattern */}
           <Route
             path="/dashboard/material/uploadindent"
@@ -318,28 +316,22 @@ function App() {
             path="/dashboard/material/upload-photo"
             element={<UploadPhoto />}
           />
-
           {/* Salary Management Routes */}
           <Route path="/admin/salary" element={<SalaryDashboard />} />
           <Route path="/admin/salary-history" element={<SalaryHistory />} />
           <Route path="/admin/holidays" element={<HolidayCalendar />} />
           <Route path="/admin/salary-policy" element={<SalaryPolicyPage />} />
-
           {/* Task Management Routes */}
           <Route path="/admin/tasks" element={<AdminTasks />} />
-
           {/* Work Order Management Routes */}
           <Route path="/dashboard/work-orders" element={<ManageWorkOrder />} />
-
           {/* Reports */}
           <Route path="/dashboard/report" element={<AdminReports />} />
-
           {/* Inventory */}
           <Route
             path="/dashboard/inventory/labour/manage"
             element={<ManageInventoryLabour />}
           />
-
           {/* Transfers */}
           <Route path="/admin/transfers" element={<AdminTransfers />} />
           <Route path="/material/my-indents" element={<MobileMyIndents />} />
@@ -347,7 +339,6 @@ function App() {
             path="/material/transfer-mobile"
             element={<MaterialTransferMobile />}
           />
-
           {/* Offline Sync */}
           <Route path="/connect-server" element={<ConnectServer />} />
         </Routes>

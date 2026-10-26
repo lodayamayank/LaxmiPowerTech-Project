@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import DashboardLayout from '../layouts/DashboardLayout';
-import axios from '../utils/axios';
+import DashboardLayout from '@/layouts/DashboardLayout';
+import axios from '@/utils/axios';
 import {
   FaBuilding,
   FaPhone,
