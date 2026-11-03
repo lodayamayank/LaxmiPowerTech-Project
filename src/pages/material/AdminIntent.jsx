@@ -1004,84 +1004,94 @@ export default function AdminIntent() {
   };
 
   // Delete All handler
-  const handleDeleteAll = async () => {
-    try {
-      setDeleting(true);
+  // const handleDeleteAll = async () => {
+  //   try {
+  //     setDeleting(true);
       
-      // Delete all purchase orders and indents
-      const [poResponse, indentResponse] = await Promise.all([
-        purchaseOrderAPI.deleteAll().catch(() => ({ success: false })),
-        indentAPI.deleteAll().catch(() => ({ success: false }))
-      ]);
+  //     // Delete all purchase orders and indents
+  //     const [poResponse, indentResponse] = await Promise.all([
+  //       purchaseOrderAPI.deleteAll().catch(() => ({ success: false })),
+  //       indentAPI.deleteAll().catch(() => ({ success: false }))
+  //     ]);
       
-      const poCount = poResponse.deletedCount || 0;
-      const indentCount = indentResponse.deletedCount || 0;
-      const totalCount = poCount + indentCount;
+  //     const poCount = poResponse.deletedCount || 0;
+  //     const indentCount = indentResponse.deletedCount || 0;
+  //     const totalCount = poCount + indentCount;
       
-      if (totalCount > 0) {
-        // Clear local state
-        setIndents([]);
-        setTotalPages(1);
-        setCurrentPage(1);
+  //     if (totalCount > 0) {
+  //       // Clear local state
+  //       setIndents([]);
+  //       setTotalPages(1);
+  //       setCurrentPage(1);
         
-        // Notify other components
-        window.dispatchEvent(new Event('intentCreated'));
-        localStorage.setItem('intentRefresh', Date.now().toString());
+  //       // Notify other components
+  //       window.dispatchEvent(new Event('intentCreated'));
+  //       localStorage.setItem('intentRefresh', Date.now().toString());
         
-        showToast(`Successfully deleted all ${totalCount} records`, 'success');
-      } else {
-        showToast('No records to delete', 'error');
-      }
-    } catch (err) {
-      console.error('Delete all error:', err);
-      showToast(err.response?.data?.message || 'Failed to delete all records', 'error');
-    } finally {
-      setDeleting(false);
-    }
-  };
+  //       showToast(`Successfully deleted all ${totalCount} records`, 'success');
+  //     } else {
+  //       showToast('No records to delete', 'error');
+  //     }
+  //   } catch (err) {
+  //     console.error('Delete all error:', err);
+  //     showToast(err.response?.data?.message || 'Failed to delete all records', 'error');
+  //   } finally {
+  //     setDeleting(false);
+  //   }
+  // };
 
   const latestUploadedIndent = indents.find(indent => indent.type === 'indent' && indent.imageUrl);
   const activeFilterCount = [filterSite, filterStatus, filterDateFrom, filterDateTo].filter(Boolean).length;
 
   return (
     <DashboardLayout title="Intent (PO)">
-    <div className="flex-1 p-6 bg-gray-50">
-      <div className="flex flex-col gap-4 mb-6 xl:flex-row xl:items-center xl:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-800">Intent (PO)</h1>
-          <p className="text-sm text-gray-500">View all purchase order requests</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={fetchIndents}
-            disabled={loading}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-            Refresh
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => latestUploadedIndent && handleViewDetails(latestUploadedIndent._id)}
-            disabled={!latestUploadedIndent}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-600 ring-1 ring-blue-100 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Eye size={16} />
-            Open Latest
-          </Button>
-          <Button
-            type="button"
-            onClick={() => latestUploadedIndent && handleQuickAddMaterial(latestUploadedIndent._id)}
-            disabled={!latestUploadedIndent}
-            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Plus size={16} />
-            Add to Latest
-          </Button>
-          <Button
+      <div className="flex-1 p-6 bg-gray-50">
+        <div className="flex flex-col gap-4 mb-6 xl:flex-row xl:items-center xl:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-800">
+              Intent (PO)
+            </h1>
+            <p className="text-sm text-gray-500">
+              View all purchase order requests
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={fetchIndents}
+              disabled={loading}
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+              Refresh
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() =>
+                latestUploadedIndent &&
+                handleViewDetails(latestUploadedIndent._id)
+              }
+              disabled={!latestUploadedIndent}
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-600 ring-1 ring-blue-100 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Eye size={16} />
+              Open Latest
+            </Button>
+            <Button
+              type="button"
+              onClick={() =>
+                latestUploadedIndent &&
+                handleQuickAddMaterial(latestUploadedIndent._id)
+              }
+              disabled={!latestUploadedIndent}
+              className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Plus size={16} />
+              Add to Latest
+            </Button>
+            {/* <Button
             onClick={() => setConfirmation({
               title: 'Delete all records?',
               description: 'Are you sure you want to delete all records? This action cannot be undone.',
@@ -1092,1270 +1102,1665 @@ export default function AdminIntent() {
           >
             <Trash2 size={16} />
             {deleting ? 'Deleting...' : 'Delete All'}
-          </Button>
-        </div>
-      </div>
-
-      {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex items-center gap-2">
-            <span className="text-red-600 font-medium">Error:</span>
-            <span className="text-red-700">{error}</span>
+          </Button> */}
           </div>
-          <Button
-            variant="link"
-            onClick={fetchIndents}
-            className="mt-2 h-auto p-0 text-sm text-red-600 hover:text-red-700 underline"
-          >
-            Try Again
-          </Button>
         </div>
-      )}
 
-      {loading ? (
-        <div className="space-y-4 rounded-lg bg-white p-6 shadow">
-          <Skeleton className="h-8 w-56" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-          <p className="text-gray-600 text-sm">Loading indents...</p>
-        </div>
-      ) : (
-        <Card className="bg-white dark:bg-gray-800 shadow rounded-lg border-0 p-4 overflow-x-auto">
-          <div className="mb-4">
-            <div className="flex flex-col gap-3 mb-3 lg:flex-row lg:items-center lg:justify-between">
-              <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-100">
-                Purchase Orders Table ({totalRecords} records)
-              </h2>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <div className="relative w-full sm:w-80">
-                  <Input
-                    type="text"
-                    placeholder="Search by PO ID..."
-                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-background text-foreground placeholder:text-muted-foreground py-2 pl-3 pr-10 text-sm focus:ring-2 focus:ring-orange-400"
-                    value={search}
-                    onChange={(e) => {
-                      setSearch(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                  />
-                  {search && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Clear search"
-                      onClick={() => {
-                        setSearch('');
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <span className="text-red-600 font-medium">Error:</span>
+              <span className="text-red-700">{error}</span>
+            </div>
+            <Button
+              variant="link"
+              onClick={fetchIndents}
+              className="mt-2 h-auto p-0 text-sm text-red-600 hover:text-red-700 underline"
+            >
+              Try Again
+            </Button>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="space-y-4 rounded-lg bg-white p-6 shadow">
+            <Skeleton className="h-8 w-56" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+            <p className="text-gray-600 text-sm">Loading indents...</p>
+          </div>
+        ) : (
+          <Card className="bg-white dark:bg-gray-800 shadow rounded-lg border-0 p-4 overflow-x-auto">
+            <div className="mb-4">
+              <div className="flex flex-col gap-3 mb-3 lg:flex-row lg:items-center lg:justify-between">
+                <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-100">
+                  Purchase Orders Table ({totalRecords} records)
+                </h2>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <div className="relative w-full sm:w-80">
+                    <Input
+                      type="text"
+                      placeholder="Search by PO ID..."
+                      className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-background text-foreground placeholder:text-muted-foreground py-2 pl-3 pr-10 text-sm focus:ring-2 focus:ring-orange-400"
+                      value={search}
+                      onChange={(e) => {
+                        setSearch(e.target.value);
                         setCurrentPage(1);
                       }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                      title="Clear search"
-                    >
-                      <X size={16} />
-                    </Button>
-                  )}
-                </div>
-                {(search || activeFilterCount > 0) && (
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setSearch('');
-                      setFilterSite('');
-                      setFilterStatus('');
-                      setFilterDateFrom('');
-                      setFilterDateTo('');
-                      setCurrentPage(1);
-                    }}
-                    className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-100"
-                  >
-                    Clear All
-                  </Button>
-                )}
-              </div>
-            </div>
-            
-            {/* ✅ Filters Section */}
-            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 shadow-sm">
-              <div className="flex gap-4 items-end flex-wrap">
-                {/* Site Filter */}
-                <div className="flex-1 min-w-[200px]">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Filter by Site</label>
-                  <Select
-                    value={filterSite || 'all'}
-                    onValueChange={(value) => {
-                      setFilterSite(value === 'all' ? '' : value);
-                      setCurrentPage(1);
-                    }}
-                  >
-                    <SelectTrigger className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer">
-                      <SelectValue placeholder="All Sites" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Sites</SelectItem>
-                    {sites.map(site => (
-                      <SelectItem key={site} value={site}>{site}</SelectItem>
-                    ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {/* Status Filter */}
-                <div className="flex-1 min-w-[180px]">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Filter by Status</label>
-                  <Select
-                    value={filterStatus || 'all'}
-                    onValueChange={(value) => {
-                      setFilterStatus(value === 'all' ? '' : value);
-                      setCurrentPage(1);
-                    }}
-                  >
-                    <SelectTrigger className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer">
-                      <SelectValue placeholder="All Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {/* Date From */}
-                <div className="flex-1 min-w-[160px]">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">From Date</label>
-                  <Input
-                    type="date"
-                    value={filterDateFrom}
-                    onChange={(e) => {
-                      setFilterDateFrom(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
-                  />
-                </div>
-                
-                {/* Date To */}
-                <div className="flex-1 min-w-[160px]">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">To Date</label>
-                  <Input
-                    type="date"
-                    value={filterDateTo}
-                    onChange={(e) => {
-                      setFilterDateTo(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
-                  />
-                </div>
-                
-                {/* Clear Filters Button */}
-                <Button
-                  onClick={() => {
-                    setFilterSite('');
-                    setFilterStatus('');
-                    setFilterDateFrom('');
-                    setFilterDateTo('');
-                    setCurrentPage(1);
-                  }}
-                  className="px-5 py-2.5 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-all"
-                >
-                  Clear Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
-                </Button>
-              </div>
-            </div>
-          </div>
-          {indents.length > 0 ? (
-            <>
-              <Table className="min-w-full border text-sm">
-                <TableHeader className="bg-orange-100 dark:bg-gray-700">
-                  <TableRow>
-                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">#</TableHead>
-                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">PO-ID</TableHead>
-                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Image</TableHead>
-                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Site</TableHead>
-                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Requested By</TableHead>
-                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Status</TableHead>
-                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Date</TableHead>
-                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {indents.map((indent, index) => (
-                    <TableRow
-                      key={indent._id}
-                      className="cursor-pointer hover:bg-orange-50/40 dark:hover:bg-gray-700"
-                      onDoubleClick={() => handleViewDetails(indent._id)}
-                      title="Double-click to open details"
-                    >
-                      <TableCell className="border px-4 py-2 text-gray-600">
-                        {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
-                      </TableCell>
-                      <TableCell className="border px-4 py-2 font-medium text-gray-900">
-                        {indent.indentId || 'N/A'}
-                      </TableCell>
-                      <TableCell className="border px-4 py-2">
-                        {indent.imageUrl ? (
-                          <div className="flex items-center gap-2">
-                            <img 
-                              src={resolveFileUrl(indent.imageUrl)}
-                              alt="Intent"
-                              className="w-12 h-12 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80"
-                              onClick={() => handleViewImage(indent.imageUrl)}
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'flex';
-                              }}
-                            />
-                            <div className="w-12 h-12 bg-orange-100 rounded border border-orange-200 items-center justify-center hidden">
-                              <ImageIcon size={20} className="text-orange-500" />
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400 text-xs">No image</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="border px-4 py-2 text-gray-700">{indent.deliverySite || 'N/A'}</TableCell>
-                      <TableCell className="border px-4 py-2">{indent.requestedBy?.name || indent.requestedBy || 'N/A'}</TableCell>
-                      <TableCell className="border px-4 py-2">
-                        <Badge className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(indent.status)}`}>
-                          {indent.status?.charAt(0).toUpperCase() + indent.status?.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="border px-4 py-2 text-gray-600">
-                        {formatDate(indent.createdAt)}
-                      </TableCell>
-                      <TableCell className="border px-4 py-2">
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label="View details"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewDetails(indent._id);
-                            }}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="View Details"
-                          >
-                            <Eye size={18} />
-                          </Button>
-                          {indent.status?.toLowerCase() === 'pending' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleApproveIntent(indent);
-                              }}
-                              className="inline-flex items-center gap-1.5 rounded bg-green-50 px-2.5 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-100 transition-colors disabled:opacity-50"
-                              title="Approve and send to Upcoming Deliveries"
-                              disabled={saving}
-                            >
-                              <CheckCircle size={14} />
-                              Approve
-                            </Button>
-                          )}
-                          {indent.type === 'indent' && indent.imageUrl && (
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleQuickAddMaterial(indent._id);
-                              }}
-                              className="inline-flex items-center gap-1.5 rounded bg-orange-50 px-2.5 py-1.5 text-xs font-semibold text-orange-600 hover:bg-orange-100 transition-colors"
-                              title="Add Material"
-                            >
-                              <Plus size={14} />
-                              Add
-                            </Button>
-                          )}
-                          <Button
-                            aria-label="Delete"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const label = indent.type === 'purchaseOrder' ? 'Purchase Order' : 'Intent';
-                              const indentId = indent.indentId || indent.purchaseOrderId;
-                              setConfirmation({
-                                title: `Delete ${label} ${indentId}?`,
-                                description: `Are you sure you want to delete ${label} ${indentId}?`,
-                                onConfirm: () => handleDelete(indent._id, indentId, indent.type)
-                              });
-                            }}
-                            className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                            title="Delete"
-                            disabled={deleting}
-                          >
-                            <Trash2 size={18} />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-4 flex items-center justify-between">
-                  <div className="text-sm text-gray-700">
-                    Page {currentPage} of {totalPages}
+                    />
+                    {search && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Clear search"
+                        onClick={() => {
+                          setSearch("");
+                          setCurrentPage(1);
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                        title="Clear search"
+                      >
+                        <X size={16} />
+                      </Button>
+                    )}
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-sm"
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                      className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-sm"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-sm">
-                {search ? 'No indents found matching your search' : 'No indents found'}
-              </p>
-            </div>
-          )}
-        </Card>
-      )}
-
-      {/* Details Modal */}
-      {showDetailsModal && selectedIndent && (
-        <Dialog open={showDetailsModal} onOpenChange={(open) => !open && closeModal()}>
-          <DialogContent
-            className={`bg-white rounded-lg shadow-xl w-full max-h-[92vh] flex flex-col overflow-hidden transform transition-all duration-300 ease-out ${
-              showManualMaterialForm ? 'max-w-7xl' : 'max-w-4xl'
-            } p-0 [&>button]:hidden`}
-          >
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 sm:px-6 py-4 rounded-t-lg">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="min-w-0">
-                  <DialogTitle className="text-xl font-bold text-white">
-                    Purchase Order Details
-                  </DialogTitle>
-                  <DialogDescription className="sr-only">
-                    Details and materials for this purchase order
-                  </DialogDescription>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-orange-50">
-                    <span className="font-semibold">{selectedIndent.purchaseOrderId || selectedIndent.indentId}</span>
-                    <span>{formatDate(selectedIndent.requestDate || selectedIndent.createdAt)}</span>
-                    <span>{selectedIndent.requestedBy?.name || selectedIndent.requestedBy || 'N/A'}</span>
-                    <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold">
-                      {selectedIndent.status?.charAt(0).toUpperCase() + selectedIndent.status?.slice(1)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-end gap-2">
-                  {selectedIndent.imageUrl && (
-                    <a
-                      href={resolveFileUrl(selectedIndent.imageUrl)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/25"
-                    >
-                      <ExternalLink size={16} />
-                      Open Image
-                    </a>
-                  )}
-                  {selectedIndent.status?.toLowerCase() === 'pending' && (
+                  {(search || activeFilterCount > 0) && (
                     <Button
                       type="button"
-                      onClick={() => handleApproveIntent(selectedIndent)}
-                      className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-orange-600 shadow-sm transition-colors hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-60"
-                      disabled={saving}
+                      onClick={() => {
+                        setSearch("");
+                        setFilterSite("");
+                        setFilterStatus("");
+                        setFilterDateFrom("");
+                        setFilterDateTo("");
+                        setCurrentPage(1);
+                      }}
+                      className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-100"
                     >
-                      <CheckCircle size={16} />
-                      {saving ? 'Approving...' : 'Approve'}
+                      Clear All
                     </Button>
                   )}
+                </div>
+              </div>
+
+              {/* ✅ Filters Section */}
+              <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 shadow-sm">
+                <div className="flex gap-4 items-end flex-wrap">
+                  {/* Site Filter */}
+                  <div className="flex-1 min-w-[200px]">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                      Filter by Site
+                    </label>
+                    <Select
+                      value={filterSite || "all"}
+                      onValueChange={(value) => {
+                        setFilterSite(value === "all" ? "" : value);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer">
+                        <SelectValue placeholder="All Sites" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Sites</SelectItem>
+                        {sites.map((site) => (
+                          <SelectItem key={site} value={site}>
+                            {site}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Status Filter */}
+                  <div className="flex-1 min-w-[180px]">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                      Filter by Status
+                    </label>
+                    <Select
+                      value={filterStatus || "all"}
+                      onValueChange={(value) => {
+                        setFilterStatus(value === "all" ? "" : value);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer">
+                        <SelectValue placeholder="All Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="approved">Approved</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Date From */}
+                  <div className="flex-1 min-w-[160px]">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                      From Date
+                    </label>
+                    <Input
+                      type="date"
+                      value={filterDateFrom}
+                      onChange={(e) => {
+                        setFilterDateFrom(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
+                    />
+                  </div>
+
+                  {/* Date To */}
+                  <div className="flex-1 min-w-[160px]">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                      To Date
+                    </label>
+                    <Input
+                      type="date"
+                      value={filterDateTo}
+                      onChange={(e) => {
+                        setFilterDateTo(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
+                    />
+                  </div>
+
+                  {/* Clear Filters Button */}
                   <Button
-                    type="button"
-                    onClick={handleOpenManualMaterialForm}
-                    className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-sm transition-colors ${
-                      showManualMaterialForm
-                        ? 'bg-white text-orange-600'
-                        : 'bg-white text-orange-600 hover:bg-orange-50'
-                    }`}
+                    onClick={() => {
+                      setFilterSite("");
+                      setFilterStatus("");
+                      setFilterDateFrom("");
+                      setFilterDateTo("");
+                      setCurrentPage(1);
+                    }}
+                    className="px-5 py-2.5 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-all"
                   >
-                    <Plus size={16} />
-                    Add Material
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={closeModal}
-                    className="text-white hover:text-orange-100 transition-colors p-2 hover:bg-orange-600 rounded-lg"
-                    title="Close"
-                    aria-label="Close"
-                  >
-                    <X size={24} />
+                    Clear Filters
+                    {activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
                   </Button>
                 </div>
               </div>
             </div>
-
-            {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
-              {/* Intent PO Information */}
-              {!showManualMaterialForm && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-orange-200">
-                  Intent PO Information
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">PO ID</p>
-                    <p className="font-medium text-gray-900">{selectedIndent.purchaseOrderId || selectedIndent.indentId}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Status</p>
-                    {editing ? (
-                      <Select
-                        value={formData.status}
-                        onValueChange={(value) => setFormData({ ...formData, status: value })}
+            {indents.length > 0 ? (
+              <>
+                <Table className="min-w-full border text-sm">
+                  <TableHeader className="bg-orange-100 dark:bg-gray-700">
+                    <TableRow>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">
+                        #
+                      </TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">
+                        PO-ID
+                      </TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">
+                        Image
+                      </TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">
+                        Site
+                      </TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">
+                        Requested By
+                      </TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">
+                        Status
+                      </TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">
+                        Date
+                      </TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">
+                        Actions
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {indents.map((indent, index) => (
+                      <TableRow
+                        key={indent._id}
+                        className="cursor-pointer hover:bg-orange-50/40 dark:hover:bg-gray-700"
+                        onDoubleClick={() => handleViewDetails(indent._id)}
+                        title="Double-click to open details"
                       >
-                        <SelectTrigger className="mt-1 w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white text-gray-900">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="approved">Approved</SelectItem>
-                          <SelectItem value="transferred">Transferred</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <div className="mt-1">
-                        <Badge className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(selectedIndent.status)}`}>
-                          {selectedIndent.status?.charAt(0).toUpperCase() + selectedIndent.status?.slice(1)}
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Delivery Site</p>
-                    {editing ? (
-                      <Input
-                        type="text"
-                        value={formData.deliverySite}
-                        onChange={(e) => setFormData({ ...formData, deliverySite: e.target.value })}
-                        className="mt-1 w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white text-gray-900"
-                      />
-                    ) : (
-                      <p className="font-medium text-gray-900">{selectedIndent.deliverySite || 'N/A'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Requested By</p>
-                    {/* ❌ ALWAYS READ-ONLY - Cannot be edited in any mode */}
-                    <div className="mt-1 px-3 py-2 bg-gray-100 border border-gray-200 rounded text-gray-700 font-medium">
-                      {selectedIndent.requestedBy?.name || selectedIndent.requestedBy || 'N/A'}
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Request Date</p>
-                    <p className="font-medium text-gray-900">{formatDate(selectedIndent.requestDate || selectedIndent.createdAt)}</p>
-                  </div>
-                </div>
-              </div>
-              )}
+                        <TableCell className="border px-4 py-2 text-gray-600">
+                          {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
+                        </TableCell>
+                        <TableCell className="border px-4 py-2 font-medium text-gray-900">
+                          {indent.indentId || "N/A"}
+                        </TableCell>
+                        <TableCell className="border px-4 py-2">
+                          {indent.imageUrl ? (
+                            <div className="flex items-center gap-2">
+                              <img
+                                src={resolveFileUrl(indent.imageUrl)}
+                                alt="Intent"
+                                className="w-12 h-12 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80"
+                                onClick={() => handleViewImage(indent.imageUrl)}
+                                onError={(e) => {
+                                  e.target.style.display = "none";
+                                  e.target.nextSibling.style.display = "flex";
+                                }}
+                              />
+                              <div className="w-12 h-12 bg-orange-100 rounded border border-orange-200 items-center justify-center hidden">
+                                <ImageIcon
+                                  size={20}
+                                  className="text-orange-500"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 text-xs">
+                              No image
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="border px-4 py-2 text-gray-700">
+                          {indent.deliverySite || "N/A"}
+                        </TableCell>
+                        <TableCell className="border px-4 py-2">
+                          {indent.requestedBy?.name ||
+                            indent.requestedBy ||
+                            "N/A"}
+                        </TableCell>
+                        <TableCell className="border px-4 py-2">
+                          <Badge
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                              indent.status,
+                            )}`}
+                          >
+                            {indent.status?.charAt(0).toUpperCase() +
+                              indent.status?.slice(1)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="border px-4 py-2 text-gray-600">
+                          {formatDate(indent.createdAt)}
+                        </TableCell>
+                        <TableCell className="border px-4 py-2">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="View details"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewDetails(indent._id);
+                              }}
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                              title="View Details"
+                            >
+                              <Eye size={18} />
+                            </Button>
+                            {indent.status?.toLowerCase() === "pending" && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleApproveIntent(indent);
+                                }}
+                                className="inline-flex items-center gap-1.5 rounded bg-green-50 px-2.5 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-100 transition-colors disabled:opacity-50"
+                                title="Approve and send to Upcoming Deliveries"
+                                disabled={saving}
+                              >
+                                <CheckCircle size={14} />
+                                Approve
+                              </Button>
+                            )}
+                            {indent.status?.toLowerCase() === "pending" && (
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleQuickAddMaterial(indent._id);
+                                }}
+                                className="inline-flex items-center gap-1.5 rounded bg-orange-50 px-2.5 py-1.5 text-xs font-semibold text-orange-600 hover:bg-orange-100 transition-colors"
+                                title="Add Material"
+                              >
+                                <Plus size={14} />
+                                Add
+                              </Button>
+                            )}
+                            <Button
+                              aria-label="Delete"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const label =
+                                  indent.type === "purchaseOrder"
+                                    ? "Purchase Order"
+                                    : "Intent";
+                                const indentId =
+                                  indent.indentId || indent.purchaseOrderId;
+                                setConfirmation({
+                                  title: `Delete ${label} ${indentId}?`,
+                                  description: `Are you sure you want to delete ${label} ${indentId}?`,
+                                  onConfirm: () =>
+                                    handleDelete(
+                                      indent._id,
+                                      indentId,
+                                      indent.type,
+                                    ),
+                                });
+                              }}
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                              title="Delete"
+                              disabled={deleting}
+                            >
+                              <Trash2 size={18} />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
 
-              {/* Uploaded image */}
-              {selectedIndent.imageUrl && !showManualMaterialForm && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-orange-200">
-                    Uploaded Intent Image
-                  </h3>
-                  <div className="border rounded-lg overflow-hidden bg-gray-50">
-                    <img
-                      src={resolveFileUrl(selectedIndent.imageUrl)}
-                      alt="Uploaded intent"
-                      className="w-full max-h-[60vh] object-contain bg-white"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        const fallback = e.currentTarget.nextElementSibling;
-                        if (fallback) fallback.style.display = 'flex';
-                      }}
-                    />
-                    <div className="hidden min-h-48 items-center justify-center p-6 text-center text-gray-500">
-                      Image could not be loaded. The file may be missing or unavailable.
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="text-sm text-gray-700">
+                      Page {currentPage} of {totalPages}
                     </div>
-                    <div className="flex flex-wrap justify-end gap-3 border-t bg-white px-4 py-3">
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(1, prev - 1))
+                        }
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-sm"
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(totalPages, prev + 1),
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-sm"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-sm">
+                  {search
+                    ? "No indents found matching your search"
+                    : "No indents found"}
+                </p>
+              </div>
+            )}
+          </Card>
+        )}
+
+        {/* Details Modal */}
+        {showDetailsModal && selectedIndent && (
+          <Dialog
+            open={showDetailsModal}
+            onOpenChange={(open) => !open && closeModal()}
+          >
+            <DialogContent
+              className={`bg-white rounded-lg shadow-xl w-full max-h-[92vh] flex flex-col overflow-hidden transform transition-all duration-300 ease-out ${
+                showManualMaterialForm ? "max-w-7xl" : "max-w-4xl"
+              } p-0 [&>button]:hidden`}
+            >
+              {/* Modal Header */}
+              <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 sm:px-6 py-4 rounded-t-lg">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="min-w-0">
+                    <DialogTitle className="text-xl font-bold text-white">
+                      Purchase Order Details
+                    </DialogTitle>
+                    <DialogDescription className="sr-only">
+                      Details and materials for this purchase order
+                    </DialogDescription>
+                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-orange-50">
+                      <span className="font-semibold">
+                        {selectedIndent.purchaseOrderId ||
+                          selectedIndent.indentId}
+                      </span>
+                      <span>
+                        {formatDate(
+                          selectedIndent.requestDate ||
+                            selectedIndent.createdAt,
+                        )}
+                      </span>
+                      <span>
+                        {selectedIndent.requestedBy?.name ||
+                          selectedIndent.requestedBy ||
+                          "N/A"}
+                      </span>
+                      <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold">
+                        {selectedIndent.status?.charAt(0).toUpperCase() +
+                          selectedIndent.status?.slice(1)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    {selectedIndent.imageUrl && (
                       <a
                         href={resolveFileUrl(selectedIndent.imageUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+                        className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/25"
                       >
+                        <ExternalLink size={16} />
                         Open Image
                       </a>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {showManualMaterialForm && (
-                <div className="mb-6 overflow-hidden rounded-lg border border-orange-200 bg-white">
-                  <div className="flex flex-col gap-3 border-b border-orange-200 bg-orange-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800">
-                        {manualMaterialMode === 'edit'
-                          ? 'Edit Material'
-                          : selectedIndent.imageUrl
-                            ? 'Add Material From Uploaded Image'
-                            : 'Add Material'}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {manualMaterialMode === 'edit'
-                          ? `Update this material without creating a duplicate on ${selectedIndent.purchaseOrderId || selectedIndent.indentId}.`
-                          : selectedIndent.imageUrl
-                            ? `Keep the image visible while saving materials to ${selectedIndent.purchaseOrderId || selectedIndent.indentId}.`
-                            : `Save materials directly to ${selectedIndent.purchaseOrderId || selectedIndent.indentId}.`}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {materialSuccessMessage && (
-                        <div className="inline-flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">
-                          <CheckCircle size={16} />
-                          {materialSuccessMessage}
-                        </div>
-                      )}
+                    )}
+                    {selectedIndent.status?.toLowerCase() === "pending" && (
                       <Button
                         type="button"
-                        onClick={closeManualMaterialForm}
-                        className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50"
-                        disabled={addingMaterial}
+                        onClick={() => handleApproveIntent(selectedIndent)}
+                        className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-orange-600 shadow-sm transition-colors hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={saving}
                       >
-                        Close Form
+                        <CheckCircle size={16} />
+                        {saving ? "Approving..." : "Approve"}
                       </Button>
+                    )}
+                    <Button
+                      type="button"
+                      onClick={handleOpenManualMaterialForm}
+                      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-sm transition-colors ${
+                        showManualMaterialForm
+                          ? "bg-white text-orange-600"
+                          : "bg-white text-orange-600 hover:bg-orange-50"
+                      }`}
+                    >
+                      <Plus size={16} />
+                      Add Material
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={closeModal}
+                      className="text-white hover:text-orange-100 transition-colors p-2 hover:bg-orange-600 rounded-lg"
+                      title="Close"
+                      aria-label="Close"
+                    >
+                      <X size={24} />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Content */}
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+                {/* Intent PO Information */}
+                {!showManualMaterialForm && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-orange-200">
+                      Intent PO Information
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500">PO ID</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedIndent.purchaseOrderId ||
+                            selectedIndent.indentId}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Status</p>
+                        {editing ? (
+                          <Select
+                            value={formData.status}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, status: value })
+                            }
+                          >
+                            <SelectTrigger className="mt-1 w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white text-gray-900">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="approved">Approved</SelectItem>
+                              <SelectItem value="transferred">
+                                Transferred
+                              </SelectItem>
+                              <SelectItem value="cancelled">
+                                Cancelled
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="mt-1">
+                            <Badge
+                              className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                                selectedIndent.status,
+                              )}`}
+                            >
+                              {selectedIndent.status?.charAt(0).toUpperCase() +
+                                selectedIndent.status?.slice(1)}
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Delivery Site</p>
+                        {editing ? (
+                          <Input
+                            type="text"
+                            value={formData.deliverySite}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                deliverySite: e.target.value,
+                              })
+                            }
+                            className="mt-1 w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white text-gray-900"
+                          />
+                        ) : (
+                          <p className="font-medium text-gray-900">
+                            {selectedIndent.deliverySite || "N/A"}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Requested By</p>
+                        {/* ❌ ALWAYS READ-ONLY - Cannot be edited in any mode */}
+                        <div className="mt-1 px-3 py-2 bg-gray-100 border border-gray-200 rounded text-gray-700 font-medium">
+                          {selectedIndent.requestedBy?.name ||
+                            selectedIndent.requestedBy ||
+                            "N/A"}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Request Date</p>
+                        <p className="font-medium text-gray-900">
+                          {formatDate(
+                            selectedIndent.requestDate ||
+                              selectedIndent.createdAt,
+                          )}
+                        </p>
+                      </div>
                     </div>
                   </div>
+                )}
 
-                  <div className={`grid max-h-none grid-cols-1 ${
-                    selectedIndent.imageUrl ? 'lg:max-h-[calc(92vh-210px)] lg:grid-cols-[minmax(0,48%)_minmax(0,52%)]' : ''
-                  }`}>
-                    {selectedIndent.imageUrl && (
-                    <div className="border-b border-orange-100 bg-gray-50 lg:border-b-0 lg:border-r">
-                      <div className="flex h-full flex-col p-4">
-                        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-semibold text-gray-700">Uploaded image reference</p>
-                            <p className="text-xs text-gray-500">Zoom: {imageZoom}%</p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              type="button"
-                              onClick={() => setImageZoom(prev => Math.max(60, prev - 20))}
-                              className="rounded-lg border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-50"
-                              title="Zoom out"
-                              aria-label="Zoom out"
-                            >
-                              <ZoomOut size={16} />
-                            </Button>
-                            <Button
-                              type="button"
-                              onClick={() => setImageZoom(100)}
-                              className="rounded-lg border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-50"
-                              title="Reset zoom"
-                              aria-label="Reset zoom"
-                            >
-                              <RotateCcw size={16} />
-                            </Button>
-                            <Button
-                              type="button"
-                              onClick={() => setImageZoom(prev => Math.min(220, prev + 20))}
-                              className="rounded-lg border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-50"
-                              title="Zoom in"
-                              aria-label="Zoom in"
-                            >
-                              <ZoomIn size={16} />
-                            </Button>
-                            <a
-                              href={resolveFileUrl(selectedIndent.imageUrl)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-100"
-                            >
-                              <ExternalLink size={14} />
-                              Full
-                            </a>
-                          </div>
-                        </div>
-                        <div className="flex-1 overflow-auto rounded-lg border bg-white">
-                          <img
-                            src={resolveFileUrl(selectedIndent.imageUrl)}
-                            alt="Uploaded intent reference"
-                            className="mx-auto max-w-none object-contain bg-white transition-all duration-150"
-                            style={{ width: `${imageZoom}%` }}
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              const fallback = e.currentTarget.nextElementSibling;
-                              if (fallback) fallback.style.display = 'flex';
-                            }}
-                          />
-                          <div className="hidden min-h-64 items-center justify-center p-6 text-center text-gray-500">
-                            Image could not be loaded. Open the full image from the button above.
-                          </div>
-                        </div>
+                {/* Uploaded image */}
+                {selectedIndent.imageUrl && !showManualMaterialForm && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-orange-200">
+                      Uploaded Intent Image
+                    </h3>
+                    <div className="border rounded-lg overflow-hidden bg-gray-50">
+                      <img
+                        src={resolveFileUrl(selectedIndent.imageUrl)}
+                        alt="Uploaded intent"
+                        className="w-full max-h-[60vh] object-contain bg-white"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          const fallback = e.currentTarget.nextElementSibling;
+                          if (fallback) fallback.style.display = "flex";
+                        }}
+                      />
+                      <div className="hidden min-h-48 items-center justify-center p-6 text-center text-gray-500">
+                        Image could not be loaded. The file may be missing or
+                        unavailable.
+                      </div>
+                      <div className="flex flex-wrap justify-end gap-3 border-t bg-white px-4 py-3">
+                        <a
+                          href={resolveFileUrl(selectedIndent.imageUrl)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+                        >
+                          Open Image
+                        </a>
                       </div>
                     </div>
-                    )}
+                  </div>
+                )}
 
-                    <div className={`flex max-h-none flex-col overflow-hidden ${
-                      selectedIndent.imageUrl ? 'lg:max-h-[calc(92vh-210px)]' : ''
-                    }`}>
-                      <div className="flex-1 overflow-y-auto p-4">
-                        <div className="rounded-lg border border-gray-200 bg-white p-4">
-                          <div className="mb-4 flex items-center justify-between gap-3">
-                            <div>
-                              <h4 className="text-base font-semibold text-gray-800">
-                                {manualMaterialMode === 'edit' ? 'Update Material Details' : 'Material Details'}
-                              </h4>
-                              <p className="text-sm text-gray-500">Required fields are marked with *</p>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                Material / Category <span className="text-red-500">*</span>
-                              </label>
-                              <Input
-                                value={manualMaterial.category}
-                                onChange={(e) => updateManualMaterial('category', e.target.value)}
-                                list="manual-material-categories"
-                                placeholder="Select or type material"
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
-                              />
-                              <datalist id="manual-material-categories">
-                                {categories.map(category => (
-                                  <option key={category} value={category} />
-                                ))}
-                              </datalist>
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sub Category</label>
-                              <Input
-                                value={manualMaterial.subCategory}
-                                onChange={(e) => updateManualMaterial('subCategory', e.target.value)}
-                                list="manual-material-subcategories"
-                                placeholder="Select or type sub category"
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
-                              />
-                              <datalist id="manual-material-subcategories">
-                                {getSubcategories(manualMaterial.category).map(option => (
-                                  <option key={option} value={option} />
-                                ))}
-                              </datalist>
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sub Category 1</label>
-                              <Input
-                                value={manualMaterial.subCategory1}
-                                onChange={(e) => updateManualMaterial('subCategory1', e.target.value)}
-                                list="manual-material-subcategory1"
-                                placeholder="Select or type sub category 1"
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
-                              />
-                              <datalist id="manual-material-subcategory1">
-                                {getSubSubcategories(manualMaterial.category, manualMaterial.subCategory).map(option => (
-                                  <option key={option} value={option} />
-                                ))}
-                              </datalist>
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sub Category 2</label>
-                              <Input
-                                value={manualMaterial.subCategory2}
-                                onChange={(e) => updateManualMaterial('subCategory2', e.target.value)}
-                                list="manual-material-subcategory2"
-                                placeholder="Select or type sub category 2"
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
-                              />
-                              <datalist id="manual-material-subcategory2">
-                                {getSubCategory2(manualMaterial.category, manualMaterial.subCategory, manualMaterial.subCategory1).map(option => (
-                                  <option key={option} value={option} />
-                                ))}
-                              </datalist>
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                Quantity <span className="text-red-500">*</span>
-                              </label>
-                              <Input
-                                type="number"
-                                min="1"
-                                value={manualMaterial.quantity}
-                                onChange={(e) => updateManualMaterial('quantity', e.target.value)}
-                                placeholder="Enter quantity"
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Unit</label>
-                              <Select
-                                value={manualMaterial.uom}
-                                onValueChange={(value) => updateManualMaterial('uom', value)}
-                              >
-                                <SelectTrigger className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 bg-white">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="Nos">Nos</SelectItem>
-                                  <SelectItem value="pcs">pcs</SelectItem>
-                                  <SelectItem value="bags">bags</SelectItem>
-                                  <SelectItem value="kg">kg</SelectItem>
-                                  <SelectItem value="mtr">mtr</SelectItem>
-                                  <SelectItem value="box">box</SelectItem>
-                                  <SelectItem value="set">set</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <div className="md:col-span-2">
-                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Vendor</label>
-                              <Select
-                                value={manualMaterial.vendor || 'all'}
-                                onValueChange={(value) => updateManualMaterial('vendor', value === 'all' ? '' : value)}
-                                disabled={!vendors || vendors.length === 0}
-                              >
-                                <SelectTrigger className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 bg-white disabled:bg-gray-100">
-                                  <SelectValue placeholder="Select Vendor" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="all">Select Vendor</SelectItem>
-                                  {vendors && Array.isArray(vendors) && vendors.map(vendor => (
-                                    <SelectItem key={vendor._id} value={vendor._id}>
-                                      {vendor.companyName}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <div className="md:col-span-2">
-                              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Remarks / Specification</label>
-                              <Textarea
-                                value={manualMaterial.remarks}
-                                onChange={(e) => updateManualMaterial('remarks', e.target.value)}
-                                rows={3}
-                                placeholder="Add size, brand, specification, or note"
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 rounded-lg border border-gray-200 bg-white">
-                          <div className="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
-                            <h4 className="text-base font-semibold text-gray-800">
-                              Added Materials ({selectedIndent.materials?.length || 0})
-                            </h4>
-                          </div>
-                          {selectedIndent.materials && selectedIndent.materials.length > 0 ? (
-                            <div className="max-h-72 overflow-auto">
-                              {selectedIndent.materials.map((material, index) => {
-                                const rowKey = getMaterialRowKey(material, index);
-                                return (
-                                  <div
-                                    key={rowKey}
-                                    className={`border-b px-4 py-3 text-sm last:border-b-0 transition-colors ${
-                                      rowKey === lastAddedMaterialId ? 'bg-green-50 ring-1 ring-inset ring-green-200' : 'bg-white'
-                                    }`}
-                                  >
-                                    <div className="flex flex-wrap items-start justify-between gap-2">
-                                      <div>
-                                        <p className="font-semibold text-gray-900">{material.itemName || '-'}</p>
-                                        <p className="mt-1 text-xs text-gray-500">
-                                          {[material.category, material.subCategory, material.subCategory1, material.subCategory2]
-                                            .filter(Boolean)
-                                            .join(' / ') || 'No category details'}
-                                        </p>
-                                      </div>
-                                      <Badge className="rounded-full bg-orange-50 px-2 py-1 text-xs font-semibold text-orange-600">
-                                        {material.quantity || '-'} {material.uom || 'Nos'}
-                                      </Badge>
-                                    </div>
-                                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                                      <Button
-                                        type="button"
-                                        onClick={() => handleEditManualMaterial(material)}
-                                        className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100"
-                                      >
-                                        <Edit2 size={14} />
-                                        Edit
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        onClick={() => setMaterialToDelete(material)}
-                                        className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100"
-                                      >
-                                        <Trash2 size={14} />
-                                        Delete
-                                      </Button>
-                                    </div>
-                                    <div className="mt-2 grid grid-cols-1 gap-2 text-xs text-gray-600 sm:grid-cols-2">
-                                      <span>Vendor: {material.vendor?.companyName || 'N/A'}</span>
-                                      <span>Added: {material.createdAt ? formatDate(material.createdAt) : formatDate(selectedIndent.updatedAt || selectedIndent.createdAt)}</span>
-                                    </div>
-                                    {material.remarks && (
-                                      <p className="mt-2 text-xs text-gray-600">{material.remarks}</p>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            <p className="px-4 py-6 text-center text-sm text-gray-500">
-                              No materials added to this Intent PO yet.
-                            </p>
-                          )}
-                        </div>
+                {showManualMaterialForm && (
+                  <div className="mb-6 overflow-hidden rounded-lg border border-orange-200 bg-white">
+                    <div className="flex flex-col gap-3 border-b border-orange-200 bg-orange-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          {manualMaterialMode === "edit"
+                            ? "Edit Material"
+                            : selectedIndent.imageUrl
+                            ? "Add Material From Uploaded Image"
+                            : "Add Material"}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {manualMaterialMode === "edit"
+                            ? `Update this material without creating a duplicate on ${
+                                selectedIndent.purchaseOrderId ||
+                                selectedIndent.indentId
+                              }.`
+                            : selectedIndent.imageUrl
+                            ? `Keep the image visible while saving materials to ${
+                                selectedIndent.purchaseOrderId ||
+                                selectedIndent.indentId
+                              }.`
+                            : `Save materials directly to ${
+                                selectedIndent.purchaseOrderId ||
+                                selectedIndent.indentId
+                              }.`}
+                        </p>
                       </div>
-
-                      <div className="sticky bottom-0 flex flex-col gap-2 border-t bg-white px-4 py-3 sm:flex-row sm:justify-end">
-                        <Button
-                          type="button"
-                          onClick={closeManualMaterialForm}
-                          className="rounded-lg bg-gray-200 px-4 py-2.5 font-medium text-gray-700 transition-colors hover:bg-gray-300"
-                          disabled={addingMaterial}
-                        >
-                          Cancel
-                        </Button>
-                        {manualMaterialMode !== 'edit' && (
-                          <Button
-                            type="button"
-                            onClick={() => handleSaveManualMaterial(true)}
-                            disabled={addingMaterial}
-                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-50 px-4 py-2.5 font-semibold text-orange-600 ring-1 ring-orange-200 transition-colors hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            {addingMaterial ? 'Saving...' : 'Save & Add Another'}
-                          </Button>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {materialSuccessMessage && (
+                          <div className="inline-flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">
+                            <CheckCircle size={16} />
+                            {materialSuccessMessage}
+                          </div>
                         )}
                         <Button
                           type="button"
-                          onClick={() => handleSaveManualMaterial(false)}
+                          onClick={closeManualMaterialForm}
+                          className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50"
                           disabled={addingMaterial}
-                          className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-500 px-5 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          {addingMaterial ? (
-                            <>
-                              <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
-                              Saving...
-                            </>
-                          ) : (
-                            <>
-                              <Save size={16} />
-                              {manualMaterialMode === 'edit' ? 'Update Material' : 'Save Material'}
-                            </>
-                          )}
+                          Close Form
                         </Button>
                       </div>
                     </div>
-                  </div>
-                </div>
-              )}
 
-              {!showManualMaterialForm && (
-              <>
-              {/* Materials List */}
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-3 pb-2 border-b-2 border-orange-200">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Added Materials ({editing ? formData.materials?.length : selectedIndent.materials?.length || 0} items)
-                  </h3>
-                </div>
-                
-                {editing ? (
-                  <div className="space-y-2">
-                    {Array.isArray(formData.materials) && formData.materials.length > 0 ? (
-                      formData.materials.map((material, idx) => (
-                        <MaterialLineItem
-                          key={material.id}
-                          material={material}
-                          index={idx}
-                          isEditing={editingMaterialId === material.id}
-                          onEdit={() => setEditingMaterialId(material.id)}
-                          onDoneEditing={() => setEditingMaterialId(null)}
-                          onRemove={() => removeMaterialRow(material.id)}
-                          onUpdate={(fieldName, value) => {
-                            if (fieldName === 'category') {
-                              updateMaterial(material.id, { category: value, subCategory: '', subCategory1: '', subCategory2: '' });
-                            } else if (fieldName === 'subCategory') {
-                              updateMaterial(material.id, { subCategory: value, subCategory1: '', subCategory2: '' });
-                            } else if (fieldName === 'subCategory1') {
-                              updateMaterial(material.id, { subCategory1: value, subCategory2: '' });
-                            } else {
-                              updateMaterial(material.id, { [fieldName]: value });
-                            }
-                          }}
-                          categories={categories}
-                          getSubcategories={getSubcategories}
-                          getSubSubcategories={getSubSubcategories}
-                          getSubSubSubcategories={getSubCategory2}
-                        />
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-500 text-center py-4">No materials added</p>
-                    )}
-                    
-                    {/* Vendor Selection Table in Edit Mode */}
-                    {Array.isArray(formData.materials) && formData.materials.length > 0 && (
-                      <div className="mt-4">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Assign Vendors to Materials</h4>
-                        <div className="overflow-x-auto">
-                          <Table className="min-w-full border text-sm">
-                            <TableHeader className="bg-gray-50">
-                              <TableRow>
-                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">#</TableHead>
-                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Material</TableHead>
-                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Quantity</TableHead>
-                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Vendor</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {formData.materials.map((material, index) => (
-                                <TableRow key={material.id} className="hover:bg-gray-50">
-                                  <TableCell className="border px-3 py-2 text-gray-600">{index + 1}</TableCell>
-                                  <TableCell className="border px-3 py-2">
-                                    {material.category}{material.subCategory ? ` - ${material.subCategory}` : ''}
-                                    {material.subCategory1 ? ` - ${material.subCategory1}` : ''}
-                                    {material.subCategory2 ? ` - ${material.subCategory2}` : ''}
-                                  </TableCell>
-                                  <TableCell className="border px-3 py-2">{material.quantity || '-'} {material.uom || 'Nos'}</TableCell>
-                                  <TableCell className="border px-3 py-2">
-                                    <Select
-                                      value={material.vendor || 'all'}
-                                      onValueChange={(value) => updateMaterial(material.id, { vendor: value === 'all' ? '' : value })}
-                                      disabled={!vendors || vendors.length === 0}
-                                    >
-                                      <SelectTrigger className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white">
-                                        <SelectValue placeholder="Select Vendor" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="all">Select Vendor</SelectItem>
-                                        {vendors && Array.isArray(vendors) && vendors.map(vendor => (
-                                          <SelectItem key={vendor._id} value={vendor._id}>
-                                            {vendor.companyName}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  selectedIndent.materials && selectedIndent.materials.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <Table className="min-w-full border text-sm">
-                        <TableHeader className="bg-orange-50">
-                          <TableRow>
-                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">#</TableHead>
-                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Item Name</TableHead>
-                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Category/Type</TableHead>
-                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Quantity</TableHead>
-                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">UOM</TableHead>
-                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">VendorName</TableHead>
-                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Remarks</TableHead>
-                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Added Date</TableHead>
-                            <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {selectedIndent.materials.map((material, index) => (
-                            <TableRow key={index} className="hover:bg-gray-50">
-                              <TableCell className="border px-3 py-2 text-gray-600">{index + 1}</TableCell>
-                              <TableCell className="border px-3 py-2 font-medium">{material.itemName || '-'}</TableCell>
-                              <TableCell className="border px-3 py-2 text-gray-600">
-                                {[material.category, material.subCategory, material.subCategory1, material.subCategory2]
-                                  .filter(Boolean)
-                                  .join(' / ') || '-'}
-                              </TableCell>
-                              <TableCell className="border px-3 py-2">{material.quantity || '-'}</TableCell>
-                              <TableCell className="border px-3 py-2">{material.uom || '-'}</TableCell>
-                              <TableCell className="border px-3 py-2 text-gray-600">
-                                {material.vendor?.companyName || 'N/A'}
-                              </TableCell>
-                              <TableCell className="border px-3 py-2 text-gray-600">{material.remarks || '-'}</TableCell>
-                              <TableCell className="border px-3 py-2 text-gray-600">
-                                {material.createdAt ? formatDate(material.createdAt) : formatDate(selectedIndent.updatedAt || selectedIndent.createdAt)}
-                              </TableCell>
-                              <TableCell className="border px-3 py-2">
-                                <div className="flex flex-wrap gap-2">
-                                  <Button
-                                    type="button"
-                                    onClick={() => handleEditManualMaterial(material)}
-                                    className="inline-flex items-center gap-1.5 rounded bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100"
-                                  >
-                                    <Edit2 size={14} />
-                                    Edit
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    onClick={() => setMaterialToDelete(material)}
-                                    className="inline-flex items-center gap-1.5 rounded bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100"
-                                  >
-                                    <Trash2 size={14} />
-                                    Delete
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-sm">No materials listed</p>
-                  )
-                )}
-              </div>
-
-              {/* Attachments/Images */}
-              {selectedIndent.attachments && selectedIndent.attachments.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-orange-200">
-                    Attachments ({selectedIndent.attachments.length})
-                  </h3>
-                  <div className="grid grid-cols-1 gap-4">
-                    {selectedIndent.attachments.map((attachment, index) => {
-                      // ✅ Handle both old string format and new Cloudinary object format
-                      const attachmentUrl = typeof attachment === 'string' ? attachment : attachment.url;
-                      const fileURL = resolveFileUrl(attachmentUrl);
-                      const fileName = attachmentUrl.split('/').pop();
-                      const isImage = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
-                      
-                      return (
-                        <div key={index} className="border rounded-lg overflow-hidden bg-white">
-                          <div className="flex items-center gap-4 p-4">
-                            {/* Image Thumbnail */}
-                            <div className="flex-shrink-0">
-                              {isImage ? (
-                                <img 
-                                  src={fileURL} 
-                                  alt={fileName}
-                                  className="w-20 h-20 object-cover rounded border"
-                                  onError={(e) => {
-                                    e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80"%3E%3Crect fill="%23f3f4f6" width="80" height="80"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af" font-size="30"%3E🖼️%3C/text%3E%3C/svg%3E';
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-20 h-20 flex items-center justify-center bg-gray-100 rounded border">
-                                  <span className="text-3xl">📎</span>
-                                </div>
-                              )}
+                    <div
+                      className={`grid max-h-none grid-cols-1 ${
+                        selectedIndent.imageUrl
+                          ? "lg:max-h-[calc(92vh-210px)] lg:grid-cols-[minmax(0,48%)_minmax(0,52%)]"
+                          : ""
+                      }`}
+                    >
+                      {selectedIndent.imageUrl && (
+                        <div className="border-b border-orange-100 bg-gray-50 lg:border-b-0 lg:border-r">
+                          <div className="flex h-full flex-col p-4">
+                            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                              <div>
+                                <p className="text-sm font-semibold text-gray-700">
+                                  Uploaded image reference
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  Zoom: {imageZoom}%
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  type="button"
+                                  onClick={() =>
+                                    setImageZoom((prev) =>
+                                      Math.max(60, prev - 20),
+                                    )
+                                  }
+                                  className="rounded-lg border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-50"
+                                  title="Zoom out"
+                                  aria-label="Zoom out"
+                                >
+                                  <ZoomOut size={16} />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  onClick={() => setImageZoom(100)}
+                                  className="rounded-lg border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-50"
+                                  title="Reset zoom"
+                                  aria-label="Reset zoom"
+                                >
+                                  <RotateCcw size={16} />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  onClick={() =>
+                                    setImageZoom((prev) =>
+                                      Math.min(220, prev + 20),
+                                    )
+                                  }
+                                  className="rounded-lg border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-50"
+                                  title="Zoom in"
+                                  aria-label="Zoom in"
+                                >
+                                  <ZoomIn size={16} />
+                                </Button>
+                                <a
+                                  href={resolveFileUrl(selectedIndent.imageUrl)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-100"
+                                >
+                                  <ExternalLink size={14} />
+                                  Full
+                                </a>
+                              </div>
                             </div>
-                            
-                            {/* File Info */}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">{fileName}</p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {isImage ? 'Image' : 'File'} • Attachment {index + 1}
-                              </p>
-                            </div>
-                            
-                            {/* Action Buttons */}
-                            <div className="flex gap-2 flex-shrink-0">
-                              <a
-                                href={fileURL}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
-                              >
-                                View
-                              </a>
-                              <a
-                                href={fileURL}
-                                download={fileName}
-                                className="px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 rounded hover:bg-green-100 transition-colors"
-                              >
-                                Download
-                              </a>
-                              <Button
-                                onClick={() => setConfirmation({
-                                  title: 'Delete attachment?',
-                                  description: 'Are you sure you want to delete this attachment? The file will be permanently removed from the server.',
-                                  onConfirm: () => handleDeleteAttachment(index)
-                                })}
-                                disabled={deletingAttachment === index}
-                                className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                                title="Delete this attachment"
-                              >
-                                <Trash2 size={12} />
-                                {deletingAttachment === index ? 'Deleting...' : 'Delete'}
-                              </Button>
+                            <div className="flex-1 overflow-auto rounded-lg border bg-white">
+                              <img
+                                src={resolveFileUrl(selectedIndent.imageUrl)}
+                                alt="Uploaded intent reference"
+                                className="mx-auto max-w-none object-contain bg-white transition-all duration-150"
+                                style={{ width: `${imageZoom}%` }}
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none";
+                                  const fallback =
+                                    e.currentTarget.nextElementSibling;
+                                  if (fallback) fallback.style.display = "flex";
+                                }}
+                              />
+                              <div className="hidden min-h-64 items-center justify-center p-6 text-center text-gray-500">
+                                Image could not be loaded. Open the full image
+                                from the button above.
+                              </div>
                             </div>
                           </div>
                         </div>
-                      );
-                    })}
+                      )}
+
+                      <div
+                        className={`flex max-h-none flex-col overflow-hidden ${
+                          selectedIndent.imageUrl
+                            ? "lg:max-h-[calc(92vh-210px)]"
+                            : ""
+                        }`}
+                      >
+                        <div className="flex-1 overflow-y-auto p-4">
+                          <div className="rounded-lg border border-gray-200 bg-white p-4">
+                            <div className="mb-4 flex items-center justify-between gap-3">
+                              <div>
+                                <h4 className="text-base font-semibold text-gray-800">
+                                  {manualMaterialMode === "edit"
+                                    ? "Update Material Details"
+                                    : "Material Details"}
+                                </h4>
+                                <p className="text-sm text-gray-500">
+                                  Required fields are marked with *
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                  Material / Category{" "}
+                                  <span className="text-red-500">*</span>
+                                </label>
+                                <Input
+                                  value={manualMaterial.category}
+                                  onChange={(e) =>
+                                    updateManualMaterial(
+                                      "category",
+                                      e.target.value,
+                                    )
+                                  }
+                                  list="manual-material-categories"
+                                  placeholder="Select or type material"
+                                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                                />
+                                <datalist id="manual-material-categories">
+                                  {categories.map((category) => (
+                                    <option key={category} value={category} />
+                                  ))}
+                                </datalist>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                  Sub Category
+                                </label>
+                                <Input
+                                  value={manualMaterial.subCategory}
+                                  onChange={(e) =>
+                                    updateManualMaterial(
+                                      "subCategory",
+                                      e.target.value,
+                                    )
+                                  }
+                                  list="manual-material-subcategories"
+                                  placeholder="Select or type sub category"
+                                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                                />
+                                <datalist id="manual-material-subcategories">
+                                  {getSubcategories(
+                                    manualMaterial.category,
+                                  ).map((option) => (
+                                    <option key={option} value={option} />
+                                  ))}
+                                </datalist>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                  Sub Category 1
+                                </label>
+                                <Input
+                                  value={manualMaterial.subCategory1}
+                                  onChange={(e) =>
+                                    updateManualMaterial(
+                                      "subCategory1",
+                                      e.target.value,
+                                    )
+                                  }
+                                  list="manual-material-subcategory1"
+                                  placeholder="Select or type sub category 1"
+                                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                                />
+                                <datalist id="manual-material-subcategory1">
+                                  {getSubSubcategories(
+                                    manualMaterial.category,
+                                    manualMaterial.subCategory,
+                                  ).map((option) => (
+                                    <option key={option} value={option} />
+                                  ))}
+                                </datalist>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                  Sub Category 2
+                                </label>
+                                <Input
+                                  value={manualMaterial.subCategory2}
+                                  onChange={(e) =>
+                                    updateManualMaterial(
+                                      "subCategory2",
+                                      e.target.value,
+                                    )
+                                  }
+                                  list="manual-material-subcategory2"
+                                  placeholder="Select or type sub category 2"
+                                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                                />
+                                <datalist id="manual-material-subcategory2">
+                                  {getSubCategory2(
+                                    manualMaterial.category,
+                                    manualMaterial.subCategory,
+                                    manualMaterial.subCategory1,
+                                  ).map((option) => (
+                                    <option key={option} value={option} />
+                                  ))}
+                                </datalist>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                  Quantity{" "}
+                                  <span className="text-red-500">*</span>
+                                </label>
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  value={manualMaterial.quantity}
+                                  onChange={(e) =>
+                                    updateManualMaterial(
+                                      "quantity",
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder="Enter quantity"
+                                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                  Unit
+                                </label>
+                                <Select
+                                  value={manualMaterial.uom}
+                                  onValueChange={(value) =>
+                                    updateManualMaterial("uom", value)
+                                  }
+                                >
+                                  <SelectTrigger className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 bg-white">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Nos">Nos</SelectItem>
+                                    <SelectItem value="pcs">pcs</SelectItem>
+                                    <SelectItem value="bags">bags</SelectItem>
+                                    <SelectItem value="kg">kg</SelectItem>
+                                    <SelectItem value="mtr">mtr</SelectItem>
+                                    <SelectItem value="box">box</SelectItem>
+                                    <SelectItem value="set">set</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="md:col-span-2">
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                  Vendor
+                                </label>
+                                <Select
+                                  value={manualMaterial.vendor || "all"}
+                                  onValueChange={(value) =>
+                                    updateManualMaterial(
+                                      "vendor",
+                                      value === "all" ? "" : value,
+                                    )
+                                  }
+                                  disabled={!vendors || vendors.length === 0}
+                                >
+                                  <SelectTrigger className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 bg-white disabled:bg-gray-100">
+                                    <SelectValue placeholder="Select Vendor" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">
+                                      Select Vendor
+                                    </SelectItem>
+                                    {vendors &&
+                                      Array.isArray(vendors) &&
+                                      vendors.map((vendor) => (
+                                        <SelectItem
+                                          key={vendor._id}
+                                          value={vendor._id}
+                                        >
+                                          {vendor.companyName}
+                                        </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="md:col-span-2">
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                  Remarks / Specification
+                                </label>
+                                <Textarea
+                                  value={manualMaterial.remarks}
+                                  onChange={(e) =>
+                                    updateManualMaterial(
+                                      "remarks",
+                                      e.target.value,
+                                    )
+                                  }
+                                  rows={3}
+                                  placeholder="Add size, brand, specification, or note"
+                                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 rounded-lg border border-gray-200 bg-white">
+                            <div className="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
+                              <h4 className="text-base font-semibold text-gray-800">
+                                Added Materials (
+                                {selectedIndent.materials?.length || 0})
+                              </h4>
+                            </div>
+                            {selectedIndent.materials &&
+                            selectedIndent.materials.length > 0 ? (
+                              <div className="max-h-72 overflow-auto">
+                                {selectedIndent.materials.map(
+                                  (material, index) => {
+                                    const rowKey = getMaterialRowKey(
+                                      material,
+                                      index,
+                                    );
+                                    return (
+                                      <div
+                                        key={rowKey}
+                                        className={`border-b px-4 py-3 text-sm last:border-b-0 transition-colors ${
+                                          rowKey === lastAddedMaterialId
+                                            ? "bg-green-50 ring-1 ring-inset ring-green-200"
+                                            : "bg-white"
+                                        }`}
+                                      >
+                                        <div className="flex flex-wrap items-start justify-between gap-2">
+                                          <div>
+                                            <p className="font-semibold text-gray-900">
+                                              {material.itemName || "-"}
+                                            </p>
+                                            <p className="mt-1 text-xs text-gray-500">
+                                              {[
+                                                material.category,
+                                                material.subCategory,
+                                                material.subCategory1,
+                                                material.subCategory2,
+                                              ]
+                                                .filter(Boolean)
+                                                .join(" / ") ||
+                                                "No category details"}
+                                            </p>
+                                          </div>
+                                          <Badge className="rounded-full bg-orange-50 px-2 py-1 text-xs font-semibold text-orange-600">
+                                            {material.quantity || "-"}{" "}
+                                            {material.uom || "Nos"}
+                                          </Badge>
+                                        </div>
+                                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                                          <Button
+                                            type="button"
+                                            onClick={() =>
+                                              handleEditManualMaterial(material)
+                                            }
+                                            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100"
+                                          >
+                                            <Edit2 size={14} />
+                                            Edit
+                                          </Button>
+                                          <Button
+                                            type="button"
+                                            onClick={() =>
+                                              setMaterialToDelete(material)
+                                            }
+                                            className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100"
+                                          >
+                                            <Trash2 size={14} />
+                                            Delete
+                                          </Button>
+                                        </div>
+                                        <div className="mt-2 grid grid-cols-1 gap-2 text-xs text-gray-600 sm:grid-cols-2">
+                                          <span>
+                                            Vendor:{" "}
+                                            {material.vendor?.companyName ||
+                                              "N/A"}
+                                          </span>
+                                          <span>
+                                            Added:{" "}
+                                            {material.createdAt
+                                              ? formatDate(material.createdAt)
+                                              : formatDate(
+                                                  selectedIndent.updatedAt ||
+                                                    selectedIndent.createdAt,
+                                                )}
+                                          </span>
+                                        </div>
+                                        {material.remarks && (
+                                          <p className="mt-2 text-xs text-gray-600">
+                                            {material.remarks}
+                                          </p>
+                                        )}
+                                      </div>
+                                    );
+                                  },
+                                )}
+                              </div>
+                            ) : (
+                              <p className="px-4 py-6 text-center text-sm text-gray-500">
+                                No materials added to this Intent PO yet.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="sticky bottom-0 flex flex-col gap-2 border-t bg-white px-4 py-3 sm:flex-row sm:justify-end">
+                          <Button
+                            type="button"
+                            onClick={closeManualMaterialForm}
+                            className="rounded-lg bg-gray-200 px-4 py-2.5 font-medium text-gray-700 transition-colors hover:bg-gray-300"
+                            disabled={addingMaterial}
+                          >
+                            Cancel
+                          </Button>
+                          {manualMaterialMode !== "edit" && (
+                            <Button
+                              type="button"
+                              onClick={() => handleSaveManualMaterial(true)}
+                              disabled={addingMaterial}
+                              className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-50 px-4 py-2.5 font-semibold text-orange-600 ring-1 ring-orange-200 transition-colors hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {addingMaterial
+                                ? "Saving..."
+                                : "Save & Add Another"}
+                            </Button>
+                          )}
+                          <Button
+                            type="button"
+                            onClick={() => handleSaveManualMaterial(false)}
+                            disabled={addingMaterial}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-500 px-5 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {addingMaterial ? (
+                              <>
+                                <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+                                Saving...
+                              </>
+                            ) : (
+                              <>
+                                <Save size={16} />
+                                {manualMaterialMode === "edit"
+                                  ? "Update Material"
+                                  : "Save Material"}
+                              </>
+                            )}
+                          </Button>
                         </div>
                       </div>
-              )}
-
-              {/* Timestamps */}
-              <div className="bg-gray-50 rounded p-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-500">Created At</p>
-                    <p className="font-medium text-gray-700">{formatDate(selectedIndent.createdAt)}</p>
-                  </div>
-                  {selectedIndent.updatedAt && (
-                    <div>
-                      <p className="text-gray-500">Last Updated</p>
-                      <p className="font-medium text-gray-700">{formatDate(selectedIndent.updatedAt)}</p>
                     </div>
+                  </div>
+                )}
+
+                {!showManualMaterialForm && (
+                  <>
+                    {/* Materials List */}
+                    <div className="mb-6">
+                      <div className="flex justify-between items-center mb-3 pb-2 border-b-2 border-orange-200">
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          Added Materials (
+                          {editing
+                            ? formData.materials?.length
+                            : selectedIndent.materials?.length || 0}{" "}
+                          items)
+                        </h3>
+                      </div>
+
+                      {editing ? (
+                        <div className="space-y-2">
+                          {Array.isArray(formData.materials) &&
+                          formData.materials.length > 0 ? (
+                            formData.materials.map((material, idx) => (
+                              <MaterialLineItem
+                                key={material.id}
+                                material={material}
+                                index={idx}
+                                isEditing={editingMaterialId === material.id}
+                                onEdit={() => setEditingMaterialId(material.id)}
+                                onDoneEditing={() => setEditingMaterialId(null)}
+                                onRemove={() => removeMaterialRow(material.id)}
+                                onUpdate={(fieldName, value) => {
+                                  if (fieldName === "category") {
+                                    updateMaterial(material.id, {
+                                      category: value,
+                                      subCategory: "",
+                                      subCategory1: "",
+                                      subCategory2: "",
+                                    });
+                                  } else if (fieldName === "subCategory") {
+                                    updateMaterial(material.id, {
+                                      subCategory: value,
+                                      subCategory1: "",
+                                      subCategory2: "",
+                                    });
+                                  } else if (fieldName === "subCategory1") {
+                                    updateMaterial(material.id, {
+                                      subCategory1: value,
+                                      subCategory2: "",
+                                    });
+                                  } else {
+                                    updateMaterial(material.id, {
+                                      [fieldName]: value,
+                                    });
+                                  }
+                                }}
+                                categories={categories}
+                                getSubcategories={getSubcategories}
+                                getSubSubcategories={getSubSubcategories}
+                                getSubSubSubcategories={getSubCategory2}
+                              />
+                            ))
+                          ) : (
+                            <p className="text-sm text-gray-500 text-center py-4">
+                              No materials added
+                            </p>
+                          )}
+
+                          {/* Vendor Selection Table in Edit Mode */}
+                          {Array.isArray(formData.materials) &&
+                            formData.materials.length > 0 && (
+                              <div className="mt-4">
+                                <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                                  Assign Vendors to Materials
+                                </h4>
+                                <div className="overflow-x-auto">
+                                  <Table className="min-w-full border text-sm">
+                                    <TableHeader className="bg-gray-50">
+                                      <TableRow>
+                                        <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">
+                                          #
+                                        </TableHead>
+                                        <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">
+                                          Material
+                                        </TableHead>
+                                        <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">
+                                          Quantity
+                                        </TableHead>
+                                        <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">
+                                          Vendor
+                                        </TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {formData.materials.map(
+                                        (material, index) => (
+                                          <TableRow
+                                            key={material.id}
+                                            className="hover:bg-gray-50"
+                                          >
+                                            <TableCell className="border px-3 py-2 text-gray-600">
+                                              {index + 1}
+                                            </TableCell>
+                                            <TableCell className="border px-3 py-2">
+                                              {material.category}
+                                              {material.subCategory
+                                                ? ` - ${material.subCategory}`
+                                                : ""}
+                                              {material.subCategory1
+                                                ? ` - ${material.subCategory1}`
+                                                : ""}
+                                              {material.subCategory2
+                                                ? ` - ${material.subCategory2}`
+                                                : ""}
+                                            </TableCell>
+                                            <TableCell className="border px-3 py-2">
+                                              {material.quantity || "-"}{" "}
+                                              {material.uom || "Nos"}
+                                            </TableCell>
+                                            <TableCell className="border px-3 py-2">
+                                              <Select
+                                                value={material.vendor || "all"}
+                                                onValueChange={(value) =>
+                                                  updateMaterial(material.id, {
+                                                    vendor:
+                                                      value === "all"
+                                                        ? ""
+                                                        : value,
+                                                  })
+                                                }
+                                                disabled={
+                                                  !vendors ||
+                                                  vendors.length === 0
+                                                }
+                                              >
+                                                <SelectTrigger className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white">
+                                                  <SelectValue placeholder="Select Vendor" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                  <SelectItem value="all">
+                                                    Select Vendor
+                                                  </SelectItem>
+                                                  {vendors &&
+                                                    Array.isArray(vendors) &&
+                                                    vendors.map((vendor) => (
+                                                      <SelectItem
+                                                        key={vendor._id}
+                                                        value={vendor._id}
+                                                      >
+                                                        {vendor.companyName}
+                                                      </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                              </Select>
+                                            </TableCell>
+                                          </TableRow>
+                                        ),
+                                      )}
+                                    </TableBody>
+                                  </Table>
+                                </div>
+                              </div>
+                            )}
+                        </div>
+                      ) : selectedIndent.materials &&
+                        selectedIndent.materials.length > 0 ? (
+                        <div className="overflow-x-auto">
+                          <Table className="min-w-full border text-sm">
+                            <TableHeader className="bg-orange-50">
+                              <TableRow>
+                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">
+                                  #
+                                </TableHead>
+                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">
+                                  Item Name
+                                </TableHead>
+                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">
+                                  Category/Type
+                                </TableHead>
+                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">
+                                  Quantity
+                                </TableHead>
+                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">
+                                  UOM
+                                </TableHead>
+                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">
+                                  VendorName
+                                </TableHead>
+                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">
+                                  Remarks
+                                </TableHead>
+                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">
+                                  Added Date
+                                </TableHead>
+                                <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">
+                                  Actions
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {selectedIndent.materials.map(
+                                (material, index) => (
+                                  <TableRow
+                                    key={index}
+                                    className="hover:bg-gray-50"
+                                  >
+                                    <TableCell className="border px-3 py-2 text-gray-600">
+                                      {index + 1}
+                                    </TableCell>
+                                    <TableCell className="border px-3 py-2 font-medium">
+                                      {material.itemName || "-"}
+                                    </TableCell>
+                                    <TableCell className="border px-3 py-2 text-gray-600">
+                                      {[
+                                        material.category,
+                                        material.subCategory,
+                                        material.subCategory1,
+                                        material.subCategory2,
+                                      ]
+                                        .filter(Boolean)
+                                        .join(" / ") || "-"}
+                                    </TableCell>
+                                    <TableCell className="border px-3 py-2">
+                                      {material.quantity || "-"}
+                                    </TableCell>
+                                    <TableCell className="border px-3 py-2">
+                                      {material.uom || "-"}
+                                    </TableCell>
+                                    <TableCell className="border px-3 py-2 text-gray-600">
+                                      {material.vendor?.companyName || "N/A"}
+                                    </TableCell>
+                                    <TableCell className="border px-3 py-2 text-gray-600">
+                                      {material.remarks || "-"}
+                                    </TableCell>
+                                    <TableCell className="border px-3 py-2 text-gray-600">
+                                      {material.createdAt
+                                        ? formatDate(material.createdAt)
+                                        : formatDate(
+                                            selectedIndent.updatedAt ||
+                                              selectedIndent.createdAt,
+                                          )}
+                                    </TableCell>
+                                    <TableCell className="border px-3 py-2">
+                                      <div className="flex flex-wrap gap-2">
+                                        <Button
+                                          type="button"
+                                          onClick={() =>
+                                            handleEditManualMaterial(material)
+                                          }
+                                          className="inline-flex items-center gap-1.5 rounded bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100"
+                                        >
+                                          <Edit2 size={14} />
+                                          Edit
+                                        </Button>
+                                        <Button
+                                          type="button"
+                                          onClick={() =>
+                                            setMaterialToDelete(material)
+                                          }
+                                          className="inline-flex items-center gap-1.5 rounded bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100"
+                                        >
+                                          <Trash2 size={14} />
+                                          Delete
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ),
+                              )}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-sm">
+                          No materials listed
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Attachments/Images */}
+                    {selectedIndent.attachments &&
+                      selectedIndent.attachments.length > 0 && (
+                        <div className="mb-6">
+                          <h3 className="text-lg font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-orange-200">
+                            Attachments ({selectedIndent.attachments.length})
+                          </h3>
+                          <div className="grid grid-cols-1 gap-4">
+                            {selectedIndent.attachments.map(
+                              (attachment, index) => {
+                                // ✅ Handle both old string format and new Cloudinary object format
+                                const attachmentUrl =
+                                  typeof attachment === "string"
+                                    ? attachment
+                                    : attachment.url;
+                                const fileURL = resolveFileUrl(attachmentUrl);
+                                const fileName = attachmentUrl.split("/").pop();
+                                const isImage = attachmentUrl.match(
+                                  /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i,
+                                );
+
+                                return (
+                                  <div
+                                    key={index}
+                                    className="border rounded-lg overflow-hidden bg-white"
+                                  >
+                                    <div className="flex items-center gap-4 p-4">
+                                      {/* Image Thumbnail */}
+                                      <div className="flex-shrink-0">
+                                        {isImage ? (
+                                          <img
+                                            src={fileURL}
+                                            alt={fileName}
+                                            className="w-20 h-20 object-cover rounded border"
+                                            onError={(e) => {
+                                              e.target.src =
+                                                'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80"%3E%3Crect fill="%23f3f4f6" width="80" height="80"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af" font-size="30"%3E🖼️%3C/text%3E%3C/svg%3E';
+                                            }}
+                                          />
+                                        ) : (
+                                          <div className="w-20 h-20 flex items-center justify-center bg-gray-100 rounded border">
+                                            <span className="text-3xl">📎</span>
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      {/* File Info */}
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-900 truncate">
+                                          {fileName}
+                                        </p>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                          {isImage ? "Image" : "File"} •
+                                          Attachment {index + 1}
+                                        </p>
+                                      </div>
+
+                                      {/* Action Buttons */}
+                                      <div className="flex gap-2 flex-shrink-0">
+                                        <a
+                                          href={fileURL}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+                                        >
+                                          View
+                                        </a>
+                                        <a
+                                          href={fileURL}
+                                          download={fileName}
+                                          className="px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 rounded hover:bg-green-100 transition-colors"
+                                        >
+                                          Download
+                                        </a>
+                                        <Button
+                                          onClick={() =>
+                                            setConfirmation({
+                                              title: "Delete attachment?",
+                                              description:
+                                                "Are you sure you want to delete this attachment? The file will be permanently removed from the server.",
+                                              onConfirm: () =>
+                                                handleDeleteAttachment(index),
+                                            })
+                                          }
+                                          disabled={
+                                            deletingAttachment === index
+                                          }
+                                          className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                          title="Delete this attachment"
+                                        >
+                                          <Trash2 size={12} />
+                                          {deletingAttachment === index
+                                            ? "Deleting..."
+                                            : "Delete"}
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              },
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                    {/* Timestamps */}
+                    <div className="bg-gray-50 rounded p-4">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-500">Created At</p>
+                          <p className="font-medium text-gray-700">
+                            {formatDate(selectedIndent.createdAt)}
+                          </p>
+                        </div>
+                        {selectedIndent.updatedAt && (
+                          <div>
+                            <p className="text-gray-500">Last Updated</p>
+                            <p className="font-medium text-gray-700">
+                              {formatDate(selectedIndent.updatedAt)}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              {!showManualMaterialForm && (
+                <div className="bg-white border-t-2 border-orange-100 px-6 py-4 flex justify-end gap-3 rounded-b-lg">
+                  {editing ? (
+                    <>
+                      <Button
+                        onClick={handleCancelEdit}
+                        className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2 font-medium"
+                      >
+                        <X size={16} />
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleSaveEdit}
+                        disabled={saving}
+                        className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
+                      >
+                        {saving ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save size={16} />
+                            Save Changes
+                          </>
+                        )}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        onClick={handleEdit}
+                        className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 font-medium shadow-sm"
+                      >
+                        <Edit2 size={16} />
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={closeModal}
+                        className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition-colors"
+                      >
+                        Close
+                      </Button>
+                    </>
                   )}
                 </div>
-              </div>
-              </>
               )}
+            </DialogContent>
+          </Dialog>
+        )}
+
+        <AlertDialog
+          open={Boolean(confirmation)}
+          onOpenChange={(open) => {
+            if (!open) setConfirmation(null);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{confirmation?.title}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {confirmation?.description}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  const onConfirm = confirmation?.onConfirm;
+                  setConfirmation(null);
+                  if (onConfirm) onConfirm();
+                }}
+              >
+                Confirm
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog
+          open={Boolean(materialToDelete)}
+          onOpenChange={(open) => {
+            if (!open && !deletingMaterial) setMaterialToDelete(null);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Material</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this material?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="rounded-lg bg-red-50 px-4 py-3">
+              <p className="font-semibold text-gray-900">
+                {materialToDelete?.itemName ||
+                  materialToDelete?.category ||
+                  "Selected material"}
+              </p>
+              <p className="mt-1 text-sm text-gray-600">
+                Only this material will be removed. The Intent PO and uploaded
+                image will stay unchanged.
+              </p>
             </div>
-
-            {/* Modal Footer */}
-            {!showManualMaterialForm && (
-              <div className="bg-white border-t-2 border-orange-100 px-6 py-4 flex justify-end gap-3 rounded-b-lg">
-              {editing ? (
-                <>
-                  <Button
-                    onClick={handleCancelEdit}
-                    className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2 font-medium"
-                  >
-                    <X size={16} />
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleSaveEdit}
-                    disabled={saving}
-                    className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
-                  >
-                    {saving ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save size={16} />
-                        Save Changes
-                      </>
-                    )}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    onClick={handleEdit}
-                    className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 font-medium shadow-sm"
-                  >
-                    <Edit2 size={16} />
-                    Edit
-                  </Button>
-                  <Button
-                    onClick={closeModal}
-                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition-colors"
-                  >
-                    Close
-                  </Button>
-                </>
-              )}
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-      )}
-
-      <AlertDialog
-        open={Boolean(confirmation)}
-        onOpenChange={(open) => {
-          if (!open) setConfirmation(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{confirmation?.title}</AlertDialogTitle>
-            <AlertDialogDescription>{confirmation?.description}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                const onConfirm = confirmation?.onConfirm;
-                setConfirmation(null);
-                if (onConfirm) onConfirm();
-              }}
-            >
-              Confirm
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog
-        open={Boolean(materialToDelete)}
-        onOpenChange={(open) => {
-          if (!open && !deletingMaterial) setMaterialToDelete(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Material</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this material?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="rounded-lg bg-red-50 px-4 py-3">
-            <p className="font-semibold text-gray-900">
-              {materialToDelete?.itemName || materialToDelete?.category || 'Selected material'}
-            </p>
-            <p className="mt-1 text-sm text-gray-600">
-              Only this material will be removed. The Intent PO and uploaded image will stay unchanged.
-            </p>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deletingMaterial}>Cancel</AlertDialogCancel>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDeleteManualMaterial}
-              disabled={deletingMaterial}
-            >
-              <Trash2 size={16} />
-              {deletingMaterial ? 'Deleting...' : 'Delete Material'}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deletingMaterial}>
+                Cancel
+              </AlertDialogCancel>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDeleteManualMaterial}
+                disabled={deletingMaterial}
+              >
+                <Trash2 size={16} />
+                {deletingMaterial ? "Deleting..." : "Delete Material"}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </DashboardLayout>
   );
 }
