@@ -8,6 +8,7 @@ import syncEngine from './utils/syncEngine';
 import OfflineBanner from './components/OfflineBanner';
 import { Toaster } from "@/components/ui/sonner";
 
+
 // Eager load only critical components
 import PrivateRoute from './components/PrivateRoute';
 import InstallPWA from './components/InstallPWA';
@@ -45,6 +46,7 @@ const LabourDashboard = lazy(() => import('./pages/LabourDashboard'));
 const TaskSubmission = lazy(() => import('./pages/TaskSubmission'));
 const TeamAttendance = lazy(() => import('./pages/TeamAttendance'));
 const AdminDeleteAttendance = lazy(() => import('./pages/AdminDeleteAttendance'));
+const SupervisorProjectDocuments = lazy(() =>import("./pages/SupervisorProjectDocuments"),);
 
 // Material Management Pages - Lazy loaded
 const Material = lazy(() => import('./pages/material/Material'));
@@ -63,6 +65,8 @@ const AdminIntent = lazy(() => import('./pages/material/AdminIntent'));
 const AdminGRN = lazy(() => import('./pages/material/AdminGRN'));
 const UploadPhoto = lazy(() => import('./pages/material/UploadPhoto'));
 const Intent = lazy(() => import('./pages/material/Intent'));
+const ProjectDocuments = lazy(() => import("./pages/ProjectDocuments"));
+const DocumentsRedirect = lazy(() => import("./pages/DocumentsRedirect"));
 
 // Salary Management Pages - Lazy loaded
 const SalaryDashboard = lazy(() => import('./pages/SalaryDashboard'));
@@ -158,6 +162,22 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/projects/:projectId/documents"
+            element={
+              <PrivateRoute>
+                <ProjectDocuments />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/documents"
+            element={
+              <PrivateRoute>
+                <DocumentsRedirect />
+              </PrivateRoute>
+            }
+          />
 
           <Route
             path="/punch"
@@ -215,6 +235,15 @@ function App() {
             path="/supervisor/projects"
             element={<SupervisorProjectList />}
           />
+          <Route
+            path="/supervisor/project/:projectId/documents"
+            element={
+              <PrivateRoute>
+                <SupervisorProjectDocuments />
+              </PrivateRoute>
+            }
+          />
+
           <Route
             path="/branch/:branchId/labour-dashboard"
             element={<LabourDashboard />}

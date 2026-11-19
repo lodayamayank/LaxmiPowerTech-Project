@@ -18,6 +18,7 @@ import {
   FaCheckCircle,
   FaClock,
   FaChartLine,
+  FaFolderOpen,
 } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,6 +63,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useNavigate } from "react-router-dom";
 
 const GOOGLE_LIBS = ["places"];
 
@@ -85,6 +87,7 @@ const CreateProject = () => {
   const [deleteProjectId, setDeleteProjectId] = useState(null);
   const token = localStorage.getItem("token");
   const formRef = useRef(null);
+  const navigate = useNavigate();
 
   // Google Places Autocomplete
   const { isLoaded: mapsLoaded } = useJsApiLoader({
@@ -112,6 +115,7 @@ const CreateProject = () => {
     try {
       setLoading(true);
       const res = await axios.get("/projects", {
+         params: { lite: true },
         headers: { Authorization: `Bearer ${token}` },
       });
       setProjects(res.data);
@@ -267,15 +271,18 @@ const CreateProject = () => {
     setDetailsProject(project);
     setProjectTasks([]);
     setDetailsLoading(true);
-
     try {
-      const res = await axios.get("/tasks", {
-        params: { project: project._id, limit: 1000 },
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setProjectTasks(res.data?.data || []);
+      const headers = { Authorization: `Bearer ${token}` };
+      const [projRes, taskRes] = await Promise.all([
+        axios.get(`/projects/${project._id}`, { headers }),
+        axios.get("/tasks", {
+          params: { project: project._id, limit: 1000 },
+          headers,
+        }),
+      ]);
+      setDetailsProject(projRes.data);
+      setProjectTasks(taskRes.data?.data || []);
     } catch (err) {
-      console.error("Failed to fetch project tasks", err);
       toast.error("Failed to fetch project details");
     } finally {
       setDetailsLoading(false);
@@ -362,24 +369,25 @@ const CreateProject = () => {
     }
   };
 
-  const handleEdit = (project) => {
-    setFormData({
-      name: project.name,
-      address: project.address,
-      branches: project.branches?.map((b) => b._id) || [],
-      buildings: project.buildings || [],
-    });
-
-    setEditingId(project._id);
-
-    // Scroll directly to the edit form
-    requestAnimationFrame(() => {
-      formRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    });
-  };
+ const handleEdit = async (project) => {
+   try {
+     const { data: full } = await axios.get(`/projects/${project._id}`, {
+       headers: { Authorization: `Bearer ${token}` },
+     });
+     setFormData({
+       name: full.name,
+       address: full.address,
+       branches: full.branches?.map((b) => b._id) || [],
+       buildings: full.buildings || [],
+     });
+     setEditingId(full._id);
+     requestAnimationFrame(() =>
+       formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+     );
+   } catch (err) {
+     toast.error("Failed to load project for editing");
+   }
+ };
 
   const handleCancel = () => {
     setFormData({ name: "", address: "", branches: [], buildings: [] });
@@ -464,7 +472,7 @@ const CreateProject = () => {
         </div>
 
         {/* Form */}
-        
+
         <Card ref={formRef} id="project-form">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100">
@@ -571,7 +579,7 @@ const CreateProject = () => {
                     <div className="max-h-60 overflow-y-auto space-y-1">
                       {branches.map((branch) => {
                         const isSelected = formData.branches.includes(
-                          branch._id
+                          branch._id,
                         );
 
                         return (
@@ -583,7 +591,7 @@ const CreateProject = () => {
                                 ...prev,
                                 branches: isSelected
                                   ? prev.branches.filter(
-                                      (id) => id !== branch._id
+                                      (id) => id !== branch._id,
                                     )
                                   : [...prev.branches, branch._id],
                               }));
@@ -599,7 +607,7 @@ const CreateProject = () => {
                                       ? prev.branches
                                       : [...prev.branches, branch._id]
                                     : prev.branches.filter(
-                                        (id) => id !== branch._id
+                                        (id) => id !== branch._id,
                                       ),
                                 }));
                               }}
@@ -743,6 +751,18 @@ const CreateProject = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-950/40 gap-1 font-medium"
+                            onClick={() =>
+                              navigate(`/projects/${proj._id}/documents`)
+                            }
+                            title="Project documents"
+                          >
+                            <FaFolderOpen size={14} />
+                            Documents
+                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -914,7 +934,7 @@ const CreateProject = () => {
                             >
                               {status.replace("-", " ")}: {count}
                             </Badge>
-                          )
+                          ),
                         )}
                       </div>
                     </div>

@@ -25,6 +25,24 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/layout/AppSidebar";
 
+const LEAVE_CACHE_KEY = "pendingLeaveCount";
+const REIMBURSEMENT_CACHE_KEY = "pendingReimbursementCount";
+
+const readCachedCount = (key) => {
+  try {
+    return Number(sessionStorage.getItem(key)) || 0;
+  } catch {
+    return 0;
+  }
+};
+const writeCachedCount = (key, count) => {
+  try {
+    sessionStorage.setItem(key, String(count));
+  } catch {}
+};
+const canSeeApprovals = (user) =>
+  user?.role === "admin" || user?.role === "supervisor";
+
 // ── Utility: build an object with every ancestor key set to true ──────────────
 const getMenuBranch = (key) => {
   const parts = key.split('>');
@@ -264,32 +282,44 @@ const DashboardLayout = ({ children, title }) => {
   const [notifications, setNotifications] = useState([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   // tracks how many leave, reimbursements requests are pending
-  const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
-  const [pendingReimbursementCount, setPendingReimbursementCount] = useState(0);
+  const [pendingLeaveCount, setPendingLeaveCount] = useState(() =>
+    readCachedCount(LEAVE_CACHE_KEY),
+  );
+  const [pendingReimbursementCount, setPendingReimbursementCount] = useState(
+    () => readCachedCount(REIMBURSEMENT_CACHE_KEY),
+  );
 
   // ── Formatters ───────────────────────────────────────────────────────────────
-  const formatCurrency = (value) => `₹${(Number(value) || 0).toLocaleString('en-IN')}`;
+  const formatCurrency = (value) =>
+    `₹${(Number(value) || 0).toLocaleString("en-IN")}`;
 
   const formatDate = (dateValue) => {
-    if (!dateValue) return 'N/A';
+    if (!dateValue) return "N/A";
     const date = new Date(dateValue);
-    if (Number.isNaN(date.getTime())) return 'N/A';
-    return date.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
+    if (Number.isNaN(date.getTime())) return "N/A";
+    return date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
     });
   };
 
   // ── Notification helpers ─────────────────────────────────────────────────────
   const getRetentionNotification = (order) => {
-    if (!order?.isTriggered || !order.retentionAmount || !order.retentionDueDate) return null;
+    if (
+      !order?.isTriggered ||
+      !order.retentionAmount ||
+      !order.retentionDueDate
+    )
+      return null;
 
     const todayDate = new Date();
     todayDate.setHours(0, 0, 0, 0);
     const dueDate = new Date(order.retentionDueDate);
     dueDate.setHours(0, 0, 0, 0);
-    const reminderDate = new Date(order.retentionReminderDate || order.retentionDueDate);
+    const reminderDate = new Date(
+      order.retentionReminderDate || order.retentionDueDate,
+    );
     reminderDate.setHours(0, 0, 0, 0);
 
     if (todayDate < reminderDate) return null;
@@ -297,9 +327,15 @@ const DashboardLayout = ({ children, title }) => {
     const overdue = todayDate > dueDate;
     return {
       id: order._id,
-      title: overdue ? 'Retention overdue' : 'Retention due soon',
-      message: `${order.project?.name || 'Project'} / ${order.workOrderNo}: pay ${formatCurrency(order.retentionAmount)} by ${formatDate(order.retentionDueDate)}.`,
-      color: overdue ? 'text-red-600 bg-red-50' : 'text-yellow-700 bg-yellow-50',
+      title: overdue ? "Retention overdue" : "Retention due soon",
+      message: `${order.project?.name || "Project"} / ${
+        order.workOrderNo
+      }: pay ${formatCurrency(order.retentionAmount)} by ${formatDate(
+        order.retentionDueDate,
+      )}.`,
+      color: overdue
+        ? "text-red-600 bg-red-50"
+        : "text-yellow-700 bg-yellow-50",
     };
   };
 
@@ -307,11 +343,11 @@ const DashboardLayout = ({ children, title }) => {
   const loadNotifications = async () => {
     setNotificationsLoading(true);
     try {
-      const res = await axios.get('/work-orders/retention-notifications');
+      const res = await axios.get("/work-orders/retention-notifications");
       const orders = res.data?.data || [];
       setNotifications(orders.map(getRetentionNotification).filter(Boolean));
     } catch (err) {
-      console.error('Failed to load notifications', err);
+      console.error("Failed to load notifications", err);
     } finally {
       setNotificationsLoading(false);
     }
@@ -319,55 +355,74 @@ const DashboardLayout = ({ children, title }) => {
 
   const loadPendingLeaveCount = async () => {
     try {
-      const res = await axios.get("/leaves?status=pending&page=1&limit=1");
-      setPendingLeaveCount(res.data?.total || 0);
+      const res = await axios.get("/leaves/pending-count");
+      const count = res.data?.count ?? 0;
+      setPendingLeaveCount(count);
+      writeCachedCount(LEAVE_CACHE_KEY, count);
     } catch (error) {
       console.error("Failed to load pending leave count:", error);
-      setPendingLeaveCount(0);
     }
   };
 
   const loadPendingReimbursementCount = async () => {
     try {
-      const res = await axios.get("/reimbursements?status=pending&page=1&limit=1");
-      setPendingReimbursementCount(res.data?.total || 0);
+      const res = await axios.get("/reimbursements/pending-count");
+      const count = res.data?.count ?? 0;
+      setPendingReimbursementCount(count);
+      writeCachedCount(REIMBURSEMENT_CACHE_KEY, count);
     } catch (error) {
       console.error("Failed to load pending reimbursement count:", error);
-      setPendingReimbursementCount(0);
     }
   };
 
   // ── useEffect: dark mode + user + initial badge counts ───────────────────────
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    const savedDarkMode = localStorage.getItem("darkMode") === "true";
     setDarkMode(savedDarkMode);
     if (savedDarkMode) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     }
 
-    const userData = localStorage.getItem('user');
+    const userData = localStorage.getItem("user");
     if (userData) {
       try {
         setUser(JSON.parse(userData));
       } catch (err) {
-        console.error('Failed to parse user data', err);
+        console.error("Failed to parse user data", err);
       }
     }
 
-    loadPendingLeaveCount();
-    loadPendingReimbursementCount();
+    //loadPendingLeaveCount();
+    // loadPendingReimbursementCount();
   }, []);
+  // ── useEffect: pending badge counts (admin / supervisor only) ────────────────
+  useEffect(() => {
+    if (!canSeeApprovals(user)) return;
 
+    const refresh = () => {
+      loadPendingLeaveCount();
+      loadPendingReimbursementCount();
+    };
+
+    refresh(); // initial load
+    const id = setInterval(refresh, 60_000); // poll every 60s
+    window.addEventListener("pending-counts:refresh", refresh);
+
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("pending-counts:refresh", refresh);
+    };
+  }, [user?.role]);
   // ── Toggle dark mode ─────────────────────────────────────────────────────────
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
     setDarkMode(newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
+    localStorage.setItem("darkMode", newDarkMode.toString());
 
     if (newDarkMode) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   };
 
@@ -375,34 +430,41 @@ const DashboardLayout = ({ children, title }) => {
   useEffect(() => {
     const path = location.pathname;
 
-    const isAttendance = path.includes('/attendance/') || path.includes('/live-attendance') || path.startsWith('/admin/reimbursements');
-    const isMaterial = path.includes('/dashboard/material/') || path.includes('/material/');
-    const isInventoryRoot = path.includes('/dashboard/inventory/');
-    const isLabourInventory = path.includes('/dashboard/inventory/labour');
-    const isSalary = path.startsWith('/admin/salary') || path.startsWith('/admin/holidays') || path.startsWith('/admin/salary-policy');
+    const isAttendance =
+      path.includes("/attendance/") ||
+      path.includes("/live-attendance") ||
+      path.startsWith("/admin/reimbursements");
+    const isMaterial =
+      path.includes("/dashboard/material/") || path.includes("/material/");
+    const isInventoryRoot = path.includes("/dashboard/inventory/");
+    const isLabourInventory = path.includes("/dashboard/inventory/labour");
+    const isSalary =
+      path.startsWith("/admin/salary") ||
+      path.startsWith("/admin/holidays") ||
+      path.startsWith("/admin/salary-policy");
 
     if (isAttendance) {
-      setOpenMenus(getMenuBranch('Attendance'));
+      setOpenMenus(getMenuBranch("Attendance"));
       return;
     }
 
     if (isSalary) {
-      setOpenMenus(getMenuBranch('Attendance>Salary'));
+      setOpenMenus(getMenuBranch("Attendance>Salary"));
       return;
     }
 
     if (isMaterial) {
-      setOpenMenus(getMenuBranch('Inventory>Material'));
+      setOpenMenus(getMenuBranch("Inventory>Material"));
       return;
     }
 
     if (isLabourInventory) {
-      setOpenMenus(getMenuBranch('Inventory>Labour'));
+      setOpenMenus(getMenuBranch("Inventory>Labour"));
       return;
     }
 
     if (isInventoryRoot) {
-      setOpenMenus(getMenuBranch('Inventory'));
+      setOpenMenus(getMenuBranch("Inventory"));
       return;
     }
 
@@ -428,13 +490,15 @@ const DashboardLayout = ({ children, title }) => {
 
   // ── handleLogout ─────────────────────────────────────────────────────────────
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('role');
-    localStorage.removeItem('loginTime');
-    localStorage.removeItem('selectedBranchId');
-    localStorage.removeItem('selectedBranchName');
-    navigate('/login', { replace: true });
+    sessionStorage.removeItem(LEAVE_CACHE_KEY);
+    sessionStorage.removeItem(REIMBURSEMENT_CACHE_KEY);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+    localStorage.removeItem("loginTime");
+    localStorage.removeItem("selectedBranchId");
+    localStorage.removeItem("selectedBranchName");
+    navigate("/login", { replace: true });
   };
 
   return (
