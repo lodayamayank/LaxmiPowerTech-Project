@@ -45,7 +45,7 @@ export default function AdminSiteTransfer() {
   const [formData, setFormData] = useState({});
   const [saving, setSaving] = useState(false);
   const [deletingAttachment, setDeletingAttachment] = useState(null);
-  const [deleting, setDeleting] = useState(false);
+  // const [deleting, setDeleting] = useState(false); 
   
   // ✅ Filter states
   const [filterSite, setFilterSite] = useState('');
@@ -444,34 +444,34 @@ export default function AdminSiteTransfer() {
   };
 
   // Delete All handler
-  const handleDeleteAll = async () => {
-    if (!window.confirm('Are you sure you want to delete all records? This action cannot be undone.')) {
-      return;
-    }
+  // const handleDeleteAll = async () => {
+  //   if (!window.confirm('Are you sure you want to delete all records? This action cannot be undone.')) {
+  //     return;
+  //   }
 
-    try {
-      setDeleting(true);
-      const response = await siteTransferAPI.deleteAll();
+  //   try {
+  //     setDeleting(true);
+  //     const response = await siteTransferAPI.deleteAll();
       
-      if (response.success) {
-        // Clear local state
-        setTransfers([]);
-        setTotalPages(1);
-        setCurrentPage(1);
+  //     if (response.success) {
+  //       // Clear local state
+  //       setTransfers([]);
+  //       setTotalPages(1);
+  //       setCurrentPage(1);
         
-        // Notify other components
-        window.dispatchEvent(new Event('siteTransferCreated'));
-        localStorage.setItem('siteTransferRefresh', Date.now().toString());
+  //       // Notify other components
+  //       window.dispatchEvent(new Event('siteTransferCreated'));
+  //       localStorage.setItem('siteTransferRefresh', Date.now().toString());
         
-        showToast(`Successfully deleted all ${response.deletedCount} site transfers`, 'success');
-      }
-    } catch (err) {
-      console.error('Delete all error:', err);
-      showToast(err.response?.data?.message || 'Failed to delete all site transfers', 'error');
-    } finally {
-      setDeleting(false);
-    }
-  };
+  //       showToast(`Successfully deleted all ${response.deletedCount} site transfers`, 'success');
+  //     }
+  //   } catch (err) {
+  //     console.error('Delete all error:', err);
+  //     showToast(err.response?.data?.message || 'Failed to delete all site transfers', 'error');
+  //   } finally {
+  //     setDeleting(false);
+  //   }
+  // };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -568,14 +568,14 @@ export default function AdminSiteTransfer() {
             <h1 className="text-2xl font-semibold text-gray-800">Site Transfers</h1>
             <p className="text-sm text-gray-500">View all site transfer requests 11</p>
           </div>
-          <Button
+          {/* <Button
             onClick={handleDeleteAll}
             disabled={transfers.length === 0 || deleting}
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <Trash2 size={18} />
             {deleting ? 'Deleting...' : 'Delete All'}
-          </Button>
+          </Button> */}
         </div>
 
         {/* Error Message */}

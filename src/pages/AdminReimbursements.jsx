@@ -157,7 +157,8 @@ const AdminReimbursements = () => {
         { status, rejectionReason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
+     window.dispatchEvent(new Event("pending-counts:refresh")); // 👈 badge refresh
+     fetchReimbursements(); 
       toast.success(`Reimbursement ${status} successfully`);
       refetchReimbursements();
       setShowDetailsModal(false);
