@@ -1,82 +1,71 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { getStatusTone, formatStatusLabel } from "@/utils/status";
 
-/**
- * Default color map covering the most common statuses across the application.
- * Each key maps to a Tailwind class string for light + dark mode.
- */
-const DEFAULT_COLOR_MAP = {
-  approved:
-    "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800",
-  rejected:
-    "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800",
-  pending:
-    "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-300 dark:border-yellow-800",
-  paid:
-    "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
-  completed:
-    "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800",
-};
+// Class strings (outline Badge) used by the legacy `colorMap` prop. Literal strings
+// so Tailwind can see them. Tokens only.
+const OK = "bg-tone-ok-soft text-tone-ok-fg border-tone-ok-border";
+const BAD = "bg-tone-bad-soft text-tone-bad-fg border-tone-bad-border";
+const WARN = "bg-tone-warn-soft text-tone-warn-fg border-tone-warn-fg/30";
+const INFO = "bg-tone-info-soft text-tone-info-fg border-tone-info-fg/30";
+const NEUTRAL = "bg-tone-neutral-soft text-tone-neutral-fg border-line";
 
-/** Fallback style when a status has no matching color entry. */
-const FALLBACK_STYLE =
-  "bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600";
+/** Fallback style when a legacy colorMap has no entry for a status. */
+const FALLBACK_STYLE = NEUTRAL;
 
 /**
  * Pre-defined domain-specific color maps that pages can import and pass
- * as the `colorMap` prop.
+ * as the `colorMap` prop (legacy API; kept for existing consumers).
  */
 export const LEAVE_STATUS_COLORS = {
-  approved:
-    "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800",
-  rejected:
-    "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800",
-  pending:
-    "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-300 dark:border-yellow-800",
+  approved: OK,
+  rejected: BAD,
+  pending: WARN,
 };
 
 export const REIMBURSEMENT_STATUS_COLORS = {
-  approved:
-    "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800",
-  rejected:
-    "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800",
-  pending:
-    "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-300 dark:border-yellow-800",
-  paid:
-    "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
+  approved: OK,
+  rejected: BAD,
+  pending: WARN,
+  paid: INFO,
 };
 
 export const TRANSFER_STATUS_COLORS = {
-  pending:
-    "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-300 dark:border-yellow-800",
-  approved:
-    "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
-  rejected:
-    "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800",
-  completed:
-    "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800",
+  pending: WARN,
+  approved: INFO,
+  rejected: BAD,
+  completed: OK,
 };
 
 /**
- * StatusBadge — Generic status badge with configurable color mapping.
+ * StatusBadge: status pill. With no `colorMap` the tone comes from `getStatusTone`
+ * (utils/status.js) and renders a toned Badge with a dot.
  *
- * @param {string} status — The status string to display
- * @param {Record<string, string>} [colorMap] — Optional domain-specific color map
- *   (overrides the default map entirely when provided)
- * @param {string} [className] — Additional classes to merge
+ * Props:
+ * - status {string}: status text (any case; "in_progress" -> "In Progress")
+ * - tone {string}: override the tone (ok, warn, bad, info, neutral, highlight, purple, pink)
+ * - label {string}: override the displayed text
+ * - colorMap {Record<string,string>}: legacy per-status class map; when given, renders the
+ *   outline Badge styled by that map instead of a tone
+ * - className {string}: extra classes
  */
-const StatusBadge = ({ status, colorMap, className }) => {
-  const map = colorMap || DEFAULT_COLOR_MAP;
-  const statusKey = (status || "").toLowerCase();
-  const colorClasses = map[statusKey] || FALLBACK_STYLE;
-
+export const StatusBadge = ({ status, tone, label, colorMap, className, ...props }) => {
+  if (colorMap) {
+    const colorClasses = colorMap[(status || "").toLowerCase()] || FALLBACK_STYLE;
+    return (
+      <Badge
+        variant="outline"
+        className={cn("capitalize font-medium", colorClasses, className)}
+        {...props}
+      >
+        {label ?? (status || "N/A")}
+      </Badge>
+    );
+  }
   return (
-    <Badge
-      variant="outline"
-      className={cn("capitalize font-medium", colorClasses, className)}
-    >
-      {status || "N/A"}
+    <Badge variant={tone || getStatusTone(status)} dot className={className} {...props}>
+      {label ?? (formatStatusLabel(status) || "N/A")}
     </Badge>
   );
 };
