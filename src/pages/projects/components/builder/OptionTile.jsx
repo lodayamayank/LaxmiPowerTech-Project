@@ -10,7 +10,7 @@ export default function OptionTile({ selected, className, children, ...props }) 
       variant="outline"
       aria-pressed={selected}
       className={cn(
-        "h-auto flex-col items-start justify-start gap-0.5 whitespace-normal px-3 py-2 text-left",
+        "!h-auto min-h-control flex-col items-start justify-start gap-0.5 whitespace-normal px-3 py-2 text-left",
         selected ? "border-primary bg-tone-info-soft text-ink-1 ring-1 ring-primary" : "text-ink-2",
         className
       )}
