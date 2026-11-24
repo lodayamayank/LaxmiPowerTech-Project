@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useProjects } from '@/hooks/useProjects';
 import DashboardLayout from '@/layouts/desktop/DashboardLayout';
 import axios from '@/api/client';
 import { useSearchParams } from 'react-router-dom';
@@ -18,32 +19,17 @@ const AttendancePage = () => {
   const [searchParams] = useSearchParams();
   const role = searchParams.get('role');
   const [data, setData] = useState([]);
-  const [projects, setProjects] = useState([]);
+  const { data: projects } = useProjects();
   const [selectedProject, setSelectedProject] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState('');
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  useEffect(() => {
     if (selectedProject && selectedMonth) {
       fetchData();
     }
   }, [selectedProject, selectedMonth, role]);
-
-  const fetchProjects = async () => {
-    try {
-      const res = await axios.get('/projects', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setProjects(res.data);
-    } catch (err) {
-      console.error('Failed to fetch projects', err);
-    }
-  };
 
   const fetchData = async () => {
     try {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { queryClient } from '@/lib/queryClient';
 import { Navigate } from 'react-router-dom';
 
 const PrivateRoute = ({ children }) => {
@@ -14,6 +15,7 @@ const PrivateRoute = ({ children }) => {
 
   if (isExpired) {
     localStorage.clear(); // remove token, user, etc.
+    queryClient.clear();
     return <Navigate to="/login" />;
   }
 

@@ -11,7 +11,7 @@ import {
 } from "@/api/materialTransfers";
 import StatusBadge, { TRANSFER_STATUS_COLORS } from "@/components/common/StatusBadge";
 import useDebounce from "./useDebounce";
-import { useBranches } from "./useBranches";
+import { useBranches } from "@/hooks/useBranches";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,7 +51,7 @@ function AdminTransfersInner() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { branches } = useBranches();
+  const { data: branches } = useBranches();
 
   const branchName = (id) => branches?.find((b) => b._id === id)?.name || "—";
 

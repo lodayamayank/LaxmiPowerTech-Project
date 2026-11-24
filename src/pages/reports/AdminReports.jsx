@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
+import { fetchProjectsCached } from '@/hooks/useProjects';
 import DashboardLayout from '@/layouts/desktop/DashboardLayout';
 import axios from '@/api/client';
 import { FaChartPie, FaHardHat, FaWarehouse, FaFileExcel, FaFilePdf } from 'react-icons/fa';
@@ -68,7 +69,7 @@ const AdminReports = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await axios.get('/projects');
+        const response = { data: await fetchProjectsCached() };
         const projectList = response.data || [];
         setProjects(projectList);
 

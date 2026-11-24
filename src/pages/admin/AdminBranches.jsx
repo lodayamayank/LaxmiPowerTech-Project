@@ -1,4 +1,6 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback } from "react";
+import { queryClient } from '@/lib/queryClient';
+import { useBranches, BRANCHES_KEY } from '@/hooks/useBranches';
 import axios from "@/api/client";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import { toast } from 'sonner';
@@ -35,9 +37,8 @@ const DEFAULT_ZOOM = 5;
 const MAP_PRIMARY_COLOR = "#f97316";
 
 const AdminBranches = () => {
-  const [branches, setBranches] = useState([]);
+  const { data: branches, isLoading: loading } = useBranches();
   const [editingId, setEditingId] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     address: "",
@@ -66,25 +67,6 @@ const AdminBranches = () => {
       mapRef.current.panTo({ lat, lng });
       mapRef.current.setZoom(zoom);
     }
-  }, []);
-
-  const fetchBranches = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get("/branches", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      setBranches(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
-      console.error("Failed to fetch branches:", err);
-      setBranches([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBranches();
   }, []);
 
   const reverseGeocode = async (lat, lng) => {
@@ -163,7 +145,7 @@ const AdminBranches = () => {
       setFormData({ name: "", lat: null, lng: null, radius: 100, address: "" });
       setSearchInput("");
       setEditingId(null);
-      fetchBranches();
+      queryClient.invalidateQueries({ queryKey: BRANCHES_KEY });
     } catch (err) {
       console.error("Error saving branch:", err);
       toast.error("Failed to save branch");
@@ -177,7 +159,7 @@ const AdminBranches = () => {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       toast.success("Branch deleted");
-      fetchBranches();
+      queryClient.invalidateQueries({ queryKey: BRANCHES_KEY });
     } catch (e) {
       toast.error("Failed to delete branch");
     }

@@ -1,4 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { queryClient } from '@/lib/queryClient';
+import { useProjects } from '@/hooks/useProjects';
+import { useBranches } from '@/hooks/useBranches';
+import { useUsers, USERS_KEY, usersQueryKey } from '@/hooks/useUsers';
 import { Link } from "react-router-dom";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import axios from "@/api/client";
@@ -130,14 +134,22 @@ const ActionButton = ({ title, onClick, className, children }) => (
 );
 
 const AdminMyTeam = () => {
-  const [users, setUsers] = useState([]);
-  const [branches, setBranches] = useState([]);
-  const [projects, setProjects] = useState([]);
+  const { data: users, isLoading: loading, error: usersError } = useUsers();
+  const { data: branchesRaw } = useBranches();
+  const branches = useMemo(
+    () =>
+      branchesRaw
+        .slice()
+        .sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+        ),
+    [branchesRaw],
+  );
+  const { data: projects } = useProjects();
   const [roleOptions, setRoleOptions] = useState([]);
   const [filterRole, setFilterRole] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [editingUser, setEditingUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [attendanceUser, setAttendanceUser] = useState(null);
 
   // Confirmation dialog: { type: 'delete' | 'reset', user }
@@ -151,48 +163,16 @@ const AdminMyTeam = () => {
   const headers = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {
-    fetchUsers();
-    fetchProjects();
-    fetchBranches();
     fetchRoles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchUsers = async () => {
-    try {
-      const res = await axios.get("/users", { headers });
-      setUsers(res.data);
-    } catch (err) {
-      console.error("Failed to fetch users", err);
+  useEffect(() => {
+    if (usersError) {
+      console.error("Failed to fetch users", usersError);
       toast.error("Failed to load users");
-    } finally {
-      setLoading(false);
     }
-  };
-
-  const fetchProjects = async () => {
-    try {
-      const res = await axios.get("/projects", { headers });
-      setProjects(res.data);
-    } catch (err) {
-      console.error("Failed to fetch projects", err);
-    }
-  };
-
-  const fetchBranches = async () => {
-    try {
-      const res = await axios.get("/branches", { headers });
-      setBranches(
-        (res.data || [])
-          .slice()
-          .sort((a, b) =>
-            a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
-          ),
-      );
-    } catch (err) {
-      console.error("Failed to fetch branches", err);
-    }
-  };
+  }, [usersError]);
 
   const fetchRoles = async () => {
     try {
@@ -211,7 +191,7 @@ const AdminMyTeam = () => {
     try {
       await axios.delete(`/users/${id}`, { headers });
       toast.success("User deleted successfully!");
-      fetchUsers();
+      queryClient.invalidateQueries({ queryKey: USERS_KEY });
     } catch (err) {
       console.error("Failed to delete user", err);
       toast.error("Failed to delete user");
@@ -242,9 +222,10 @@ const AdminMyTeam = () => {
   };
 
   const handleUserUpdated = (updatedUser) => {
-    setUsers((prev) =>
+    queryClient.setQueryData(usersQueryKey(), (prev = []) =>
       prev.map((u) => (u._id === updatedUser._id ? updatedUser : u)),
     );
+    queryClient.invalidateQueries({ queryKey: USERS_KEY });
     setEditingUser(updatedUser);
     setTimeout(() => setEditingUser(null), 500);
   };

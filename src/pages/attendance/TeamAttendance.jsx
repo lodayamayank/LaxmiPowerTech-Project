@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { fetchUsersCached } from '@/hooks/useUsers';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from '@/api/client';
 import logo from '@/assets/logo.png';
@@ -58,7 +59,7 @@ const TeamAttendance = () => {
       setLoading(true);
 
       const [usersRes, attendanceRes] = await Promise.all([
-        axios.get('/users', { params: { role: 'labour' }, headers: { Authorization: `Bearer ${token}` } }),
+        fetchUsersCached({ role: 'labour' }).then((data) => ({ data })),
         axios.get('/attendance/by-date', { params: { branch: branchId, date: viewDate }, headers: { Authorization: `Bearer ${token}` } }),
       ]);
 
@@ -140,7 +141,7 @@ const TeamAttendance = () => {
     setMarkLoading(true);
     try {
       const [usersRes, attendanceRes] = await Promise.all([
-        axios.get('/users', { params: { role: 'labour' }, headers: { Authorization: `Bearer ${token}` } }),
+        fetchUsersCached({ role: 'labour' }).then((data) => ({ data })),
         axios.get('/attendance/by-date', { params: { branch: branchId, date: markDate }, headers: { Authorization: `Bearer ${token}` } }),
       ]);
 

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { EVENTS } from '@/lib/events';
+import usePolling from '@/hooks/usePolling';
+import { fetchBranchesCached } from '@/hooks/useBranches';
 import { useNavigate } from "react-router-dom";
-import { siteTransferAPI, branchesAPI } from "@/api/material";
+import { siteTransferAPI } from "@/api/material";
 import { Filter, Plus, Truck } from "lucide-react";
 import { FaArrowLeft } from 'react-icons/fa';
 import { getSelectedBranchId, getSelectedBranchName } from "@/lib/branchContext";
@@ -48,7 +51,7 @@ export default function MaterialTransfer({ isTabView = false }) {
   // ✅ Fetch sites for filter dropdown
   const fetchSites = async () => {
     try {
-      const branches = await branchesAPI.getAll();
+      const branches = await fetchBranchesCached();
       
       // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
       let filteredBranches = branches;
@@ -89,14 +92,8 @@ export default function MaterialTransfer({ isTabView = false }) {
     return () => window.removeEventListener('focus', handleFocus);
   }, [currentPage]);
 
-  // Periodic polling every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchTransfers();
-    }, 30000);
-    
-    return () => clearInterval(interval);
-  }, [currentPage]);
+  // Periodic polling every 30 seconds (paused while the tab is hidden)
+  usePolling(fetchTransfers, 30000);
 
   // Listen for delivery, site transfer, and intent update events
   useEffect(() => {
@@ -113,21 +110,21 @@ export default function MaterialTransfer({ isTabView = false }) {
     };
     
     const handleStorageChange = (e) => {
-      if (e.key === 'deliveryRefresh' || e.key === 'upcomingDeliveryRefresh' || e.key === 'siteTransferRefresh') {
+      if (e.key === EVENTS.deliveryRefresh || e.key === EVENTS.upcomingDeliveryRefresh || e.key === EVENTS.siteTransferRefresh) {
         fetchTransfers();
         localStorage.removeItem(e.key);
       }
     };
     
-    window.addEventListener('deliveryUpdated', handleDeliveryUpdate);
-    window.addEventListener('siteTransferCreated', handleSiteTransferCreated);
-    window.addEventListener('upcomingDeliveryRefresh', handleUpcomingDeliveryRefresh);
+    window.addEventListener(EVENTS.deliveryUpdated, handleDeliveryUpdate);
+    window.addEventListener(EVENTS.siteTransferCreated, handleSiteTransferCreated);
+    window.addEventListener(EVENTS.upcomingDeliveryRefresh, handleUpcomingDeliveryRefresh);
     window.addEventListener('storage', handleStorageChange);
     
     return () => {
-      window.removeEventListener('deliveryUpdated', handleDeliveryUpdate);
-      window.removeEventListener('siteTransferCreated', handleSiteTransferCreated);
-      window.removeEventListener('upcomingDeliveryRefresh', handleUpcomingDeliveryRefresh);
+      window.removeEventListener(EVENTS.deliveryUpdated, handleDeliveryUpdate);
+      window.removeEventListener(EVENTS.siteTransferCreated, handleSiteTransferCreated);
+      window.removeEventListener(EVENTS.upcomingDeliveryRefresh, handleUpcomingDeliveryRefresh);
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [currentPage]);

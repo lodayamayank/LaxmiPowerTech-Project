@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { fetchBranchesCached } from '@/hooks/useBranches';
+import { queryClient } from '@/lib/queryClient';
 import { useNavigate } from 'react-router-dom';
-import axios from '@/api/client';
 import logo from '@/assets/logo.png';
 import { FaSignOutAlt, FaSearch, FaChevronRight, FaArrowLeft } from 'react-icons/fa';
 import { MdFolder } from 'react-icons/md';
@@ -15,7 +16,6 @@ const SupervisorProjectList = () => {
   const [projects, setProjects] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem('token');
 
   useEffect(() => {
     fetchAssignedProjects();
@@ -24,9 +24,7 @@ const SupervisorProjectList = () => {
   const fetchAssignedProjects = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/branches', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = { data: await fetchBranchesCached() };
       
       // Filter branches based on user's assignedBranches array
       // User model has an 'assignedBranches' field that stores array of branch IDs
@@ -58,6 +56,7 @@ const SupervisorProjectList = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    queryClient.clear();
     localStorage.removeItem('role');
     localStorage.removeItem('loginTime');
     localStorage.removeItem('selectedBranchId');

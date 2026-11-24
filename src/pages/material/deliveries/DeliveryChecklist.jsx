@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { EVENTS } from '@/lib/events';
 import { useParams, useNavigate } from "react-router-dom";
 import { upcomingDeliveryAPI } from "@/api/material";
 import { AlertCircle, CheckCircle, Upload, Trash2, Image as ImageIcon } from "lucide-react";
@@ -228,13 +229,13 @@ export default function DeliveryChecklist() {
                 receiptAttachments: receiptAttachmentsForSubmission
             });
             if (response.success) {
-                window.dispatchEvent(new Event('deliveryUpdated'));
-                window.dispatchEvent(new Event('upcomingDeliveryRefresh'));
-                window.dispatchEvent(new Event('intentCreated'));
+                window.dispatchEvent(new Event(EVENTS.deliveryUpdated));
+                window.dispatchEvent(new Event(EVENTS.upcomingDeliveryRefresh));
+                window.dispatchEvent(new Event(EVENTS.intentCreated));
                 
-                localStorage.setItem('deliveryRefresh', Date.now().toString());
-                localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
-                localStorage.setItem('intentRefresh', Date.now().toString());
+                localStorage.setItem(EVENTS.deliveryRefresh, Date.now().toString());
+                localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
+                localStorage.setItem(EVENTS.intentRefresh, Date.now().toString());
                 
                 showToast(response.message || "Delivery updated successfully!", 'success');
                 

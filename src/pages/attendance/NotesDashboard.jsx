@@ -1,5 +1,6 @@
 // frontend/pages/NotesDashboard.jsx
 import React, { useEffect, useState } from "react";
+import { useBranches } from '@/hooks/useBranches';
 import axios from "@/api/client";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import {
@@ -40,7 +41,7 @@ const SKELETON_ROWS = 8;
 
 const NotesDashboard = () => {
   const [notes, setNotes] = useState([]);
-  const [branches, setBranches] = useState([]);
+  const { data: branches } = useBranches();
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("");
   const [branch, setBranch] = useState("");
@@ -51,21 +52,6 @@ const NotesDashboard = () => {
   const limit = 25;
 
   const token = localStorage.getItem("token");
-
-  // Fetch branches
-  useEffect(() => {
-    const fetchBranches = async () => {
-      try {
-        const res = await axios.get("/branches", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setBranches(res.data || []);
-      } catch (err) {
-        console.error("Failed to fetch branches", err);
-      }
-    };
-    fetchBranches();
-  }, [token]);
 
   // Fetch notes
   const fetchNotes = async () => {

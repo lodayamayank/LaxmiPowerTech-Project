@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { queryClient } from '@/lib/queryClient';
+import { USERS_KEY } from '@/hooks/useUsers';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from '@/api/client';
 import { FaArrowLeft } from 'react-icons/fa';
@@ -96,6 +98,7 @@ const SupervisorAddLabour = () => {
       await axios.post('/users/register', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      queryClient.invalidateQueries({ queryKey: USERS_KEY });
 
       toast.success('Labour added successfully!');
       navigate(`/branch/${branchId}/labours`);

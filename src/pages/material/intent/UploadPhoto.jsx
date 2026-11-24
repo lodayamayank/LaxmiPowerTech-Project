@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { EVENTS } from '@/lib/events';
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaCamera, FaCheckCircle, FaImages } from "react-icons/fa";
 import { Upload, X } from "lucide-react";
@@ -143,11 +144,11 @@ export default function UploadPhoto() {
       if (result.response?.data?.success) {
         toast.success('Intent list uploaded successfully!');
         // Trigger refresh event for Intent list
-        window.dispatchEvent(new Event('intentCreated'));
-        localStorage.setItem('intentRefresh', Date.now().toString());
+        window.dispatchEvent(new Event(EVENTS.intentCreated));
+        localStorage.setItem(EVENTS.intentRefresh, Date.now().toString());
 
         // Trigger refresh for Upcoming Deliveries
-        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
 
         // Navigate back to Intent page after short delay
         setTimeout(() => {

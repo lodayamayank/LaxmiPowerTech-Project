@@ -1,5 +1,7 @@
 // src/pages/AdminLeaves.jsx
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { EVENTS } from '@/lib/events';
+import { useBranches } from '@/hooks/useBranches';
 import axios from "@/api/client";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import dayjs from "dayjs";
@@ -56,7 +58,7 @@ export default function AdminLeaves() {
         to: "",
         search: "",
     });
-    const [branches, setBranches] = useState([]);
+    const { data: branches } = useBranches();
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(20);
     const [loading, setLoading] = useState(false);
@@ -67,16 +69,6 @@ export default function AdminLeaves() {
         () => Math.max(Math.ceil(total / limit), 1),
         [total, limit]
     );
-
-    // 🔹 Load branches for dropdown
-    const loadBranches = useCallback(async () => {
-        try {
-            const res = await axios.get("/branches");
-            setBranches(res.data || []);
-        } catch (e) {
-            console.error("Failed to fetch branches", e);
-        }
-    }, []);
 
     // 🔹 Load leave requests
     const loadLeaves = useCallback(async () => {
@@ -94,9 +86,8 @@ export default function AdminLeaves() {
     }, [filters, page, limit]);
 
     useEffect(() => {
-        loadBranches();
         loadLeaves();
-    }, [loadBranches, loadLeaves]);
+    }, [loadLeaves]);
 
     const onSearch = (e) => {
         e.preventDefault();
@@ -107,14 +98,14 @@ export default function AdminLeaves() {
     const handleAction = async (id, status) => {
         try {
             await axios.patch(`/leaves/${id}/status`, { status }); // ✅ correct endpoint
-            window.dispatchEvent(new Event("pending-counts:refresh"));
+            window.dispatchEvent(new Event(EVENTS.pendingCountsRefresh));
             setRows((prev) =>
                 prev.map((r) => (r._id === id ? { ...r, status } : r))
             );
             toast.success(`Leave ${status} successfully`);
 
             // 🔹 optional: broadcast event for AdminDashboard & MyAttendance
-            window.dispatchEvent(new CustomEvent("leave-updated", { detail: { id, status } }));
+            window.dispatchEvent(new CustomEvent(EVENTS.leaveUpdated, { detail: { id, status } }));
         } catch (e) {
             console.error(e);
             toast.error("Failed to update status");

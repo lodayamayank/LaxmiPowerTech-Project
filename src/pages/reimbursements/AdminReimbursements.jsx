@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { EVENTS } from '@/lib/events';
 import axios from "@/api/client";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import {
@@ -157,7 +158,7 @@ const AdminReimbursements = () => {
         { status, rejectionReason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      window.dispatchEvent(new Event("pending-counts:refresh")); // 👈 badge refresh
+      window.dispatchEvent(new Event(EVENTS.pendingCountsRefresh)); // 👈 badge refresh
       fetchReimbursements(); 
 
       toast.success(`Reimbursement ${status} successfully`);

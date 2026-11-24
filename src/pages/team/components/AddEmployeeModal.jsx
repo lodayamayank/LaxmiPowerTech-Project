@@ -1,5 +1,7 @@
 // src/components/AddEmployeeModal.jsx
 import React, { useEffect, useMemo, useState } from "react";
+import { queryClient } from '@/lib/queryClient';
+import { USERS_KEY } from '@/hooks/useUsers';
 import axios from "@/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -201,6 +203,7 @@ const AddEmployeeModal = ({ open, onOpenChange, onCreated }) => {
       await axios.post("/users/register", payload, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
+      queryClient.invalidateQueries({ queryKey: USERS_KEY });
       toast.success(`${formData.name} added successfully`);
       onCreated?.();
       reset();

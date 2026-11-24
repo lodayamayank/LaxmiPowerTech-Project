@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { fetchBranchesCached } from '@/hooks/useBranches';
 import { Search, Eye, Package, Receipt, Edit2, Save, XCircle, DollarSign, Download, FileText, FileSpreadsheet, Trash2, MapPin, TrendingUp } from 'lucide-react';
-import { upcomingDeliveryAPI, branchesAPI } from '@/api/material';
+import { upcomingDeliveryAPI } from '@/api/material';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/desktop/DashboardLayout';
 import {
@@ -379,7 +380,7 @@ export default function AdminGRN() {
 
   const fetchSites = async () => {
     try {
-      const branches = await branchesAPI.getAll();
+      const branches = await fetchBranchesCached();
       const sitesList = branches.map(branch => branch.name).sort();
       setSites(sitesList);
     } catch (err) {

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { EVENTS } from '@/lib/events';
+import usePolling from '@/hooks/usePolling';
+import { fetchBranchesCached } from '@/hooks/useBranches';
 import { useNavigate } from 'react-router-dom';
-import { indentAPI, purchaseOrderAPI, branchesAPI } from '@/api/material';
+import { indentAPI, purchaseOrderAPI } from '@/api/material';
 import { Plus, Image as ImageIcon, Filter } from 'lucide-react';
 import { FaArrowLeft } from 'react-icons/fa';
 import AddIntentPopup from '@/pages/material/intent/components/AddIntentPopup';
@@ -61,7 +64,7 @@ export default function Intent({ isTabView = false }) {
   // ✅ Fetch sites for filter dropdown
   const fetchSites = async () => {
     try {
-      const branches = await branchesAPI.getAll();
+      const branches = await fetchBranchesCached();
       
       // ✅ CRITICAL: For supervisor/subcontractor with selected branch, show ONLY that branch
       let filteredBranches = branches;
@@ -105,14 +108,8 @@ export default function Intent({ isTabView = false }) {
     return () => window.removeEventListener('focus', handleFocus);
   }, [currentPage]);
 
-  // Periodic polling every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchIndents();
-    }, 30000);
-    
-    return () => clearInterval(interval);
-  }, [currentPage]);
+  // Periodic polling every 30 seconds (paused while the tab is hidden)
+  usePolling(fetchIndents, 30000);
 
   // Listen for intent creation and status update events
   useEffect(() => {
@@ -125,19 +122,19 @@ export default function Intent({ isTabView = false }) {
     };
     
     const handleStorageChange = (e) => {
-      if (e.key === 'intentRefresh' || e.key === 'upcomingDeliveryRefresh') {
+      if (e.key === EVENTS.intentRefresh || e.key === EVENTS.upcomingDeliveryRefresh) {
         console.log(`✅ ${e.key} - refreshing Intent list`);
         fetchIndents();
       }
     };
     
-    window.addEventListener('intentCreated', handleIntentCreated);
-    window.addEventListener('upcomingDeliveryRefresh', handleDeliveryRefresh);
+    window.addEventListener(EVENTS.intentCreated, handleIntentCreated);
+    window.addEventListener(EVENTS.upcomingDeliveryRefresh, handleDeliveryRefresh);
     window.addEventListener('storage', handleStorageChange);
     
     return () => {
-      window.removeEventListener('intentCreated', handleIntentCreated);
-      window.removeEventListener('upcomingDeliveryRefresh', handleDeliveryRefresh);
+      window.removeEventListener(EVENTS.intentCreated, handleIntentCreated);
+      window.removeEventListener(EVENTS.upcomingDeliveryRefresh, handleDeliveryRefresh);
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [currentPage]);

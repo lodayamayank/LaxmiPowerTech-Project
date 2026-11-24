@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { queryClient } from '@/lib/queryClient';
 import { useNavigate, useParams } from 'react-router-dom';
 import fingerprint from '@/assets/fingerprint.png';
 import layer2 from '@/assets/calendar.png';
@@ -62,6 +63,7 @@ const LabourDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    queryClient.clear();
     localStorage.removeItem('role');
     localStorage.removeItem('loginTime');
     localStorage.removeItem('selectedBranchId');

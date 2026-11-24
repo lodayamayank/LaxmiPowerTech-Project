@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { EVENTS } from '@/lib/events';
+import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
+import { fetchBranchesCached } from '@/hooks/useBranches';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, X, Trash2, Upload } from 'lucide-react';
-import { siteTransferAPI, materialCatalogAPI as materialAPI, branchesAPI } from '@/api/material';
+import { siteTransferAPI } from '@/api/material';
 import MaterialLineItem from '@/pages/material/components/MaterialLineItem';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -49,15 +52,19 @@ export default function MaterialCardDetails() {
   }, []);
 
   const fetchMaterialsAndSites = useCallback(async () => {
+    // Independent requests: start both together, then handle each result in order.
+    const branchesPromise = fetchBranchesCached();
+    const materialsPromise = fetchMaterialCatalogCached();
+    materialsPromise.catch(() => {}); // start now; the error is still raised where it is awaited below
     try {
       // ✅ FETCH SITES FROM BACKEND - NO HARDCODED VALUES
-      const branches = await branchesAPI.getAll();
+      const branches = await branchesPromise;
       const sitesList = branches.map(branch => branch.name).sort((a, b) => a.localeCompare(b));
       setSites(sitesList);
       console.log('✅ MaterialCardDetails: Fetched', sitesList.length, 'sites from backend');
       
       // Fetch materials - MATCHES DEMONSTRATED PROJECT
-      const materials = await materialAPI.getMaterials();
+      const materials = await materialsPromise;
       setAllMaterials(materials || []);
       
       // Extract unique categories and sort alphabetically - READ FROM RAW OBJECT
@@ -241,10 +248,10 @@ export default function MaterialCardDetails() {
         fetchTransferDetails();
         
         // Dispatch sync events
-        window.dispatchEvent(new CustomEvent('siteTransferCreated', { detail: response.data }));
-        window.dispatchEvent(new Event('upcomingDeliveryRefresh'));
-        localStorage.setItem('siteTransferRefresh', Date.now().toString());
-        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        window.dispatchEvent(new CustomEvent(EVENTS.siteTransferCreated, { detail: response.data }));
+        window.dispatchEvent(new Event(EVENTS.upcomingDeliveryRefresh));
+        localStorage.setItem(EVENTS.siteTransferRefresh, Date.now().toString());
+        localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
       }
     } catch (err) {
       console.error('Error updating site transfer:', err);

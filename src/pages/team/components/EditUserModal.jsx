@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useProjects } from '@/hooks/useProjects';
+import { useBranches } from '@/hooks/useBranches';
 import axios from "@/api/client";
 import { toast } from 'sonner';
 import {
@@ -128,8 +130,17 @@ const EditUserModal = ({ user, onClose, onSave }) => {
   const token = localStorage.getItem("token");
   const [activeTab, setActiveTab] = useState("basic");
   const [form, setForm] = useState(user || {});
-  const [branches, setBranches] = useState([]);
-  const [projects, setProjects] = useState([]);
+  const { data: branchesRaw } = useBranches();
+  const branches = useMemo(
+    () =>
+      branchesRaw
+        .slice()
+        .sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+        ),
+    [branchesRaw]
+  );
+  const { data: projects } = useProjects();
   const [passwordForm, setPasswordForm] = useState({
     newPassword: "",
     confirmPassword: "",
@@ -191,30 +202,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
         __v: user.__v,
       });
     }
-    fetchMeta();
   }, [user, user?._id]);
-
-  const fetchMeta = async () => {
-    try {
-      const [projRes, branchRes] = await Promise.all([
-        axios.get("/projects", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("/branches", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-      setProjects(projRes.data || []);
-      const sorted = (branchRes.data || [])
-        .slice()
-        .sort((a, b) =>
-          a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
-        );
-      setBranches(sorted);
-    } catch (err) {
-      console.error("Failed to load meta data", err);
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;

@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState } from 'react';
+import { queryClient } from '@/lib/queryClient';
+import { useVendors, VENDORS_KEY } from '@/hooks/useVendors';
 import DashboardLayout from '@/layouts/desktop/DashboardLayout';
 import axios from '@/api/client';
 import {
@@ -30,7 +32,7 @@ import {
 } from '@/components/ui/table';
 
 const AdminVendors = () => {
-  const [vendors, setVendors] = useState([]);
+  const { data: vendors, isLoading: loading } = useVendors();
   const [formData, setFormData] = useState({
     companyName: '',
     contact: '',
@@ -42,27 +44,8 @@ const AdminVendors = () => {
   });
   const [editId, setEditId] = useState(null);
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
 
   const token = localStorage.getItem('token');
-
-  const fetchVendors = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get('/vendors', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setVendors(res.data);
-    } catch (err) {
-      console.error('Failed to fetch vendors', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    fetchVendors();
-  }, [fetchVendors]);
 
   const validate = () => {
     const newErrors = {};
@@ -106,7 +89,7 @@ const AdminVendors = () => {
       });
       setEditId(null);
       setErrors({});
-      fetchVendors();
+      queryClient.invalidateQueries({ queryKey: VENDORS_KEY });
     } catch (err) {
       console.error('Failed to submit vendor', err);
       alert('Failed to save vendor');
@@ -135,7 +118,7 @@ const AdminVendors = () => {
       await axios.delete(`/vendors/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      fetchVendors();
+      queryClient.invalidateQueries({ queryKey: VENDORS_KEY });
     } catch (err) {
       console.error('Failed to delete vendor', err);
       alert('Failed to delete vendor');

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { fetchProjectsCached } from '@/hooks/useProjects';
 import axios from "@/api/client";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import { toast } from "sonner";
@@ -233,7 +234,7 @@ export default function ManageWorkOrder() {
 
   const fetchProjects = async () => {
     try {
-      const res = await axios.get("/projects");
+      const res = { data: await fetchProjectsCached() };
       setProjects(res.data || []);
 
       // Auto-select first project if available

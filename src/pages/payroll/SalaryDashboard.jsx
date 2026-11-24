@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { queryClient } from '@/lib/queryClient';
+import { USERS_KEY } from '@/hooks/useUsers';
 import DashboardLayout from '@/layouts/desktop/DashboardLayout';
 import axios from '@/api/client';
 import { toast } from 'sonner';
@@ -316,6 +318,7 @@ const SalaryDashboard = () => {
           },
           { headers: { Authorization: `Bearer ${token}` } }
         );
+        queryClient.invalidateQueries({ queryKey: USERS_KEY });
 
         await axios.post(
           "/salary/recalculate",

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { EVENTS } from '@/lib/events';
 import axios from "@/api/client";
 import { useNavigate } from "react-router-dom";
 import { Button } from '@/components/ui/button';
@@ -73,8 +74,8 @@ const MyAttendance = () => {
     fetchData();
 
     const refresh = () => fetchData();
-    window.addEventListener("leave-updated", refresh);
-    return () => window.removeEventListener("leave-updated", refresh);
+    window.addEventListener(EVENTS.leaveUpdated, refresh);
+    return () => window.removeEventListener(EVENTS.leaveUpdated, refresh);
   }, [token]);
 
   // --- daily aggregation for the currently selected month

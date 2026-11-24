@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { queryClient } from '@/lib/queryClient';
 import { useNavigate } from 'react-router-dom';
 import axios from '@/api/client';
 import fingerprint from '@/assets/fingerprint.png';
@@ -71,6 +72,7 @@ const SupervisorDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    queryClient.clear();
     localStorage.removeItem('role');
     navigate('/login', { replace: true });
   };

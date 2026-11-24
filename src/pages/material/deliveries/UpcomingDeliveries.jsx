@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { EVENTS } from '@/lib/events';
+import usePolling from '@/hooks/usePolling';
+import { fetchBranchesCached } from '@/hooks/useBranches';
 import { useNavigate } from "react-router-dom";
-import { upcomingDeliveryAPI, branchesAPI } from "@/api/material";
+import { upcomingDeliveryAPI } from "@/api/material";
 import { Search, Filter, Package, Plus } from "lucide-react";
 import { FaArrowLeft } from 'react-icons/fa';
 import { getSelectedBranchId, getSelectedBranchName } from "@/lib/branchContext";
@@ -44,7 +47,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
     // ✅ Fetch sites for filter dropdown
     const fetchSites = async () => {
         try {
-            const branches = await branchesAPI.getAll();
+            const branches = await fetchBranchesCached();
             
             // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
             let filteredBranches = branches;
@@ -93,22 +96,22 @@ export default function UpcomingDeliveries({ isTabView = false }) {
         };
 
         const handleStorageChange = (e) => {
-            if (e.key === 'intentRefresh' || e.key === 'upcomingDeliveryRefresh' || e.key === 'siteTransferRefresh') {
+            if (e.key === EVENTS.intentRefresh || e.key === EVENTS.upcomingDeliveryRefresh || e.key === EVENTS.siteTransferRefresh) {
                 console.log(`✅ Client Upcoming Deliveries: ${e.key} detected`);
                 fetchDeliveries();
                 localStorage.removeItem(e.key);
             }
         };
 
-        window.addEventListener('intentCreated', handleIntentChange);
-        window.addEventListener('siteTransferCreated', handleSiteTransferChange);
-        window.addEventListener('upcomingDeliveryRefresh', handleDeliveryRefresh);
+        window.addEventListener(EVENTS.intentCreated, handleIntentChange);
+        window.addEventListener(EVENTS.siteTransferCreated, handleSiteTransferChange);
+        window.addEventListener(EVENTS.upcomingDeliveryRefresh, handleDeliveryRefresh);
         window.addEventListener('storage', handleStorageChange);
 
         return () => {
-            window.removeEventListener('intentCreated', handleIntentChange);
-            window.removeEventListener('siteTransferCreated', handleSiteTransferChange);
-            window.removeEventListener('upcomingDeliveryRefresh', handleDeliveryRefresh);
+            window.removeEventListener(EVENTS.intentCreated, handleIntentChange);
+            window.removeEventListener(EVENTS.siteTransferCreated, handleSiteTransferChange);
+            window.removeEventListener(EVENTS.upcomingDeliveryRefresh, handleDeliveryRefresh);
             window.removeEventListener('storage', handleStorageChange);
         };
     }, []);
@@ -123,14 +126,8 @@ export default function UpcomingDeliveries({ isTabView = false }) {
         return () => window.removeEventListener('focus', handleFocus);
     }, []);
 
-    // Periodic polling every 30 seconds
-    useEffect(() => {
-        const interval = setInterval(() => {
-            fetchDeliveries();
-        }, 30000); // 30 seconds
-        
-        return () => clearInterval(interval);
-    }, []);
+    // Periodic polling every 30 seconds (paused while the tab is hidden)
+    usePolling(fetchDeliveries, 30000);
 
     const fetchDeliveries = async () => {
         try {

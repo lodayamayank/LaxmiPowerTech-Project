@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { EVENTS } from '@/lib/events';
+import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
+import { fetchBranchesCached } from '@/hooks/useBranches';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit2, Save, X, Trash2, Upload, ChevronDown } from 'lucide-react';
 import { FaArrowLeft } from 'react-icons/fa';
-import { purchaseOrderAPI, indentAPI, materialCatalogAPI as materialAPI, branchesAPI } from '@/api/material';
+import { purchaseOrderAPI, indentAPI } from '@/api/material';
 import axios from '@/api/client';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -139,15 +142,19 @@ export default function IntentCardDetails() {
   }, [id]);
 
   const fetchMaterialsAndSites = async () => {
+    // Independent requests: start both together, then handle each result in order.
+    const branchesPromise = fetchBranchesCached();
+    const materialsPromise = fetchMaterialCatalogCached();
+    materialsPromise.catch(() => {}); // start now; the error is still raised where it is awaited below
     try {
       // ✅ Fetch sites/branches from backend - NO HARDCODED VALUES
-      const branches = await branchesAPI.getAll();
+      const branches = await branchesPromise;
       const sitesList = branches.map(branch => branch.name).sort();
       setSites(sitesList);
       console.log('✅ Fetched sites from backend:', sitesList);
       
       // Fetch materials - MATCHES DEMONSTRATED PROJECT
-      const materials = await materialAPI.getMaterials();
+      const materials = await materialsPromise;
       setAllMaterials(materials || []);
       
       // Extract unique categories and sort alphabetically - READ FROM RAW OBJECT
@@ -261,10 +268,10 @@ export default function IntentCardDetails() {
       showToast('Purchase order deleted successfully', 'success');
       
       // Trigger refresh events for Intent and Upcoming Deliveries
-      window.dispatchEvent(new Event('intentCreated'));
-      window.dispatchEvent(new Event('upcomingDeliveryRefresh'));
-      localStorage.setItem('intentRefresh', Date.now().toString());
-      localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+      window.dispatchEvent(new Event(EVENTS.intentCreated));
+      window.dispatchEvent(new Event(EVENTS.upcomingDeliveryRefresh));
+      localStorage.setItem(EVENTS.intentRefresh, Date.now().toString());
+      localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
       
       navigate('/material/intent');
     } catch (err) {
@@ -342,10 +349,10 @@ export default function IntentCardDetails() {
         setNewAttachments([]);
         
         // Trigger refresh events for Intent and Upcoming Deliveries
-        window.dispatchEvent(new Event('intentCreated'));
-        window.dispatchEvent(new Event('upcomingDeliveryRefresh'));
-        localStorage.setItem('intentRefresh', Date.now().toString());
-        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        window.dispatchEvent(new Event(EVENTS.intentCreated));
+        window.dispatchEvent(new Event(EVENTS.upcomingDeliveryRefresh));
+        localStorage.setItem(EVENTS.intentRefresh, Date.now().toString());
+        localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
         
         fetchPODetails();
       }

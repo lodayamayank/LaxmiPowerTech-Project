@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { EVENTS } from '@/lib/events';
+import { fetchBranchesCached } from '@/hooks/useBranches';
+import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
 import { ArrowLeft, X, Upload, ChevronDown } from 'lucide-react';
-import { siteTransferAPI, materialCatalogAPI as materialAPI, upcomingDeliveryAPI } from '@/api/material';
+import { siteTransferAPI, upcomingDeliveryAPI } from '@/api/material';
 import { useNavigate } from 'react-router-dom';
-import axios from '@/api/client';
 import { getSelectedBranchName } from '@/lib/branchContext';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -239,11 +241,15 @@ export default function MaterialTransferForm() {
     const fetchData = async () => {
       try {
         setLoading(true);
+
+        // Independent requests: start both together, then handle each result in order.
+        const branchesPromise = fetchBranchesCached();
+        const materialsPromise = fetchMaterialCatalogCached();
+        materialsPromise.catch(() => {}); // start now; the error is still raised where it is awaited below
         
         // Fetch all sites for "To Site" dropdown
         try {
-          const branchesResponse = await axios.get('/branches');
-          const branches = branchesResponse.data || [];
+          const branches = await branchesPromise;
           const toSitesList = branches.map(branch => branch.name).sort((a, b) => a.localeCompare(b));
           setToSites(toSitesList);
           console.log('✅ To Site options:', toSitesList.length, 'sites');
@@ -254,7 +260,7 @@ export default function MaterialTransferForm() {
         
         // ✅ FETCH MATERIAL CATALOG FOR FALLBACK SUBCATEGORIES
         try {
-          const materials = await materialAPI.getMaterials();
+          const materials = await materialsPromise;
           console.log('✅ MaterialTransferForm: Fetched', materials?.length || 0, 'materials from catalog (fallback)');
           setAllMaterials(materials || []);
         } catch (err) {
@@ -515,14 +521,14 @@ export default function MaterialTransferForm() {
         );
         
         // Emit custom event for auto-refresh
-        window.dispatchEvent(new CustomEvent('siteTransferCreated', {
+        window.dispatchEvent(new CustomEvent(EVENTS.siteTransferCreated, {
           detail: response.data
         }));
-        window.dispatchEvent(new Event('upcomingDeliveryRefresh'));
+        window.dispatchEvent(new Event(EVENTS.upcomingDeliveryRefresh));
         
         // Trigger localStorage event for cross-tab communication
-        localStorage.setItem('siteTransferRefresh', Date.now().toString());
-        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        localStorage.setItem(EVENTS.siteTransferRefresh, Date.now().toString());
+        localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
         
         console.log('✅ Site Transfer created - syncing to Upcoming Deliveries');
         

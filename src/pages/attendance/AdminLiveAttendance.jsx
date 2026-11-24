@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import usePolling from '@/hooks/usePolling';
+import { useBranches } from '@/hooks/useBranches';
 import axios from "@/api/client";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 
@@ -46,7 +48,7 @@ const AdminLiveAttendance = () => {
     branch: "",
   });
 
-  const [branches, setBranches] = useState([]);
+  const { data: branches } = useBranches();
 
   // Status filter configuration
   const statusTabs = [
@@ -76,23 +78,8 @@ const AdminLiveAttendance = () => {
     },
   ];
 
-  // Fetch branches
-  useEffect(() => {
-    const fetchBranches = async () => {
-      try {
-        const res = await axios.get("/branches");
-        setBranches(res.data || []);
-      } catch (err) {
-        console.error("Failed to fetch branches", err);
-      }
-    };
-
-    fetchBranches();
-  }, []);
-
   // Fetch live attendance with role and branch filters
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchData = useCallback(async () => {
       try {
         const params = {};
 
@@ -116,14 +103,13 @@ const AdminLiveAttendance = () => {
         console.error("Failed to fetch live attendance", err);
         setStaffData([]);
       }
-    };
-
-    fetchData();
-
-    const interval = setInterval(fetchData, 30000);
-
-    return () => clearInterval(interval);
   }, [filters]);
+
+  // Load on mount and whenever the filters change, then refresh every 30 s (paused while the tab is hidden)
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+  usePolling(fetchData, 30000);
 
   // Apply search and status filters
   useEffect(() => {

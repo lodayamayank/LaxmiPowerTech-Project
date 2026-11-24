@@ -15,6 +15,9 @@ import {
   FaClipboardList,
 } from "react-icons/fa";
 import { MdNotificationsActive } from "react-icons/md";
+import { EVENTS } from '@/lib/events';
+import usePolling from '@/hooks/usePolling';
+import { queryClient } from '@/lib/queryClient';
 import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import axios from "@/api/client";
@@ -421,22 +424,19 @@ const DashboardLayout = ({ children, title }) => {
   }, []);
 
   // ── useEffect: pending badge counts (admin / supervisor only) ────────────────
+  const refreshPendingCounts = () => {
+    loadPendingLeaveCount();
+    loadPendingReimbursementCount();
+  };
+  const approvalsEnabled = canSeeApprovals(user);
+  // initial load, then every 60 s (paused while the tab is hidden)
+  usePolling(refreshPendingCounts, 60_000, { enabled: approvalsEnabled, immediate: true });
   useEffect(() => {
-    if (!canSeeApprovals(user)) return;
-
-    const refresh = () => {
-      loadPendingLeaveCount();
-      loadPendingReimbursementCount();
-    };
-
-    refresh(); // initial load
-    const id = setInterval(refresh, 60_000); // poll every 60s
-    window.addEventListener("pending-counts:refresh", refresh);
-
-    return () => {
-      clearInterval(id);
-      window.removeEventListener("pending-counts:refresh", refresh);
-    };
+    if (!approvalsEnabled) return;
+    const refresh = () => refreshPendingCounts();
+    window.addEventListener(EVENTS.pendingCountsRefresh, refresh);
+    return () => window.removeEventListener(EVENTS.pendingCountsRefresh, refresh);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role]);
   // ── Toggle dark mode ─────────────────────────────────────────────────────────
   const toggleDarkMode = () => {
@@ -519,6 +519,7 @@ const DashboardLayout = ({ children, title }) => {
     sessionStorage.removeItem(REIMBURSEMENT_CACHE_KEY);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    queryClient.clear();
     localStorage.removeItem("role");
     localStorage.removeItem("loginTime");
     localStorage.removeItem("selectedBranchId");

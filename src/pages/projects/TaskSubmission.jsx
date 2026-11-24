@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { fetchProjectsCached } from '@/hooks/useProjects';
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "@/api/client";
 import { submitOffline } from "@/pwa/offlineSubmit";
@@ -163,7 +164,7 @@ const TaskSubmission = () => {
       setLoading(true);
 
       if (branchId) {
-        const projectsRes = await axios.get("/projects");
+        const projectsRes = { data: await fetchProjectsCached() };
         // Get ALL projects that belong to this branch
         const branchProjects = projectsRes.data.filter((p) =>
           p.branches.some((b) => b._id === branchId)

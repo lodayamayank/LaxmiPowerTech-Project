@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { queryClient } from '@/lib/queryClient';
+import { USERS_KEY } from '@/hooks/useUsers';
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "@/api/client";
 import { FaArrowLeft, FaSave, FaTrash } from "react-icons/fa";
@@ -101,6 +103,7 @@ const SupervisorLabourDetails = () => {
       await axios.put(`/users/${labourId}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      queryClient.invalidateQueries({ queryKey: USERS_KEY });
 
       toast.success("Labour updated successfully!");
       navigate(`/branch/${branchId}/labours`);
@@ -125,6 +128,7 @@ const SupervisorLabourDetails = () => {
       await axios.delete(`/users/${labourId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      queryClient.invalidateQueries({ queryKey: USERS_KEY });
       toast.success("Labour deleted successfully");
       navigate(`/branch/${branchId}/labours`);
     } catch (err) {

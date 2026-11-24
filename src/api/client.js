@@ -1,5 +1,6 @@
 // src/utils/axios.js
 import axios from 'axios';
+import { queryClient } from '@/lib/queryClient';
 
 // Use environment variable for API base URL
 // Always points to Render backend (no localhost fallback)
@@ -37,6 +38,7 @@ instance.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.clear();
+      queryClient.clear();
       window.location.href = '/login';
     }
     return Promise.reject(error);

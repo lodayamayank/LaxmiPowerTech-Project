@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { indentAPI, purchaseOrderAPI, materialCatalogAPI as materialAPI, branchesAPI, vendorsAPI } from "@/api/material";
+import { EVENTS } from '@/lib/events';
+import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
+import { fetchVendorsCached } from '@/hooks/useVendors';
+import { fetchBranchesCached } from '@/hooks/useBranches';
+import { indentAPI, purchaseOrderAPI } from "@/api/material";
 import { Eye, Trash2, X, Edit2, Save, Plus, Image as ImageIcon, ZoomIn, ZoomOut, RotateCcw, ExternalLink, CheckCircle, RefreshCw } from "lucide-react";
 import MaterialLineItem from "@/pages/material/components/MaterialLineItem";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
@@ -107,9 +111,15 @@ export default function AdminIntent() {
 
   // Fetch materials and sites for editing
   const fetchMaterialsAndSites = async () => {
+    // The three requests are independent: start them together, then handle each result in order.
+    const materialsPromise = fetchMaterialCatalogCached();
+    const branchesPromise = fetchBranchesCached();
+    const vendorsPromise = fetchVendorsCached();
+    branchesPromise.catch(() => {}); // start now; the error is still raised where it is awaited below
+    vendorsPromise.catch(() => {}); // start now; the error is still raised where it is awaited below
     try {
       // Fetch materials - MATCHES DEMONSTRATED PROJECT
-      const materials = await materialAPI.getMaterials();
+      const materials = await materialsPromise;
       setAllMaterials(materials || []);
       
       // Extract unique categories - backend returns formatted data
@@ -118,14 +128,14 @@ export default function AdminIntent() {
       setCategories(uniqueCategories);
       
       // Fetch sites/branches from backend - NO HARDCODED VALUES
-      const branches = await branchesAPI.getAll();
+      const branches = await branchesPromise;
       const sitesList = branches.map(branch => branch.name).sort();
       setSites(sitesList);
       console.log('✅ Fetched sites from backend:', sitesList);
       
       // Fetch vendors from backend
       try {
-        const vendorsList = await vendorsAPI.getAll();
+        const vendorsList = await vendorsPromise;
         setVendors(vendorsList || []);
         console.log('✅ Fetched vendors from backend:', vendorsList?.length || 0, 'vendors');
       } catch (vendorError) {
@@ -340,8 +350,8 @@ export default function AdminIntent() {
         }
         
         // Notify client side
-        window.dispatchEvent(new Event('intentCreated'));
-        localStorage.setItem('intentRefresh', Date.now().toString());
+        window.dispatchEvent(new Event(EVENTS.intentCreated));
+        localStorage.setItem(EVENTS.intentRefresh, Date.now().toString());
         
         showToast(`${type === 'purchaseOrder' ? 'Purchase Order' : 'Intent'} deleted successfully`, 'success');
       }
@@ -584,10 +594,10 @@ export default function AdminIntent() {
         setEditing(false);
         
         // ✅ SYNC TO UPCOMING DELIVERIES - Notify all components
-        window.dispatchEvent(new Event('intentCreated'));
-        window.dispatchEvent(new Event('upcomingDeliveryRefresh'));
-        localStorage.setItem('intentRefresh', Date.now().toString());
-        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        window.dispatchEvent(new Event(EVENTS.intentCreated));
+        window.dispatchEvent(new Event(EVENTS.upcomingDeliveryRefresh));
+        localStorage.setItem(EVENTS.intentRefresh, Date.now().toString());
+        localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
         console.log('✅ Intent PO updated - syncing to Upcoming Deliveries');
         
         showToast('Intent updated successfully and synced to Upcoming Deliveries', 'success');
@@ -635,10 +645,10 @@ export default function AdminIntent() {
           setSelectedIndent(updatedIntent);
         }
 
-        window.dispatchEvent(new Event('intentCreated'));
-        window.dispatchEvent(new Event('upcomingDeliveryRefresh'));
-        localStorage.setItem('intentRefresh', Date.now().toString());
-        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        window.dispatchEvent(new Event(EVENTS.intentCreated));
+        window.dispatchEvent(new Event(EVENTS.upcomingDeliveryRefresh));
+        localStorage.setItem(EVENTS.intentRefresh, Date.now().toString());
+        localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
 
         showToast(response.message || `${isPurchaseOrder ? 'Purchase Order' : 'Intent'} approved successfully`, 'success');
       }
@@ -1025,8 +1035,8 @@ export default function AdminIntent() {
         setCurrentPage(1);
         
         // Notify other components
-        window.dispatchEvent(new Event('intentCreated'));
-        localStorage.setItem('intentRefresh', Date.now().toString());
+        window.dispatchEvent(new Event(EVENTS.intentCreated));
+        localStorage.setItem(EVENTS.intentRefresh, Date.now().toString());
         
         showToast(`Successfully deleted all ${totalCount} records`, 'success');
       } else {

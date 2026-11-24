@@ -1,4 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
+import { useUsers } from '@/hooks/useUsers';
+import { useProjects } from '@/hooks/useProjects';
 import axios from "@/api/client";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import {
@@ -103,8 +105,12 @@ const thClass =
 
 const AdminTasks = () => {
   const [tasks, setTasks] = useState([]);
-  const [projects, setProjects] = useState([]);
-  const [supervisors, setSupervisors] = useState([]);
+  const { data: projects } = useProjects();
+  const { data: allUsers } = useUsers();
+  const supervisors = useMemo(
+    () => allUsers.filter((u) => u.role === "supervisor" || u.role === "subcontractor"),
+    [allUsers]
+  );
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -228,32 +234,9 @@ const AdminTasks = () => {
     }
   }, [currentPage, filters]);
 
-  const fetchProjects = useCallback(async () => {
-    try {
-      const res = await axios.get("/projects");
-      setProjects(res.data || []);
-    } catch (err) {
-      console.error("Error fetching projects:", err);
-    }
-  }, []);
-
-  const fetchSupervisors = useCallback(async () => {
-    try {
-      const res = await axios.get("/users");
-      const supervisorList = res.data.filter(
-        (u) => u.role === "supervisor" || u.role === "subcontractor"
-      );
-      setSupervisors(supervisorList);
-    } catch (err) {
-      console.error("Error fetching supervisors:", err);
-    }
-  }, []);
-
   useEffect(() => {
     fetchTasks();
-    fetchProjects();
-    fetchSupervisors();
-  }, [fetchTasks, fetchProjects, fetchSupervisors]);
+  }, [fetchTasks]);
 
   const handleFilterChange = (field, value) => {
     setFilters((prev) => ({ ...prev, [field]: value }));

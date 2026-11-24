@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { fetchBranchesCached } from '@/hooks/useBranches';
 import { useNavigate } from "react-router-dom";
-import { upcomingDeliveryAPI, branchesAPI } from "@/api/material";
+import { upcomingDeliveryAPI } from "@/api/material";
 import { Package, Calendar, MapPin, FileText, User, TrendingUp, Eye, Filter, Search } from "lucide-react";
 import { FaArrowLeft } from 'react-icons/fa';
 import { getSelectedBranchId, getSelectedBranchName } from "@/lib/branchContext";
@@ -39,7 +40,7 @@ export default function GRN({ isTabView = false }) {
   
   const fetchSites = async () => {
     try {
-      const branches = await branchesAPI.getAll();
+      const branches = await fetchBranchesCached();
       
       // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
       let filteredBranches = branches;

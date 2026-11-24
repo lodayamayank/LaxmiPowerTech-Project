@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { upcomingDeliveryAPI, indentAPI, purchaseOrderAPI, branchesAPI } from "@/api/material";
+import { EVENTS } from '@/lib/events';
+import { fetchBranchesCached } from '@/hooks/useBranches';
+import { upcomingDeliveryAPI, indentAPI, purchaseOrderAPI } from "@/api/material";
 import { Eye, Trash2, X, Edit2, Save, Upload, Image as ImageIcon } from "lucide-react";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -66,7 +68,7 @@ export default function AdminUpcomingDeliveries() {
   // ✅ Fetch sites for filter dropdown
   const fetchSites = async () => {
     try {
-      const branches = await branchesAPI.getAll();
+      const branches = await fetchBranchesCached();
       const sitesList = branches.map(branch => branch.name).sort();
       setSites(sitesList);
     } catch (err) {
@@ -202,10 +204,10 @@ export default function AdminUpcomingDeliveries() {
         }
         
         // Trigger sync events
-        window.dispatchEvent(new Event('intentCreated'));
-        window.dispatchEvent(new Event('upcomingDeliveryRefresh'));
-        localStorage.setItem('intentRefresh', Date.now().toString());
-        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        window.dispatchEvent(new Event(EVENTS.intentCreated));
+        window.dispatchEvent(new Event(EVENTS.upcomingDeliveryRefresh));
+        localStorage.setItem(EVENTS.intentRefresh, Date.now().toString());
+        localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
         
         showToast("Upcoming delivery deleted successfully", 'success');
       }
@@ -288,12 +290,12 @@ export default function AdminUpcomingDeliveries() {
         setEditing(false);
         
         // ✅ SYNC BACK TO SOURCE - Trigger sync events for Intent PO AND Site Transfer
-        window.dispatchEvent(new Event('intentCreated'));
-        window.dispatchEvent(new Event('siteTransferCreated'));
-        window.dispatchEvent(new Event('upcomingDeliveryRefresh'));
-        localStorage.setItem('intentRefresh', Date.now().toString());
-        localStorage.setItem('siteTransferRefresh', Date.now().toString());
-        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        window.dispatchEvent(new Event(EVENTS.intentCreated));
+        window.dispatchEvent(new Event(EVENTS.siteTransferCreated));
+        window.dispatchEvent(new Event(EVENTS.upcomingDeliveryRefresh));
+        localStorage.setItem(EVENTS.intentRefresh, Date.now().toString());
+        localStorage.setItem(EVENTS.siteTransferRefresh, Date.now().toString());
+        localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
         console.log(`✅ Upcoming Delivery updated - Status: ${calculatedStatus} - syncing back to Intent PO and Site Transfer`);
         
         showToast(`Delivery updated! Status: ${calculatedStatus}`, 'success');
@@ -473,8 +475,8 @@ export default function AdminUpcomingDeliveries() {
         setCurrentPage(1);
         
         // Notify other components
-        window.dispatchEvent(new Event('intentCreated'));
-        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        window.dispatchEvent(new Event(EVENTS.intentCreated));
+        localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
         
         showToast(`Successfully deleted all ${response.deletedCount} upcoming deliveries`, 'success');
       }

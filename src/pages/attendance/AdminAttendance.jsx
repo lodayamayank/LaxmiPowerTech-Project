@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useProjects } from '@/hooks/useProjects';
 import DashboardLayout from '@/layouts/desktop/DashboardLayout';
 import axios from '@/api/client';
 import { Button } from '@/components/ui/button';
@@ -16,26 +17,11 @@ import {
 
 const AdminAttendance = ({role}) => {
   const [summary, setSummary] = useState([]);
-  const [projects, setProjects] = useState([]);
+  const { data: projects } = useProjects();
   const [selectedProject, setSelectedProject] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState('');
   const token = localStorage.getItem('token');
-
-  const fetchProjects = useCallback(async () => {
-    try {
-      const res = await axios.get('/projects', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setProjects(res.data);
-    } catch (err) {
-      console.error('Failed to fetch projects', err);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects]);
 
   const fetchAttendanceSummary = useCallback(async () => {
     try {

@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
-import { siteTransferAPI, branchesAPI, materialCatalogAPI as materialAPI } from "@/api/material";
+import { EVENTS } from '@/lib/events';
+import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
+import { fetchBranchesCached } from '@/hooks/useBranches';
+import { siteTransferAPI } from "@/api/material";
 import { Eye, Trash2, X, Edit2, Save, Plus } from "lucide-react";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import MaterialLineItem from "@/pages/material/components/MaterialLineItem";
@@ -69,7 +72,7 @@ export default function AdminSiteTransfer() {
   // ✅ Fetch sites for filter dropdown
   const fetchSites = async () => {
     try {
-      const branches = await branchesAPI.getAll();
+      const branches = await fetchBranchesCached();
       const sitesList = branches.map(branch => branch.name).sort();
       setSites(sitesList);
     } catch (err) {
@@ -81,7 +84,7 @@ export default function AdminSiteTransfer() {
   // Fetch materials and categories - Same as AdminIntent
   const fetchMaterialsAndCategories = async () => {
     try {
-      const materials = await materialAPI.getMaterials();
+      const materials = await fetchMaterialCatalogCached();
       setAllMaterials(materials || []);
       
       // Extract unique categories
@@ -313,10 +316,10 @@ export default function AdminSiteTransfer() {
         setEditing(false);
         
         // ✅ SYNC TO UPCOMING DELIVERIES - Notify all components
-        window.dispatchEvent(new Event('siteTransferCreated'));
-        window.dispatchEvent(new Event('upcomingDeliveryRefresh'));
-        localStorage.setItem('siteTransferRefresh', Date.now().toString());
-        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        window.dispatchEvent(new Event(EVENTS.siteTransferCreated));
+        window.dispatchEvent(new Event(EVENTS.upcomingDeliveryRefresh));
+        localStorage.setItem(EVENTS.siteTransferRefresh, Date.now().toString());
+        localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
         console.log('✅ Site Transfer updated - syncing to Upcoming Deliveries');
         
         if (!isApproving) {
@@ -460,8 +463,8 @@ export default function AdminSiteTransfer() {
         setCurrentPage(1);
         
         // Notify other components
-        window.dispatchEvent(new Event('siteTransferCreated'));
-        localStorage.setItem('siteTransferRefresh', Date.now().toString());
+        window.dispatchEvent(new Event(EVENTS.siteTransferCreated));
+        localStorage.setItem(EVENTS.siteTransferRefresh, Date.now().toString());
         
         showToast(`Successfully deleted all ${response.deletedCount} site transfers`, 'success');
       }

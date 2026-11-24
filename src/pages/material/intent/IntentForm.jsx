@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { EVENTS } from '@/lib/events';
+import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
 import { ArrowLeft, X, Upload, ChevronDown } from 'lucide-react';
-import { purchaseOrderAPI, materialCatalogAPI as materialAPI } from '@/api/material';
+import { purchaseOrderAPI } from '@/api/material';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import axios from '@/api/client';
@@ -149,7 +151,7 @@ export default function IntentForm() {
         
         // Fetch materials from database - MATCHES DEMONSTRATED PROJECT
         // Demonstrated project calls /materials/materials, we call /material/catalog/materials
-        const materials = await materialAPI.getMaterials();
+        const materials = await fetchMaterialCatalogCached();
         console.log('✅ Fetched materials:', materials?.length || 0);
         
         // Debug: Log first material to verify data structure
@@ -347,11 +349,11 @@ export default function IntentForm() {
       
       if (response.success) {
         // Trigger refresh event
-        window.dispatchEvent(new Event('intentCreated'));
-        localStorage.setItem('intentRefresh', Date.now().toString());
+        window.dispatchEvent(new Event(EVENTS.intentCreated));
+        localStorage.setItem(EVENTS.intentRefresh, Date.now().toString());
         
         // Trigger refresh for Upcoming Deliveries
-        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
         
         alert('Intent (PO) created successfully!');
         

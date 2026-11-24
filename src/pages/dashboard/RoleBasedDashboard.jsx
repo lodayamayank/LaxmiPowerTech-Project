@@ -1,5 +1,6 @@
 // RoleBasedDashboard.jsx - Add error handling
 import React, { lazy, Suspense } from 'react';
+import { queryClient } from '@/lib/queryClient';
 import { useNavigate } from 'react-router-dom';
 
 // Each role only loads its own dashboard chunk.
@@ -97,6 +98,7 @@ const RoleBasedDashboard = () => {
           <button 
             onClick={() => {
               localStorage.clear();
+              queryClient.clear();
               navigate('/login');
             }}
             className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"

@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { fetchUsersCached } from '@/hooks/useUsers';
+import { queryClient } from '@/lib/queryClient';
+import { USERS_KEY } from '@/hooks/useUsers';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from '@/api/client';
 import logo from '@/assets/logo.png';
@@ -47,13 +50,7 @@ const SupervisorLabourList = () => {
   const fetchLabours = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/users', {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          role: 'labour',
-          branch: branchId
-        }
-      });
+      const res = { data: await fetchUsersCached({ role: 'labour', branch: branchId }) };
       
       // Filter labours assigned to this branch
       const filteredLabours = res.data.filter(labour => 
@@ -81,6 +78,7 @@ const SupervisorLabourList = () => {
       await axios.delete(`/users/${labourId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      queryClient.invalidateQueries({ queryKey: USERS_KEY });
       toast.success('Labour deleted successfully');
       // Remove from local state immediately
       setLabours(labours.filter(l => l._id !== labourId));

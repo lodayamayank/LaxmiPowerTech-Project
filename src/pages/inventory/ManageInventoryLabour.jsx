@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useProjects } from '@/hooks/useProjects';
+import { useBranches } from '@/hooks/useBranches';
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import axios from "@/api/client";
@@ -107,9 +109,9 @@ const ManageInventoryLabour = () => {
   const navigate = useNavigate();
 
   // Filter state
-  const [branches, setBranches] = useState([]);
+  const { data: branches } = useBranches();
   const [selectedBranch, setSelectedBranch] = useState(ALL);
-  const [allProjects, setAllProjects] = useState([]);
+  const { data: allProjects } = useProjects();
   const [selectedProject, setSelectedProject] = useState(ALL);
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -125,33 +127,6 @@ const ManageInventoryLabour = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [expandedRow, setExpandedRow] = useState(null);
-
-  // ── Fetch branches and projects on mount ──
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const [branchRes, projectRes] = await Promise.all([
-          axios.get("/branches"),
-          axios.get("/projects"),
-        ]);
-        const branchData = Array.isArray(branchRes?.data)
-          ? branchRes.data
-          : Array.isArray(branchRes?.data?.data)
-          ? branchRes.data.data
-          : [];
-        const projectData = Array.isArray(projectRes?.data)
-          ? projectRes.data
-          : Array.isArray(projectRes?.data?.data)
-          ? projectRes.data.data
-          : [];
-        setBranches(branchData);
-        setAllProjects(projectData);
-      } catch (err) {
-        console.warn("Failed to fetch branches/projects", err);
-      }
-    };
-    fetchInitialData();
-  }, []);
 
   // ── Reset project when branch changes ──
   useEffect(() => {

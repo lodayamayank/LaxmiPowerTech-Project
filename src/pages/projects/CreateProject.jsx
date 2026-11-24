@@ -1,4 +1,8 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useMemo, useState, useRef } from "react";
+import { queryClient } from '@/lib/queryClient';
+import { useUsers } from '@/hooks/useUsers';
+import { useBranches } from '@/hooks/useBranches';
+import { useProjects, PROJECTS_KEY } from '@/hooks/useProjects';
 import axios from "@/api/client";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import SmartTowerBuilder from "@/pages/projects/components/SmartTowerBuilder";
@@ -72,11 +76,19 @@ const CreateProject = () => {
     branches: [],
     buildings: [],
   });
-  const [projects, setProjects] = useState([]);
-  const [branches, setBranches] = useState([]);
-  const [users, setUsers] = useState([]);
+  const { data: projects, isLoading: loading } = useProjects();
+  const { data: branchesRaw } = useBranches();
+  const branches = useMemo(
+    () =>
+      branchesRaw
+        .slice()
+        .sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+        ),
+    [branchesRaw]
+  );
+  const { data: users } = useUsers();
   const [editingId, setEditingId] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [detailsProject, setDetailsProject] = useState(null);
   const [projectTasks, setProjectTasks] = useState([]);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -105,47 +117,6 @@ const CreateProject = () => {
     const addr = place?.formatted_address || place?.name || "";
     if (addr) {
       setFormData((prev) => ({ ...prev, address: addr }));
-    }
-  };
-
-  const fetchProjects = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get("/projects", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setProjects(res.data);
-    } catch (err) {
-      console.error("Failed to fetch projects", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchBranches = async () => {
-    try {
-      const res = await axios.get("/branches", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const sorted = (res.data || [])
-        .slice()
-        .sort((a, b) =>
-          a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
-        );
-      setBranches(sorted);
-    } catch (err) {
-      console.error("Failed to fetch branches", err);
-    }
-  };
-
-  const fetchUsers = async () => {
-    try {
-      const res = await axios.get("/users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUsers(res.data || []);
-    } catch (err) {
-      console.error("Failed to fetch users", err);
     }
   };
 
@@ -349,7 +320,7 @@ const CreateProject = () => {
       setFormData({ name: "", address: "", branches: [], buildings: [] });
       setEditingId(null);
       setLargeProjectDialogOpen(false);
-      fetchProjects();
+      queryClient.invalidateQueries({ queryKey: PROJECTS_KEY });
     } catch (err) {
       console.error("Failed to save project", err);
       if (err.response?.status === 413) {
@@ -399,18 +370,13 @@ const CreateProject = () => {
       });
       toast.success("Project deleted successfully");
       setDeleteProjectId(null);
-      fetchProjects();
+      queryClient.invalidateQueries({ queryKey: PROJECTS_KEY });
     } catch (err) {
       console.error("Failed to delete project", err);
       toast.error(err.response?.data?.message || "Failed to delete project");
     }
   };
 
-  useEffect(() => {
-    fetchProjects();
-    fetchBranches();
-    fetchUsers();
-  }, []);
 
   const totalBranches = projects.reduce(
     (acc, proj) => acc + (proj.branches?.length || 0),

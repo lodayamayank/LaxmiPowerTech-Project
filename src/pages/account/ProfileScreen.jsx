@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { queryClient } from '@/lib/queryClient';
+import { USERS_KEY } from '@/hooks/useUsers';
+import { useBranches } from '@/hooks/useBranches';
 import axios from '@/api/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -25,7 +28,7 @@ import { Input } from '@/components/ui/input';
 
 const ProfileScreen = () => {
   const navigate = useNavigate();
-  const [branches, setBranches] = useState([]);
+  const { data: branches } = useBranches();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -53,7 +56,6 @@ const ProfileScreen = () => {
 
   useEffect(() => {
     fetchUser();
-    fetchBranches();
   }, []);
 
   const fetchUser = async () => {
@@ -89,17 +91,6 @@ const ProfileScreen = () => {
     }
   };
 
-  const fetchBranches = async () => {
-    try {
-      const res = await axios.get('/branches', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      setBranches(res.data);
-    } catch (err) {
-      console.error('Failed to fetch branches', err);
-    }
-  };
-
   const handleSubmit = async () => {
     try {
       const payload = {
@@ -112,6 +103,7 @@ const ProfileScreen = () => {
       await axios.put('/users/me', payload, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
+      queryClient.invalidateQueries({ queryKey: USERS_KEY });
       toast.success('Profile updated successfully');
       setTimeout(() => navigate(-1), 1500);
     } catch (err) {
