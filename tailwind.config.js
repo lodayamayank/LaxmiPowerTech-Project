@@ -86,11 +86,6 @@ export default {
         },
 
         // ── Design tokens (additive; see index.css) ──
-        "primary-brand": {
-          DEFAULT: "hsl(var(--primary-brand))",
-          strong: "hsl(var(--primary-brand-strong))",
-          soft: "hsl(var(--primary-brand-soft))",
-        },
         highlight: {
           DEFAULT: "hsl(var(--highlight))",
           foreground: "hsl(var(--highlight-foreground))",

@@ -57,7 +57,7 @@ const TONES = ["ok", "warn", "bad", "info", "neutral", "highlight", "purple", "p
 // Literal class names so Tailwind generates them.
 const SWATCH_GROUPS = [
   {
-    name: "Brand (existing)",
+    name: "Brand",
     items: [
       ["primary", "bg-primary"],
       ["primary-strong", "bg-primary-strong"],
@@ -65,11 +65,8 @@ const SWATCH_GROUPS = [
     ],
   },
   {
-    name: "Brand (new)",
+    name: "Highlight",
     items: [
-      ["primary-brand", "bg-primary-brand"],
-      ["primary-brand-strong", "bg-primary-brand-strong"],
-      ["primary-brand-soft", "bg-primary-brand-soft"],
       ["highlight", "bg-highlight"],
       ["highlight-foreground", "bg-highlight-foreground"],
       ["highlight-soft", "bg-highlight-soft"],
