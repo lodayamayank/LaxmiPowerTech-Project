@@ -1,0 +1,206 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from '@/api/client';
+import logo from '@/assets/logo.png';
+import { FaSignOutAlt, FaSearch, FaChevronRight, FaArrowLeft } from 'react-icons/fa';
+import { MdFolder } from 'react-icons/md';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+
+const SupervisorProjectList = () => {
+  const user = JSON.parse(localStorage.getItem('user'));
+  const navigate = useNavigate();
+  const [projects, setProjects] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    fetchAssignedProjects();
+  }, []);
+
+  const fetchAssignedProjects = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get('/branches', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Filter branches based on user's assignedBranches array
+      // User model has an 'assignedBranches' field that stores array of branch IDs
+      let assignedBranches = [];
+      
+      if (user.assignedBranches && user.assignedBranches.length > 0) {
+        // Extract branch IDs from user.assignedBranches (handle both object and string formats)
+        const assignedBranchIds = user.assignedBranches.map(branch => 
+          typeof branch === 'object' ? branch._id : branch
+        );
+        
+        // Filter branches to show only assigned ones
+        assignedBranches = res.data.filter(branch => 
+          assignedBranchIds.includes(branch._id)
+        );
+      }
+      
+      // Only show assigned branches, never show all branches
+      setProjects(assignedBranches);
+    } catch (err) {
+      console.error('Failed to fetch branches', err);
+      // If API fails, show empty list
+      setProjects([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    localStorage.removeItem('loginTime');
+    localStorage.removeItem('selectedBranchId');
+    localStorage.removeItem('selectedBranchName');
+    navigate('/login', { replace: true });
+  };
+
+  const handleProjectClick = (branchId, branchName) => {
+    // Store selected branch context in localStorage for material data isolation
+    localStorage.setItem('selectedBranchId', branchId);
+    localStorage.setItem('selectedBranchName', branchName || 'Selected Branch');
+    
+    // Navigate to Labour dashboard for this specific branch
+    navigate(`/branch/${branchId}/labour-dashboard`);
+  };
+
+  const filteredProjects = projects.filter(project =>
+    project.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
+      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
+        {/* Header with Gradient */}
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <img width={179} height={64} src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/dashboard')}
+                className="mobile-back-button px-4 py-2"
+              >
+                <FaArrowLeft size={14} />
+                <span className="text-sm font-medium">Back</span>
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleLogout}
+                className="mobile-back-button px-3 py-2"
+                title="Logout"
+              >
+                <FaSignOutAlt size={14} />
+                <span className="hidden sm:inline text-sm font-medium">Logout</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Title Section */}
+          <div className="mt-6">
+            <h2 className="text-white text-2xl font-bold">My Projects</h2>
+            <p className="text-white/80 text-sm mt-1">Select a project to view details</p>
+          </div>
+        </div>
+
+        {/* Search Section */}
+        <div className="px-6 py-6 -mt-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-4">
+            <div className="relative">
+              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <Input
+                type="text"
+                placeholder="Search projects..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-auto w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl text-sm shadow-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-orange-500 transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Projects List */}
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+              <p className="text-gray-500 text-sm">Loading projects...</p>
+            </div>
+          ) : filteredProjects.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                <MdFolder className="text-gray-400" size={40} />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">No Projects Found</h3>
+              <p className="text-sm text-gray-500">
+                {searchTerm ? 'Try a different search term' : 'No branches assigned to you yet'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredProjects.map((project, index) => (
+                <button
+                  type="button"
+                  key={project._id || index}
+                  onClick={() => handleProjectClick(project._id, project.name)}
+                  className="block w-full text-left bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer transform transition-all duration-300 hover:scale-[1.02] hover:shadow-md active:scale-[0.98] group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center shadow-md">
+                        <MdFolder className="text-white" size={24} />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-800 text-sm mb-0.5">
+                          {project.name || 'Unnamed Project'}
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          {project.location || 'No location specified'}
+                        </p>
+                        {project.status && (
+                          <Badge
+                            className={`inline-block mt-1 px-2 py-0.5 rounded-full border-0 text-xs font-medium ${
+                              project.status === 'active' 
+                                ? 'bg-green-100 text-green-700 hover:bg-green-100' 
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            {project.status}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <FaChevronRight 
+                      className="text-gray-400 group-hover:text-orange-500 transition-colors" 
+                      size={16} 
+                    />
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 pb-6 pt-2">
+          <div className="text-center">
+            <p className="text-xs text-gray-400">
+              Powered by Laxmi Power Tech
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SupervisorProjectList;

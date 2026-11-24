@@ -49,7 +49,7 @@ import { SearchInput } from "@/components/common/SearchInput";
 import { FilterBar, FilterField } from "@/components/common/FilterBar";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
-import { formatCurrency, formatDate } from "@/utils/format";
+import { formatCurrency, formatDate } from "@/lib/format";
 
 const TONES = ["ok", "warn", "bad", "info", "neutral", "highlight", "purple", "pink"];
 

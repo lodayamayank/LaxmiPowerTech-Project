@@ -5,7 +5,7 @@ import App from './App.jsx';
 import { BrowserRouter } from 'react-router-dom';
 import '@fontsource-variable/inter'; // self-hosted Inter (variable weight)
 import './index.css';
-import { register } from './registerServiceWorker';
+import { register } from '@/pwa/registerServiceWorker';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

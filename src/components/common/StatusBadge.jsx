@@ -1,7 +1,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { getStatusTone, formatStatusLabel } from "@/utils/status";
+import { getStatusTone, formatStatusLabel } from "@/lib/status";
 
 // Class strings (outline Badge) used by the legacy `colorMap` prop. Literal strings
 // so Tailwind can see them. Tokens only.

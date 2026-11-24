@@ -1,91 +1,91 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, lazy, Suspense } from 'react';
-import { migrateLegacyOfflinePunches } from './utils/syncAttendance';
+import { migrateLegacyOfflinePunches } from '@/pwa/syncAttendance';
 import { toast } from 'sonner';
-import useNotifier from './hooks/useNotifier';
-import syncEngine from './utils/syncEngine';
-import OfflineBanner from './components/OfflineBanner';
+import useNotifier from '@/pwa/useNotifier';
+import syncEngine from '@/pwa/syncEngine';
+import OfflineBanner from '@/pwa/OfflineBanner';
 import { Toaster } from "@/components/ui/sonner";
 
 // Eager load only critical components
-import PrivateRoute from './components/PrivateRoute';
-import InstallPWA from './components/InstallPWA';
+import PrivateRoute from '@/routes/PrivateRoute';
+import InstallPWA from '@/pwa/InstallPWA';
 
 // Lazy load all pages for code-splitting
-const Login = lazy(() => import('./pages/Login'));
-const RoleBasedDashboard = lazy(() => import('./pages/RoleBasedDashboard'));
-const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'));
-const MyAttendance = lazy(() => import('./pages/MyAttendance'));
-const AdminMyTeam = lazy(() => import('./pages/Admin/AdminMyTeam'));
-const CreateProject = lazy(() => import('./pages/Admin/CreateProject'));
-const AdminAttendance = lazy(() => import('./pages/Admin/AdminAttendance'));
-const AttendancePage = lazy(() => import('./pages/AttendancePage'));
-const AdminVendors = lazy(() => import('./pages/Admin/AdminVendors'));
-const PunchInScreen = lazy(() => import('./pages/PunchInScreen'));
-const SelfieCaptureScreen = lazy(() => import('./pages/SelfieCaptureScreen'));
-const AdminBranches = lazy(() => import('./pages/Admin/AdminBranches'));
-const ProfileScreen = lazy(() => import('./pages/ProfileScreen'));
-const AdminLiveAttendance = lazy(() => import('./pages/Admin/AdminLiveAttendance'));
-const SupervisorAttendanceDashboard = lazy(() => import('./pages/SupervisorAttendanceDashboard'));
-const SubcontractorAttendanceDashboard = lazy(() => import('./pages/SubcontractorAttendanceDashboard'));
-const LabourAttendanceDashboard = lazy(() => import('./pages/LabourAttendanceDashboard'));
-const NotesDashboard = lazy(() => import('./pages/NotesDashboard'));
-const Leaves = lazy(() => import('./pages/Leaves'));
-const AdminLeaves = lazy(() => import('./pages/Admin/AdminLeaves'));
-const MyReimbursements = lazy(() => import('./pages/MyReimbursements'));
-const CreateReimbursement = lazy(() => import('./pages/CreateReimbursement'));
-const AdminReimbursements = lazy(() => import('./pages/Admin/AdminReimbursements'));
-const SupervisorDashboard = lazy(() => import('./pages/SupervisorDashboard'));
-const SupervisorProjectList = lazy(() => import('./pages/SupervisorProjectList'));
-const SupervisorLabourList = lazy(() => import('./pages/SupervisorLabourList'));
-const SupervisorAddLabour = lazy(() => import('./pages/SupervisorAddLabour'));
-const SupervisorLabourDetails = lazy(() => import('./pages/SupervisorLabourDetails'));
-const LabourDashboard = lazy(() => import('./pages/LabourDashboard'));
-const TaskSubmission = lazy(() => import('./pages/TaskSubmission'));
-const TeamAttendance = lazy(() => import('./pages/TeamAttendance'));
-const AdminDeleteAttendance = lazy(() => import('./pages/Admin/AdminDeleteAttendance'));
-const AddEmployee = lazy(() => import('./pages/AddEmployee'));   
+const Login = lazy(() => import('@/pages/auth/Login'));
+const RoleBasedDashboard = lazy(() => import('@/pages/dashboard/RoleBasedDashboard'));
+const AdminDashboard = lazy(() => import('@/pages/dashboard/AdminDashboard'));
+const MyAttendance = lazy(() => import('@/pages/attendance/MyAttendance'));
+const AdminMyTeam = lazy(() => import('@/pages/team/AdminMyTeam'));
+const CreateProject = lazy(() => import('@/pages/projects/CreateProject'));
+const AdminAttendance = lazy(() => import('@/pages/attendance/AdminAttendance'));
+const AttendancePage = lazy(() => import('@/pages/attendance/AttendancePage'));
+const AdminVendors = lazy(() => import('@/pages/admin/AdminVendors'));
+const PunchInScreen = lazy(() => import('@/pages/attendance/PunchInScreen'));
+const SelfieCaptureScreen = lazy(() => import('@/pages/attendance/SelfieCaptureScreen'));
+const AdminBranches = lazy(() => import('@/pages/admin/AdminBranches'));
+const ProfileScreen = lazy(() => import('@/pages/account/ProfileScreen'));
+const AdminLiveAttendance = lazy(() => import('@/pages/attendance/AdminLiveAttendance'));
+const SupervisorAttendanceDashboard = lazy(() => import('@/pages/attendance/SupervisorAttendanceDashboard'));
+const SubcontractorAttendanceDashboard = lazy(() => import('@/pages/attendance/SubcontractorAttendanceDashboard'));
+const LabourAttendanceDashboard = lazy(() => import('@/pages/attendance/LabourAttendanceDashboard'));
+const NotesDashboard = lazy(() => import('@/pages/attendance/NotesDashboard'));
+const Leaves = lazy(() => import('@/pages/leaves/Leaves'));
+const AdminLeaves = lazy(() => import('@/pages/leaves/AdminLeaves'));
+const MyReimbursements = lazy(() => import('@/pages/reimbursements/MyReimbursements'));
+const CreateReimbursement = lazy(() => import('@/pages/reimbursements/CreateReimbursement'));
+const AdminReimbursements = lazy(() => import('@/pages/reimbursements/AdminReimbursements'));
+const SupervisorDashboard = lazy(() => import('@/pages/dashboard/SupervisorDashboard'));
+const SupervisorProjectList = lazy(() => import('@/pages/supervisor/SupervisorProjectList'));
+const SupervisorLabourList = lazy(() => import('@/pages/supervisor/SupervisorLabourList'));
+const SupervisorAddLabour = lazy(() => import('@/pages/supervisor/SupervisorAddLabour'));
+const SupervisorLabourDetails = lazy(() => import('@/pages/supervisor/SupervisorLabourDetails'));
+const LabourDashboard = lazy(() => import('@/pages/dashboard/LabourDashboard'));
+const TaskSubmission = lazy(() => import('@/pages/projects/TaskSubmission'));
+const TeamAttendance = lazy(() => import('@/pages/attendance/TeamAttendance'));
+const AdminDeleteAttendance = lazy(() => import('@/pages/attendance/AdminDeleteAttendance'));
+const AddEmployee = lazy(() => import('@/pages/team/AddEmployee'));   
 
 // Material Management Pages - Lazy loaded  
-const Material = lazy(() => import('./pages/material/Material'));
-const MaterialTransferForm = lazy(() => import('./pages/material/MaterialTransferForm'));
-const IntentForm = lazy(() => import('./pages/material/IntentForm'));
-const MaterialCardDetails = lazy(() => import('./pages/material/MaterialCardDetails'));
-const IntentCardDetails = lazy(() => import('./pages/material/IntentCardDetails'));
-const GRNCardDetails = lazy(() => import('./pages/material/GRNCardDetails'));
-const UpcomingDeliveries = lazy(() => import('./pages/material/UpcomingDeliveries'));
-const DeliveryDetails = lazy(() => import('./pages/material/DeliveryDetails'));
-const DeliveryChecklist = lazy(() => import('./pages/material/DeliveryChecklist'));
-const UploadIndent = lazy(() => import('./components/material/UploadIndent'));
-const AdminSiteTransfer = lazy(() => import('./pages/material/AdminSiteTransfer'));
-const AdminUpcomingDeliveries = lazy(() => import('./pages/material/AdminUpcomingDeliveries'));
-const AdminIntent = lazy(() => import('./pages/material/AdminIntent'));
-const AdminGRN = lazy(() => import('./pages/material/AdminGRN'));
-const UploadPhoto = lazy(() => import('./pages/material/UploadPhoto'));
-const Intent = lazy(() => import('./pages/material/Intent'));
+const Material = lazy(() => import('@/pages/material/Material'));
+const MaterialTransferForm = lazy(() => import('@/pages/material/transfers/MaterialTransferForm'));
+const IntentForm = lazy(() => import('@/pages/material/intent/IntentForm'));
+const MaterialCardDetails = lazy(() => import('@/pages/material/transfers/MaterialCardDetails'));
+const IntentCardDetails = lazy(() => import('@/pages/material/intent/IntentCardDetails'));
+const GRNCardDetails = lazy(() => import('@/pages/material/grn/GRNCardDetails'));
+const UpcomingDeliveries = lazy(() => import('@/pages/material/deliveries/UpcomingDeliveries'));
+const DeliveryDetails = lazy(() => import('@/pages/material/deliveries/DeliveryDetails'));
+const DeliveryChecklist = lazy(() => import('@/pages/material/deliveries/DeliveryChecklist'));
+const UploadIndent = lazy(() => import('@/pages/material/indent/UploadIndent'));
+const AdminSiteTransfer = lazy(() => import('@/pages/material/transfers/AdminSiteTransfer'));
+const AdminUpcomingDeliveries = lazy(() => import('@/pages/material/deliveries/AdminUpcomingDeliveries'));
+const AdminIntent = lazy(() => import('@/pages/material/intent/AdminIntent'));
+const AdminGRN = lazy(() => import('@/pages/material/grn/AdminGRN'));
+const UploadPhoto = lazy(() => import('@/pages/material/intent/UploadPhoto'));
+const Intent = lazy(() => import('@/pages/material/intent/Intent'));
 
 // Salary Management Pages - Lazy loaded
-const SalaryDashboard = lazy(() => import('./pages/SalaryDashboard'));
-const SalaryHistory = lazy(() => import('./pages/SalaryHistory'));
-const HolidayCalendar = lazy(() => import('./pages/HolidayCalendar'));
-const SalaryPolicyPage = lazy(() => import('./pages/SalaryPolicyPage'));
+const SalaryDashboard = lazy(() => import('@/pages/payroll/SalaryDashboard'));
+const SalaryHistory = lazy(() => import('@/pages/payroll/SalaryHistory'));
+const HolidayCalendar = lazy(() => import('@/pages/payroll/HolidayCalendar'));
+const SalaryPolicyPage = lazy(() => import('@/pages/payroll/SalaryPolicyPage'));
 
 // Task Management Pages - Lazy loaded
-const AdminTasks = lazy(() => import('./pages/Admin/AdminTasks'));
+const AdminTasks = lazy(() => import('@/pages/projects/AdminTasks'));
 
 // Work Order Management Pages - Lazy loaded
-const ManageWorkOrder = lazy(() => import('./pages/ManageWorkOrder'));
-const ManageInventoryLabour = lazy(() => import('./pages/ManageInventoryLabour'));
+const ManageWorkOrder = lazy(() => import('@/pages/projects/ManageWorkOrder'));
+const ManageInventoryLabour = lazy(() => import('@/pages/inventory/ManageInventoryLabour'));
 
 // Reports Page
-const AdminReports = lazy(() => import('./pages/Admin/AdminReports'));
-const AdminTransfers = lazy(() => import('./pages/Admin/AdminTransfers'));
-const MobileMyIndents = lazy(() => import('./pages/MobileMyIndents'));
-const MaterialTransferMobile = lazy(() => import('./pages/MaterialTransferMobile'));
-const ConnectServer = lazy(() => import('./pages/ConnectServer'));
+const AdminReports = lazy(() => import('@/pages/reports/AdminReports'));
+const AdminTransfers = lazy(() => import('@/pages/material/transfers/AdminTransfers'));
+const MobileMyIndents = lazy(() => import('@/pages/material/indent/MobileMyIndents'));
+const MaterialTransferMobile = lazy(() => import('@/pages/material/transfers/MaterialTransferMobile'));
+const ConnectServer = lazy(() => import('@/pages/auth/ConnectServer'));
 
 // Dev-only design system page (not part of the production bundle)
-const Styleguide = import.meta.env.DEV ? lazy(() => import('./pages/dev/Styleguide')) : null;
+const Styleguide = import.meta.env.DEV ? lazy(() => import('@/pages/dev/Styleguide')) : null;
 
 // Loading fallback component
 const LoadingFallback = () => (

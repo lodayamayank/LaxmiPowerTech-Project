@@ -1,6 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { getInitials } from "@/utils/format";
+import { getInitials } from "@/lib/format";
 import { TONE_SOFT } from "./tones";
 
 const SIZES = { sm: "h-7 w-7", md: "h-8 w-8", lg: "h-10 w-10" };

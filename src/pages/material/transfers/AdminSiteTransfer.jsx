@@ -1,0 +1,1143 @@
+import { useState, useEffect } from "react";
+import { siteTransferAPI, branchesAPI, materialCatalogAPI as materialAPI } from "@/api/material";
+import { Eye, Trash2, X, Edit2, Save, Plus } from "lucide-react";
+import DashboardLayout from "@/layouts/desktop/DashboardLayout";
+import MaterialLineItem from "@/pages/material/components/MaterialLineItem";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+
+export default function AdminSiteTransfer() {
+  // ==================== STATE MANAGEMENT ====================
+  const [transfers, setTransfers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  
+  // Modal states
+  const [selectedTransfer, setSelectedTransfer] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [formData, setFormData] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [deletingAttachment, setDeletingAttachment] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  
+  // ✅ Filter states
+  const [filterSite, setFilterSite] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
+  const [sites, setSites] = useState([]);
+  
+  // Material catalog states - Same as AdminIntent
+  const [categories, setCategories] = useState([]);
+  const [allMaterials, setAllMaterials] = useState([]);
+  const [editingMaterialId, setEditingMaterialId] = useState(null);
+
+  // ==================== DATA FETCHING ====================
+  useEffect(() => {
+    fetchTransfers();
+    fetchSites();
+    fetchMaterialsAndCategories();
+  }, [currentPage]);
+  
+  // ✅ Fetch sites for filter dropdown
+  const fetchSites = async () => {
+    try {
+      const branches = await branchesAPI.getAll();
+      const sitesList = branches.map(branch => branch.name).sort();
+      setSites(sitesList);
+    } catch (err) {
+      console.error('Error fetching sites:', err);
+      setSites([]);
+    }
+  };
+  
+  // Fetch materials and categories - Same as AdminIntent
+  const fetchMaterialsAndCategories = async () => {
+    try {
+      const materials = await materialAPI.getMaterials();
+      setAllMaterials(materials || []);
+      
+      // Extract unique categories
+      const uniqueCategories = [...new Set(materials.map(item => item.category).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b));
+      setCategories(uniqueCategories);
+    } catch (err) {
+      console.error('Error fetching materials:', err);
+      setAllMaterials([]);
+      setCategories([]);
+    }
+  };
+
+  // Helper functions for materials - Same as AdminIntent
+  const getSubcategories = (category) => {
+    if (!category || !Array.isArray(allMaterials) || allMaterials.length === 0) {
+      return [];
+    }
+    return [...new Set(
+      allMaterials
+        .filter(item => item?.category === category)
+        .map(item => item.subCategory)
+        .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
+  };
+
+  const getSubSubcategories = (category, subCategory) => {
+    if (!category || !subCategory || !Array.isArray(allMaterials) || allMaterials.length === 0) {
+      return [];
+    }
+    return [...new Set(
+      allMaterials
+        .filter(item => item?.category === category && item?.subCategory === subCategory)
+        .map(item => item.subCategory1)
+        .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
+  };
+
+  const getSubCategory2 = (category, subCategory, subCategory1) => {
+    if (!category || !subCategory || !subCategory1 || !Array.isArray(allMaterials) || allMaterials.length === 0) {
+      return [];
+    }
+    return [...new Set(
+      allMaterials
+        .filter(item => 
+          item?.category === category && 
+          item?.subCategory === subCategory && 
+          item?.subCategory1 === subCategory1
+        )
+        .map(item => item.subCategory2)
+        .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
+  };
+
+  // ❌ DISABLED: Auto-refresh removed per client request
+  // No event listeners, no auto-polling, no auto-refresh
+  // Data loads only on initial mount and manual page reload
+
+  // ❌ DISABLED: Auto-refresh on focus removed per client request
+
+  // ❌ DISABLED: Periodic polling removed per client request
+  // No automatic refresh - data loads only on manual page reload
+
+  const fetchTransfers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await siteTransferAPI.getAll(currentPage, 20);
+      if (response.success) {
+        // Sort by newest first
+        const sortedData = (response.data || []).sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setTransfers(sortedData);
+        setTotalPages(response.pagination?.totalPages || 1);
+      } else {
+        setError('Failed to fetch site transfers');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load site transfers. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==================== MODAL ACTIONS ====================
+  const handleViewDetails = async (id) => {
+    try {
+      const response = await siteTransferAPI.getById(id);
+      if (response.success) {
+        setSelectedTransfer(response.data);
+        setShowDetailsModal(true);
+      }
+    } catch (err) {
+      console.error("Error fetching transfer details:", err);
+      showToast("Failed to load transfer details", 'error');
+    }
+  };
+
+  const closeModal = () => {
+    setShowDetailsModal(false);
+    setSelectedTransfer(null);
+    setEditing(false);
+    setFormData({});
+  };
+
+  // ==================== EDIT FUNCTIONALITY ====================
+  const handleEdit = () => {
+    setEditing(true);
+    
+    // Convert materials to editable format with categories - Same as AdminIntent
+    const editableMaterials = (selectedTransfer.materials || []).map((m, idx) => {
+      // Parse itemName to extract categories
+      const parts = m.itemName?.split(' - ') || [];
+      
+      console.log('Parsing material:', { 
+        itemName: m.itemName, 
+        parts, 
+        category: m.category,
+        hasCategory: !!m.category 
+      });
+      
+      return {
+        id: m.id || `material-${Date.now()}-${idx}`,
+        category: m.category || parts[0] || '',
+        subCategory: m.subCategory || parts[1] || '',
+        subCategory1: m.subCategory1 || parts[2] || '',
+        subCategory2: m.subCategory2 || parts[3] || '',
+        quantity: m.quantity || '',
+        uom: m.uom || 'Nos',
+        remarks: m.remarks || '',
+        itemName: m.itemName
+      };
+    });
+    
+    console.log('Editable materials:', editableMaterials);
+    
+    setFormData({
+      fromSite: selectedTransfer.fromSite,
+      toSite: selectedTransfer.toSite,
+      requestedBy: selectedTransfer.requestedBy,
+      status: selectedTransfer.status,
+      materials: editableMaterials
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditing(false);
+    setFormData({});
+  };
+
+  const handleSaveChanges = async () => {
+    // Validate form - Same as Intent PO and MaterialCardDetails
+    if (!formData.fromSite || !formData.fromSite.trim()) {
+      showToast('Please select From Site', 'error');
+      return;
+    }
+    if (!formData.toSite || !formData.toSite.trim()) {
+      showToast('Please select To Site', 'error');
+      return;
+    }
+    // Validate materials exist
+    if (!formData.materials || formData.materials.length === 0) {
+      showToast('Please add at least one material', 'error');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      
+      // Format materials for API - rebuild itemName from categories
+      const formattedMaterials = formData.materials.map(m => ({
+        itemName: m.itemName || `${m.category}${m.subCategory ? ' - ' + m.subCategory : ''}${m.subCategory1 ? ' - ' + m.subCategory1 : ''}${m.subCategory2 ? ' - ' + m.subCategory2 : ''}`,
+        category: m.category || '',
+        subCategory: m.subCategory || '',
+        subCategory1: m.subCategory1 || '',
+        subCategory2: m.subCategory2 || '',
+        quantity: parseInt(m.quantity) || 0,
+        uom: m.uom || 'Nos',
+        remarks: m.remarks || ''
+      }));
+      
+      const updateData = {
+        ...formData,
+        materials: formattedMaterials
+      };
+      
+      // ✅ Check if status is being changed to 'approved' (matching Intent PO workflow)
+      const isApproving = formData.status === 'approved' && selectedTransfer.status !== 'approved';
+      
+      console.log('Sending update with formatted materials:', updateData);
+      console.log('Is Approving:', isApproving);
+      
+      let response;
+      
+      if (isApproving) {
+        // ✅ Step 1: Save changes first (without status change)
+        console.log('✅ Status changed to approved - saving changes first, then approving');
+        const saveData = { ...updateData };
+        delete saveData.status;  // Keep status as current
+        
+        const saveResponse = await siteTransferAPI.update(selectedTransfer._id, saveData);
+        if (!saveResponse.success) {
+          throw new Error('Failed to save changes');
+        }
+        
+        // ✅ Step 2: Call approval endpoint (which will sync to Upcoming Deliveries)
+        console.log('✅ Step 2: Calling approval endpoint');
+        response = await siteTransferAPI.approve(selectedTransfer._id);
+        
+        showToast('Site transfer approved and synced to Upcoming Deliveries!', 'success');
+      } else {
+        // Regular update
+        response = await siteTransferAPI.update(selectedTransfer._id, updateData);
+      }
+      
+      if (response.success) {
+        // Refresh modal data
+        const updatedResponse = await siteTransferAPI.getById(selectedTransfer._id);
+        if (updatedResponse.success) {
+          setSelectedTransfer(updatedResponse.data);
+          
+          // Update list state immediately
+          setTransfers(prev => 
+            prev.map(t => t._id === selectedTransfer._id ? updatedResponse.data : t)
+          );
+        }
+        
+        setEditing(false);
+        
+        // ✅ SYNC TO UPCOMING DELIVERIES - Notify all components
+        window.dispatchEvent(new Event('siteTransferCreated'));
+        window.dispatchEvent(new Event('upcomingDeliveryRefresh'));
+        localStorage.setItem('siteTransferRefresh', Date.now().toString());
+        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        console.log('✅ Site Transfer updated - syncing to Upcoming Deliveries');
+        
+        if (!isApproving) {
+          showToast("Site transfer updated successfully!", 'success');
+        }
+      }
+    } catch (err) {
+      console.error("Error updating transfer:", err);
+      showToast(err.response?.data?.message || "Failed to update site transfer", 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ==================== MATERIAL MANAGEMENT - Same as AdminIntent ====================
+  const addMaterialRow = () => {
+    const newMaterialId = `material-${Date.now()}`;
+    setFormData(prev => ({
+      ...prev,
+      materials: [
+        ...(Array.isArray(prev.materials) ? prev.materials : []),
+        {
+          id: newMaterialId,
+          category: '',
+          subCategory: '',
+          subCategory1: '',
+          subCategory2: '',
+          quantity: '',
+          uom: 'Nos',
+          remarks: ''
+        }
+      ]
+    }));
+    setEditingMaterialId(newMaterialId);
+  };
+
+  const removeMaterialRow = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      materials: prev.materials.filter(m => m.id !== id)
+    }));
+  };
+
+  const updateMaterial = (id, updates) => {
+    setFormData(prev => ({
+      ...prev,
+      materials: prev.materials.map(m => 
+        m.id === id ? { ...m, ...updates } : m
+      )
+    }));
+  };
+
+  // ==================== DELETE FUNCTIONALITY ====================
+  const handleDelete = async (id, siteTransferId) => {
+    if (!window.confirm(`Are you sure you want to delete Site Transfer ${siteTransferId}? All associated images will also be deleted from the server.`)) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await siteTransferAPI.delete(id);
+      if (response.success) {
+        // Remove from table without refresh
+        setTransfers(transfers.filter((t) => t._id !== id));
+        
+        // Close modal if it's open
+        if (selectedTransfer?._id === id) {
+          setShowDetailsModal(false);
+          setSelectedTransfer(null);
+        }
+        
+        showToast("Site transfer and associated files deleted successfully", 'success');
+      }
+    } catch (err) {
+      console.error("Error deleting transfer:", err);
+      showToast(err.response?.data?.message || "Failed to delete site transfer", 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentIndex) => {
+    if (!window.confirm('Are you sure you want to delete this attachment? The file will be permanently removed from the server.')) {
+      return;
+    }
+
+    try {
+      setDeletingAttachment(attachmentIndex);
+      const response = await siteTransferAPI.deleteAttachment(selectedTransfer._id, attachmentIndex);
+      
+      if (response.success) {
+        // Update the selected transfer with the new data
+        setSelectedTransfer(response.data);
+        
+        // Also update the transfer in the main list
+        setTransfers(prevTransfers => 
+          prevTransfers.map(t => 
+            t._id === selectedTransfer._id ? response.data : t
+          )
+        );
+        
+        showToast('Attachment deleted successfully', 'success');
+      }
+    } catch (err) {
+      console.error('Error deleting attachment:', err);
+      showToast(err.response?.data?.message || 'Failed to delete attachment', 'error');
+    } finally {
+      setDeletingAttachment(null);
+    }
+  };
+
+  // ==================== UTILITY FUNCTIONS ====================
+  const showToast = (message, type = 'success') => {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-[9999] transition-opacity ${
+      type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    }`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  };
+
+  // Delete All handler
+  const handleDeleteAll = async () => {
+    if (!window.confirm('Are you sure you want to delete all records? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      const response = await siteTransferAPI.deleteAll();
+      
+      if (response.success) {
+        // Clear local state
+        setTransfers([]);
+        setTotalPages(1);
+        setCurrentPage(1);
+        
+        // Notify other components
+        window.dispatchEvent(new Event('siteTransferCreated'));
+        localStorage.setItem('siteTransferRefresh', Date.now().toString());
+        
+        showToast(`Successfully deleted all ${response.deletedCount} site transfers`, 'success');
+      }
+    } catch (err) {
+      console.error('Delete all error:', err);
+      showToast(err.response?.data?.message || 'Failed to delete all site transfers', 'error');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getStatusBadge = (status) => {
+    const statusColors = {
+      pending: 'bg-gray-100 text-gray-700',
+      approved: 'bg-orange-100 text-orange-600',
+      transferred: 'bg-green-100 text-green-600',
+      cancelled: 'bg-red-100 text-red-600'
+    };
+    
+    const colorClass = statusColors[status?.toLowerCase()] || 'bg-gray-100 text-gray-600';
+    
+    return (
+      <Badge className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
+        {status?.charAt(0).toUpperCase() + status?.slice(1)}
+      </Badge>
+    );
+  };
+
+  // ✅ Enhanced filter and sort transfers
+  const filteredTransfers = transfers
+    // ✅ CRITICAL: Only filter out TRANSFERRED Site Transfers (Admin should see Approved + Partial)
+    .filter((transfer) => transfer.status?.toLowerCase() !== 'transferred')
+    .filter((transfer) => {
+      // Search filter
+      if (search) {
+        const searchLower = search.toLowerCase();
+        const matchesSearch = (
+          transfer.siteTransferId?.toLowerCase().includes(searchLower) ||
+          transfer.fromSite?.toLowerCase().includes(searchLower) ||
+          transfer.toSite?.toLowerCase().includes(searchLower) ||
+          transfer.requestedBy?.toLowerCase().includes(searchLower) ||
+          transfer.status?.toLowerCase().includes(searchLower)
+        );
+        if (!matchesSearch) return false;
+      }
+      
+      // Site filter (matches either fromSite or toSite)
+      if (filterSite) {
+        const matchesSite = (
+          transfer.fromSite?.toLowerCase().includes(filterSite.toLowerCase()) ||
+          transfer.toSite?.toLowerCase().includes(filterSite.toLowerCase())
+        );
+        if (!matchesSite) return false;
+      }
+      
+      // Status filter
+      if (filterStatus) {
+        if (transfer.status?.toLowerCase() !== filterStatus.toLowerCase()) return false;
+      }
+      
+      // Date from filter
+      if (filterDateFrom) {
+        const fromDate = new Date(filterDateFrom);
+        fromDate.setHours(0, 0, 0, 0);
+        const itemDate = new Date(transfer.createdAt);
+        itemDate.setHours(0, 0, 0, 0);
+        if (itemDate < fromDate) return false;
+      }
+      
+      // Date to filter
+      if (filterDateTo) {
+        const toDate = new Date(filterDateTo);
+        toDate.setHours(23, 59, 59, 999);
+        const itemDate = new Date(transfer.createdAt);
+        if (itemDate > toDate) return false;
+      }
+      
+      return true;
+    })
+    .sort((a, b) => {
+      const fromSiteCompare = (a.fromSite || '').localeCompare(b.fromSite || '');
+      if (fromSiteCompare !== 0) return fromSiteCompare;
+      return (a.toSite || '').localeCompare(b.toSite || '');
+    });
+
+  // ==================== RENDER ====================
+  return (
+    <DashboardLayout title="Site Transfers">
+      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-800">Site Transfers</h1>
+            <p className="text-sm text-gray-500">View all site transfer requests 11</p>
+          </div>
+          <Button
+            onClick={handleDeleteAll}
+            disabled={transfers.length === 0 || deleting}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <Trash2 size={18} />
+            {deleting ? 'Deleting...' : 'Delete All'}
+          </Button>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <span className="text-red-600 font-medium">Error:</span>
+              <span className="text-red-700">{error}</span>
+            </div>
+            <Button
+              variant="link"
+              onClick={fetchTransfers}
+              className="mt-2 h-auto p-0 text-sm text-red-600 hover:text-red-700 underline"
+            >
+              Try Again
+            </Button>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading ? (
+          <div className="flex flex-col justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mb-4"></div>
+            <p className="text-gray-600 text-sm">Loading site transfers...</p>
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 overflow-x-auto">
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-lg font-semibold text-gray-700">
+                  Site Transfers ({filteredTransfers.length} records)
+                </h2>
+                <Input
+                  type="text"
+                  placeholder="Search by ST ID, site, or person..."
+                  className="border border-gray-300 rounded p-2 w-80 focus:ring-2 focus:ring-orange-400 text-sm"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              
+              {/* ✅ Filters Section */}
+              <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 shadow-sm">
+                <div className="flex gap-4 items-end flex-wrap">
+                  {/* Site Filter */}
+                  <div className="flex-1 min-w-[200px]">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Filter by Site</label>
+                    <Select
+                      value={filterSite || "all"}
+                      onValueChange={(value) => setFilterSite(value === "all" ? "" : value)}
+                    >
+                      <SelectTrigger className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer">
+                        <SelectValue placeholder="All Sites" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Sites</SelectItem>
+                      {sites.map(site => (
+                        <SelectItem key={site} value={site} className="text-gray-900">{site}</SelectItem>
+                      ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Status Filter */}
+                  <div className="flex-1 min-w-[180px]">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Filter by Status</label>
+                    <Select
+                      value={filterStatus || "all"}
+                      onValueChange={(value) => setFilterStatus(value === "all" ? "" : value)}
+                    >
+                      <SelectTrigger className="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-gray-400 transition-colors cursor-pointer">
+                        <SelectValue placeholder="All Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="in-transit">In Transit</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Date From */}
+                  <div className="flex-1 min-w-[160px]">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">From Date</label>
+                    <Input
+                      type="date"
+                      value={filterDateFrom}
+                      onChange={(e) => setFilterDateFrom(e.target.value)}
+                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
+                    />
+                  </div>
+                  
+                  {/* Date To */}
+                  <div className="flex-1 min-w-[160px]">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">To Date</label>
+                    <Input
+                      type="date"
+                      value={filterDateTo}
+                      onChange={(e) => setFilterDateTo(e.target.value)}
+                      className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
+                    />
+                  </div>
+                  
+                  {/* Clear Filters Button */}
+                  <Button
+                    onClick={() => {
+                      setFilterSite('');
+                      setFilterStatus('');
+                      setFilterDateFrom('');
+                      setFilterDateTo('');
+                    }}
+                    className="px-5 py-2.5 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-all"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Table */}
+            {filteredTransfers.length > 0 ? (
+              <>
+                <Table className="min-w-full border text-sm">
+                  <TableHeader className="bg-orange-100 dark:bg-gray-700">
+                    <TableRow>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Site Transfer ID</TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">From Site</TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">To Site</TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Requested By</TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Materials</TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Status</TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Date</TableHead>
+                      <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredTransfers.map((transfer) => (
+                      <TableRow key={transfer._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <TableCell className="border px-4 py-2 font-medium text-gray-900">
+                          {transfer.siteTransferId}
+                        </TableCell>
+                        <TableCell className="border px-4 py-2">{transfer.fromSite}</TableCell>
+                        <TableCell className="border px-4 py-2">{transfer.toSite}</TableCell>
+                        <TableCell className="border px-4 py-2">{transfer.requestedBy}</TableCell>
+                        <TableCell className="border px-4 py-2">
+                          <span className="text-gray-600">
+                            {transfer.materials?.length || 0} items
+                          </span>
+                        </TableCell>
+                        <TableCell className="border px-4 py-2">
+                          {getStatusBadge(transfer.status)}
+                        </TableCell>
+                        <TableCell className="border px-4 py-2 text-gray-600">
+                          {formatDate(transfer.createdAt)}
+                        </TableCell>
+                        <TableCell className="border px-4 py-2">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="View Details"
+                              onClick={() => handleViewDetails(transfer._id)}
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                              title="View Details"
+                            >
+                              <Eye size={18} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Delete"
+                              onClick={() => handleDelete(transfer._id, transfer.siteTransferId)}
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 size={18} />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center items-center gap-2 mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-sm text-gray-600">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-gray-500 text-center mt-10">
+                {search ? "No matching transfers found." : "No site transfers found."}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* ==================== DETAILS MODAL ==================== */}
+        {showDetailsModal && selectedTransfer && (
+          <Dialog
+            open={showDetailsModal}
+            onOpenChange={(open) => {
+              if (!open) closeModal();
+            }}
+          >
+            <DialogContent className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out p-0 [&>button]:hidden">
+              {/* Modal Header */}
+              <DialogHeader className="sticky top-0 bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex flex-row justify-between items-center rounded-t-lg space-y-0 text-left">
+                <div>
+                  <DialogTitle className="text-xl font-bold text-white">
+                    Site Transfer Details
+                  </DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Details and materials for this site transfer
+                  </DialogDescription>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Close modal"
+                  onClick={closeModal}
+                  className="text-white hover:text-orange-100 transition-colors p-1 hover:bg-orange-600 rounded"
+                  title="Close"
+                >
+                  <X size={24} />
+                </Button>
+              </DialogHeader>
+
+              {/* Modal Content */}
+              <div className="px-6 py-4">
+                {/* Transfer Info */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-orange-200">
+                    Transfer Information
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Site Transfer ID</p>
+                      <p className="font-medium text-gray-900">{selectedTransfer.siteTransferId}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Status</p>
+                      {editing ? (
+                        <Select
+                          value={formData.status}
+                          onValueChange={(value) => setFormData({ ...formData, status: value })}
+                        >
+                          <SelectTrigger className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="approved">Approved</SelectItem>
+                            <SelectItem value="transferred">Transferred</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="mt-1">{getStatusBadge(selectedTransfer.status)}</div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">From Site</p>
+                      {editing ? (
+                        <Input
+                          type="text"
+                          value={formData.fromSite}
+                          onChange={(e) => setFormData({ ...formData, fromSite: e.target.value })}
+                          className="mt-1 w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white text-gray-900"
+                        />
+                      ) : (
+                        <p className="font-medium text-gray-900">{selectedTransfer.fromSite}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">To Site</p>
+                      {editing ? (
+                        <Input
+                          type="text"
+                          value={formData.toSite}
+                          onChange={(e) => setFormData({ ...formData, toSite: e.target.value })}
+                          className="mt-1 w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white text-gray-900"
+                        />
+                      ) : (
+                        <p className="font-medium text-gray-900">{selectedTransfer.toSite}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Requested By</p>
+                      {editing ? (
+                        <Input
+                          type="text"
+                          value={formData.requestedBy}
+                          onChange={(e) => setFormData({ ...formData, requestedBy: e.target.value })}
+                          className="mt-1 w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-orange-400 bg-white text-gray-900"
+                        />
+                      ) : (
+                        <p className="font-medium text-gray-900">{selectedTransfer.requestedBy}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Request Date</p>
+                      <p className="font-medium text-gray-900">{formatDate(selectedTransfer.requestDate || selectedTransfer.createdAt)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Materials List */}
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-3 border-b pb-2">
+                    <h3 className="text-lg font-semibold text-gray-700">
+                      Materials ({editing ? formData.materials?.length : selectedTransfer.materials?.length || 0} items)
+                    </h3>
+                    {editing && (
+                      <Button
+                        onClick={addMaterialRow}
+                        className="flex items-center gap-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
+                      >
+                        <Plus size={16} />
+                        Add Material
+                      </Button>
+                    )}
+                  </div>
+                  {editing ? (
+                    <div className="space-y-2">
+                      {Array.isArray(formData.materials) && formData.materials.length > 0 ? (
+                        formData.materials.map((material, idx) => (
+                          <MaterialLineItem
+                            key={material.id}
+                            material={material}
+                            index={idx}
+                            isEditing={editingMaterialId === material.id}
+                            onEdit={() => setEditingMaterialId(material.id)}
+                            onDoneEditing={() => setEditingMaterialId(null)}
+                            onRemove={() => removeMaterialRow(material.id)}
+                            onUpdate={(fieldName, value) => {
+                              if (fieldName === 'category') {
+                                updateMaterial(material.id, { category: value, subCategory: '', subCategory1: '', subCategory2: '' });
+                              } else if (fieldName === 'subCategory') {
+                                updateMaterial(material.id, { subCategory: value, subCategory1: '', subCategory2: '' });
+                              } else if (fieldName === 'subCategory1') {
+                                updateMaterial(material.id, { subCategory1: value, subCategory2: '' });
+                              } else {
+                                updateMaterial(material.id, { [fieldName]: value });
+                              }
+                            }}
+                            categories={categories}
+                            getSubcategories={getSubcategories}
+                            getSubSubcategories={getSubSubcategories}
+                            getSubSubSubcategories={getSubCategory2}
+                          />
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500 text-center py-4">No materials added</p>
+                      )}
+                    </div>
+                  ) : (
+                    selectedTransfer.materials && selectedTransfer.materials.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <Table className="min-w-full border text-sm">
+                          <TableHeader className="bg-orange-50">
+                            <TableRow>
+                              <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">#</TableHead>
+                              <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Item Name</TableHead>
+                              <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Quantity</TableHead>
+                              <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">UOM</TableHead>
+                              <TableHead className="border px-3 py-2 text-left font-medium text-gray-700">Remarks</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {selectedTransfer.materials.map((material, index) => (
+                              <TableRow key={index} className="hover:bg-gray-50">
+                                <TableCell className="border px-3 py-2 text-gray-600">{index + 1}</TableCell>
+                                <TableCell className="border px-3 py-2 font-medium">{material.itemName || '-'}</TableCell>
+                                <TableCell className="border px-3 py-2">{material.quantity || '-'}</TableCell>
+                                <TableCell className="border px-3 py-2">{material.uom || '-'}</TableCell>
+                                <TableCell className="border px-3 py-2 text-gray-600">{material.remarks || '-'}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-sm">No materials listed</p>
+                    )
+                  )}
+                </div>
+
+                {/* Attachments/Images */}
+                {selectedTransfer.attachments && selectedTransfer.attachments.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-orange-200">
+                      Attachments ({selectedTransfer.attachments.length})
+                    </h3>
+                    <div className="grid grid-cols-1 gap-4">
+                      {selectedTransfer.attachments.map((attachment, index) => {
+                        // Handle both Cloudinary object format { url, publicId } and legacy string format
+                        const attachmentURL = typeof attachment === 'object' ? attachment.url : attachment;
+                        const baseURL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5002';
+                        const fileURL = attachmentURL.startsWith('http') ? attachmentURL : `${baseURL}/${attachmentURL}`;
+                        const fileName = attachmentURL.split('/').pop();
+                        const isImage = attachmentURL.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
+                        
+                        return (
+                          <div key={index} className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+                            <div className="flex items-center gap-4 p-4">
+                              {/* Image Thumbnail */}
+                              <div className="flex-shrink-0">
+                                {isImage ? (
+                                  <img loading="lazy" decoding="async" 
+                                    src={fileURL} 
+                                    alt={fileName}
+                                    className="w-20 h-20 object-cover rounded border"
+                                    onError={(e) => {
+                                      e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80"%3E%3Crect fill="%23f3f4f6" width="80" height="80"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af" font-size="30"%3E🖼️%3C/text%3E%3C/svg%3E';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-20 h-20 flex items-center justify-center bg-gray-100 rounded border">
+                                    <span className="text-3xl">📎</span>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* File Info */}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">{fileName}</p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {isImage ? 'Image' : 'File'} • Attachment {index + 1}
+                                </p>
+                              </div>
+                              
+                              {/* Action Buttons */}
+                              <div className="flex gap-2 flex-shrink-0">
+                                <a
+                                  href={fileURL}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+                                >
+                                  View
+                                </a>
+                                <a
+                                  href={fileURL}
+                                  download={fileName}
+                                  className="px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 rounded hover:bg-green-100 transition-colors"
+                                >
+                                  Download
+                                </a>
+                                <Button
+                                  aria-label="Delete attachment"
+                                  onClick={() => handleDeleteAttachment(index)}
+                                  disabled={deletingAttachment === index}
+                                  className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                  title="Delete this attachment"
+                                >
+                                  <Trash2 size={12} />
+                                  {deletingAttachment === index ? 'Deleting...' : 'Delete'}
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Timestamps */}
+                <div className="bg-gray-50 dark:bg-gray-700 rounded p-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500">Created At</p>
+                      <p className="font-medium text-gray-700">{formatDate(selectedTransfer.createdAt)}</p>
+                    </div>
+                    {selectedTransfer.updatedAt && (
+                      <div>
+                        <p className="text-gray-500">Last Updated</p>
+                        <p className="font-medium text-gray-700">{formatDate(selectedTransfer.updatedAt)}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t-2 border-orange-100 dark:border-gray-700 px-6 py-4 flex justify-end gap-3 rounded-b-lg">
+                {editing ? (
+                  <>
+                    <Button
+                      onClick={handleCancelEdit}
+                      className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2 font-medium"
+                    >
+                      <X size={16} />
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSaveChanges}
+                      disabled={saving}
+                      className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
+                    >
+                      {saving ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save size={16} />
+                          Save Changes
+                        </>
+                      )}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      onClick={handleEdit}
+                      className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 font-medium shadow-sm"
+                    >
+                      <Edit2 size={16} />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      aria-label="Close modal"
+                      onClick={closeModal}
+                      className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition-colors"
+                    >
+                      Close
+                    </Button>
+                  </>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+}

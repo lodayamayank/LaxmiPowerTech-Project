@@ -1,0 +1,1125 @@
+import { useState, useEffect, useRef } from "react";
+import { upcomingDeliveryAPI, indentAPI, purchaseOrderAPI, branchesAPI } from "@/api/material";
+import { Eye, Trash2, X, Edit2, Save, Upload, Image as ImageIcon } from "lucide-react";
+import DashboardLayout from "@/layouts/desktop/DashboardLayout";
+import { Checkbox } from "@/components/ui/checkbox";
+import axios from "@/api/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+
+const ITEMS_PER_PAGE = 20;
+
+export default function AdminUpcomingDeliveries() {
+  const [deliveries, setDeliveries] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [selectedDelivery, setSelectedDelivery] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [formData, setFormData] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [relatedIndent, setRelatedIndent] = useState(null);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [deletingAttachment, setDeletingAttachment] = useState(null);
+  const fileInputRef = useRef(null);
+  
+  // ✅ Filter states
+  const [filterSite, setFilterSite] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
+  const [sites, setSites] = useState([]);
+
+  useEffect(() => {
+    fetchDeliveries();
+    fetchSites();
+  }, [currentPage, search, filterSite, filterStatus, filterDateFrom, filterDateTo]);
+  
+  // ✅ Fetch sites for filter dropdown
+  const fetchSites = async () => {
+    try {
+      const branches = await branchesAPI.getAll();
+      const sitesList = branches.map(branch => branch.name).sort();
+      setSites(sitesList);
+    } catch (err) {
+      console.error('Error fetching sites:', err);
+      setSites([]);
+    }
+  };
+
+  // ❌ DISABLED: Auto-refresh removed per client request
+  // No event listeners, no auto-polling, no auto-refresh
+  // Data loads only on initial mount and manual page reload
+
+  // ❌ DISABLED: Auto-refresh on focus removed per client request
+
+  // ❌ DISABLED: Periodic polling removed per client request
+  // No automatic refresh - data loads only on manual page reload
+
+  const fetchDeliveries = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await upcomingDeliveryAPI.getAll(1, 1000, search);
+      if (response.success) {
+        let sortedData = (response.data || []).sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        
+        // ✅ CRITICAL: Filter out transferred deliveries (they should only appear in GRN)
+        sortedData = sortedData.filter(item => item.status?.toLowerCase() !== 'transferred');
+        
+        // ✅ Apply filters client-side
+        if (filterSite) {
+          sortedData = sortedData.filter(item => 
+            item.from?.toLowerCase().includes(filterSite.toLowerCase()) ||
+            item.to?.toLowerCase().includes(filterSite.toLowerCase())
+          );
+        }
+        
+        if (filterStatus) {
+          sortedData = sortedData.filter(item => 
+            item.status?.toLowerCase() === filterStatus.toLowerCase()
+          );
+        }
+        
+        if (filterDateFrom) {
+          const fromDate = new Date(filterDateFrom);
+          fromDate.setHours(0, 0, 0, 0);
+          sortedData = sortedData.filter(item => {
+            const itemDate = new Date(item.date || item.createdAt);
+            itemDate.setHours(0, 0, 0, 0);
+            return itemDate >= fromDate;
+          });
+        }
+        
+        if (filterDateTo) {
+          const toDate = new Date(filterDateTo);
+          toDate.setHours(23, 59, 59, 999);
+          sortedData = sortedData.filter(item => {
+            const itemDate = new Date(item.date || item.createdAt);
+            return itemDate <= toDate;
+          });
+        }
+        
+        const nextTotalPages = Math.max(1, Math.ceil(sortedData.length / ITEMS_PER_PAGE));
+        const safePage = Math.min(currentPage, nextTotalPages);
+        const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
+
+        if (safePage !== currentPage) {
+          setCurrentPage(safePage);
+        }
+
+        setDeliveries(sortedData.slice(startIndex, startIndex + ITEMS_PER_PAGE));
+        setTotalRecords(sortedData.length);
+        setTotalPages(nextTotalPages);
+      } else {
+        setError('Failed to fetch upcoming deliveries');
+      }
+    } catch (err) {
+      console.error("Error fetching upcoming deliveries:", err);
+      setError(err.response?.data?.message || 'Failed to load upcoming deliveries. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewDetails = async (id) => {
+    try {
+      const response = await upcomingDeliveryAPI.getById(id);
+      if (response.success) {
+        setSelectedDelivery(response.data);
+        setShowDetailsModal(true);
+        
+        // Try to fetch related Intent PO data (optional, don't fail if it errors)
+        if (response.data.type === 'PO' && response.data.st_id) {
+          try {
+            const stId = response.data.st_id;
+            // Try to fetch related PO/Indent, but silently fail if not found
+            if (stId.startsWith('PO')) {
+              const poList = await purchaseOrderAPI.getAll(1, 100, stId).catch(() => null);
+              if (poList?.success && poList.data) {
+                const matchedPO = poList.data.find(po => po.purchaseOrderId === stId);
+                if (matchedPO) setRelatedIndent(matchedPO);
+              }
+            } else if (stId.match(/^[0-9a-fA-F]{24}$/)) {
+              const indentResponse = await indentAPI.getById(stId).catch(() => null);
+              if (indentResponse?.success) setRelatedIndent(indentResponse.data);
+            }
+          } catch (err) {
+            // Silently ignore - related data is optional
+          }
+        }
+      }
+    } catch (err) {
+      alert("Failed to load delivery details");
+    }
+  };
+
+  const handleDelete = async (id, stId) => {
+    if (!window.confirm(`Are you sure you want to delete Upcoming Delivery ${stId}?`)) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      const response = await upcomingDeliveryAPI.delete(id);
+      if (response.success) {
+        // Update state immediately
+        setDeliveries(prev => prev.filter((d) => d._id !== id));
+        
+        if (selectedDelivery?._id === id) {
+          setShowDetailsModal(false);
+          setSelectedDelivery(null);
+        }
+        
+        // Trigger sync events
+        window.dispatchEvent(new Event('intentCreated'));
+        window.dispatchEvent(new Event('upcomingDeliveryRefresh'));
+        localStorage.setItem('intentRefresh', Date.now().toString());
+        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        
+        showToast("Upcoming delivery deleted successfully", 'success');
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to delete upcoming delivery", 'error');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const closeModal = () => {
+    setShowDetailsModal(false);
+    setSelectedDelivery(null);
+    setRelatedIndent(null);
+    setEditing(false);
+    setFormData({});
+  };
+
+  const handleEdit = () => {
+    setEditing(true);
+    setFormData({
+      status: selectedDelivery.status,
+      items: selectedDelivery.items.map(item => ({ ...item }))
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditing(false);
+    setFormData({});
+  };
+
+  const handleSaveChanges = async () => {
+    try {
+      setSaving(true);
+      
+      // Auto-calculate status based on received quantities
+      const allFullyReceived = formData.items.every(item => item.received_quantity >= item.st_quantity);
+      const anyPartiallyReceived = formData.items.some(item => item.received_quantity > 0 && item.received_quantity < item.st_quantity);
+      const nothingReceived = formData.items.every(item => item.received_quantity === 0);
+      
+      let calculatedStatus;
+      if (allFullyReceived) {
+        calculatedStatus = 'Transferred';
+      } else if (anyPartiallyReceived || formData.items.some(item => item.received_quantity > 0)) {
+        calculatedStatus = 'Partial';
+      } else if (nothingReceived) {
+        calculatedStatus = 'Pending';
+      } else {
+        calculatedStatus = 'Partial'; // Default to Partial if mixed
+      }
+      
+      // Update status (use calculated status instead of manual selection)
+      if (calculatedStatus !== selectedDelivery.status) {
+        await upcomingDeliveryAPI.updateStatus(selectedDelivery._id, calculatedStatus);
+      }
+      
+      // Update items
+      const itemUpdates = formData.items.map(item => ({
+        itemId: item._id,
+        received_quantity: item.received_quantity,
+        is_received: item.is_received
+      }));
+      
+      console.log('📤 Sending item updates:', itemUpdates);
+      console.log('📊 Calculated Status:', calculatedStatus);
+      
+      const response = await upcomingDeliveryAPI.updateItems(selectedDelivery._id, itemUpdates);
+      if (response.success) {
+        // Refresh modal data
+        const updatedResponse = await upcomingDeliveryAPI.getById(selectedDelivery._id);
+        if (updatedResponse.success) {
+          setSelectedDelivery(updatedResponse.data);
+          
+          // Update list state immediately
+          setDeliveries(prev => 
+            prev.map(d => d._id === selectedDelivery._id ? updatedResponse.data : d)
+          );
+        }
+        
+        setEditing(false);
+        
+        // ✅ SYNC BACK TO SOURCE - Trigger sync events for Intent PO AND Site Transfer
+        window.dispatchEvent(new Event('intentCreated'));
+        window.dispatchEvent(new Event('siteTransferCreated'));
+        window.dispatchEvent(new Event('upcomingDeliveryRefresh'));
+        localStorage.setItem('intentRefresh', Date.now().toString());
+        localStorage.setItem('siteTransferRefresh', Date.now().toString());
+        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        console.log(`✅ Upcoming Delivery updated - Status: ${calculatedStatus} - syncing back to Intent PO and Site Transfer`);
+        
+        showToast(`Delivery updated! Status: ${calculatedStatus}`, 'success');
+      }
+    } catch (err) {
+      console.error("Error updating delivery:", err);
+      showToast(err.response?.data?.message || "Failed to update upcoming delivery", 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateItem = (index, field, value) => {
+    const updatedItems = [...formData.items];
+    updatedItems[index] = {
+      ...updatedItems[index],
+      [field]: field === 'received_quantity' ? parseInt(value) || 0 : value
+    };
+    setFormData({ ...formData, items: updatedItems });
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const toQuantity = (value) => {
+    const quantity = Number(value || 0);
+    return Number.isFinite(quantity) ? quantity : 0;
+  };
+
+  const formatQuantity = (value) => {
+    const quantity = toQuantity(value);
+    return Number.isInteger(quantity) ? quantity : Number(quantity.toFixed(2));
+  };
+
+  const getRequestedQuantity = (item = {}) => toQuantity(item.quantity ?? item.st_quantity);
+  const getReceivedQuantity = (item = {}, deliveryStatus = '') => {
+    const requestedQty = getRequestedQuantity(item);
+    const receivedQty = toQuantity(item.received_quantity);
+    return deliveryStatus === 'Transferred' && receivedQty === 0 ? requestedQty : receivedQty;
+  };
+
+  const getPendingQuantity = (item = {}, deliveryStatus = '') => (
+    Math.max(getRequestedQuantity(item) - getReceivedQuantity(item, deliveryStatus), 0)
+  );
+
+  const getDeliveryQuantitySummary = (delivery = {}) => {
+    const items = delivery.items || [];
+    const requested = items.reduce((sum, item) => sum + getRequestedQuantity(item), 0);
+    const received = items.reduce((sum, item) => sum + getReceivedQuantity(item, delivery.status), 0);
+    const pending = Math.max(requested - received, 0);
+
+    return {
+      requested: formatQuantity(requested),
+      received: formatQuantity(received),
+      pending: formatQuantity(pending)
+    };
+  };
+
+  const getStatusBadge = (status) => {
+    const statusColors = {
+      'Pending': 'bg-gray-100 text-gray-600',
+      'Partial': 'bg-orange-100 text-orange-600',
+      'Transferred': 'bg-green-100 text-green-600'
+    };
+    
+    const colorClass = statusColors[status] || 'bg-gray-100 text-gray-600';
+    
+    return (
+      <Badge className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
+        {status}
+      </Badge>
+    );
+  };
+
+  // Toast notification helper
+  const showToast = (message, type = 'success') => {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-[9999] transition-opacity ${
+      type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    }`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  };
+
+  // ✅ UPLOAD DELIVERY RECEIPT IMAGES
+  const handleUploadReceipts = async (files) => {
+    if (!files || files.length === 0) return;
+    
+    try {
+      setUploadingReceipt(true);
+      console.log(`📤 Uploading ${files.length} receipt(s)...`);
+      
+      const response = await upcomingDeliveryAPI.uploadReceipts(selectedDelivery._id, Array.from(files));
+      
+      if (response.success) {
+        // Update selected delivery with new data
+        setSelectedDelivery(response.data);
+        
+        // Update deliveries list
+        setDeliveries(prev => 
+          prev.map(d => d._id === selectedDelivery._id ? response.data : d)
+        );
+        
+        showToast(`${files.length} receipt(s) uploaded successfully!`, 'success');
+        
+        // Clear file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+    } catch (err) {
+      console.error('❌ Upload receipt error:', err);
+      showToast(err.response?.data?.message || 'Failed to upload receipts', 'error');
+    } finally {
+      setUploadingReceipt(false);
+    }
+  };
+
+  // ✅ DELETE ATTACHMENT
+  const handleDeleteAttachment = async (attachmentIndex) => {
+    if (!window.confirm('Are you sure you want to delete this attachment?')) {
+      return;
+    }
+    
+    try {
+      setDeletingAttachment(attachmentIndex);
+      console.log(`🗑️ Deleting attachment ${attachmentIndex}...`);
+      
+      const response = await upcomingDeliveryAPI.deleteAttachment(selectedDelivery._id, attachmentIndex);
+      
+      if (response.success) {
+        // Update selected delivery with new data
+        setSelectedDelivery(response.data);
+        
+        // Update deliveries list
+        setDeliveries(prev => 
+          prev.map(d => d._id === selectedDelivery._id ? response.data : d)
+        );
+        
+        showToast('Attachment deleted successfully', 'success');
+      }
+    } catch (err) {
+      console.error('❌ Delete attachment error:', err);
+      showToast(err.response?.data?.message || 'Failed to delete attachment', 'error');
+    } finally {
+      setDeletingAttachment(null);
+    }
+  };
+
+  // Delete All handler
+  const handleDeleteAll = async () => {
+    if (!window.confirm('Are you sure you want to delete all records? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      const response = await upcomingDeliveryAPI.deleteAll();
+      
+      if (response.success) {
+        // Clear local state
+        setDeliveries([]);
+        setTotalPages(1);
+        setCurrentPage(1);
+        
+        // Notify other components
+        window.dispatchEvent(new Event('intentCreated'));
+        localStorage.setItem('upcomingDeliveryRefresh', Date.now().toString());
+        
+        showToast(`Successfully deleted all ${response.deletedCount} upcoming deliveries`, 'success');
+      }
+    } catch (err) {
+      console.error('Delete all error:', err);
+      showToast(err.response?.data?.message || 'Failed to delete all upcoming deliveries', 'error');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <DashboardLayout title="Upcoming Deliveries">
+    <div className="flex-1 p-6 bg-gray-50">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-800">Upcoming Deliveries</h1>
+          <p className="text-sm text-gray-500">View and manage upcoming deliveries</p>
+        </div>
+        <Button
+          onClick={handleDeleteAll}
+          disabled={deliveries.length === 0 || deleting}
+          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          <Trash2 size={18} />
+          {deleting ? 'Deleting...' : 'Delete All'}
+        </Button>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center gap-2">
+            <span className="text-red-600 font-medium">Error:</span>
+            <span className="text-red-700">{error}</span>
+          </div>
+          <Button
+            variant="link"
+            onClick={fetchDeliveries}
+            className="mt-2 h-auto p-0 text-sm text-red-600 hover:text-red-700 underline"
+          >
+            Try Again
+          </Button>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex flex-col justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mb-4"></div>
+          <p className="text-gray-600 text-sm">Loading upcoming deliveries...</p>
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 overflow-x-auto">
+          <div className="mb-4">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-100">
+                Upcoming Deliveries ({totalRecords} records)
+              </h2>
+              <Input
+                type="text"
+                placeholder="Search by Transfer Number..."
+                className="border border-gray-300 dark:border-gray-600 rounded p-2 w-80 bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-orange-400 text-sm"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
+              />
+            </div>
+            
+            {/* ✅ Filters Section */}
+            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 shadow-sm">
+              <div className="flex gap-4 items-end flex-wrap">
+                {/* Site Filter */}
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Filter by Site</label>
+                  <Select
+                    value={filterSite || "all"}
+                    onValueChange={(value) => {
+                      setFilterSite(value === "all" ? "" : value);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer">
+                      <SelectValue placeholder="All Sites" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Sites</SelectItem>
+                    {sites.map(site => (
+                      <SelectItem key={site} value={site} className="text-gray-900">{site}</SelectItem>
+                    ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Status Filter */}
+                <div className="flex-1 min-w-[180px]">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Filter by Status</label>
+                  <Select
+                    value={filterStatus || "all"}
+                    onValueChange={(value) => {
+                      setFilterStatus(value === "all" ? "" : value);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors cursor-pointer">
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Partial">Partial</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Date From */}
+                <div className="flex-1 min-w-[160px]">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">From Date</label>
+                  <Input
+                    type="date"
+                    value={filterDateFrom}
+                    onChange={(e) => {
+                      setFilterDateFrom(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
+                  />
+                </div>
+                
+                {/* Date To */}
+                <div className="flex-1 min-w-[160px]">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">To Date</label>
+                  <Input
+                    type="date"
+                    value={filterDateTo}
+                    onChange={(e) => {
+                      setFilterDateTo(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full border-2 border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800 hover:border-gray-400 transition-colors"
+                  />
+                </div>
+                
+                {/* Clear Filters Button */}
+                <Button
+                  onClick={() => {
+                    setFilterSite('');
+                    setFilterStatus('');
+                    setFilterDateFrom('');
+                    setFilterDateTo('');
+                    setCurrentPage(1);
+                  }}
+                  className="px-5 py-2.5 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-all"
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {deliveries.length > 0 ? (
+            <>
+              <Table className="min-w-full border text-sm">
+                <TableHeader className="bg-orange-100 dark:bg-gray-700">
+                  <TableRow>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Transfer No</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Date</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">From</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">To</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Items</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Status</TableHead>
+                    <TableHead className="border dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {deliveries.map((delivery) => {
+                    const quantitySummary = getDeliveryQuantitySummary(delivery);
+
+                    return (
+                    <TableRow key={delivery._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <TableCell className="border px-4 py-2 font-medium text-gray-900">{delivery.transfer_number}</TableCell>
+                      <TableCell className="border px-4 py-2 text-gray-600">
+                        {formatDate(delivery.date)}
+                      </TableCell>
+                      <TableCell className="border px-4 py-2">{delivery.from}</TableCell>
+                      <TableCell className="border px-4 py-2">{delivery.to}</TableCell>
+                      <TableCell className="border px-4 py-2">
+                        <div className="space-y-1">
+                          <span className="block text-gray-700">
+                            {delivery.items?.length || 0} items
+                          </span>
+                          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+                            quantitySummary.pending > 0
+                              ? 'bg-orange-100 text-orange-700'
+                              : 'bg-green-100 text-green-700'
+                          }`}>
+                            Pending: {quantitySummary.pending}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="border px-4 py-2">
+                        {getStatusBadge(delivery.status)}
+                      </TableCell>
+                      <TableCell className="border px-4 py-2">
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="View Details"
+                            onClick={() => handleViewDetails(delivery._id)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="View Details"
+                          >
+                            <Eye size={18} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Delete"
+                            onClick={() => handleDelete(delivery._id, delivery.st_id)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                            title="Delete"
+                            disabled={deleting}
+                          >
+                            <Trash2 size={18} />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No upcoming deliveries found</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Details Modal */}
+      {showDetailsModal && selectedDelivery && (
+        <Dialog
+          open={showDetailsModal}
+          onOpenChange={(open) => {
+            if (!open) closeModal();
+          }}
+        >
+          <DialogContent className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out p-0 gap-0 [&>button]:hidden">
+            {/* Modal Header */}
+            <DialogHeader className="sticky top-0 z-10 bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex flex-row justify-between items-center rounded-t-lg space-y-0 text-left">
+              <div>
+                <DialogTitle className="text-xl font-bold text-white">
+                  Delivery Details - {selectedDelivery.st_id}
+                </DialogTitle>
+                <DialogDescription className="sr-only">
+                  Details, materials, attachments, and delivery information
+                </DialogDescription>
+                <p className="text-sm text-orange-100">Transfer Number: {selectedDelivery.transfer_number}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Close modal"
+                onClick={closeModal}
+                className="text-white hover:text-orange-100 transition-colors p-1 hover:bg-orange-600 rounded"
+                title="Close"
+              >
+                <X size={24} />
+              </Button>
+            </DialogHeader>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">From</label>
+                  <p className="text-gray-900">{selectedDelivery.from}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">To</label>
+                  <p className="text-gray-900">{selectedDelivery.to}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Date</label>
+                  <p className="text-gray-900">{formatDate(selectedDelivery.date)}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Status</label>
+                  {editing ? (
+                    <div className="flex items-center gap-2">
+                      <div>{getStatusBadge(selectedDelivery.status)}</div>
+                      <span className="text-xs text-orange-600 italic">→ Auto-updates on save</span>
+                    </div>
+                  ) : (
+                    <div>{getStatusBadge(selectedDelivery.status)}</div>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Created By</label>
+                  <p className="text-gray-900">{selectedDelivery.createdBy}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Type</label>
+                  <p className="text-gray-900">{selectedDelivery.type || 'ST'}</p>
+                </div>
+              </div>
+
+              {/* Image Display (for PO type with related Indent) */}
+              {selectedDelivery.type === 'PO' && relatedIndent && relatedIndent.imageUrl && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Uploaded Image</h3>
+                  <div className="border rounded-lg overflow-hidden inline-block">
+                    <img loading="lazy" decoding="async"
+                      src={`${axios.defaults.baseURL.replace('/api', '')}${relatedIndent.imageUrl}`}
+                      alt="Intent"
+                      className="max-w-full h-auto max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => window.open(`${axios.defaults.baseURL.replace('/api', '')}${relatedIndent.imageUrl}`, '_blank')}
+                      onError={(e) => {
+                        console.error('Image load error:', relatedIndent.imageUrl);
+                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f0f0f0" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999"%3EImage not found%3C/text%3E%3C/svg%3E';
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Items Table - Modern Design */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Materials</h3>
+                <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+                  <div className="overflow-x-auto">
+                    <Table className="min-w-full divide-y divide-gray-200">
+                      <TableHeader>
+                        <TableRow className="bg-gradient-to-r from-orange-500 to-orange-600">
+                          <TableHead className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Category</TableHead>
+                          <TableHead className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Sub Category</TableHead>
+                          <TableHead className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Sub Category 1</TableHead>
+                          <TableHead className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider">Requested</TableHead>
+                          <TableHead className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider">Received</TableHead>
+                          <TableHead className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider">Pending</TableHead>
+                          <TableHead className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider">Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody className="bg-white divide-y divide-gray-200">
+                        {(editing ? formData.items : selectedDelivery.items).map((item, index) => {
+                          const requestedQty = getRequestedQuantity(item);
+                          const displayReceivedQty = getReceivedQuantity(item, selectedDelivery.status);
+                          const pendingQty = getPendingQuantity(item, selectedDelivery.status);
+                          
+                          const isFullyReceived = pendingQty === 0 && requestedQty > 0;
+                          const isPartiallyReceived = displayReceivedQty > 0 && pendingQty > 0;
+                          
+                          return (
+                            <TableRow
+                              key={item._id || index}
+                              className="hover:bg-orange-50 transition-colors"
+                            >
+                              <TableCell className="px-4 py-3 text-sm text-gray-900 font-medium">
+                                {/* ✅ For PO items, show full name; for ST items, show category */}
+                                {item.name || item.category || "—"}
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-sm text-gray-700">
+                                {item.sub_category || "—"}
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-sm text-gray-700">
+                                {item.sub_category1 || "—"}
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-sm text-right">
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                                  {formatQuantity(requestedQty)}
+                                </span>
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-sm text-right">
+                                {editing ? (
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    max={item.st_quantity}
+                                    value={item.received_quantity}
+                                    onChange={(e) => updateItem(index, 'received_quantity', e.target.value)}
+                                    className="w-24 border-2 border-orange-300 rounded-lg px-3 py-2 text-right focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 font-semibold bg-white shadow-sm"
+                                  />
+                                ) : (
+                                  <span
+                                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                      isFullyReceived
+                                        ? "bg-green-100 text-green-800"
+                                        : isPartiallyReceived
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-gray-100 text-gray-800"
+                                    }`}
+                                  >
+                                    {formatQuantity(displayReceivedQty)}
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-sm text-right">
+                                <span
+                                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                    pendingQty > 0
+                                      ? "bg-orange-100 text-orange-800"
+                                      : "bg-green-100 text-green-800"
+                                  }`}
+                                >
+                                  {formatQuantity(pendingQty)}
+                                </span>
+                              </TableCell>
+                              <TableCell className="px-4 py-3 text-center">
+                                {editing ? (
+                                  <div className="flex items-center justify-center">
+                                    <Checkbox
+                                      checked={!!item.is_received}
+                                      onCheckedChange={(checked) => {
+                                        const isChecked = checked === true;
+                                        // Update both fields at once
+                                        const updatedItems = [
+                                          ...formData.items,
+                                        ];
+                                        const currentItem = updatedItems[index];
+                                        updatedItems[index] = {
+                                          ...currentItem,
+                                          is_received: isChecked,
+                                          received_quantity: isChecked
+                                            ? currentItem.st_quantity
+                                            : currentItem.received_quantity,
+                                        };
+                                        setFormData({
+                                          ...formData,
+                                          items: updatedItems,
+                                        });
+                                      }}
+                                      aria-label="Mark item as received"
+                                      className="w-5 h-5 border-gray-400 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-white"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-center">
+                                    {isFullyReceived ? (
+                                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                        ✓ Complete
+                                      </span>
+                                    ) : isPartiallyReceived ? (
+                                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                                        ⚠ Partial
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
+                                        ○ Pending
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </div>
+
+              {/* ✅ ATTACHMENTS SECTION - Intent PO Images & Delivery Receipts */}
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-3 pb-2 border-b-2 border-orange-200">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    Attachments ({selectedDelivery.attachments?.length || 0})
+                  </h3>
+                  <label className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors cursor-pointer flex items-center gap-2 text-sm font-medium">
+                    <Upload size={16} />
+                    {uploadingReceipt ? 'Uploading...' : 'Upload Receipt'}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploadingReceipt}
+                      onChange={(e) => handleUploadReceipts(e.target.files)}
+                    />
+                  </label>
+                </div>
+                
+                {selectedDelivery.attachments && selectedDelivery.attachments.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedDelivery.attachments.map((attachment, index) => {
+                      // ✅ Handle both old string format and new Cloudinary object format
+                      const attachmentUrl = typeof attachment === 'string' ? attachment : attachment.url;
+                      const baseURL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5002';
+                      const fileURL = attachmentUrl.startsWith('http') ? attachmentUrl : `${baseURL}${attachmentUrl}`;
+                      const fileName = attachmentUrl.split('/').pop();
+                      const isImage = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
+                      
+                      return (
+                        <div key={index} className="border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
+                          <div className="relative">
+                            {/* Image Thumbnail */}
+                            {isImage ? (
+                              <img loading="lazy" decoding="async" 
+                                src={fileURL} 
+                                alt={fileName}
+                                className="w-full h-48 object-cover cursor-pointer"
+                                onClick={() => window.open(fileURL, '_blank')}
+                                onError={(e) => {
+                                  e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f3f4f6" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af" font-size="40"%3E🖼️%3C/text%3E%3C/svg%3E';
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-48 flex items-center justify-center bg-gray-100">
+                                <span className="text-6xl">📎</span>
+                              </div>
+                            )}
+                            
+                            {/* Delete Button Overlay */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Delete attachment"
+                              onClick={() => handleDeleteAttachment(index)}
+                              disabled={deletingAttachment === index}
+                              className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                              title="Delete attachment"
+                            >
+                              {deletingAttachment === index ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              ) : (
+                                <Trash2 size={16} />
+                              )}
+                            </Button>
+                          </div>
+                          
+                          {/* File Info */}
+                          <div className="p-3 bg-white border-t border-gray-200">
+                            <p className="text-sm font-medium text-gray-900 truncate">{fileName}</p>
+                            <div className="flex justify-between items-center mt-2">
+                              <p className="text-xs text-gray-500">
+                                {isImage ? 'Image' : 'File'} • Attachment {index + 1}
+                              </p>
+                              <a
+                                href={fileURL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                              >
+                                View Full
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                    <ImageIcon size={48} className="mx-auto text-gray-400 mb-2" />
+                    <p className="text-gray-500 text-sm">No attachments</p>
+                    <p className="text-gray-400 text-xs mt-1">Upload delivery receipt images here</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-white border-t-2 border-orange-100 px-6 py-4 flex justify-end gap-3 rounded-b-lg">
+              {editing ? (
+                <>
+                  <Button
+                    onClick={handleCancelEdit}
+                    className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2 font-medium"
+                  >
+                    <X size={16} />
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSaveChanges}
+                    disabled={saving}
+                    className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
+                  >
+                    {saving ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save size={16} />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={closeModal}
+                    className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    onClick={handleEdit}
+                    className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 font-medium shadow-sm"
+                  >
+                    <Edit2 size={16} />
+                    Edit
+                  </Button>
+                </>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+    </DashboardLayout>
+  );
+}

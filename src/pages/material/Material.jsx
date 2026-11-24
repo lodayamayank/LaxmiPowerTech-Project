@@ -2,12 +2,12 @@ import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, FileText, Truck, Package, ClipboardCheck } from "lucide-react";
 import { MdFolder } from "react-icons/md";
-import Intent from "./Intent";
-import MaterialTransfer from "./MaterialTransfer";
-import UpcomingDeliveries from "./UpcomingDeliveries";
-import GRN from "./GRN";
-import { getSelectedBranchName } from "../../utils/branchContext";
-import { Button } from "../../components/ui/button";
+import Intent from "@/pages/material/intent/Intent";
+import MaterialTransfer from "@/pages/material/transfers/MaterialTransfer";
+import UpcomingDeliveries from "@/pages/material/deliveries/UpcomingDeliveries";
+import GRN from "@/pages/material/grn/GRN";
+import { getSelectedBranchName } from "@/lib/branchContext";
+import { Button } from "@/components/ui/button";
 
 export default function Material({ activeTab }) {
   const navigate = useNavigate();

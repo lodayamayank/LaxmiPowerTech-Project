@@ -1,0 +1,412 @@
+import React, { useState } from "react";
+import { submitOffline } from "@/pwa/offlineSubmit";
+import { useNavigate } from "react-router-dom";
+import {
+  FaArrowLeft,
+  FaPlus,
+  FaTrash,
+  FaCamera,
+  FaSave,
+  FaMoneyBillWave,
+  FaTimes,
+} from "react-icons/fa";
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import MobileShell from "@/layouts/mobile/MobileShell";
+import MobileHeader from "@/layouts/mobile/MobileHeader";
+import MobileBackButton from "@/layouts/mobile/MobileBackButton";
+
+  const CreateReimbursement = () => {
+  const navigate = useNavigate();
+
+  const [items, setItems] = useState([
+    {
+      amount: "",
+      expenseDate: new Date().toISOString().split("T")[0],
+      category: "travel",
+      description: "",
+      receipts: [],
+      receiptPreviews: [],
+    },
+  ]);
+  
+  const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const addItem = () => {
+    setItems([
+      ...items,
+      {
+        amount: "",
+        expenseDate: new Date().toISOString().split("T")[0],
+        category: "travel",
+        description: "",
+        receipts: [],
+        receiptPreviews: [],
+      },
+    ]);
+  };
+
+  const removeItem = (index) => {
+    if (items.length === 1) {
+      toast.error("At least one item is required");
+      return;
+    }
+    setItems(items.filter((_, i) => i !== index));
+  };
+
+  const updateItem = (index, field, value) => {
+    const updated = [...items];
+    updated[index][field] = value;
+    setItems(updated);
+  };
+
+  const handleFileChange = (index, files) => {
+    const updated = [...items];
+    const fileArray = Array.from(files);
+    
+    // Create preview URLs
+    const previews = fileArray.map(file => URL.createObjectURL(file));
+    
+    updated[index].receipts = fileArray;
+    updated[index].receiptPreviews = previews;
+    setItems(updated);
+  };
+
+  const removeReceipt = (itemIndex, receiptIndex) => {
+    const updated = [...items];
+    
+    // Revoke object URL to prevent memory leaks
+    URL.revokeObjectURL(updated[itemIndex].receiptPreviews[receiptIndex]);
+    
+    updated[itemIndex].receipts = updated[itemIndex].receipts.filter((_, i) => i !== receiptIndex);
+    updated[itemIndex].receiptPreviews = updated[itemIndex].receiptPreviews.filter((_, i) => i !== receiptIndex);
+    setItems(updated);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validation
+    const invalidItems = items.filter(
+      (item) => !item.amount || !item.expenseDate || !item.description
+    );
+    if (invalidItems.length > 0) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    // Check if at least one receipt is uploaded
+    const hasReceipts = items.some(item => item.receipts.length > 0);
+    if (!hasReceipts) {
+      const confirm = window.confirm("No receipts attached. Continue anyway?");
+      if (!confirm) return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      
+      // Add items without files
+      const itemsData = items.map(({ receipts, receiptPreviews, ...item }) => item);
+      formData.append("items", JSON.stringify(itemsData));
+      formData.append("note", note);
+      
+      // Add all receipt files
+      items.forEach((item) => {
+        item.receipts.forEach((file) => {
+          formData.append("receipts", file);
+        });
+      });
+
+      const result = await submitOffline({
+        module: "reimbursement",
+        endpoint: "/reimbursements",
+        formData,
+        label: `Reimbursement (₹${totalAmount})`,
+      });
+
+      if (result.offline) {
+        toast.info("📴 Offline – claim saved with its receipts and will submit when you reconnect.");
+      } else {
+        toast.success("Reimbursement submitted successfully!");
+      }
+      navigate("/reimbursements");
+    } catch (err) {
+      console.error("Submission error:", err);
+      toast.error(err.response?.data?.message || "Failed to submit reimbursement");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const totalAmount = items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+
+    return (
+      <MobileShell>
+        <MobileHeader>
+          <MobileBackButton onClick={() => navigate(-1)} />
+
+          <div className="text-center pt-8">
+            <FaMoneyBillWave className="text-white mx-auto mb-3" size={40} />
+            <h1 className="text-white text-2xl font-bold mb-2">
+              New Reimbursement
+            </h1>
+            <p className="text-white/80 text-sm">Submit your expense claim</p>
+          </div>
+        </MobileHeader>
+
+        {/* Main Content */}
+        <form onSubmit={handleSubmit} className="px-6 py-6 -mt-4 pb-24">
+          {/* Total Amount Display */}
+          <div className="bg-gradient-to-r from-orange-50 to-orange-50 rounded-2xl p-4 mb-6 border border-pink-100">
+            <p className="text-sm text-gray-600 mb-1">Total Amount</p>
+            <p className="text-3xl font-bold text-pink-600">
+              ₹{totalAmount.toFixed(2)}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">{items.length} item(s)</p>
+          </div>
+
+          {/* Expense Items */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-md font-semibold text-gray-800">
+                Expense Items
+              </h3>
+              <Button
+                type="button"
+                onClick={addItem}
+                className="h-auto flex items-center gap-2 px-3 py-1.5 has-[>svg]:px-3 bg-orange-500 text-white rounded-xl text-sm font-medium hover:bg-orange-600 transition-all"
+              >
+                <FaPlus size={12} className="size-3" />
+                Add Item
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {items.map((item, index) => (
+                <div
+                  key={index}
+                  className="bg-gray-50 rounded-2xl p-4 border border-gray-200"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-semibold text-gray-700">
+                      Item {index + 1}
+                    </span>
+                    {items.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => removeItem(index)}
+                        className="h-auto p-2 has-[>svg]:p-2 text-red-500 hover:text-red-600 hover:bg-transparent"
+                      >
+                        <FaTrash size={14} className="size-3.5" />
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* Amount */}
+                    <div>
+                      <Label
+                        htmlFor={`reimbursement-amount-${index}`}
+                        className="block text-xs font-semibold text-gray-700 mb-1"
+                      >
+                        Amount (₹) <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id={`reimbursement-amount-${index}`}
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={item.amount}
+                        onChange={(e) =>
+                          updateItem(index, "amount", e.target.value)
+                        }
+                        className="w-full h-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-gray-300"
+                        placeholder="0.00"
+                        required
+                      />
+                    </div>
+
+                    {/* Date */}
+                    <div>
+                      <Label
+                        htmlFor={`reimbursement-date-${index}`}
+                        className="block text-xs font-semibold text-gray-700 mb-1"
+                      >
+                        Expense Date <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id={`reimbursement-date-${index}`}
+                        type="date"
+                        value={item.expenseDate}
+                        onChange={(e) =>
+                          updateItem(index, "expenseDate", e.target.value)
+                        }
+                        max={new Date().toISOString().split("T")[0]}
+                        className="w-full h-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-gray-300"
+                        required
+                      />
+                    </div>
+
+                    {/* Category */}
+                    <div>
+                      <Label
+                        htmlFor={`reimbursement-category-${index}`}
+                        className="block text-xs font-semibold text-gray-700 mb-1"
+                      >
+                        Category <span className="text-red-500">*</span>
+                      </Label>
+                      <select
+                        id={`reimbursement-category-${index}`}
+                        value={item.category}
+                        onChange={(e) =>
+                          updateItem(index, "category", e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        required
+                      >
+                        <option value="travel">Travel</option>
+                        <option value="food">Food</option>
+                        <option value="accommodation">Accommodation</option>
+                        <option value="materials">Materials</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                      <Label
+                        htmlFor={`reimbursement-description-${index}`}
+                        className="block text-xs font-semibold text-gray-700 mb-1"
+                      >
+                        Description <span className="text-red-500">*</span>
+                      </Label>
+                      <Textarea
+                        id={`reimbursement-description-${index}`}
+                        value={item.description}
+                        onChange={(e) =>
+                          updateItem(index, "description", e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none"
+                        rows={2}
+                        placeholder="Brief description of expense..."
+                        required
+                      />
+                    </div>
+
+                    {/* Receipts */}
+                    <div>
+                      <Label
+                        htmlFor={`receipts-${index}`}
+                        className="block text-xs font-semibold text-gray-700 mb-1"
+                      >
+                        Receipts (Optional)
+                      </Label>
+
+                      {/* File Input */}
+                      <div className="relative mb-2">
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*,application/pdf"
+                          onChange={(e) =>
+                            handleFileChange(index, e.target.files)
+                          }
+                          className="hidden"
+                          id={`receipts-${index}`}
+                        />
+                        <label
+                          htmlFor={`receipts-${index}`}
+                          className="flex items-center justify-center gap-2 w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-pink-500 hover:text-pink-600 cursor-pointer transition-all"
+                        >
+                          <FaCamera size={14} />
+                          {item.receipts.length > 0
+                            ? `${item.receipts.length} file(s) selected`
+                            : "Tap to upload receipts"}
+                        </label>
+                      </div>
+
+                      {/* Receipt Previews */}
+                      {item.receiptPreviews.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2">
+                          {item.receiptPreviews.map((preview, receiptIndex) => (
+                            <div key={receiptIndex} className="relative group">
+                              <img loading="lazy" decoding="async"
+                                src={preview}
+                                alt={`Receipt ${receiptIndex + 1}`}
+                                className="w-full h-20 object-cover rounded-lg border border-gray-200"
+                              />
+                              <Button
+                                type="button"
+                                onClick={() =>
+                                  removeReceipt(index, receiptIndex)
+                                }
+                                className="absolute -top-2 -right-2 h-auto w-auto p-1 has-[>svg]:p-1 bg-red-500 hover:bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <FaTimes size={10} className="size-2.5" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Overall Note */}
+          <div className="mb-6">
+            <Label
+              htmlFor="reimbursement-note"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              Additional Note (Optional)
+            </Label>
+            <Textarea
+              id="reimbursement-note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none"
+              rows={3}
+              placeholder="Any additional information about this reimbursement..."
+            />
+          </div>
+
+          {/* Submit Button - Fixed at bottom */}
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
+            <div className="max-w-md mx-auto">
+              <Button
+                type="submit"
+                disabled={submitting}
+                className="w-full py-4 h-auto rounded-2xl bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold shadow-lg hover:from-pink-600 hover:to-pink-700 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Submitting...</span>
+                  </>
+                ) : (
+                  <>
+                    <FaSave size={18} />
+                    <span>Submit Reimbursement</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </form>
+      </MobileShell>
+    );
+};  
+
+export default CreateReimbursement;
