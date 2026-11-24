@@ -57,6 +57,24 @@ export const STATUS_TONES = {
   future: "neutral",
 };
 
+/** Role -> badge tone (used for role badges). */
+export const ROLE_TONES = {
+  labour: "ok",
+  supervisor: "info",
+  subcontractor: "purple",
+  staff: "neutral",
+  admin: "highlight",
+};
+
+/**
+ * Tone for a role string (case-insensitive).
+ * @param {string|null|undefined} role
+ * @returns {"ok"|"info"|"purple"|"neutral"|"highlight"} "neutral" for anything else
+ */
+export function getRoleTone(role) {
+  return ROLE_TONES[String(role ?? "").trim().toLowerCase()] || "neutral";
+}
+
 const normalise = (status) =>
   String(status ?? "")
     .trim()

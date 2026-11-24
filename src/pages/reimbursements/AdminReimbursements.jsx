@@ -1,55 +1,49 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { getToken } from '@/lib/session';
-import { EVENTS } from '@/lib/events';
+// src/pages/reimbursements/AdminReimbursements.jsx
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { FileX } from "lucide-react";
+import { toast } from "sonner";
 import axios from "@/api/client";
+import { getToken } from "@/lib/session";
+import { EVENTS } from "@/lib/events";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
-import {
-  FaClock,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaMoneyBillWave,
-  FaEye,
-  FaTimes,
-  FaCheck,
-  FaChevronLeft,
-  FaChevronRight,
-} from "react-icons/fa";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { DataTable } from "@/components/common/DataTable";
+import { EmptyState } from "@/components/common/EmptyState";
+import { FilterBar, FilterField } from "@/components/common/FilterBar";
+import { FormField } from "@/components/common/FormField";
+import { PageHeader } from "@/components/common/PageHeader";
+import { PaginationBar } from "@/components/common/PaginationBar";
+import { SectionCard } from "@/components/common/SectionCard";
+import ReimbursementDetailsDialog from "./components/ReimbursementDetailsDialog";
+import { getReimbursementColumns, getReimbursementMobileCard } from "./components/reimbursementColumns";
 
-const StatusBadge = ({ status }) => {
-  const cls =
-    status === "approved"
-      ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800"
-      : status === "rejected"
-      ? "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800"
-      : status === "paid"
-      ? "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
-      : "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-300 dark:border-yellow-800";
-  return (
-    <Badge variant="outline" className={`capitalize font-medium ${cls}`}>
-      {status}
-    </Badge>
-  );
+const ALL = "__all__"; // Radix SelectItem cannot use ""; mapped back to "" before touching filters
+const INITIAL_FILTERS = { status: "", role: "", from: "", to: "" };
+
+const TABS = [
+  { value: "pending", label: "Pending" },
+  { value: "approved", label: "Approved" },
+  { value: "paid", label: "Paid" },
+  { value: "rejected", label: "Rejected" },
+  { value: "all", label: "All" },
+];
+
+const ROLE_OPTIONS = [
+  ["labour", "Labour"],
+  ["staff", "Staff"],
+  ["supervisor", "Supervisor"],
+  ["subcontractor", "Subcontractor"],
+];
+
+const CONFIRM_COPY = {
+  approved: { title: "Approve this reimbursement?", description: "The claim will be marked as approved.", confirmLabel: "Approve" },
+  paid: { title: "Mark this reimbursement as paid?", description: "The claim will be marked as paid.", confirmLabel: "Mark paid" },
 };
 
 const AdminReimbursements = () => {
@@ -57,44 +51,33 @@ const AdminReimbursements = () => {
   const [loading, setLoading] = useState(true);
   const [selectedReimbursement, setSelectedReimbursement] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  
-  // Filters
-  const [filters, setFilters] = useState({
-    status: "",
-    role: "",
-    from: "",
-    to: "",
-  });
 
-  // Pagination
+  // Filters (applied with the Filter button, or at once by a status tab / Clear filters)
+  const [filters, setFilters] = useState(INITIAL_FILTERS);
+
+  // Pagination (server side, 1-based)
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [total, setTotal] = useState(0);
 
-  // ✅ FIX: Memoize token
-  const token = useMemo(() => getToken(), []);
+  // Decision dialogs: { id, status } for approve / mark paid; rejectId + reason for reject
+  const [confirm, setConfirm] = useState(null);
+  const [rejectId, setRejectId] = useState(null);
+  const [reason, setReason] = useState("");
 
+  const token = useMemo(() => getToken(), []);
   const totalPages = Math.max(Math.ceil(total / limit), 1);
 
-  // ✅ FIX: Move fetchReimbursements inside useEffect to avoid dependency issues
-  useEffect(() => {
-    const fetchReimbursements = async () => {
-      if (!token) {
-        console.error('No token available');
-        return;
-      }
-
+  const fetchList = useCallback(
+    async (f, p, l) => {
+      if (!token) return;
       try {
         setLoading(true);
-        const params = { page, limit, ...filters };
-
         const res = await axios.get("/reimbursements", {
           headers: { Authorization: `Bearer ${token}` },
-          params,
+          params: { page: p, limit: l, ...f },
         });
-
-        const data = res.data.rows || [];
-        setReimbursements(data);
+        setReimbursements(res.data.rows || []);
         setTotal(res.data.total || 0);
       } catch (err) {
         console.error("Failed to fetch reimbursements", err);
@@ -108,62 +91,46 @@ const AdminReimbursements = () => {
       } finally {
         setLoading(false);
       }
-    };
+    },
+    [token],
+  );
 
-    if (token) {
-      fetchReimbursements();
+  // Initial load, and whenever the page or page size changes (filters only apply on submit).
+  useEffect(() => {
+    if (!token) {
+      console.error("No token available");
+      return;
     }
+    fetchList(filters, page, limit);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, token]);
-
-  // ✅ FIX: Separate function for manual fetch (on search/filter)
-  const refetchReimbursements = async () => {
-    if (!token) return;
-
-    try {
-      setLoading(true);
-      const params = { page, limit, ...filters };
-
-      const res = await axios.get("/reimbursements", {
-        headers: { Authorization: `Bearer ${token}` },
-        params,
-      });
-
-      const data = res.data.rows || [];
-      setReimbursements(data);
-      setTotal(res.data.total || 0);
-    } catch (err) {
-      console.error("Failed to fetch reimbursements", err);
-      if (err.response?.status === 403) {
-        toast.error("Access denied. Admin privileges required.");
-      } else {
-        toast.error("Failed to load reimbursements");
-      }
-      setReimbursements([]);
-      setTotal(0);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const onSearch = (e) => {
     e.preventDefault();
     setPage(1);
-    refetchReimbursements();
+    fetchList(filters, page, limit);
   };
+
+  // Tabs and Clear filters apply right away: one request, whichever page we were on.
+  const applyFilters = (next) => {
+    setFilters(next);
+    if (page !== 1) setPage(1); // the page effect refetches with `next`
+    else fetchList(next, 1, limit);
+  };
+
+  const hasActiveFilters = Boolean(filters.role || filters.from || filters.to);
+  const clearFilters = () => applyFilters({ ...INITIAL_FILTERS, status: filters.status });
 
   const handleStatusUpdate = async (id, status, rejectionReason = "") => {
     try {
       await axios.patch(
         `/reimbursements/${id}/status`,
         { status, rejectionReason },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
-      window.dispatchEvent(new Event(EVENTS.pendingCountsRefresh)); // 👈 badge refresh
-      fetchReimbursements(); 
-
+      window.dispatchEvent(new Event(EVENTS.pendingCountsRefresh)); // sidebar badge refresh
       toast.success(`Reimbursement ${status} successfully`);
-      refetchReimbursements();
+      fetchList(filters, page, limit);
       setShowDetailsModal(false);
       setSelectedReimbursement(null);
     } catch (error) {
@@ -172,325 +139,143 @@ const AdminReimbursements = () => {
     }
   };
 
-  const handleApprove = (id) => {
-    if (window.confirm("Approve this reimbursement request?")) {
-      handleStatusUpdate(id, "approved");
-    }
+  const handleApprove = useCallback((id) => setConfirm({ id, status: "approved" }), []);
+  const handleMarkPaid = useCallback((id) => setConfirm({ id, status: "paid" }), []);
+  const handleReject = useCallback((id) => {
+    setReason("");
+    setRejectId(id);
+  }, []);
+
+  const confirmDecision = async () => {
+    const { id, status } = confirm;
+    setConfirm(null);
+    await handleStatusUpdate(id, status);
   };
 
-  const handleReject = (id) => {
-    const reason = prompt("Enter rejection reason:");
-    if (reason) {
-      handleStatusUpdate(id, "rejected", reason);
-    }
+  const confirmReject = async () => {
+    if (!reason) return;
+    const id = rejectId;
+    setRejectId(null);
+    await handleStatusUpdate(id, "rejected", reason);
   };
 
-  const handleMarkPaid = (id) => {
-    if (window.confirm("Mark this reimbursement as paid?")) {
-      handleStatusUpdate(id, "paid");
-    }
-  };
+  const viewDetails = useCallback(
+    async (id) => {
+      try {
+        const res = await axios.get(`/reimbursements/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSelectedReimbursement(res.data);
+        setShowDetailsModal(true);
+      } catch (error) {
+        console.error("Failed to load details", error);
+        toast.error("Failed to load details");
+      }
+    },
+    [token],
+  );
 
-  const viewDetails = async (id) => {
-    try {
-      const res = await axios.get(`/reimbursements/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setSelectedReimbursement(res.data);
-      setShowDetailsModal(true);
-    } catch (error) {
-      console.error("Failed to load details", error);
-      toast.error("Failed to load details");
-    }
-  };
+  const handlers = useMemo(
+    () => ({ onView: viewDetails, onApprove: handleApprove, onReject: handleReject, onMarkPaid: handleMarkPaid }),
+    [viewDetails, handleApprove, handleReject, handleMarkPaid],
+  );
+  const columns = useMemo(() => getReimbursementColumns(handlers), [handlers]);
+  const mobileCard = useMemo(() => getReimbursementMobileCard(handlers), [handlers]);
+
+  const activeTab = TABS.find((t) => t.value === (filters.status || "all")) || TABS[4];
+  const emptyState = (
+    <EmptyState
+      icon={FileX}
+      title="No reimbursements"
+      description={
+        hasActiveFilters
+          ? "No reimbursement claims match these filters."
+          : filters.status
+            ? `There are no ${activeTab.label.toLowerCase()} reimbursement claims.`
+            : "There are no reimbursement claims yet."
+      }
+    />
+  );
 
   return (
-    <DashboardLayout title="Reimbursement Management">
-      <div className="space-y-4">
-        {/* Filters */}
-        <Card>
-          <CardContent className="pt-6">
-            <form
-              onSubmit={onSearch}
-              className="grid grid-cols-1 md:grid-cols-5 gap-3"
-            >
-              <Select
-                value={filters.status || "all"}
-                onValueChange={(value) =>
-                  setFilters({
-                    ...filters,
-                    status: value === "all" ? "" : value,
-                  })
-                }
-              >
-                <SelectTrigger className="w-full border-gray-300 text-sm dark:border-gray-600">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
+    <DashboardLayout>
+      <PageHeader
+        eyebrow="People / Reimbursements"
+        title="Reimbursements"
+        description="Expense claims from site teams, from approval to payout."
+      />
 
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                </SelectContent>
-              </Select>
+      <SectionCard flush>
+        <Tabs
+          value={filters.status || "all"}
+          onValueChange={(v) => applyFilters({ ...filters, status: v === "all" ? "" : v })}
+          className="px-5"
+        >
+          <TabsList>
+            {TABS.map((t) => (
+              <TabsTrigger key={t.value} value={t.value}>
+                {t.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
 
+        <form onSubmit={onSearch}>
+          <FilterBar onClear={clearFilters} showClear={hasActiveFilters}>
+            <FilterField label="Role" htmlFor="reimb-role" grow={14} minWidth={140} maxWidth={240}>
               <Select
-                value={filters.role || "all"}
-                onValueChange={(value) =>
-                  setFilters({
-                    ...filters,
-                    role: value === "all" ? "" : value,
-                  })
-                }
+                value={filters.role || ALL}
+                onValueChange={(value) => setFilters({ ...filters, role: value === ALL ? "" : value })}
               >
-                <SelectTrigger className="w-full border-gray-300 text-sm dark:border-gray-600">
+                <SelectTrigger id="reimb-role" aria-label="Filter by role">
                   <SelectValue placeholder="All Roles" />
                 </SelectTrigger>
-
                 <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="labour">Labour</SelectItem>
-                  <SelectItem value="staff">Staff</SelectItem>
-                  <SelectItem value="supervisor">Supervisor</SelectItem>
-                  <SelectItem value="subcontractor">Subcontractor</SelectItem>
+                  <SelectItem value={ALL}>All Roles</SelectItem>
+                  {ROLE_OPTIONS.map(([value, text]) => (
+                    <SelectItem key={value} value={value}>
+                      {text}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+            </FilterField>
+            <FilterField label="Submitted from" htmlFor="reimb-from" grow={15} minWidth={150} maxWidth={180}>
+              <Input id="reimb-from" type="date" value={filters.from} onChange={(e) => setFilters({ ...filters, from: e.target.value })} />
+            </FilterField>
+            <FilterField label="Submitted to" htmlFor="reimb-to" grow={15} minWidth={150} maxWidth={180}>
+              <Input id="reimb-to" type="date" value={filters.to} onChange={(e) => setFilters({ ...filters, to: e.target.value })} />
+            </FilterField>
+            <Button type="submit">Filter</Button>
+          </FilterBar>
+        </form>
 
-              <Input
-                type="date"
-                value={filters.from}
-                onChange={(e) =>
-                  setFilters({ ...filters, from: e.target.value })
-                }
-                placeholder="From"
-              />
+        <DataTable
+          columns={columns}
+          rows={reimbursements}
+          rowKey="_id"
+          loading={loading}
+          emptyState={emptyState}
+          mobileCard={mobileCard}
+          footer={
+            <PaginationBar
+              currentPage={page}
+              totalPages={totalPages}
+              totalItems={total}
+              pageSize={limit}
+              pageSizeOptions={[10, 20, 50, 100]}
+              onPageChange={setPage}
+              onPageSizeChange={(n) => {
+                setLimit(n);
+                setPage(1);
+              }}
+            />
+          }
+        />
+      </SectionCard>
 
-              <Input
-                type="date"
-                value={filters.to}
-                onChange={(e) => setFilters({ ...filters, to: e.target.value })}
-                placeholder="To"
-              />
-
-              <Button type="submit">Filter</Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Table */}
-        <Card className="overflow-x-auto">
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="dark:border-gray-700">
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
-                    User
-                  </TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
-                    Role
-                  </TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
-                    Total Amount
-                  </TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
-                    Items
-                  </TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
-                    Submitted
-                  </TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
-                    Status
-                  </TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
-                    Approver
-                  </TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={`skeleton-${i}`}>
-                      <TableCell>
-                        <Skeleton className="h-4 w-28" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-16" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-20" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-8" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-24" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-5 w-16 rounded-full" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-24" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-8 w-24" />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : reimbursements.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      className="text-center text-muted-foreground py-6"
-                    >
-                      No records found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  reimbursements.map((reimb) => (
-                    <TableRow
-                      key={reimb._id}
-                      className="dark:border-gray-700 dark:hover:bg-gray-700/60"
-                    >
-                      <TableCell className="font-medium text-gray-900 dark:text-gray-100">
-                        {reimb.user?.name || "Unknown"}
-                      </TableCell>
-                      <TableCell className="capitalize text-muted-foreground">
-                        {reimb.user?.role || "-"}
-                      </TableCell>
-                      <TableCell className="font-semibold text-green-600 dark:text-green-400">
-                        ₹{reimb.totalAmount.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {reimb.items.length}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(reimb.submittedAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={reimb.status} />
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {reimb.approver?.name || "-"}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => viewDetails(reimb._id)}
-                            title="View Details"
-                          >
-                            <FaEye size={14} />
-                          </Button>
-                          {reimb.status === "pending" && (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleApprove(reimb._id)}
-                                className="border-green-600 text-green-700 hover:bg-green-50 dark:hover:bg-green-950/40"
-                                title="Approve"
-                              >
-                                <FaCheck size={14} />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleReject(reimb._id)}
-                                className="border-red-600 text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40"
-                                title="Reject"
-                              >
-                                <FaTimes size={14} />
-                              </Button>
-                            </>
-                          )}
-                          {reimb.status === "approved" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleMarkPaid(reimb._id)}
-                              className="border-blue-600 text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-xs"
-                              title="Mark as Paid"
-                            >
-                              Mark Paid
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
-        {/* Pagination */}
-        {!loading && total > 0 && (
-          <Card>
-            <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 py-3">
-              <div className="text-sm text-gray-600 dark:text-gray-300">
-                Page{" "}
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {page}
-                </span>{" "}
-                of{" "}
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {totalPages}
-                </span>{" "}
-                ·{" "}
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {total}
-                </span>{" "}
-                records
-              </div>
-              <div className="flex items-center gap-2">
-                <select
-                  value={limit}
-                  onChange={(e) => {
-                    setLimit(Number(e.target.value));
-                    setPage(1);
-                  }}
-                  className="border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
-                >
-                  {[10, 20, 50, 100].map((n) => (
-                    <option key={n} value={n}>
-                      {n} / page
-                    </option>
-                  ))}
-                </select>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="h-9 w-9"
-                >
-                  <FaChevronLeft size={14} />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className="h-9 w-9"
-                >
-                  <FaChevronRight size={14} />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Details Modal */}
-      {showDetailsModal && selectedReimbursement && (
-        <ReimbursementDetailsModal
+      {showDetailsModal && selectedReimbursement ? (
+        <ReimbursementDetailsDialog
           reimbursement={selectedReimbursement}
           onClose={() => {
             setShowDetailsModal(false);
@@ -500,184 +285,35 @@ const AdminReimbursements = () => {
           onReject={handleReject}
           onMarkPaid={handleMarkPaid}
         />
-      )}
+      ) : null}
+
+      <ConfirmDialog
+        open={Boolean(confirm)}
+        onOpenChange={(open) => !open && setConfirm(null)}
+        {...(CONFIRM_COPY[confirm?.status] || CONFIRM_COPY.approved)}
+        onConfirm={confirmDecision}
+      />
+
+      <Dialog open={Boolean(rejectId)} onOpenChange={(open) => !open && setRejectId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject this reimbursement?</DialogTitle>
+            <DialogDescription>Enter a rejection reason. The submitter will see it.</DialogDescription>
+          </DialogHeader>
+          <FormField label="Rejection reason" htmlFor="reimb-reject-reason" required>
+            <Textarea id="reimb-reject-reason" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Why is this claim rejected?" />
+          </FormField>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectId(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" disabled={!reason} onClick={confirmReject}>
+              Reject
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
-  );
-};
-
-
-// Details Modal Component
-const ReimbursementDetailsModal = ({ reimbursement, onClose, onApprove, onReject, onMarkPaid }) => {
-  return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-    >
-      <DialogContent
-        className="max-w-4xl max-h-[90vh] flex flex-col gap-0 overflow-hidden p-0 bg-white rounded-xl border-0 shadow-2xl sm:rounded-xl [&>button]:text-white [&>button]:opacity-100 [&>button]:hover:bg-white/20 [&>button]:rounded-full [&>button]:p-1"
-      >
-        {/* Modal Header */}
-        <DialogHeader className="shrink-0 space-y-0 bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 rounded-t-xl text-left">
-          <DialogTitle className="text-white font-bold text-xl">Reimbursement Details</DialogTitle>
-          <DialogDescription className="sr-only">
-            Details, expense items and actions for the selected reimbursement request
-          </DialogDescription>
-        </DialogHeader>
-
-        {/* Modal Content */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Column */}
-            <div className="space-y-4">
-              {/* User Info */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <h3 className="text-sm font-semibold text-gray-500 mb-2">Submitted By</h3>
-                <p className="font-bold text-lg text-gray-800">{reimbursement.user?.name}</p>
-                <p className="text-sm text-gray-600">{reimbursement.user?.email}</p>
-                <p className="text-sm text-gray-600">{reimbursement.user?.mobileNumber}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="outline" className="capitalize bg-orange-100 text-orange-700 border-orange-200">
-                    {reimbursement.user?.role}
-                  </Badge>
-                  <span className="text-xs text-gray-500">
-                    {new Date(reimbursement.submittedAt).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Total Amount */}
-              <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
-                <p className="text-sm text-gray-600 mb-1">Total Amount</p>
-                <p className="text-4xl font-bold text-green-600">
-                  ₹{reimbursement.totalAmount.toFixed(2)}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">{reimbursement.items.length} item(s)</p>
-              </div>
-
-              {/* Note */}
-              {reimbursement.note && (
-                <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Additional Note</p>
-                  <p className="text-sm text-gray-600">{reimbursement.note}</p>
-                </div>
-              )}
-
-              {/* Status Info */}
-              {reimbursement.status !== "pending" && (
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Status Information</p>
-                  <div className="space-y-1 text-sm">
-                    <p className="text-gray-600">
-                      <span className="font-medium">Status:</span>{" "}
-                      <StatusBadge status={reimbursement.status} />
-                    </p>
-                    {reimbursement.approver && (
-                      <p className="text-gray-600">
-                        <span className="font-medium">Approved by:</span> {reimbursement.approver.name}
-                      </p>
-                    )}
-                    {reimbursement.approvedAt && (
-                      <p className="text-gray-600">
-                        <span className="font-medium">Date:</span>{" "}
-                        {new Date(reimbursement.approvedAt).toLocaleString()}
-                      </p>
-                    )}
-                    {reimbursement.rejectionReason && (
-                      <p className="text-red-600 mt-2">
-                        <span className="font-medium">Reason:</span> {reimbursement.rejectionReason}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right Column - Items */}
-            <div>
-              <h3 className="font-semibold text-gray-800 mb-3 text-lg">Expense Items</h3>
-              <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-                {reimbursement.items.map((item, index) => (
-                  <div key={index} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <span className="font-semibold text-lg text-gray-800">
-                          ₹{item.amount.toFixed(2)}
-                        </span>
-                        <Badge variant="outline" className="text-xs ml-2 capitalize bg-orange-100 text-orange-700 border-orange-200">
-                          {item.category}
-                        </Badge>
-                      </div>
-                      <span className="text-xs text-gray-500">
-                        {new Date(item.expenseDate).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">{item.description}</p>
-
-                    {/* Receipts */}
-                    {item.receipts && item.receipts.length > 0 && (
-                      <div>
-                        <p className="text-xs font-semibold text-gray-600 mb-2">Receipts:</p>
-                        <div className="grid grid-cols-3 gap-2">
-                          {item.receipts.map((receipt, idx) => (
-                            <a
-                              key={idx}
-                              href={`${axios.defaults.baseURL}${receipt}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="block"
-                            >
-                              <img loading="lazy" decoding="async"
-                                src={`${axios.defaults.baseURL}${receipt}`}
-                                alt={`Receipt ${idx + 1}`}
-                                className="w-full h-20 object-cover rounded-lg border border-gray-300 hover:border-orange-500 transition-all cursor-pointer"
-                              />
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            {reimbursement.status === "pending" && (
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => onApprove(reimbursement._id)}
-                  className="flex-1 py-3 h-auto rounded-xl bg-green-500 hover:bg-green-600 text-white font-semibold"
-                >
-                  <FaCheck size={16} />
-                  Approve
-                </Button>
-                <Button
-                  onClick={() => onReject(reimbursement._id)}
-                  className="flex-1 py-3 h-auto rounded-xl bg-red-500 hover:bg-red-600 text-white font-semibold"
-                >
-                  <FaTimes size={16} />
-                  Reject
-                </Button>
-              </div>
-            )}
-
-            {reimbursement.status === "approved" && (
-              <Button
-                onClick={() => onMarkPaid(reimbursement._id)}
-                className="w-full py-3 h-auto rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold flex items-center justify-center gap-2"
-              >
-                <FaMoneyBillWave size={16} />
-                Mark as Paid
-              </Button>
-            )}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 };
 

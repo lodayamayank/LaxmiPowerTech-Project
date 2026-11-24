@@ -34,9 +34,10 @@ export const FilterBar = ({ children, onClear, showClear = false, className, ...
  * Props: all FormField props, plus
  * - grow {number} default 1: flex-grow weight (basis auto), so fields share spare width in that ratio
  * - minWidth {number|string} default 140: smallest width before the bar wraps
+ * - maxWidth {number|string}: cap so a wrapped field never stretches across a whole row (e.g. 180 dates, 240 selects)
  */
-export const FilterField = ({ grow = 1, minWidth = 140, style, ...props }) => (
-  <FormField style={{ flex: `${grow} 1 auto`, minWidth, ...style }} {...props} />
+export const FilterField = ({ grow = 1, minWidth = 140, maxWidth, style, ...props }) => (
+  <FormField style={{ flex: `${grow} 1 auto`, minWidth, maxWidth, ...style }} {...props} />
 );
 
 export default FilterBar;

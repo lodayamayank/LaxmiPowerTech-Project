@@ -27,7 +27,7 @@ const TYPE_OPTIONS = [
 
 function FilterSelect({ id, label, value, onChange, allLabel, grow, children }) {
   return (
-    <FilterField label={label} htmlFor={id} grow={grow} minWidth={140}>
+    <FilterField label={label} htmlFor={id} grow={grow} minWidth={140} maxWidth={240}>
       <Select value={value || ALL} onValueChange={(v) => onChange(v === ALL ? "" : v)}>
         <SelectTrigger id={id} aria-label={`Filter by ${label.toLowerCase()}`}>
           <SelectValue placeholder={allLabel} />
@@ -69,10 +69,10 @@ function LeaveFilters({ filters, onFilter, branches, searchInput, onSearchInput,
             <SelectItem key={value} value={value}>{text}</SelectItem>
           ))}
         </FilterSelect>
-        <FilterField label="From" htmlFor="leave-from" grow={15} minWidth={150}>
+        <FilterField label="From" htmlFor="leave-from" grow={15} minWidth={150} maxWidth={180}>
           <Input id="leave-from" type="date" value={filters.from} onChange={(e) => onFilter({ from: e.target.value })} />
         </FilterField>
-        <FilterField label="To" htmlFor="leave-to" grow={15} minWidth={150}>
+        <FilterField label="To" htmlFor="leave-to" grow={15} minWidth={150} maxWidth={180}>
           <Input id="leave-to" type="date" value={filters.to} onChange={(e) => onFilter({ to: e.target.value })} />
         </FilterField>
       </FilterBar>

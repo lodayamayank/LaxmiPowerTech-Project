@@ -114,9 +114,10 @@ export default function AdminLeaves() {
             ? `There are no ${activeTab.label.toLowerCase()} leave requests.`
             : "There are no leave requests yet."
       }
+      // The FilterBar has its own Clear button when a filter is active; this one only covers a narrowed status tab.
       action={
-        hasActiveFilters ? (
-          <Button variant="outline" onClick={clearFilters}>
+        !hasActiveFilters && filters.status ? (
+          <Button variant="outline" onClick={() => updateFilter({ status: "" })}>
             <FilterX /> Clear filters
           </Button>
         ) : null
