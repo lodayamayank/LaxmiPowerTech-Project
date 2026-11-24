@@ -178,11 +178,28 @@ const TABLE_COLUMNS = [
       </div>
     ),
   },
-  { key: "project", header: "Project" },
-  { key: "status", header: "Status", cell: (r) => <StatusBadge status={r.status} /> },
+  // truncate + maxWidth: ellipsis with the full text in a title attribute
+  { key: "project", header: "Project", truncate: true, maxWidth: 110 },
+  // align: "center"
+  { key: "status", header: "Status", align: "center", cell: (r) => <StatusBadge status={r.status} /> },
   { key: "date", header: "Date", cell: (r) => formatDate(r.date) },
   { key: "amount", header: "Amount", align: "right", cell: (r) => <span className="tabular-nums">{formatCurrency(r.amount)}</span> },
+  // sticky: "right" pins the column while the table scrolls sideways
+  { key: "actions", header: "Actions", align: "right", sticky: "right", cell: () => <Button variant="outline" size="sm">View</Button> },
 ];
+
+// mobileCard: below md the table is replaced by stacked cards
+const sampleMobileCard = (r) => (
+  <>
+    <div className="flex items-center justify-between gap-3">
+      <span className="font-medium text-ink-1">{r.name}</span>
+      <StatusBadge status={r.status} />
+    </div>
+    <div className="text-small text-ink-3">
+      {r.project} · {formatDate(r.date)} · {formatCurrency(r.amount)}
+    </div>
+  </>
+);
 
 const Swatch = ({ name, cls }) => (
   <div className="flex items-center gap-2.5">
@@ -436,8 +453,8 @@ export default function Styleguide() {
         </SectionCard>
 
         <SectionCard title="DataTable and PaginationBar" flush>
-          <FilterBar>
-            <FilterField label="Search" htmlFor="sg-f1" flex="2 1 240px">
+          <FilterBar onClear={() => setSearch("")} showClear={Boolean(search)}>
+            <FilterField label="Search" htmlFor="sg-f1" grow={2} minWidth={220}>
               <SearchInput id="sg-f1" value={search} onChange={(e) => setSearch(e.target.value)} onClear={() => setSearch("")} />
             </FilterField>
             <FilterField label="Status" htmlFor="sg-f2">
@@ -453,6 +470,7 @@ export default function Styleguide() {
           <DataTable
             columns={TABLE_COLUMNS}
             rows={pageRows}
+            mobileCard={sampleMobileCard}
             onRowClick={() => {}}
             footer={
               <PaginationBar

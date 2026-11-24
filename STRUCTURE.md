@@ -47,9 +47,11 @@ reimbursements, reports, supervisor, team.
 - See `/styleguide` (dev only) for every component and token.
 
 ## Page recipe (migrating a page to the design system)
-1. Skeleton: `<DashboardLayout>` (no `title`) > `<PageHeader eyebrow="Section / Page" title description actions />` > one or more `<SectionCard flush>`
-   holding optional `Tabs`/`SegmentedControl`, a `<FilterBar>` (`FilterField` + `SearchInput`/`Select`), a `<DataTable>` (or cards) and a
-   `<PaginationBar>` footer. Summary tiles use `<StatCard>`.
+1. Skeleton: `<DashboardLayout>` (no `title`; content is full width, no max-width) > `<PageHeader eyebrow="Section / Page" title description actions />` >
+   one or more `<SectionCard flush>` holding optional `Tabs`/`SegmentedControl`, a `<FilterBar onClear showClear>` (`FilterField grow={n} minWidth` +
+   `SearchInput`/`Select`; `showClear` = any filter applied, a status tab is not a filter), a `<DataTable>` and a `<PaginationBar>` footer.
+   DataTable column props: `align` ("center"/"right"), `sticky: "right"` (Actions), `nowrap`, `truncate` + `maxWidth` (full text in title),
+   and `mobileCard={(row)=>node}` for the stacked cards shown below md. Summary tiles use `<StatCard>`.
 2. Replace: local formatDate/formatCurrency -> `lib/format`; local status badge or color map -> `<StatusBadge status/>` (add missing statuses to
    `STATUS_TONES` in `lib/status.js`); initials circle -> `<UserAvatar/>`; `window.confirm`/ConfirmModal -> `<ConfirmDialog/>`; hand-rolled pagination
    -> `<PaginationBar/>` (1-based); "No ... found" -> `<EmptyState/>`; raw button/input/select/textarea/table -> `components/ui`; Label+Input+error ->

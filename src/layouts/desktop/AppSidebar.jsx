@@ -21,11 +21,13 @@ import {
 } from '@/components/ui/sidebar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { NAV_GROUPS, filterNavByRole } from './navConfig';
 import { isRouteActive } from './useSidebarMenus';
 
-const ROW = 'h-auto min-h-[38px] gap-2.5 rounded-control px-2.5 text-body font-medium';
+// Collapsed: every row is a centered 40px tile (same rhythm for links and accordion parents).
+const ROW = 'h-auto min-h-[38px] gap-2.5 rounded-control px-2.5 text-body font-medium group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:min-h-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0';
 // Links also set their color explicitly (the global `a` rule would otherwise tint them).
 const ROW_IDLE = 'text-sidebar-foreground hover:bg-surface-muted hover:text-ink-1';
 const ROW_ACTIVE = 'bg-sidebar-accent font-semibold text-sidebar-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground';
@@ -41,7 +43,7 @@ function Badge({ count }) {
 }
 
 function AppSidebar({ role, pendingLeaveCount = 0, pendingReimbursementCount = 0, openMenus, onToggleMenu }) {
-  const { isMobile, setOpenMobile, state, setOpen } = useSidebar();
+  const { isMobile, setOpenMobile, state } = useSidebar();
   const { pathname } = useLocation();
   const groups = useMemo(() => filterNavByRole(NAV_GROUPS, role), [role]);
   const counts = { leaves: pendingLeaveCount, reimbursements: pendingReimbursementCount };
@@ -68,20 +70,38 @@ function AppSidebar({ role, pendingLeaveCount = 0, pendingReimbursementCount = 0
     const isOpen = !!openMenus[item.label];
     const containsActive = item.children.some((c) => isRouteActive(c.to, pathname));
     const Icon = item.icon;
+    if (isCollapsed) {
+      // Collapsed rail: the icon opens a small flyout of sub-pages (links) on the right.
+      return (
+        <SidebarMenuItem key={item.label}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton aria-label={item.label} className={cn(ROW, containsActive ? 'bg-sidebar-accent font-semibold text-sidebar-accent-foreground' : ROW_IDLE)}>
+                <Icon size={18} strokeWidth={1.8} className="shrink-0" />
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="right" align="start" sideOffset={12} className="min-w-[200px]">
+              <DropdownMenuLabel className="px-2 py-1.5 text-caption font-semibold uppercase tracking-[0.06em] text-ink-4">{item.label}</DropdownMenuLabel>
+              {item.children.map((child) => {
+                const active = isRouteActive(child.to, pathname);
+                return (
+                  <DropdownMenuItem key={child.to} asChild className={cn('cursor-pointer text-small', active && 'bg-sidebar-accent font-semibold text-sidebar-accent-foreground')}>
+                    <NavLink to={child.to} className="text-ink-1">{child.label}</NavLink>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenuItem>
+      );
+    }
     return (
       <SidebarMenuItem key={item.label}>
         <Accordion
           type="single"
           collapsible
           value={isOpen ? item.label : ''}
-          onValueChange={() => {
-            if (isCollapsed) {
-              setOpen(true);
-              if (!isOpen) onToggleMenu(item.label);
-              return;
-            }
-            onToggleMenu(item.label);
-          }}
+          onValueChange={() => onToggleMenu(item.label)}
         >
           <AccordionItem value={item.label} className="border-0">
             <AccordionTrigger
@@ -137,9 +157,10 @@ function AppSidebar({ role, pendingLeaveCount = 0, pendingReimbursementCount = 0
       </SidebarHeader>
 
       <SidebarContent className="px-3 pb-[18px] group-data-[collapsible=icon]:px-2">
-        {groups.map((group) => (
+        {groups.map((group, index) => (
           <SidebarGroup key={group.header} className="p-0">
-            <SidebarGroupLabel className="h-auto px-2.5 pb-1.5 pt-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-4">
+            {index > 0 && <div className="mx-auto my-2 hidden h-px w-8 bg-line group-data-[collapsible=icon]:block" aria-hidden="true" />}
+            <SidebarGroupLabel className={cn('h-auto px-2.5 pb-1.5 pt-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-4', COLLAPSED_HIDE)}>
               {group.header}
             </SidebarGroupLabel>
             <SidebarMenu className="gap-0.5">

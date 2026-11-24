@@ -13,13 +13,13 @@ import { cn } from "@/lib/utils";
  * - ...props spread onto the root element
  */
 export const PageHeader = ({ eyebrow, title, description, actions, className, ...props }) => (
-  <div className={cn("flex flex-wrap items-end justify-between gap-4", className)} {...props}>
-    <div className="min-w-0">
-      {eyebrow ? <div className="mb-1.5 text-small text-ink-3">{eyebrow}</div> : null}
-      {title ? <h1 className="text-page-title text-primary">{title}</h1> : null}
-      {description ? <p className="mt-1 text-body text-ink-3">{description}</p> : null}
+  <div className={cn("flex flex-wrap items-end justify-between gap-x-4 gap-y-3", className)} {...props}>
+    <div className="min-w-0 flex-1 basis-64">
+      {eyebrow ? <div className="mb-1 text-small text-ink-3">{eyebrow}</div> : null}
+      {title ? <h1 className="text-page-title leading-tight text-primary">{title}</h1> : null}
+      {description ? <p className="mt-0.5 text-body text-ink-3">{description}</p> : null}
     </div>
-    {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+    {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
   </div>
 );
 

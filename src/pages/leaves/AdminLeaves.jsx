@@ -17,7 +17,7 @@ import { DataTable } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { PaginationBar } from "@/components/common/PaginationBar";
 import LeaveFilters from "./components/LeaveFilters";
-import { getLeaveColumns } from "./components/leaveColumns";
+import { getLeaveColumns, getLeaveMobileCard } from "./components/leaveColumns";
 
 const INITIAL_FILTERS = { role: "", branchId: "", status: "", type: "", from: "", to: "", search: "" };
 
@@ -91,6 +91,7 @@ export default function AdminLeaves() {
   }, []);
 
   const columns = useMemo(() => getLeaveColumns(handleAction), [handleAction]);
+  const mobileCard = useMemo(() => getLeaveMobileCard(handleAction), [handleAction]);
 
   // Filters other than the status tab (the tab has its own control).
   const hasActiveFilters = Boolean(
@@ -160,6 +161,8 @@ export default function AdminLeaves() {
           searchInput={searchInput}
           onSearchInput={setSearchInput}
           onSubmit={onSearch}
+          onClear={clearFilters}
+          showClear={hasActiveFilters}
         />
 
         <DataTable
@@ -167,6 +170,7 @@ export default function AdminLeaves() {
           rows={rows}
           loading={loading}
           emptyState={emptyState}
+          mobileCard={mobileCard}
           footer={
             <PaginationBar
               currentPage={page}

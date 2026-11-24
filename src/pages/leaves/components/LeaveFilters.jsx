@@ -25,9 +25,9 @@ const TYPE_OPTIONS = [
   ["casual", "Casual"],
 ];
 
-function FilterSelect({ id, label, value, onChange, allLabel, children }) {
+function FilterSelect({ id, label, value, onChange, allLabel, grow, children }) {
   return (
-    <FilterField label={label} htmlFor={id}>
+    <FilterField label={label} htmlFor={id} grow={grow} minWidth={140}>
       <Select value={value || ALL} onValueChange={(v) => onChange(v === ALL ? "" : v)}>
         <SelectTrigger id={id} aria-label={`Filter by ${label.toLowerCase()}`}>
           <SelectValue placeholder={allLabel} />
@@ -41,11 +41,11 @@ function FilterSelect({ id, label, value, onChange, allLabel, children }) {
   );
 }
 
-function LeaveFilters({ filters, onFilter, branches, searchInput, onSearchInput, onSubmit }) {
+function LeaveFilters({ filters, onFilter, branches, searchInput, onSearchInput, onSubmit, onClear, showClear }) {
   return (
     <form onSubmit={onSubmit}>
-      <FilterBar>
-        <FilterField label="Search" htmlFor="leave-search" flex="2 1 220px">
+      <FilterBar onClear={onClear} showClear={showClear}>
+        <FilterField label="Search" htmlFor="leave-search" grow={22} minWidth={220}>
           <SearchInput
             id="leave-search"
             value={searchInput}
@@ -54,25 +54,25 @@ function LeaveFilters({ filters, onFilter, branches, searchInput, onSearchInput,
             placeholder="Search reason/username"
           />
         </FilterField>
-        <FilterSelect id="leave-role" label="Role" value={filters.role} onChange={(v) => onFilter({ role: v })} allLabel="All Roles">
+        <FilterSelect id="leave-role" label="Role" grow={14} value={filters.role} onChange={(v) => onFilter({ role: v })} allLabel="All Roles">
           {ROLE_OPTIONS.map(([value, text]) => (
             <SelectItem key={value} value={value}>{text}</SelectItem>
           ))}
         </FilterSelect>
-        <FilterSelect id="leave-branch" label="Branch" value={filters.branchId} onChange={(v) => onFilter({ branchId: v })} allLabel="All Branches">
+        <FilterSelect id="leave-branch" label="Branch" grow={16} value={filters.branchId} onChange={(v) => onFilter({ branchId: v })} allLabel="All Branches">
           {branches.map((b) => (
             <SelectItem key={b._id} value={String(b._id)}>{b.name}</SelectItem>
           ))}
         </FilterSelect>
-        <FilterSelect id="leave-type" label="Leave type" value={filters.type} onChange={(v) => onFilter({ type: v })} allLabel="All Types">
+        <FilterSelect id="leave-type" label="Leave type" grow={16} value={filters.type} onChange={(v) => onFilter({ type: v })} allLabel="All Types">
           {TYPE_OPTIONS.map(([value, text]) => (
             <SelectItem key={value} value={value}>{text}</SelectItem>
           ))}
         </FilterSelect>
-        <FilterField label="From" htmlFor="leave-from" flex="0 1 150px">
+        <FilterField label="From" htmlFor="leave-from" grow={15} minWidth={150}>
           <Input id="leave-from" type="date" value={filters.from} onChange={(e) => onFilter({ from: e.target.value })} />
         </FilterField>
-        <FilterField label="To" htmlFor="leave-to" flex="0 1 150px">
+        <FilterField label="To" htmlFor="leave-to" grow={15} minWidth={150}>
           <Input id="leave-to" type="date" value={filters.to} onChange={(e) => onFilter({ to: e.target.value })} />
         </FilterField>
       </FilterBar>
