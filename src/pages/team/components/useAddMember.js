@@ -17,7 +17,10 @@ export const roleLabel = (r) => {
 const EMPTY_FORM = {
   name: "",
   username: "",
-  password: "default123",
+  password: "",
+  employeeId: "",
+  salaryType: "monthly",
+  ctcAmount: "",
   mobileNumber: "",
   role: "labour",
   assignedBranches: [],
@@ -121,6 +124,7 @@ export default function useAddMember({ open, onOpenChange, onCreated }) {
     if (formData.mobileNumber && !/^\d{10}$/.test(formData.mobileNumber))
       e.mobileNumber = "Enter a 10-digit number";
     if (!formData.role) e.role = "Pick a role";
+    if (String(formData.ctcAmount).trim() !== "" && Number.isNaN(Number(formData.ctcAmount))) e.ctcAmount = "Enter a number";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -131,6 +135,14 @@ export default function useAddMember({ open, onOpenChange, onCreated }) {
       ...formData,
       password: formData.password?.trim() || "default123",
     };
+    // Optional fields from the design: only sent when filled in, so an untouched form posts exactly what it did before.
+    if (payload.employeeId?.trim()) payload.employeeId = payload.employeeId.trim();
+    else delete payload.employeeId;
+    if (String(payload.ctcAmount).trim() !== "") payload.ctcAmount = Number(payload.ctcAmount);
+    else {
+      delete payload.ctcAmount;
+      delete payload.salaryType;
+    }
     try {
       setSubmitting(true);
       await axios.post("/users/register", payload, {

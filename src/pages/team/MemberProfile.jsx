@@ -2,7 +2,7 @@
 // One member, laid out like the Member profile design: header card, section tabs, work / personal / pay details,
 // this month's attendance calendar and profile completeness.
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, CalendarDays, ChartColumn, ChevronLeft, ChevronRight, Clock, FolderKanban, KeyRound, Mail, MoreHorizontal, Pencil, Phone, TriangleAlert } from "lucide-react";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import AttendanceGraphModal from "@/pages/attendance/components/AttendanceGraphModal";
@@ -20,7 +20,6 @@ import { ROUTES } from "@/lib/routes";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { getRoleTone } from "@/lib/status";
 import { cn } from "@/lib/utils";
-import EditUserModal from "./components/EditUserModal";
 import useMemberProfile from "./components/useMemberProfile";
 
 const WEEK = ["S", "M", "T", "W", "T", "F", "S"];
@@ -56,10 +55,10 @@ const dayTone = (status = "") => {
 
 const MemberProfile = () => {
   const { userId } = useParams();
+  const navigate = useNavigate();
   const p = useMemberProfile(userId);
-  const { user, loading, error, reload, branches, projects, days, monthDate, shiftMonth, overtimeHours, resetPassword, projectName, branchNames } = p;
+  const { user, loading, error, days, monthDate, shiftMonth, overtimeHours, resetPassword, projectName, branchNames } = p;
   const [tab, setTab] = useState("overview");
-  const [editing, setEditing] = useState(false);
   const [graphOpen, setGraphOpen] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
 
@@ -84,7 +83,7 @@ const MemberProfile = () => {
     );
   }
 
-  const open = () => setEditing(true);
+  const open = () => navigate(`${ROUTES.myTeam}/${user._id}/edit`);
   const active = !user.dateOfLeaving || new Date(user.dateOfLeaving) > new Date();
   const hasMoney = (v) => v !== undefined && v !== null && v !== "";
   const money = (v, suffix = "") => (hasMoney(v) ? `${formatCurrency(Number(v))}${suffix}` : "");
@@ -314,7 +313,6 @@ const MemberProfile = () => {
         </SectionCard>
       )}
 
-      {editing && <EditUserModal user={user} branches={branches} projects={projects} onClose={() => setEditing(false)} onSave={() => { reload(); setEditing(false); }} />}
       {graphOpen && <AttendanceGraphModal user={user} onClose={() => setGraphOpen(false)} />}
 
       <ConfirmDialog

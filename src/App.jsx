@@ -47,7 +47,8 @@ const TaskSubmission = lazy(() => import('@/pages/projects/TaskSubmission'));
 const TeamAttendance = lazy(() => import('@/pages/attendance/TeamAttendance'));
 const AdminDeleteAttendance = lazy(() => import('@/pages/attendance/AdminDeleteAttendance'));
 const AddEmployee = lazy(() => import('@/pages/team/AddEmployee'));
-const MemberProfile = lazy(() => import('@/pages/team/MemberProfile'));   
+const MemberProfile = lazy(() => import('@/pages/team/MemberProfile'));
+const MemberEdit = lazy(() => import('@/pages/team/MemberEdit'));   
 
 // Material Management Pages - Lazy loaded  
 const Material = lazy(() => import('@/pages/material/Material'));
@@ -141,6 +142,7 @@ function App() {
           <Route path="/my-attendance" element={<MyAttendance />} />
           <Route path="/admin/my-team" element={<AdminMyTeam />} />
           <Route path="/admin/my-team/:userId" element={<MemberProfile />} />
+          <Route path="/admin/my-team/:userId/edit" element={<MemberEdit />} />
           <Route path="/admin/my-team/new" element={<AddEmployee />} />
           <Route path="/admin/projects" element={<CreateProject />} />
           <Route

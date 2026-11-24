@@ -1,26 +1,35 @@
 // src/pages/team/components/AddEmployeeModal.jsx
-// "Add team member" side panel (same props as before: open, onOpenChange, onCreated). Form logic lives in useAddMember.js.
-import { Check, Eye, EyeOff, Search, X } from "lucide-react";
+// "Add team member" side panel, laid out like the Add member design (same props as before: open, onOpenChange, onCreated).
+// Form logic lives in useAddMember.js.
+import { Camera, Eye, EyeOff, UserPlus } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetPanel, SheetPanelBody, SheetPanelFooter, SheetPanelHeader } from "@/components/ui/sheet";
 import { FormField } from "@/components/common/FormField";
-import { SegmentedControl } from "@/components/common/SegmentedControl";
+import { RadioCards } from "@/components/common/RadioCards";
 import { ROLES } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { useBranches } from "@/hooks/useBranches";
+import BranchPicker from "./BranchPicker";
 import useAddMember, { roleLabel, roleValue } from "./useAddMember";
+
+const SALARY_TYPES = [
+  { value: "monthly", label: "Monthly" },
+  { value: "weekly", label: "Weekly" },
+  { value: "daily", label: "Daily" },
+];
 
 const AddEmployeeModal = ({ open, onOpenChange, onCreated }) => {
   const m = useAddMember({ open, onOpenChange, onCreated });
-  const {
-    formData, roleOptions, showPassword, setShowPassword, submitting, setUsernameTouched, branchQuery, setBranchQuery, errors,
-    filteredBranches, handleOpenChange, set, setName, toggleBranch, allSelected, toggleAll, submit,
-  } = m;
+  const { data: branchesRaw } = useBranches();
+  const branches = branchesRaw.slice().sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+  const { formData, roleOptions, showPassword, setShowPassword, submitting, setUsernameTouched, errors, handleOpenChange, set, setName, toggleBranch, submit } = m;
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetPanel>
-        <SheetPanelHeader title="Add team member" description="They can sign in to the mobile app once created." />
+      <SheetPanel className="sm:max-w-[520px]">
+        <SheetPanelHeader className="px-6 py-5" title="Add team member" description="They can sign in to the mobile app once created." />
         <form
           className="flex min-h-0 flex-1 flex-col"
           onSubmit={(e) => {
@@ -28,21 +37,23 @@ const AddEmployeeModal = ({ open, onOpenChange, onCreated }) => {
             submit(false);
           }}
         >
-          <SheetPanelBody className="space-y-5">
-            <FormField label="Full name" htmlFor="add-member-name" required error={errors.name}>
-              <Input id="add-member-name" autoFocus placeholder="e.g. Ravi Kumar" value={formData.name} onChange={(e) => setName(e.target.value)} />
-            </FormField>
+          <SheetPanelBody className="space-y-[18px] p-6">
+            <div className="flex items-center gap-4">
+              <Button type="button" variant="ghost" aria-label="Upload profile photo" onClick={() => toast.info("Profile photo upload is not available yet")} className="!size-16 shrink-0 rounded-full bg-surface-muted text-ink-3 hover:bg-surface-muted">
+                <Camera className="!size-6" />
+              </Button>
+              <div>
+                <div className="text-body font-semibold text-ink-1">Profile photo</div>
+                <div className="text-caption-lg text-ink-3">Used to match attendance selfies. Optional.</div>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField label="Full name" htmlFor="add-member-name" required error={errors.name}>
+                <Input id="add-member-name" autoFocus placeholder="e.g. Rahul Kannaujiya" value={formData.name} onChange={(e) => setName(e.target.value)} />
+              </FormField>
               <FormField label="Mobile" htmlFor="add-member-mobile" error={errors.mobileNumber}>
-                <Input
-                  id="add-member-mobile"
-                  inputMode="numeric"
-                  maxLength={10}
-                  placeholder="10-digit number"
-                  value={formData.mobileNumber}
-                  onChange={(e) => set("mobileNumber", e.target.value.replace(/\D/g, ""))}
-                />
+                <Input id="add-member-mobile" inputMode="numeric" maxLength={10} placeholder="10-digit number" value={formData.mobileNumber} onChange={(e) => set("mobileNumber", e.target.value.replace(/\D/g, ""))} />
               </FormField>
               <FormField label="Username" htmlFor="add-member-username" required error={errors.username}>
                 <Input
@@ -55,100 +66,57 @@ const AddEmployeeModal = ({ open, onOpenChange, onCreated }) => {
                   }}
                 />
               </FormField>
+              <FormField label="Employee ID" htmlFor="add-member-empid">
+                <Input id="add-member-empid" placeholder="Optional, e.g. EMP-014" value={formData.employeeId} onChange={(e) => set("employeeId", e.target.value)} />
+              </FormField>
             </div>
 
             <FormField label="Role" error={errors.role}>
-              <SegmentedControl
-                aria-label="Role"
-                className="max-w-full overflow-x-auto"
-                value={formData.role}
-                onChange={(v) => set("role", v)}
-                options={(Array.isArray(roleOptions) ? roleOptions : []).map((r) => ({ value: roleValue(r), label: roleLabel(r) }))}
-              />
+              <RadioCards aria-label="Role" value={formData.role} onChange={(v) => set("role", v)} options={(Array.isArray(roleOptions) ? roleOptions : []).map((r) => ({ value: roleValue(r), label: roleLabel(r) }))} />
             </FormField>
 
             {formData.role !== ROLES.admin && (
-              <FormField label="Branches" hint="Geofence check uses these branches at punch-in.">
-                <div className="space-y-2 rounded-card border border-line-card p-3">
-                  <div className="flex flex-wrap gap-1.5">
-                    {formData.assignedBranches.length === 0 ? <span className="text-small text-ink-3">No branches selected</span> : null}
-                    {filteredBranches
-                      .filter((b) => formData.assignedBranches.includes(b._id))
-                      .map((b) => (
-                        <Button key={b._id} type="button" size="sm" variant="secondary" className="h-control-sm rounded-full px-3" onClick={() => toggleBranch(b._id)} aria-label={`Remove ${b.name}`}>
-                          {b.name} <X />
-                        </Button>
-                      ))}
-                  </div>
-                  <div className="flex items-center gap-2 border-t border-line pt-2">
-                    <div className="relative flex-1">
-                      <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-ink-4" aria-hidden="true" />
-                      <Input className="h-control-sm pl-8" placeholder="Search branches" aria-label="Search branches" value={branchQuery} onChange={(e) => setBranchQuery(e.target.value)} />
-                    </div>
-                    <span className="text-caption-lg text-ink-3">{formData.assignedBranches.length} selected</span>
-                    <Button type="button" variant="ghost" size="sm" onClick={toggleAll}>
-                      {allSelected ? "Clear" : "Select all"}
-                    </Button>
-                  </div>
-                  <div className="flex max-h-40 flex-wrap gap-2 overflow-y-auto">
-                    {filteredBranches.length === 0 && <p className="text-small text-ink-3">No branches found</p>}
-                    {filteredBranches.map((branch) => {
-                      const on = formData.assignedBranches.includes(branch._id);
-                      return (
-                        <Button
-                          key={branch._id}
-                          type="button"
-                          size="sm"
-                          variant={on ? "default" : "outline"}
-                          aria-pressed={on}
-                          className={cn("h-control-sm rounded-full px-3 font-normal", !on && "text-ink-2")}
-                          onClick={() => toggleBranch(branch._id)}
-                        >
-                          {on ? <Check /> : null}
-                          {branch.name}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </div>
+              <FormField label="Branches" htmlFor="add-member-branches" hint="Geofence check uses these branches at punch-in.">
+                <BranchPicker id="add-member-branches" branches={branches} selectedIds={formData.assignedBranches} onToggle={toggleBranch} tone="highlight" />
               </FormField>
             )}
 
-            <FormField label="Temporary password" htmlFor="add-member-password" hint="Leave as default123 or set one. Share it with the user after saving.">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField label="Salary type" htmlFor="add-member-salary-type">
+                <Select value={formData.salaryType} onValueChange={(v) => set("salaryType", v)}>
+                  <SelectTrigger id="add-member-salary-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SALARY_TYPES.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+              <FormField label="Monthly CTC (₹)" htmlFor="add-member-ctc" error={errors.ctcAmount}>
+                <Input id="add-member-ctc" inputMode="decimal" placeholder="0" value={formData.ctcAmount} onChange={(e) => set("ctcAmount", e.target.value.replace(/[^\d.]/g, ""))} />
+              </FormField>
+            </div>
+
+            <FormField label="Temporary password" htmlFor="add-member-password">
               <div className="relative">
-                <Input
-                  id="add-member-password"
-                  type={showPassword ? "text" : "password"}
-                  className="pr-11"
-                  value={formData.password}
-                  onChange={(e) => set("password", e.target.value)}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1/2 h-control-sm w-control-sm -translate-y-1/2 text-ink-3"
-                  title={showPassword ? "Hide" : "Show"}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  onClick={() => setShowPassword((p) => !p)}
-                >
+                <Input id="add-member-password" type={showPassword ? "text" : "password"} className="pr-11" placeholder="They’ll be asked to change it" value={formData.password} onChange={(e) => set("password", e.target.value)} />
+                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 h-control-sm w-control-sm -translate-y-1/2 text-ink-3" title={showPassword ? "Hide" : "Show"} aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword((p) => !p)}>
                   {showPassword ? <EyeOff /> : <Eye />}
                 </Button>
               </div>
             </FormField>
           </SheetPanelBody>
-          <SheetPanelFooter className="flex-wrap">
+          <SheetPanelFooter className="justify-end px-6 py-4">
             <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>
               Cancel
             </Button>
-            <div className="flex flex-wrap justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => submit(true)} disabled={submitting}>
-                Save &amp; add another
-              </Button>
-              <Button type="submit" disabled={submitting}>
-                {submitting ? "Saving…" : "Create member"}
-              </Button>
-            </div>
+            <Button type="submit" disabled={submitting}>
+              <UserPlus /> {submitting ? "Saving…" : "Create member"}
+            </Button>
           </SheetPanelFooter>
         </form>
       </SheetPanel>

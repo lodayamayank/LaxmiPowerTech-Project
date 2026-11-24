@@ -2,7 +2,8 @@
 // Data, role loading, confirmations and the edit-save cache update live in components/useMyTeam.js (moved unchanged);
 // this file lays out the page. Adding a member opens a side panel (also reached from /admin/my-team/new).
 import { useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ROUTES } from "@/lib/routes";
 import { SlidersHorizontal, Upload, Plus, Users } from "lucide-react";
 import { toast } from "sonner";
 import useDebounce from "@/hooks/useDebounce";
@@ -20,7 +21,6 @@ import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
 import { UnderlineTabs } from "@/components/common/UnderlineTabs";
 import AddEmployeeModal from "./components/AddEmployeeModal";
-import EditUserModal from "./components/EditUserModal";
 import useMyTeam, { roleLabel, roleValue } from "./components/useMyTeam";
 import { getMemberColumns, getMemberMobileCard } from "./components/memberColumns";
 
@@ -31,11 +31,12 @@ const idOf = (b) => (b?._id || b)?.toString?.() || "";
 const AdminMyTeam = () => {
   const t = useMyTeam();
   const {
-    users, loading, branches, projects, roleOptions, filterRole, setFilterRole, searchTerm, setSearchTerm, editingUser, setEditingUser,
-    attendanceUser, setAttendanceUser, confirmDialog, setConfirmDialog, confirming, requestDelete, requestResetPassword, handleConfirm, handleUserUpdated,
+    users, loading, branches, roleOptions, filterRole, setFilterRole, searchTerm, setSearchTerm,
+    attendanceUser, setAttendanceUser, confirmDialog, setConfirmDialog, confirming, requestDelete, requestResetPassword, handleConfirm,
   } = t;
 
   const location = useLocation();
+  const navigate = useNavigate();
   const [addOpen, setAddOpen] = useState(Boolean(location.state?.addMember));
   const [branchFilter, setBranchFilter] = useState(ALL);
   const [selected, setSelected] = useState([]); // row selection (select-all checkbox in the design; no bulk action yet)
@@ -65,7 +66,7 @@ const AdminMyTeam = () => {
   const pageRows = useMemo(() => filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize), [filtered, currentPage, pageSize]);
 
   const handlers = useMemo(
-    () => ({ onAttendance: setAttendanceUser, onEdit: setEditingUser, onReset: requestResetPassword, onDelete: requestDelete }),
+    () => ({ onAttendance: setAttendanceUser, onEdit: (u) => navigate(`${ROUTES.myTeam}/${u._id}/edit`), onReset: requestResetPassword, onDelete: requestDelete }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -158,7 +159,6 @@ const AdminMyTeam = () => {
 
       <AddEmployeeModal open={addOpen} onOpenChange={setAddOpen} />
 
-      {editingUser && <EditUserModal user={editingUser} branches={branches} projects={projects} onClose={() => setEditingUser(null)} onSave={handleUserUpdated} />}
 
       {attendanceUser && <AttendanceGraphModal user={attendanceUser} onClose={() => setAttendanceUser(null)} />}
 
