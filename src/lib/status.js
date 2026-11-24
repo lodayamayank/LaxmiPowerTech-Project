@@ -12,6 +12,7 @@ export const STATUS_TONES = {
   complete: "ok",
   received: "ok",
   transferred: "ok",
+  paid: "ok",
   delivered: "ok",
   active: "ok",
   present: "ok",
@@ -36,7 +37,7 @@ export const STATUS_TONES = {
   ordered: "info",
   "in transit": "info",
   "in progress": "info",
-  paid: "info",
+  processing: "info",
   "paid leave": "info",
   // highlight
   partial: "highlight",

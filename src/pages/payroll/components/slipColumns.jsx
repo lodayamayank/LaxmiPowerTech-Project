@@ -8,10 +8,6 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import { formatRupees, SHORT_MONTH_NAMES } from "../payrollFormat";
 
-// Payment status -> badge tone (pending falls back as before).
-const PAYMENT_TONES = { pending: "warn", processing: "info", paid: "ok", failed: "bad" };
-const paymentTone = (status) => PAYMENT_TONES[status] || PAYMENT_TONES.pending;
-
 const periodText = (slip) => `${SHORT_MONTH_NAMES[slip.month - 1]} ${slip.year}`;
 const canAct = (slip) => slip.paymentStatus === "pending" && !slip.locked;
 
@@ -92,7 +88,7 @@ export function getSlipColumns(handlers) {
     {
       key: "status",
       header: "Status",
-      cell: (slip) => <StatusBadge status={slip.paymentStatus} tone={paymentTone(slip.paymentStatus)} />,
+      cell: (slip) => <StatusBadge status={slip.paymentStatus} />,
     },
     {
       key: "actions",
@@ -111,7 +107,7 @@ export function getSlipMobileCard(handlers) {
       <>
         <div className="flex items-start justify-between gap-3">
           <EmployeeCell slip={slip} />
-          <StatusBadge status={slip.paymentStatus} tone={paymentTone(slip.paymentStatus)} />
+          <StatusBadge status={slip.paymentStatus} />
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-small text-ink-3">
           <PeriodCell slip={slip} />
