@@ -45,3 +45,23 @@ reimbursements, reports, supervisor, team.
 - Format dates, money and numbers with `lib/format.js`; map statuses to tones with `lib/status.js`.
 - Paginate with `PaginationBar`; `currentPage` is 1-based.
 - See `/styleguide` (dev only) for every component and token.
+
+## Page recipe (migrating a page to the design system)
+1. Skeleton: `<DashboardLayout>` (no `title`) > `<PageHeader eyebrow="Section / Page" title description actions />` > one or more `<SectionCard flush>`
+   holding optional `Tabs`/`SegmentedControl`, a `<FilterBar>` (`FilterField` + `SearchInput`/`Select`), a `<DataTable>` (or cards) and a
+   `<PaginationBar>` footer. Summary tiles use `<StatCard>`.
+2. Replace: local formatDate/formatCurrency -> `lib/format`; local status badge or color map -> `<StatusBadge status/>` (add missing statuses to
+   `STATUS_TONES` in `lib/status.js`); initials circle -> `<UserAvatar/>`; `window.confirm`/ConfirmModal -> `<ConfirmDialog/>`; hand-rolled pagination
+   -> `<PaginationBar/>` (1-based); "No ... found" -> `<EmptyState/>`; raw button/input/select/textarea/table -> `components/ui`; Label+Input+error ->
+   `<FormField/>`; react-icons -> lucide-react; role checks -> `lib/roles`; storage reads -> `lib/session`.
+3. Colors: bg-white -> bg-surface; bg-gray-50 -> bg-surface-subtle (page background -> bg-page); bg-gray-100 -> bg-surface-muted; border-gray-100/200 ->
+   border-line / border-line-card; border-gray-300 -> border-line-input; text-gray-900/800 -> text-ink-1; text-gray-700 -> text-ink-2; text-gray-600/500 ->
+   text-ink-3; text-gray-400 -> text-ink-4; brand orange (buttons, links, active, focus) -> primary / primary-soft / ring via Button/Tabs, or text-primary;
+   orange as accent (progress, dots) -> highlight / tone-highlight; green -> tone-ok; red -> tone-bad; yellow/amber -> tone-warn; blue -> tone-info;
+   purple -> tone-purple; pink -> tone-pink. Delete every `dark:` color variant (tokens handle dark mode).
+4. Performance: debounce text search with `hooks/useDebounce`; derive filtered/sorted lists with `useMemo`; extract table rows/cells into memoized components
+   when a list can exceed ~50 rows; no `transition-all`, hover scale or heavy shadows on rows; `loading="lazy" decoding="async"` on row images; use the shared
+   reference hooks (`useBranches`, `useProjects`, `useUsers`, `useVendors`, `useMaterialCatalog`), never raw axios for those lists; split a page file over
+   ~600 lines into `pages/<domain>/components/`.
+5. Never change behavior: same requests and params, same state names where possible, same handlers. Report any visible difference.
+6. Check per page: grep its files for raw palette classes, `dark:` colors, react-icons, raw form elements and `window.confirm` (expect 0); build; lint (no new errors).

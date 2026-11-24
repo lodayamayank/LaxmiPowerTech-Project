@@ -10,7 +10,7 @@ import {
   completeTransfer,
 } from "@/api/materialTransfers";
 import StatusBadge, { TRANSFER_STATUS_COLORS } from "@/components/common/StatusBadge";
-import useDebounce from "./useDebounce";
+import useDebounce from "@/hooks/useDebounce";
 import { useBranches } from "@/hooks/useBranches";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import { Button } from '@/components/ui/button';

@@ -41,6 +41,10 @@ export const STATUS_TONES = {
   // highlight
   partial: "highlight",
   "sick leave": "highlight",
+  // leave types (AdminLeaves)
+  sick: "highlight",
+  unpaid: "purple",
+  casual: "pink",
   // purple / pink
   triggered: "purple",
   "unpaid leave": "purple",
