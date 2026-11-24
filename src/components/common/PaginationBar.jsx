@@ -1,16 +1,18 @@
 import React, { useMemo } from "react";
-import {
-  FaChevronLeft,
-  FaChevronRight,
-  FaAngleDoubleLeft,
-  FaAngleDoubleRight,
-} from "react-icons/fa";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 /**
  * Generates an array of page numbers with ellipsis placeholders.
- * Matches the existing getPageNumbers() logic used across admin pages.
  *
  * @param {number} currentPage
  * @param {number} totalPages
@@ -21,135 +23,195 @@ function generatePageNumbers(currentPage, totalPages, maxPagesToShow = 5) {
   const pages = [];
 
   if (totalPages <= maxPagesToShow) {
-    for (let i = 1; i <= totalPages; i++) {
-      pages.push(i);
-    }
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else if (currentPage <= 3) {
+    for (let i = 1; i <= 4; i++) pages.push(i);
+    pages.push("...", totalPages);
+  } else if (currentPage >= totalPages - 2) {
+    pages.push(1, "...");
+    for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
   } else {
-    if (currentPage <= 3) {
-      for (let i = 1; i <= 4; i++) {
-        pages.push(i);
-      }
-      pages.push("...");
-      pages.push(totalPages);
-    } else if (currentPage >= totalPages - 2) {
-      pages.push(1);
-      pages.push("...");
-      for (let i = totalPages - 3; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      pages.push(1);
-      pages.push("...");
-      pages.push(currentPage - 1);
-      pages.push(currentPage);
-      pages.push(currentPage + 1);
-      pages.push("...");
-      pages.push(totalPages);
-    }
+    pages.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages);
   }
 
   return pages;
 }
 
+const DEFAULT_PAGE_SIZES = [10, 20, 25, 50];
+
+/** Per-page dropdown shared by every variant. */
+const PageSizeSelect = ({ value, options, onChange }) => (
+  <Select value={String(value)} onValueChange={(v) => onChange(Number(v))}>
+    <SelectTrigger className="h-control-sm w-auto gap-2 px-2.5 text-small" aria-label="Rows per page">
+      <SelectValue />
+    </SelectTrigger>
+    <SelectContent>
+      {options.map((n) => (
+        <SelectItem key={n} value={String(n)}>
+          {n} / page
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+);
+
 /**
- * PaginationBar — Reusable pagination controls.
+ * PaginationBar: pagination controls driven only by numbers, so it works for both
+ * client-side and server-side pagination. `currentPage` is 1-based.
  *
- * Supports two variants:
- *   - "full": First / Prev / page numbers with ellipsis / Next / Last
- *   - "simple": Prev / Next text buttons
+ * Variants:
+ * - "footer" (default): table-footer bar. "Showing a-b of N", per-page select, Prev/Next, numbered pages
+ * - "full": Card with first / prev / numbered pages / next / last (legacy)
+ * - "simple": Card with Prev / Next (legacy)
  *
- * Optionally includes:
- *   - Total records display
- *   - Rows-per-page selector
- *
- * @param {number} currentPage — Current active page (1-indexed)
- * @param {number} totalPages — Total number of pages
- * @param {(page: number) => void} onPageChange — Callback when page changes
- * @param {number} [totalRecords] — Optional total record count for display
- * @param {"full"|"simple"} [variant="full"] — Pagination style
- * @param {number} [rowsPerPage] — Current rows-per-page value
- * @param {number[]} [rowsPerPageOptions] — Rows-per-page dropdown options
- * @param {(n: number) => void} [onRowsPerPageChange] — Rows-per-page change handler
+ * Props:
+ * - currentPage {number}: active page, 1-based
+ * - totalPages {number}
+ * - onPageChange {(page:number)=>void}
+ * - totalItems {number}: total rows (legacy alias: totalRecords); "Showing" text hidden when undefined
+ * - pageSize {number}: rows per page (legacy alias: rowsPerPage)
+ * - onPageSizeChange {(n:number)=>void}: shows the per-page select when given (legacy alias: onRowsPerPageChange)
+ * - pageSizeOptions {number[]} default [10, 20, 25, 50] (legacy alias: rowsPerPageOptions)
+ * - variant {"footer"|"full"|"simple"}
+ * - className {string}
  */
-const PaginationBar = ({
+export const PaginationBar = ({
   currentPage,
   totalPages,
   onPageChange,
+  totalItems,
   totalRecords,
-  variant = "full",
+  pageSize,
   rowsPerPage,
-  rowsPerPageOptions,
+  onPageSizeChange,
   onRowsPerPageChange,
+  pageSizeOptions,
+  rowsPerPageOptions,
+  variant = "footer",
+  className,
 }) => {
+  const total = totalItems ?? totalRecords;
+  const size = pageSize ?? rowsPerPage;
+  const changeSize = onPageSizeChange ?? onRowsPerPageChange;
+  const sizeOptions = pageSizeOptions ?? rowsPerPageOptions ?? DEFAULT_PAGE_SIZES;
+  const safeTotalPages = Math.max(1, totalPages || 1);
+
   const pageNumbers = useMemo(
-    () => (variant === "full" ? generatePageNumbers(currentPage, totalPages) : []),
-    [currentPage, totalPages, variant]
+    () => (variant === "simple" ? [] : generatePageNumbers(currentPage, safeTotalPages)),
+    [currentPage, safeTotalPages, variant]
   );
 
   const isFirst = currentPage <= 1;
-  const isLast = currentPage >= totalPages;
+  const isLast = currentPage >= safeTotalPages;
 
-  // Info text
+  const sizeSelect =
+    size != null && changeSize ? (
+      <PageSizeSelect
+        value={size}
+        options={sizeOptions.includes(size) ? sizeOptions : [...sizeOptions, size].sort((a, b) => a - b)}
+        onChange={changeSize}
+      />
+    ) : null;
+
+  // Footer variant: the design's table footer.
+  if (variant === "footer") {
+    const hasRange = total != null && size != null;
+    const from = total === 0 ? 0 : (currentPage - 1) * (size || 0) + 1;
+    const to = hasRange ? Math.min(currentPage * size, total) : 0;
+    return (
+      <div
+        className={cn(
+          "flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3 text-small text-ink-3",
+          className
+        )}
+      >
+        <div>
+          {total != null ? (
+            hasRange ? (
+              <>
+                Showing <span className="font-medium text-ink-2">{from}-{to}</span> of{" "}
+                <span className="font-medium text-ink-2">{total}</span>
+              </>
+            ) : (
+              <>
+                <span className="font-medium text-ink-2">{total}</span> records
+              </>
+            )
+          ) : null}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {sizeSelect}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isFirst}
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+          >
+            <ChevronLeft /> Prev
+          </Button>
+          <div className="flex items-center gap-1">
+            {pageNumbers.map((page, index) =>
+              page === "..." ? (
+                <span key={`ellipsis-${index}`} className="px-1.5 text-ink-4">
+                  ...
+                </span>
+              ) : (
+                <Button
+                  key={page}
+                  variant="ghost"
+                  size="sm"
+                  aria-current={currentPage === page ? "page" : undefined}
+                  onClick={() => onPageChange(page)}
+                  className={cn(
+                    "min-w-8 px-2",
+                    currentPage === page && "bg-primary-soft font-semibold text-primary-soft-foreground hover:bg-primary-soft"
+                  )}
+                >
+                  {page}
+                </Button>
+              )
+            )}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isLast}
+            onClick={() => onPageChange(Math.min(safeTotalPages, currentPage + 1))}
+          >
+            Next <ChevronRight />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Legacy variants ("full" and "simple"): Card wrapper.
   const infoText = (
-    <div className="text-sm text-gray-600 dark:text-gray-300">
-      Page{" "}
-      <span className="font-semibold text-gray-900 dark:text-white">
-        {currentPage}
-      </span>{" "}
-      of{" "}
-      <span className="font-semibold text-gray-900 dark:text-white">
-        {totalPages}
-      </span>
-      {totalRecords != null && (
+    <div className="text-small text-ink-3">
+      Page <span className="font-semibold text-ink-1">{currentPage}</span> of{" "}
+      <span className="font-semibold text-ink-1">{safeTotalPages}</span>
+      {total != null && (
         <>
           {" · "}
-          <span className="font-semibold text-gray-900 dark:text-white">
-            {totalRecords}
-          </span>{" "}
-          records
+          <span className="font-semibold text-ink-1">{total}</span> records
         </>
       )}
     </div>
   );
 
-  // Rows per page selector
-  const rowsSelector =
-    rowsPerPage != null && rowsPerPageOptions && onRowsPerPageChange ? (
-      <select
-        value={rowsPerPage}
-        onChange={(e) => onRowsPerPageChange(Number(e.target.value))}
-        className="border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
-      >
-        {rowsPerPageOptions.map((n) => (
-          <option key={n} value={n}>
-            {n} / page
-          </option>
-        ))}
-      </select>
-    ) : null;
-
   return (
-    <Card>
-      <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 py-3">
+    <Card className={className}>
+      <CardContent className="flex flex-col items-center justify-between gap-4 py-3 sm:flex-row">
         {infoText}
 
         <div className="flex items-center gap-2">
-          {rowsSelector}
+          {sizeSelect}
 
           {variant === "full" ? (
             <>
-              {/* First Page */}
-              <Button
-                onClick={() => onPageChange(1)}
-                disabled={isFirst}
-                variant="outline"
-                size="icon"
-                title="First Page"
-              >
-                <FaAngleDoubleLeft size={14} />
+              <Button onClick={() => onPageChange(1)} disabled={isFirst} variant="outline" size="icon" title="First Page">
+                <ChevronsLeft />
               </Button>
-
-              {/* Previous Page */}
               <Button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={isFirst}
@@ -157,17 +219,13 @@ const PaginationBar = ({
                 size="icon"
                 title="Previous Page"
               >
-                <FaChevronLeft size={14} />
+                <ChevronLeft />
               </Button>
 
-              {/* Page Numbers */}
               <div className="flex items-center gap-1">
                 {pageNumbers.map((page, index) =>
                   page === "..." ? (
-                    <span
-                      key={`ellipsis-${index}`}
-                      className="px-3 py-1 text-muted-foreground"
-                    >
+                    <span key={`ellipsis-${index}`} className="px-3 py-1 text-ink-4">
                       ...
                     </span>
                   ) : (
@@ -176,11 +234,6 @@ const PaginationBar = ({
                       onClick={() => onPageChange(page)}
                       variant={currentPage === page ? "default" : "outline"}
                       size="sm"
-                      className={
-                        currentPage === page
-                          ? "bg-orange-500 hover:bg-orange-600"
-                          : ""
-                      }
                     >
                       {page}
                     </Button>
@@ -188,7 +241,6 @@ const PaginationBar = ({
                 )}
               </div>
 
-              {/* Next Page */}
               <Button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={isLast}
@@ -196,23 +248,20 @@ const PaginationBar = ({
                 size="icon"
                 title="Next Page"
               >
-                <FaChevronRight size={14} />
+                <ChevronRight />
               </Button>
-
-              {/* Last Page */}
               <Button
-                onClick={() => onPageChange(totalPages)}
+                onClick={() => onPageChange(safeTotalPages)}
                 disabled={isLast}
                 variant="outline"
                 size="icon"
                 title="Last Page"
               >
-                <FaAngleDoubleRight size={14} />
+                <ChevronsRight />
               </Button>
             </>
           ) : (
             <>
-              {/* Simple Prev */}
               <Button
                 variant="outline"
                 size="sm"
@@ -221,15 +270,11 @@ const PaginationBar = ({
               >
                 Prev
               </Button>
-
-              {/* Simple Next */}
               <Button
                 variant="outline"
                 size="sm"
                 disabled={isLast}
-                onClick={() =>
-                  onPageChange(Math.min(totalPages, currentPage + 1))
-                }
+                onClick={() => onPageChange(Math.min(safeTotalPages, currentPage + 1))}
               >
                 Next
               </Button>
