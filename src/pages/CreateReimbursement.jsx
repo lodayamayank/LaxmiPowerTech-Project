@@ -17,8 +17,11 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import MobileShell from "@/components/mobile/MobileShell";
+import MobileHeader from "@/components/mobile/MobileHeader";
+import MobileBackButton from "@/components/mobile/MobileBackButton";
 
-const CreateReimbursement = () => {
+  const CreateReimbursement = () => {
   const navigate = useNavigate();
 
   const [items, setItems] = useState([
@@ -145,41 +148,37 @@ const CreateReimbursement = () => {
 
   const totalAmount = items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <Button
-            variant="ghost"
-            className="mobile-back-button absolute top-6 left-6"
-            onClick={() => navigate(-1)}
-            type="button"
-          >
-            <FaArrowLeft className="text-orange-600" size={16} />
-            <span className="text-sm font-medium text-orange-600">Back</span>
-          </Button>
+    return (
+      <MobileShell>
+        <MobileHeader>
+          <MobileBackButton onClick={() => navigate(-1)} />
 
           <div className="text-center pt-8">
             <FaMoneyBillWave className="text-white mx-auto mb-3" size={40} />
-            <h1 className="text-white text-2xl font-bold mb-2">New Reimbursement</h1>
+            <h1 className="text-white text-2xl font-bold mb-2">
+              New Reimbursement
+            </h1>
             <p className="text-white/80 text-sm">Submit your expense claim</p>
           </div>
-        </div>
+        </MobileHeader>
 
         {/* Main Content */}
         <form onSubmit={handleSubmit} className="px-6 py-6 -mt-4 pb-24">
           {/* Total Amount Display */}
           <div className="bg-gradient-to-r from-orange-50 to-orange-50 rounded-2xl p-4 mb-6 border border-pink-100">
             <p className="text-sm text-gray-600 mb-1">Total Amount</p>
-            <p className="text-3xl font-bold text-pink-600">₹{totalAmount.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-pink-600">
+              ₹{totalAmount.toFixed(2)}
+            </p>
             <p className="text-xs text-gray-500 mt-1">{items.length} item(s)</p>
           </div>
 
           {/* Expense Items */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-md font-semibold text-gray-800">Expense Items</h3>
+              <h3 className="text-md font-semibold text-gray-800">
+                Expense Items
+              </h3>
               <Button
                 type="button"
                 onClick={addItem}
@@ -192,9 +191,14 @@ const CreateReimbursement = () => {
 
             <div className="space-y-4">
               {items.map((item, index) => (
-                <div key={index} className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+                <div
+                  key={index}
+                  className="bg-gray-50 rounded-2xl p-4 border border-gray-200"
+                >
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-semibold text-gray-700">Item {index + 1}</span>
+                    <span className="text-sm font-semibold text-gray-700">
+                      Item {index + 1}
+                    </span>
                     {items.length > 1 && (
                       <Button
                         type="button"
@@ -210,7 +214,10 @@ const CreateReimbursement = () => {
                   <div className="space-y-3">
                     {/* Amount */}
                     <div>
-                      <Label htmlFor={`reimbursement-amount-${index}`} className="block text-xs font-semibold text-gray-700 mb-1">
+                      <Label
+                        htmlFor={`reimbursement-amount-${index}`}
+                        className="block text-xs font-semibold text-gray-700 mb-1"
+                      >
                         Amount (₹) <span className="text-red-500">*</span>
                       </Label>
                       <Input
@@ -219,7 +226,9 @@ const CreateReimbursement = () => {
                         step="0.01"
                         min="0"
                         value={item.amount}
-                        onChange={(e) => updateItem(index, "amount", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(index, "amount", e.target.value)
+                        }
                         className="w-full h-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-gray-300"
                         placeholder="0.00"
                         required
@@ -228,14 +237,19 @@ const CreateReimbursement = () => {
 
                     {/* Date */}
                     <div>
-                      <Label htmlFor={`reimbursement-date-${index}`} className="block text-xs font-semibold text-gray-700 mb-1">
+                      <Label
+                        htmlFor={`reimbursement-date-${index}`}
+                        className="block text-xs font-semibold text-gray-700 mb-1"
+                      >
                         Expense Date <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id={`reimbursement-date-${index}`}
                         type="date"
                         value={item.expenseDate}
-                        onChange={(e) => updateItem(index, "expenseDate", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(index, "expenseDate", e.target.value)
+                        }
                         max={new Date().toISOString().split("T")[0]}
                         className="w-full h-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-gray-300"
                         required
@@ -244,13 +258,18 @@ const CreateReimbursement = () => {
 
                     {/* Category */}
                     <div>
-                      <Label htmlFor={`reimbursement-category-${index}`} className="block text-xs font-semibold text-gray-700 mb-1">
+                      <Label
+                        htmlFor={`reimbursement-category-${index}`}
+                        className="block text-xs font-semibold text-gray-700 mb-1"
+                      >
                         Category <span className="text-red-500">*</span>
                       </Label>
                       <select
                         id={`reimbursement-category-${index}`}
                         value={item.category}
-                        onChange={(e) => updateItem(index, "category", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(index, "category", e.target.value)
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
                         required
                       >
@@ -264,13 +283,18 @@ const CreateReimbursement = () => {
 
                     {/* Description */}
                     <div>
-                      <Label htmlFor={`reimbursement-description-${index}`} className="block text-xs font-semibold text-gray-700 mb-1">
+                      <Label
+                        htmlFor={`reimbursement-description-${index}`}
+                        className="block text-xs font-semibold text-gray-700 mb-1"
+                      >
                         Description <span className="text-red-500">*</span>
                       </Label>
                       <Textarea
                         id={`reimbursement-description-${index}`}
                         value={item.description}
-                        onChange={(e) => updateItem(index, "description", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(index, "description", e.target.value)
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none"
                         rows={2}
                         placeholder="Brief description of expense..."
@@ -280,17 +304,22 @@ const CreateReimbursement = () => {
 
                     {/* Receipts */}
                     <div>
-                      <Label htmlFor={`receipts-${index}`} className="block text-xs font-semibold text-gray-700 mb-1">
+                      <Label
+                        htmlFor={`receipts-${index}`}
+                        className="block text-xs font-semibold text-gray-700 mb-1"
+                      >
                         Receipts (Optional)
                       </Label>
-                      
+
                       {/* File Input */}
                       <div className="relative mb-2">
                         <input
                           type="file"
                           multiple
                           accept="image/*,application/pdf"
-                          onChange={(e) => handleFileChange(index, e.target.files)}
+                          onChange={(e) =>
+                            handleFileChange(index, e.target.files)
+                          }
                           className="hidden"
                           id={`receipts-${index}`}
                         />
@@ -317,7 +346,9 @@ const CreateReimbursement = () => {
                               />
                               <Button
                                 type="button"
-                                onClick={() => removeReceipt(index, receiptIndex)}
+                                onClick={() =>
+                                  removeReceipt(index, receiptIndex)
+                                }
                                 className="absolute -top-2 -right-2 h-auto w-auto p-1 has-[>svg]:p-1 bg-red-500 hover:bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                               >
                                 <FaTimes size={10} className="size-2.5" />
@@ -335,7 +366,10 @@ const CreateReimbursement = () => {
 
           {/* Overall Note */}
           <div className="mb-6">
-            <Label htmlFor="reimbursement-note" className="block text-sm font-semibold text-gray-700 mb-2">
+            <Label
+              htmlFor="reimbursement-note"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
               Additional Note (Optional)
             </Label>
             <Textarea
@@ -371,9 +405,8 @@ const CreateReimbursement = () => {
             </div>
           </div>
         </form>
-      </div>
-    </div>
-  );
-};
+      </MobileShell>
+    );
+};  
 
 export default CreateReimbursement;

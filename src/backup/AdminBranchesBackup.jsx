@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import axios from '../utils/axios';
+import axios from '@/utils/axios';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import DashboardLayout from '../layouts/DashboardLayout';
+import DashboardLayout from '@/layouts/DashboardLayout';
 import { toast } from 'react-toastify';
 
 let debounceTimeout;

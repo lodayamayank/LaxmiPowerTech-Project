@@ -108,6 +108,7 @@ export default function AdminLeaves() {
     const handleAction = async (id, status) => {
         try {
             await axios.patch(`/leaves/${id}/status`, { status }); // ✅ correct endpoint
+            window.dispatchEvent(new Event("pending-counts:refresh"));
             setRows((prev) =>
                 prev.map((r) => (r._id === id ? { ...r, status } : r))
             );

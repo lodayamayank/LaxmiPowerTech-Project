@@ -25,6 +25,31 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/layout/AppSidebar";
 
+const LEAVE_CACHE_KEY = "pendingLeaveCount";
+const REIMBURSEMENT_CACHE_KEY = "pendingReimbursementCount";
+
+const readCachedCount = (key) => {
+  try {
+    return Number(sessionStorage.getItem(key)) || 0;
+  } catch {
+    return 0;
+  }
+};
+const writeCachedCount = (key, count) => {
+  try {
+    sessionStorage.setItem(key, String(count));
+  } catch {}
+};
+const canSeeApprovals = (user) =>
+  user?.role === "admin" || user?.role === "supervisor";
+
+// Orange icon button used in the topbar (hamburger, theme toggle, bell, calendar)
+const ICON_BTN =
+  "text-primary hover:bg-primary-soft hover:text-primary-soft-foreground";
+const NOTIFICATION_TONES = {
+  danger: "bg-danger-soft text-danger-soft-foreground",
+  warning: "bg-warning-soft text-warning-soft-foreground",
+};
 // ── Utility: build an object with every ancestor key set to true ──────────────
 const getMenuBranch = (key) => {
   const parts = key.split('>');
@@ -65,9 +90,11 @@ const DashboardLayoutContent = ({
   ];
 
   const showMaterialQuickLinks = location.pathname.startsWith('/dashboard/material/');
+  const LEAVE_CACHE_KEY = "pendingLeaveCount";
+  const REIMBURSEMENT_CACHE_KEY = "pendingReimbursementCount";
 
   return (
-    <div className="flex w-screen h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <div className="flex w-screen h-screen overflow-hidden bg-muted">
       {/* ── AppSidebar: Official shadcn Sidebar Architecture ───────────────── */}
       <AppSidebar
         user={user}
@@ -81,14 +108,14 @@ const DashboardLayoutContent = ({
       {/* ── Main content area ─────────────────────────────────────────────── */}
       <div className="flex flex-col flex-1 overflow-hidden min-w-0">
         {/* Topbar */}
-        <div className="flex justify-between items-center px-4 lg:px-6 py-4 bg-white dark:bg-gray-800 shadow-sm rounded-xl z-10">
+        <div className="flex justify-between items-center px-4 lg:px-6 py-4 bg-card shadow-sm rounded-xl z-10">
           {/* Left: Mobile hamburger + Desktop collapse toggle + Page title */}
           <div className="flex items-center gap-4">
             {/* Mobile hamburger — only visible below lg */}
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden text-orange-500 hover:text-orange-600 hover:bg-orange-50"
+              className={`lg:hidden ${ICON_BTN}`}
               onClick={toggleSidebar}
               aria-label="Open sidebar"
             >
@@ -99,15 +126,23 @@ const DashboardLayoutContent = ({
             <Button
               variant="outline"
               size="icon"
-              className="hidden lg:flex w-9 h-9 border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white transition-all"
+              className="hidden lg:flex w-9 h-9 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all"
               onClick={toggleSidebar}
-              title={state === "collapsed" ? 'Expand Sidebar' : 'Collapse Sidebar'}
+              title={
+                state === "collapsed" ? "Expand Sidebar" : "Collapse Sidebar"
+              }
             >
-              {state === "collapsed" ? <FaChevronRight size={14} /> : <FaChevronLeft size={14} />}
+              {state === "collapsed" ? (
+                <FaChevronRight size={14} />
+              ) : (
+                <FaChevronLeft size={14} />
+              )}
             </Button>
 
             {title && (
-              <h1 className="text-lg lg:text-xl font-bold text-gray-800 dark:text-white">{title}</h1>
+              <h1 className="text-lg lg:text-xl font-bold text-foreground">
+                {title}
+              </h1>
             )}
           </div>
 
@@ -118,10 +153,13 @@ const DashboardLayoutContent = ({
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
-              className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 hover:bg-orange-50 dark:hover:bg-gray-700"
-              title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              className={ICON_BTN}
             >
-              {darkMode ? <FaSun className="text-lg lg:text-xl" /> : <FaMoon className="text-lg lg:text-xl" />}
+              {darkMode ? (
+                <FaSun className="text-lg lg:text-xl" />
+              ) : (
+                <FaMoon className="text-lg lg:text-xl" />
+              )}
             </Button>
 
             {/* Notifications: Popover */}
@@ -136,23 +174,25 @@ const DashboardLayoutContent = ({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 hover:bg-orange-50 dark:hover:bg-gray-700"
+                  className={`relative ${ICON_BTN}`}
                   title="Notifications"
                 >
                   <FaBell className="text-lg lg:text-xl" />
                   {notifications.length > 0 && (
-                    <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
+                    <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-danger ring-2 ring-card" />
                   )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 p-0" align="end" sideOffset={8}>
                 {/* Panel header */}
-                <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</p>
+                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                  <p className="text-sm font-semibold text-foreground">
+                    Notifications
+                  </p>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
                     onClick={() => setShowNotifications(false)}
                     title="Close notifications"
                   >
@@ -163,24 +203,35 @@ const DashboardLayoutContent = ({
                 {/* Panel body */}
                 <div className="max-h-80 overflow-y-auto p-3">
                   {notificationsLoading && notifications.length === 0 ? (
-                    <div className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                    <div className="py-8 text-center text-sm text-muted-foreground">
                       Loading notifications...
                     </div>
                   ) : notifications.length === 0 ? (
                     <div className="py-8 text-center">
-                      <MdNotificationsActive className="mx-auto mb-2 text-3xl text-gray-300 dark:text-gray-500" />
-                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">No notifications</p>
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">You are all caught up.</p>
+                      <MdNotificationsActive className="mx-auto mb-2 text-3xl text-muted-foreground/40" />
+                      <p className="text-sm font-semibold text-foreground">
+                        No notifications
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        You are all caught up.
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-2">
                       {notifications.map((notification) => (
                         <div
                           key={notification.id}
-                          className={`rounded-lg px-3 py-2 ${notification.color}`}
+                          className={`rounded-lg px-3 py-2 ${
+                            NOTIFICATION_TONES[notification.severity] ??
+                            "bg-muted text-muted-foreground"
+                          }`}
                         >
-                          <p className="text-sm font-semibold">{notification.title}</p>
-                          <p className="mt-1 text-xs leading-5">{notification.message}</p>
+                          <p className="text-sm font-semibold">
+                            {notification.title}
+                          </p>
+                          <p className="mt-1 text-xs leading-5">
+                            {notification.message}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -190,16 +241,12 @@ const DashboardLayoutContent = ({
             </Popover>
 
             {/* Calendar */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 hover:bg-orange-50 dark:hover:bg-gray-700"
-            >
+            <Button variant="ghost" size="icon" className={ICON_BTN}>
               <FaCalendarAlt className="text-lg lg:text-xl" />
             </Button>
 
             {/* Today's date */}
-            <span className="hidden sm:block text-xs lg:text-sm text-gray-600 dark:text-gray-300 font-medium bg-orange-50 dark:bg-gray-700 px-3 py-1 rounded-full">
+            <span className="hidden sm:block text-xs lg:text-sm text-muted-foreground font-medium bg-primary-soft px-3 py-1 rounded-full">
               {today}
             </span>
 
@@ -208,7 +255,7 @@ const DashboardLayoutContent = ({
               variant="outline"
               size="sm"
               onClick={handleLogout}
-              className="gap-2 rounded-full border-orange-200 bg-orange-50 text-orange-600 shadow-sm hover:bg-orange-100 dark:border-gray-600 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600"
+              className="gap-2 rounded-full border-primary/30 bg-primary-soft text-primary-soft-foreground shadow-sm hover:bg-primary/20 hover:text-primary-soft-foreground"
               title="Logout"
             >
               <FaPowerOff className="text-sm" />
@@ -219,7 +266,7 @@ const DashboardLayoutContent = ({
 
         {/* Material quick-links bar */}
         {showMaterialQuickLinks && (
-          <div className="border-b border-orange-100 bg-white/95 px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800/95">
+          <div className="border-b border-primary/20 bg-card/95 px-4 py-3 shadow-sm">
             <div className="flex gap-2 overflow-x-auto pb-1">
               {materialQuickLinks.map((item) => (
                 <NavLink
@@ -228,8 +275,8 @@ const DashboardLayoutContent = ({
                   className={({ isActive }) =>
                     `inline-flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
                       isActive
-                        ? 'border-orange-500 bg-orange-500 text-white shadow-sm'
-                        : 'border-orange-200 bg-orange-50 text-orange-600 hover:bg-orange-100 dark:border-gray-600 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600'
+                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                        : "border-primary/30 bg-primary-soft text-primary-soft-foreground hover:bg-primary/20"
                     }`
                   }
                 >
@@ -242,7 +289,7 @@ const DashboardLayoutContent = ({
         )}
 
         {/* Children (Main page content) */}
-        <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-4 lg:p-6">
+        <div className="flex-1 overflow-y-auto bg-muted p-4 lg:p-6">
           {children || <Outlet />}
         </div>
       </div>
@@ -264,32 +311,44 @@ const DashboardLayout = ({ children, title }) => {
   const [notifications, setNotifications] = useState([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   // tracks how many leave, reimbursements requests are pending
-  const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
-  const [pendingReimbursementCount, setPendingReimbursementCount] = useState(0);
+  const [pendingLeaveCount, setPendingLeaveCount] = useState(() =>
+    readCachedCount(LEAVE_CACHE_KEY),
+  );
+  const [pendingReimbursementCount, setPendingReimbursementCount] = useState(
+    () => readCachedCount(REIMBURSEMENT_CACHE_KEY),
+  );
 
   // ── Formatters ───────────────────────────────────────────────────────────────
-  const formatCurrency = (value) => `₹${(Number(value) || 0).toLocaleString('en-IN')}`;
+  const formatCurrency = (value) =>
+    `₹${(Number(value) || 0).toLocaleString("en-IN")}`;
 
   const formatDate = (dateValue) => {
-    if (!dateValue) return 'N/A';
+    if (!dateValue) return "N/A";
     const date = new Date(dateValue);
-    if (Number.isNaN(date.getTime())) return 'N/A';
-    return date.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
+    if (Number.isNaN(date.getTime())) return "N/A";
+    return date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
     });
   };
 
   // ── Notification helpers ─────────────────────────────────────────────────────
   const getRetentionNotification = (order) => {
-    if (!order?.isTriggered || !order.retentionAmount || !order.retentionDueDate) return null;
+    if (
+      !order?.isTriggered ||
+      !order.retentionAmount ||
+      !order.retentionDueDate
+    )
+      return null;
 
     const todayDate = new Date();
     todayDate.setHours(0, 0, 0, 0);
     const dueDate = new Date(order.retentionDueDate);
     dueDate.setHours(0, 0, 0, 0);
-    const reminderDate = new Date(order.retentionReminderDate || order.retentionDueDate);
+    const reminderDate = new Date(
+      order.retentionReminderDate || order.retentionDueDate,
+    );
     reminderDate.setHours(0, 0, 0, 0);
 
     if (todayDate < reminderDate) return null;
@@ -297,9 +356,13 @@ const DashboardLayout = ({ children, title }) => {
     const overdue = todayDate > dueDate;
     return {
       id: order._id,
-      title: overdue ? 'Retention overdue' : 'Retention due soon',
-      message: `${order.project?.name || 'Project'} / ${order.workOrderNo}: pay ${formatCurrency(order.retentionAmount)} by ${formatDate(order.retentionDueDate)}.`,
-      color: overdue ? 'text-red-600 bg-red-50' : 'text-yellow-700 bg-yellow-50',
+      title: overdue ? "Retention overdue" : "Retention due soon",
+      message: `${order.project?.name || "Project"} / ${
+        order.workOrderNo
+      }: pay ${formatCurrency(order.retentionAmount)} by ${formatDate(
+        order.retentionDueDate,
+      )}.`,
+      severity: overdue ? "danger" : "warning",
     };
   };
 
@@ -307,11 +370,11 @@ const DashboardLayout = ({ children, title }) => {
   const loadNotifications = async () => {
     setNotificationsLoading(true);
     try {
-      const res = await axios.get('/work-orders/retention-notifications');
+      const res = await axios.get("/work-orders/retention-notifications");
       const orders = res.data?.data || [];
       setNotifications(orders.map(getRetentionNotification).filter(Boolean));
     } catch (err) {
-      console.error('Failed to load notifications', err);
+      console.error("Failed to load notifications", err);
     } finally {
       setNotificationsLoading(false);
     }
@@ -319,55 +382,72 @@ const DashboardLayout = ({ children, title }) => {
 
   const loadPendingLeaveCount = async () => {
     try {
-      const res = await axios.get("/leaves?status=pending&page=1&limit=1");
-      setPendingLeaveCount(res.data?.total || 0);
+      const res = await axios.get("/leaves/pending-count");
+      const count = res.data?.count ?? 0;
+      setPendingLeaveCount(count);
+      writeCachedCount(LEAVE_CACHE_KEY, count);
     } catch (error) {
       console.error("Failed to load pending leave count:", error);
-      setPendingLeaveCount(0);
     }
   };
 
   const loadPendingReimbursementCount = async () => {
     try {
-      const res = await axios.get("/reimbursements?status=pending&page=1&limit=1");
-      setPendingReimbursementCount(res.data?.total || 0);
+      const res = await axios.get("/reimbursements/pending-count");
+      const count = res.data?.count ?? 0;
+      setPendingReimbursementCount(count);
+      writeCachedCount(REIMBURSEMENT_CACHE_KEY, count);
     } catch (error) {
       console.error("Failed to load pending reimbursement count:", error);
-      setPendingReimbursementCount(0);
     }
   };
 
-  // ── useEffect: dark mode + user + initial badge counts ───────────────────────
+  // ── useEffect: dark mode + user ──────────────────────────────────────────────
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    const savedDarkMode = localStorage.getItem("darkMode") === "true";
     setDarkMode(savedDarkMode);
     if (savedDarkMode) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     }
 
-    const userData = localStorage.getItem('user');
+    const userData = localStorage.getItem("user");
     if (userData) {
       try {
         setUser(JSON.parse(userData));
       } catch (err) {
-        console.error('Failed to parse user data', err);
+        console.error("Failed to parse user data", err);
       }
     }
-
-    loadPendingLeaveCount();
-    loadPendingReimbursementCount();
   }, []);
 
+  // ── useEffect: pending badge counts (admin / supervisor only) ────────────────
+  useEffect(() => {
+    if (!canSeeApprovals(user)) return;
+
+    const refresh = () => {
+      loadPendingLeaveCount();
+      loadPendingReimbursementCount();
+    };
+
+    refresh(); // initial load
+    const id = setInterval(refresh, 60_000); // poll every 60s
+    window.addEventListener("pending-counts:refresh", refresh);
+
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("pending-counts:refresh", refresh);
+    };
+  }, [user?.role]);
   // ── Toggle dark mode ─────────────────────────────────────────────────────────
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
     setDarkMode(newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
+    localStorage.setItem("darkMode", newDarkMode.toString());
 
     if (newDarkMode) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   };
 
@@ -375,34 +455,41 @@ const DashboardLayout = ({ children, title }) => {
   useEffect(() => {
     const path = location.pathname;
 
-    const isAttendance = path.includes('/attendance/') || path.includes('/live-attendance') || path.startsWith('/admin/reimbursements');
-    const isMaterial = path.includes('/dashboard/material/') || path.includes('/material/');
-    const isInventoryRoot = path.includes('/dashboard/inventory/');
-    const isLabourInventory = path.includes('/dashboard/inventory/labour');
-    const isSalary = path.startsWith('/admin/salary') || path.startsWith('/admin/holidays') || path.startsWith('/admin/salary-policy');
+    const isAttendance =
+      path.includes("/attendance/") ||
+      path.includes("/live-attendance") ||
+      path.startsWith("/admin/reimbursements");
+    const isMaterial =
+      path.includes("/dashboard/material/") || path.includes("/material/");
+    const isInventoryRoot = path.includes("/dashboard/inventory/");
+    const isLabourInventory = path.includes("/dashboard/inventory/labour");
+    const isSalary =
+      path.startsWith("/admin/salary") ||
+      path.startsWith("/admin/holidays") ||
+      path.startsWith("/admin/salary-policy");
 
     if (isAttendance) {
-      setOpenMenus(getMenuBranch('Attendance'));
+      setOpenMenus(getMenuBranch("Attendance"));
       return;
     }
 
     if (isSalary) {
-      setOpenMenus(getMenuBranch('Attendance>Salary'));
+      setOpenMenus(getMenuBranch("Attendance>Salary"));
       return;
     }
 
     if (isMaterial) {
-      setOpenMenus(getMenuBranch('Inventory>Material'));
+      setOpenMenus(getMenuBranch("Inventory>Material"));
       return;
     }
 
     if (isLabourInventory) {
-      setOpenMenus(getMenuBranch('Inventory>Labour'));
+      setOpenMenus(getMenuBranch("Inventory>Labour"));
       return;
     }
 
     if (isInventoryRoot) {
-      setOpenMenus(getMenuBranch('Inventory'));
+      setOpenMenus(getMenuBranch("Inventory"));
       return;
     }
 
@@ -428,13 +515,15 @@ const DashboardLayout = ({ children, title }) => {
 
   // ── handleLogout ─────────────────────────────────────────────────────────────
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('role');
-    localStorage.removeItem('loginTime');
-    localStorage.removeItem('selectedBranchId');
-    localStorage.removeItem('selectedBranchName');
-    navigate('/login', { replace: true });
+    sessionStorage.removeItem(LEAVE_CACHE_KEY);
+    sessionStorage.removeItem(REIMBURSEMENT_CACHE_KEY);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+    localStorage.removeItem("loginTime");
+    localStorage.removeItem("selectedBranchId");
+    localStorage.removeItem("selectedBranchName");
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -448,11 +537,11 @@ const DashboardLayout = ({ children, title }) => {
         notifications={notifications}
         notificationsLoading={notificationsLoading}
         showNotifications={showNotifications}
-        setShowNotifications={setShowNotifications}
-        loadNotifications={loadNotifications}
         pendingLeaveCount={pendingLeaveCount}
         pendingReimbursementCount={pendingReimbursementCount}
-        openMenus={openMenus}
+        setShowNotifications={setShowNotifications}
+        loadNotifications={loadNotifications}
+        openMenus={openMenus} 
         toggleMenu={toggleMenu}
         handleLogout={handleLogout}
       >

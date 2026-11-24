@@ -11,6 +11,9 @@ import {
   FaCalendarAlt,
   FaFileInvoiceDollar,
 } from "react-icons/fa";
+import MobileShell from "@/components/mobile/MobileShell";
+import MobileHeader from "@/components/mobile/MobileHeader";
+import MobileBackButton from "@/components/mobile/MobileBackButton";
 import { toast } from "react-toastify";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -78,26 +81,22 @@ const MyReimbursements = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <Button
-            variant="ghost"
-            className="mobile-back-button absolute top-6 left-6"
-            onClick={() => navigate(-1)}
-          >
-            <FaArrowLeft size={16} />
-            <span className="text-sm font-medium">Back</span>
-          </Button>
+    return (
+      <MobileShell>
+        <MobileHeader>
+          <MobileBackButton onClick={() => navigate(-1)} />
 
           <div className="text-center pt-8">
-            <FaFileInvoiceDollar className="text-white mx-auto mb-3" size={40} />
-            <h1 className="text-white text-2xl font-bold mb-2">My Reimbursements</h1>
+            <FaFileInvoiceDollar
+              className="text-white mx-auto mb-3"
+              size={40}
+            />
+            <h1 className="text-white text-2xl font-bold mb-2">
+              My Reimbursements
+            </h1>
             <p className="text-white/80 text-sm">Track your expense claims</p>
           </div>
-        </div>
+        </MobileHeader>
 
         {/* Main Content */}
         <div className="px-6 py-6 -mt-4">
@@ -113,9 +112,14 @@ const MyReimbursements = () => {
           {/* Reimbursements List */}
           {reimbursements.length === 0 ? (
             <div className="text-center py-12">
-              <FaFileInvoiceDollar className="text-gray-300 mx-auto mb-4" size={64} />
+              <FaFileInvoiceDollar
+                className="text-gray-300 mx-auto mb-4"
+                size={64}
+              />
               <p className="text-gray-500">No reimbursements yet</p>
-              <p className="text-sm text-gray-400 mt-2">Submit your first expense claim</p>
+              <p className="text-sm text-gray-400 mt-2">
+                Submit your first expense claim
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -128,17 +132,26 @@ const MyReimbursements = () => {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <FaMoneyBillWave className="text-orange-600" size={16} />
+                        <FaMoneyBillWave
+                          className="text-orange-600"
+                          size={16}
+                        />
                         <span className="font-bold text-xl text-gray-800">
                           ₹{reimb.totalAmount.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <FaCalendarAlt size={12} />
-                        <span>{new Date(reimb.submittedAt).toLocaleDateString()}</span>
+                        <span>
+                          {new Date(reimb.submittedAt).toLocaleDateString()}
+                        </span>
                       </div>
                     </div>
-                    <div className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 border ${getStatusColor(reimb.status)}`}>
+                    <div
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 border ${getStatusColor(
+                        reimb.status,
+                      )}`}
+                    >
                       {getStatusIcon(reimb.status)}
                       {reimb.status.toUpperCase()}
                     </div>
@@ -146,9 +159,12 @@ const MyReimbursements = () => {
 
                   {/* Items Count */}
                   <div className="bg-gray-50 rounded-xl p-3 text-sm text-gray-600">
-                    <span className="font-semibold">{reimb.items.length}</span> expense item(s)
+                    <span className="font-semibold">{reimb.items.length}</span>{" "}
+                    expense item(s)
                     {reimb.note && (
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-1">{reimb.note}</p>
+                      <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+                        {reimb.note}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -156,9 +172,8 @@ const MyReimbursements = () => {
             </div>
           )}
         </div>
-      </div>
-    </div>
-  );
+      </MobileShell>
+    );
 };
 
 export default MyReimbursements;
