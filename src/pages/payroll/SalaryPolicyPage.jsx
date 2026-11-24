@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { ROLES } from '@/lib/constants';
 import DashboardLayout from '@/layouts/desktop/DashboardLayout';
 import axios from '@/api/client';
 import { toast } from 'sonner';
@@ -7,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FaShieldAlt, FaSave } from 'react-icons/fa';
 
-const ALL_ROLES = ['staff', 'supervisor', 'subcontractor', 'labour'];
+const ALL_ROLES = [ROLES.staff, ROLES.supervisor, ROLES.subcontractor, ROLES.labour];
 
 const RoleCheckboxGroup = ({ groupId, label, description, selectedRoles, onToggle }) => (
   <div className="space-y-3">

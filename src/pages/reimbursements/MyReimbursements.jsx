@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { getToken } from '@/lib/session';
 import axios from "@/api/client";
 import { useNavigate } from "react-router-dom";
 import {
@@ -23,7 +24,7 @@ const MyReimbursements = () => {
   const [reimbursements, setReimbursements] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+  const token = getToken();
 
   useEffect(() => {
     fetchReimbursements();

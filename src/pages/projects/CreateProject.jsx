@@ -1,4 +1,6 @@
 import React, { useMemo, useState, useRef } from "react";
+import { isFieldRole } from '@/lib/roles';
+import { getToken } from '@/lib/session';
 import { queryClient } from '@/lib/queryClient';
 import { useUsers } from '@/hooks/useUsers';
 import { useBranches } from '@/hooks/useBranches';
@@ -95,7 +97,7 @@ const CreateProject = () => {
   const [largeProjectDialogOpen, setLargeProjectDialogOpen] = useState(false);
   const [largeProjectUnits, setLargeProjectUnits] = useState(0);
   const [deleteProjectId, setDeleteProjectId] = useState(null);
-  const token = localStorage.getItem("token");
+  const token = getToken();
   const formRef = useRef(null);
 
   // Google Places Autocomplete
@@ -131,7 +133,7 @@ const CreateProject = () => {
     );
 
     return users.filter((user) => {
-      if (!["supervisor", "subcontractor"].includes(user.role)) return false;
+      if (!isFieldRole(user.role)) return false;
       if (getId(user.project) === project?._id) return true;
       return (user.assignedBranches || []).some((branch) =>
         projectBranchIds.has(getId(branch))

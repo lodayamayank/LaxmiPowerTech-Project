@@ -5,7 +5,7 @@ import { upcomingDeliveryAPI, indentAPI, purchaseOrderAPI } from "@/api/material
 import { Eye, Trash2, X, Edit2, Save, Upload, Image as ImageIcon } from "lucide-react";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import { Checkbox } from "@/components/ui/checkbox";
-import axios from "@/api/client";
+import axios, { FILE_BASE_URL } from '@/api/client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -996,7 +996,7 @@ export default function AdminUpcomingDeliveries() {
                     {selectedDelivery.attachments.map((attachment, index) => {
                       // ✅ Handle both old string format and new Cloudinary object format
                       const attachmentUrl = typeof attachment === 'string' ? attachment : attachment.url;
-                      const baseURL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5002';
+                      const baseURL = FILE_BASE_URL;
                       const fileURL = attachmentUrl.startsWith('http') ? attachmentUrl : `${baseURL}${attachmentUrl}`;
                       const fileName = attachmentUrl.split('/').pop();
                       const isImage = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);

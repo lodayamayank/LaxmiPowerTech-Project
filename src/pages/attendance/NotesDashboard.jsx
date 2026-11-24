@@ -1,5 +1,6 @@
 // frontend/pages/NotesDashboard.jsx
 import React, { useEffect, useState } from "react";
+import { getToken } from '@/lib/session';
 import { useBranches } from '@/hooks/useBranches';
 import axios from "@/api/client";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
@@ -51,7 +52,7 @@ const NotesDashboard = () => {
   const [error, setError] = useState(null);
   const limit = 25;
 
-  const token = localStorage.getItem("token");
+  const token = getToken();
 
   // Fetch notes
   const fetchNotes = async () => {

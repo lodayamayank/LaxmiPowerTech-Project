@@ -1,5 +1,6 @@
 // import React, { useRef, useEffect } from "react";
 import React from "react";
+import { ROUTES } from '@/lib/routes';
 // import { FileUp, ShoppingCart, Upload } from "lucide-react";
 import {
   Sheet,
@@ -27,12 +28,12 @@ export default function AddIndentPopup({ onClose, onUploadClick }) {
 
   const handleCreateIntent = () => {
     onClose(); // close popup
-    navigate("/material/intent/new"); // go to create intent (PO) page
+    navigate(ROUTES.material.intentNew); // go to create intent (PO) page
   };
 
   const handleUploadIntentList = () => {
     onClose(); // close popup
-    navigate("/material/upload-photo"); // go to upload photo page
+    navigate(ROUTES.material.uploadPhoto); // go to upload photo page
   };
 
   return (

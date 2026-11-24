@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { ROLES } from '@/lib/constants';
+import { getToken } from '@/lib/session';
 import { queryClient } from '@/lib/queryClient';
 import { USERS_KEY } from '@/hooks/useUsers';
 import { useBranches } from '@/hooks/useBranches';
@@ -52,7 +54,7 @@ const ProfileScreen = () => {
   });
   const [passwordSaving, setPasswordSaving] = useState(false);
 
-  const canChangePassword = ['supervisor', 'labour'].includes(formData.role);
+  const canChangePassword = [ROLES.supervisor, ROLES.labour].includes(formData.role);
 
   useEffect(() => {
     fetchUser();
@@ -61,7 +63,7 @@ const ProfileScreen = () => {
   const fetchUser = async () => {
     try {
       const res = await axios.get('/users/me', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
       });
 
       const {
@@ -101,7 +103,7 @@ const ProfileScreen = () => {
       };
 
       await axios.put('/users/me', payload, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
       });
       queryClient.invalidateQueries({ queryKey: USERS_KEY });
       toast.success('Profile updated successfully');
@@ -134,7 +136,7 @@ const ProfileScreen = () => {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
       }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
       });
 
       toast.success('Password updated successfully');

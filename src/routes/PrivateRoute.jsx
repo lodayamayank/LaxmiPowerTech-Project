@@ -1,22 +1,20 @@
 import React from 'react';
-import { queryClient } from '@/lib/queryClient';
+import { ROUTES } from '@/lib/routes';
+import { clearSession, getLoginTime, getToken, isSessionExpired } from '@/lib/session';
 import { Navigate } from 'react-router-dom';
 
 const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  const loginTime = localStorage.getItem('loginTime');
-  const maxAge = 1000 * 60 * 60 * 8; // 8 hours in milliseconds
+  const token = getToken();
+  const loginTime = getLoginTime();
 
   if (!token || !loginTime) {
-    return <Navigate to="/login" />;
+    return <Navigate to={ROUTES.login} />;
   }
 
-  const isExpired = Date.now() - parseInt(loginTime, 10) > maxAge;
-
-  if (isExpired) {
-    localStorage.clear(); // remove token, user, etc.
-    queryClient.clear();
-    return <Navigate to="/login" />;
+  // Logins last 8 hours (SESSION_MAX_AGE_MS).
+  if (isSessionExpired()) {
+    clearSession({ all: true }); // remove token, user, etc.
+    return <Navigate to={ROUTES.login} />;
   }
 
   return children;

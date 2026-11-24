@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { FILE_BASE_URL } from '@/api/client';
 import { EVENTS } from '@/lib/events';
 import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
 import { fetchBranchesCached } from '@/hooks/useBranches';
@@ -1001,7 +1002,7 @@ export default function AdminSiteTransfer() {
                       {selectedTransfer.attachments.map((attachment, index) => {
                         // Handle both Cloudinary object format { url, publicId } and legacy string format
                         const attachmentURL = typeof attachment === 'object' ? attachment.url : attachment;
-                        const baseURL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5002';
+                        const baseURL = FILE_BASE_URL;
                         const fileURL = attachmentURL.startsWith('http') ? attachmentURL : `${baseURL}/${attachmentURL}`;
                         const fileName = attachmentURL.split('/').pop();
                         const isImage = attachmentURL.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);

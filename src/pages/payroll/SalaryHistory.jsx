@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { getToken } from '@/lib/session';
 import DashboardLayout from '@/layouts/desktop/DashboardLayout';
 import axios from '@/api/client';
 import { toast } from 'sonner';
@@ -59,7 +60,7 @@ const SalaryHistory = () => {
     const [selectedSlip, setSelectedSlip] = useState(null);
     const [confirmAction, setConfirmAction] = useState(null);
 
-    const token = localStorage.getItem('token');
+    const token = getToken();
 
     // Fetch salary slips
     const fetchSlips = async () => {

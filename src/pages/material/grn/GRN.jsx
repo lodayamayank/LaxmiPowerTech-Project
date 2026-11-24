@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { isFieldRole } from '@/lib/roles';
+import { ROUTES } from '@/lib/routes';
+import { getUser } from '@/lib/session';
 import { fetchBranchesCached } from '@/hooks/useBranches';
 import { useNavigate } from "react-router-dom";
 import { upcomingDeliveryAPI } from "@/api/material";
@@ -15,7 +18,7 @@ export default function GRN({ isTabView = false }) {
   const navigate = useNavigate();
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(false);
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (getUser() || {});
   const userAssignedBranches = user?.assignedBranches || [];
   const selectedBranchId = getSelectedBranchId();
   const selectedBranchName = getSelectedBranchName();
@@ -44,7 +47,7 @@ export default function GRN({ isTabView = false }) {
       
       // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
       let filteredBranches = branches;
-      if (selectedBranchId && (user.role === 'supervisor' || user.role === 'subcontractor')) {
+      if (selectedBranchId && isFieldRole(user.role)) {
         filteredBranches = branches.filter(branch => branch._id === selectedBranchId);
         console.log('🔒 GRN - Single branch mode:', selectedBranchName);
       } else if (userAssignedBranches && userAssignedBranches.length > 0) {
@@ -86,7 +89,7 @@ export default function GRN({ isTabView = false }) {
         );
         
         // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
-        if (selectedBranchName && (user.role === 'supervisor' || user.role === 'subcontractor')) {
+        if (selectedBranchName && isFieldRole(user.role)) {
           console.log('🔒 GRN - STRICT ISOLATION: Filtering by selected branch only:', selectedBranchName);
           
           completed = completed.filter(item => {
@@ -167,7 +170,7 @@ export default function GRN({ isTabView = false }) {
 
   const handleViewDetails = async (delivery) => {
     // Navigate to GRN detail page (Intent-style view)
-    navigate(`/material/grn/${delivery._id}`);
+    navigate(ROUTES.material.grnDetail(delivery._id));
   };
 
   const formatDate = (dateString) => {

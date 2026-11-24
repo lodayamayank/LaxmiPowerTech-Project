@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { isFieldRole } from '@/lib/roles';
+import { ROUTES } from '@/lib/routes';
+import { getUser } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import usePolling from '@/hooks/usePolling';
 import { fetchBranchesCached } from '@/hooks/useBranches';
@@ -28,7 +31,7 @@ export default function MaterialTransfer({ isTabView = false }) {
   const [filterDateTo, setFilterDateTo] = useState('');
   const [sites, setSites] = useState([]);
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (getUser() || {});
   const userAssignedBranches = user?.assignedBranches || [];
   const selectedBranchId = getSelectedBranchId();
   const selectedBranchName = getSelectedBranchName();
@@ -55,7 +58,7 @@ export default function MaterialTransfer({ isTabView = false }) {
       
       // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
       let filteredBranches = branches;
-      if (selectedBranchId && (user.role === 'supervisor' || user.role === 'subcontractor')) {
+      if (selectedBranchId && isFieldRole(user.role)) {
         filteredBranches = branches.filter(branch => branch._id === selectedBranchId);
         console.log('🔒 Material Transfer - Single branch mode:', selectedBranchName);
       } else if (userAssignedBranches && userAssignedBranches.length > 0) {
@@ -144,7 +147,7 @@ export default function MaterialTransfer({ isTabView = false }) {
         });
         
         // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
-        if (selectedBranchName && (user.role === 'supervisor' || user.role === 'subcontractor')) {
+        if (selectedBranchName && isFieldRole(user.role)) {
           console.log('🔒 Material Transfer - STRICT ISOLATION: Filtering by selected branch only:', selectedBranchName);
           
           transfersData = transfersData.filter(transfer => {
@@ -256,7 +259,7 @@ export default function MaterialTransfer({ isTabView = false }) {
   };
 
   const handleCreateTransfer = () => {
-    navigate('/material/transfer/new');
+    navigate(ROUTES.material.transferNew);
   };
 
   // Render content only (for tab view)
@@ -394,7 +397,7 @@ export default function MaterialTransfer({ isTabView = false }) {
           {transfers.map((transfer) => (
             <Card
               key={transfer._id}
-              onClick={() => navigate(`/material/transfer/${transfer._id}`)}
+              onClick={() => navigate(ROUTES.material.transferDetail(transfer._id))}
               className="bg-gradient-to-r from-gray-50 to-white rounded-2xl border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
             >
               <CardContent className="p-5">

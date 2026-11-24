@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { ROLES } from '@/lib/constants';
+import { ROUTES } from '@/lib/routes';
+import { getSelectedBranchName } from '@/lib/branchContext';
+import { getToken } from '@/lib/session';
 import { fetchUsersCached } from '@/hooks/useUsers';
 import { queryClient } from '@/lib/queryClient';
 import { USERS_KEY } from '@/hooks/useUsers';
@@ -22,7 +26,7 @@ const SupervisorLabourList = () => {
   const [activeTab, setActiveTab] = useState('all'); // 'all' or 'attendance'
   const [attendanceData, setAttendanceData] = useState({});
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]); // YYYY-MM-DD format
-  const token = localStorage.getItem('token');
+  const token = getToken();
 
   useEffect(() => {
     fetchLabours();
@@ -41,7 +45,7 @@ const SupervisorLabourList = () => {
   };
 
   const fetchProjectName = () => {
-    const storedBranchName = localStorage.getItem('selectedBranchName');
+    const storedBranchName = getSelectedBranchName();
     if (storedBranchName) {
       setProjectName(storedBranchName);
     }
@@ -54,7 +58,7 @@ const SupervisorLabourList = () => {
       
       // Filter labours assigned to this branch
       const filteredLabours = res.data.filter(labour => 
-        labour.role === 'labour' && 
+        labour.role === ROLES.labour && 
         labour.assignedBranches?.some(branch => 
           typeof branch === 'object' ? branch._id === branchId : branch === branchId
         )
@@ -158,7 +162,7 @@ const SupervisorLabourList = () => {
             <img width={179} height={64} src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
             <Button
               variant="ghost"
-              onClick={() => navigate(`/branch/${branchId}/labour-dashboard`)}
+              onClick={() => navigate(ROUTES.branch.labourDashboard(branchId))}
               className="mobile-back-button px-4 py-2"
             >
               <FaArrowLeft size={14} />
@@ -230,7 +234,7 @@ const SupervisorLabourList = () => {
                     {searchTerm ? 'Try a different search term' : 'No labours assigned to this project yet'}
                   </p>
                   <Button
-                    onClick={() => navigate(`/branch/${branchId}/labours/add`)}
+                    onClick={() => navigate(ROUTES.branch.laboursAdd(branchId))}
                     className="bg-orange-500 hover:bg-orange-600 text-white"
                     size="sm"
                   >
@@ -246,13 +250,13 @@ const SupervisorLabourList = () => {
                     >
                       <div className="flex items-center gap-3">
                         <div 
-                          onClick={() => navigate(`/branch/${branchId}/labours/${labour._id}`)}
+                          onClick={() => navigate(ROUTES.branch.labourDetail(branchId, labour._id))}
                           className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg shadow-md cursor-pointer hover:scale-105 transition-transform"
                         >
                           {labour.name?.charAt(0)?.toUpperCase() || 'L'}
                         </div>
                         <div 
-                          onClick={() => navigate(`/branch/${branchId}/labours/${labour._id}`)}
+                          onClick={() => navigate(ROUTES.branch.labourDetail(branchId, labour._id))}
                           className="flex-1 cursor-pointer"
                         >
                           <h3 className="font-semibold text-gray-800 text-sm">
@@ -399,7 +403,7 @@ const SupervisorLabourList = () => {
           <div className="max-w-md mx-auto relative h-20">
             <Button
               type="button"
-              onClick={() => navigate(`/branch/${branchId}/labours/add`)}
+              onClick={() => navigate(ROUTES.branch.laboursAdd(branchId))}
               className="absolute bottom-6 right-6 w-14 h-14 p-0 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full shadow-2xl hover:shadow-3xl transform hover:scale-110 transition-all duration-300 flex items-center justify-center pointer-events-auto"
               title="Add Labour"
             >

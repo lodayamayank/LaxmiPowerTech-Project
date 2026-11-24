@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { ROUTES } from '@/lib/routes';
+import { clearSession, getUser, setSelectedBranch } from '@/lib/session';
 import { fetchBranchesCached } from '@/hooks/useBranches';
-import { queryClient } from '@/lib/queryClient';
 import { useNavigate } from 'react-router-dom';
 import logo from '@/assets/logo.png';
 import { FaSignOutAlt, FaSearch, FaChevronRight, FaArrowLeft } from 'react-icons/fa';
@@ -11,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 
 const SupervisorProjectList = () => {
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = getUser();
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,23 +55,16 @@ const SupervisorProjectList = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    queryClient.clear();
-    localStorage.removeItem('role');
-    localStorage.removeItem('loginTime');
-    localStorage.removeItem('selectedBranchId');
-    localStorage.removeItem('selectedBranchName');
-    navigate('/login', { replace: true });
+    clearSession();
+    navigate(ROUTES.login, { replace: true });
   };
 
   const handleProjectClick = (branchId, branchName) => {
     // Store selected branch context in localStorage for material data isolation
-    localStorage.setItem('selectedBranchId', branchId);
-    localStorage.setItem('selectedBranchName', branchName || 'Selected Branch');
+    setSelectedBranch({ id: branchId, name: branchName });
     
     // Navigate to Labour dashboard for this specific branch
-    navigate(`/branch/${branchId}/labour-dashboard`);
+    navigate(ROUTES.branch.labourDashboard(branchId));
   };
 
   const filteredProjects = projects.filter(project =>
@@ -87,7 +81,7 @@ const SupervisorProjectList = () => {
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate(ROUTES.dashboard)}
                 className="mobile-back-button px-4 py-2"
               >
                 <FaArrowLeft size={14} />

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { queryClient } from '@/lib/queryClient';
+import { ROUTES } from '@/lib/routes';
+import { clearSession, getToken, getUser } from '@/lib/session';
 import { useNavigate } from 'react-router-dom';
 import axios from '@/api/client';
 import fingerprint from '@/assets/fingerprint.png';
@@ -15,9 +16,9 @@ import { Card, CardContent } from '@/components/ui/card';
 
 
 const SupervisorDashboard = () => {
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = getUser();
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
+  const token = getToken();
   const [attendanceCodes, setAttendanceCodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -70,11 +71,8 @@ const SupervisorDashboard = () => {
   }, [token]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    queryClient.clear();
-    localStorage.removeItem('role');
-    navigate('/login', { replace: true });
+    clearSession({ keepSelectedBranch: true, keepLoginTime: true });
+    navigate(ROUTES.login, { replace: true });
   };
 
   return (
@@ -174,7 +172,7 @@ const SupervisorDashboard = () => {
             <DashboardCard
               label="Mark Attendance"
               icon={fingerprint}
-              onClick={() => navigate('/punch')}
+              onClick={() => navigate(ROUTES.punch)}
               gradient="from-green-400 to-green-500"
               bgColor="bg-green-50"
             />
@@ -195,7 +193,7 @@ const SupervisorDashboard = () => {
             <DashboardCard
               label="Reimbursement"
               icon={money}
-              onClick={() => navigate('/reimbursements')}
+              onClick={() => navigate(ROUTES.reimbursements)}
               gradient="from-yellow-400 to-yellow-500"
               bgColor="bg-yellow-50"
             />
@@ -210,7 +208,7 @@ const SupervisorDashboard = () => {
             <DashboardCard
               label="Profile"
               icon={avatar}
-              onClick={() => navigate('/profile')}
+              onClick={() => navigate(ROUTES.profile)}
               gradient="from-purple-400 to-purple-500"
               bgColor="bg-purple-50"
             />
@@ -219,7 +217,7 @@ const SupervisorDashboard = () => {
                 label="Connect to Server"
                 icon={null}
                 iconComponent={<FaServer className="w-full h-full text-white" />}
-                onClick={() => navigate('/connect-server')}
+                onClick={() => navigate(ROUTES.connectServer)}
                 gradient="from-purple-400 to-purple-500"
                 bgColor="bg-purple-50"
                 fullWidth

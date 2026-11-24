@@ -1,5 +1,8 @@
 // Connect to Server page – manual sync trigger + sync status overview
 import React, { useState, useEffect } from 'react';
+import { ROLES } from '@/lib/constants';
+import { isFieldRole } from '@/lib/roles';
+import { getUser } from '@/lib/session';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaSync, FaWifi, FaCloudUploadAlt, FaCheckCircle, FaExclamationTriangle, FaTrash, FaDatabase } from 'react-icons/fa';
 import useNetworkStatus from '@/pwa/useNetworkStatus';
@@ -19,7 +22,7 @@ export default function ConnectServer() {
   const [clearing, setClearing] = useState(false);
   const [retrying, setRetrying] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (getUser() || {});
 
   useEffect(() => {
     loadActions();
@@ -89,8 +92,8 @@ export default function ConnectServer() {
   };
 
   const getBackRoute = () => {
-    if (user?.role === 'supervisor' || user?.role === 'subcontractor') return '/dashboard';
-    if (user?.role === 'labour') return '/dashboard';
+    if (isFieldRole(user?.role)) return '/dashboard';
+    if (user?.role === ROLES.labour) return '/dashboard';
     return '/dashboard';
   };
 

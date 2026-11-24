@@ -2,13 +2,17 @@
  * Branch Context Utility
  * Manages the selected branch context for data isolation in material modules
  */
+import { STORAGE_KEYS } from './constants';
+import { isFieldRole } from './roles';
+import { getUser } from './session';
+
 
 /**
  * Get the currently selected branch ID from localStorage
  * @returns {string|null} The selected branch ID or null if none selected
  */
 export const getSelectedBranchId = () => {
-  return localStorage.getItem('selectedBranchId');
+  return localStorage.getItem(STORAGE_KEYS.selectedBranchId);
 };
 
 /**
@@ -16,7 +20,7 @@ export const getSelectedBranchId = () => {
  * @returns {string|null} The selected branch name or null if none selected
  */
 export const getSelectedBranchName = () => {
-  return localStorage.getItem('selectedBranchName');
+  return localStorage.getItem(STORAGE_KEYS.selectedBranchName);
 };
 
 /**
@@ -26,8 +30,8 @@ export const getSelectedBranchName = () => {
  */
 export const setSelectedBranch = (branchId, branchName) => {
   if (branchId) {
-    localStorage.setItem('selectedBranchId', branchId);
-    localStorage.setItem('selectedBranchName', branchName || 'Selected Branch');
+    localStorage.setItem(STORAGE_KEYS.selectedBranchId, branchId);
+    localStorage.setItem(STORAGE_KEYS.selectedBranchName, branchName || 'Selected Branch');
   }
 };
 
@@ -35,8 +39,8 @@ export const setSelectedBranch = (branchId, branchName) => {
  * Clear the selected branch context
  */
 export const clearSelectedBranch = () => {
-  localStorage.removeItem('selectedBranchId');
-  localStorage.removeItem('selectedBranchName');
+  localStorage.removeItem(STORAGE_KEYS.selectedBranchId);
+  localStorage.removeItem(STORAGE_KEYS.selectedBranchName);
 };
 
 /**
@@ -53,11 +57,11 @@ export const hasBranchContext = () => {
  * @returns {Object} Updated params with selectedBranchId if applicable
  */
 export const addBranchFilter = (params = {}) => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getUser() || {};
   const selectedBranchId = getSelectedBranchId();
   
   // Only add branch filter for supervisor/subcontractor with selected branch
-  if ((user.role === 'supervisor' || user.role === 'subcontractor') && selectedBranchId) {
+  if (isFieldRole(user.role) && selectedBranchId) {
     return {
       ...params,
       selectedBranchId

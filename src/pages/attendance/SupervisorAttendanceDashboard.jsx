@@ -1,4 +1,5 @@
 import DashboardLayout from '@/layouts/desktop/DashboardLayout';
+import { getToken } from '@/lib/session';
 import React, { useEffect, useState } from 'react';
 import axios from '@/api/client';
 import DateRangeFilter from '@/pages/attendance/components/DateRangeFilter';
@@ -74,7 +75,7 @@ const SupervisorAttendanceDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
 
-  const token = localStorage.getItem('token');
+  const token = getToken();
 
   useEffect(() => {
     const fetchData = async () => {

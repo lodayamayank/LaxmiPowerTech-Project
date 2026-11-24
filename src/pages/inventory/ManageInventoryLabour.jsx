@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { ROUTES } from '@/lib/routes';
 import { useProjects } from '@/hooks/useProjects';
 import { useBranches } from '@/hooks/useBranches';
 import { useNavigate } from "react-router-dom";
@@ -414,7 +415,7 @@ const ManageInventoryLabour = () => {
             <Button
               type="button"
               onClick={() =>
-                navigate("/admin/my-team", { state: { tab: "labour" } })
+                navigate(ROUTES.myTeam, { state: { tab: "labour" } })
               }
               className="h-10 w-full bg-orange-500 hover:bg-orange-600 text-white lg:w-auto"
             >

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { FILE_BASE_URL } from '@/api/client';
 import { EVENTS } from '@/lib/events';
 import { useParams, useNavigate } from "react-router-dom";
 import { upcomingDeliveryAPI } from "@/api/material";
@@ -420,7 +421,7 @@ export default function DeliveryChecklist() {
                                 {delivery.attachments.map((attachment, index) => {
                                     // ✅ Handle both old string format and new Cloudinary object format
                                     const attachmentUrl = typeof attachment === 'string' ? attachment : attachment.url;
-                                    const baseURL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5002';
+                                    const baseURL = FILE_BASE_URL;
                                     const fileURL = attachmentUrl.startsWith('http') ? attachmentUrl : `${baseURL}${attachmentUrl}`;
                                     const fileName = attachmentUrl.split('/').pop();
                                     const isImage = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);

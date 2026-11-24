@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { ROUTES } from '@/lib/routes';
+import { FILE_BASE_URL } from '@/api/client';
 import { EVENTS } from '@/lib/events';
 import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
 import { fetchBranchesCached } from '@/hooks/useBranches';
@@ -273,7 +275,7 @@ export default function MaterialCardDetails() {
       if (response.success) {
         showToast('Site transfer and associated files deleted successfully', 'success');
         setTimeout(() => {
-          navigate('/dashboard/material/site-transfers');
+          navigate(ROUTES.adminMaterial.siteTransfers);
         }, 1500);
       }
     } catch (err) {
@@ -635,7 +637,7 @@ export default function MaterialCardDetails() {
                   {transfer.attachments.map((attachment, index) => {
                     // Handle both old string format and new Cloudinary object format
                     const attachmentUrl = typeof attachment === 'string' ? attachment : attachment.url;
-                    const baseURL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5002';
+                    const baseURL = FILE_BASE_URL;
                     const fileURL = attachmentUrl.startsWith('http') ? attachmentUrl : `${baseURL}/${attachmentUrl}`;
                     const fileName = attachmentUrl.split('/').pop();
                     const isImage = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
@@ -894,7 +896,7 @@ export default function MaterialCardDetails() {
                 {transfer.attachments.map((attachment, index) => {
                   // Handle both old string format and new Cloudinary object format
                   const attachmentUrl = typeof attachment === 'string' ? attachment : attachment.url;
-                  const baseURL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5002';
+                  const baseURL = FILE_BASE_URL;
                   const fileURL = attachmentUrl.startsWith('http') ? attachmentUrl : `${baseURL}/${attachmentUrl}`;
                   const fileName = attachmentUrl.split('/').pop();
                   const isImage = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);

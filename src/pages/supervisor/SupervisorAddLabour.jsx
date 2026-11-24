@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { ROUTES } from '@/lib/routes';
+import { getSelectedBranchName } from '@/lib/branchContext';
+import { getToken } from '@/lib/session';
 import { queryClient } from '@/lib/queryClient';
 import { USERS_KEY } from '@/hooks/useUsers';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -13,12 +16,12 @@ import { Input } from '@/components/ui/input';
 const SupervisorAddLabour = () => {
   const navigate = useNavigate();
   const { branchId } = useParams();
-  const token = localStorage.getItem('token');
+  const token = getToken();
   const [loading, setLoading] = useState(false);
   const [projectName, setProjectName] = useState('');
 
   React.useEffect(() => {
-    const storedBranchName = localStorage.getItem('selectedBranchName');
+    const storedBranchName = getSelectedBranchName();
     if (storedBranchName) {
       setProjectName(storedBranchName);
     }
@@ -101,7 +104,7 @@ const SupervisorAddLabour = () => {
       queryClient.invalidateQueries({ queryKey: USERS_KEY });
 
       toast.success('Labour added successfully!');
-      navigate(`/branch/${branchId}/labours`);
+      navigate(ROUTES.branch.labours(branchId));
     } catch (err) {
       console.error('Failed to add labour:', err);
       toast.error(err.response?.data?.message || 'Failed to add labour');
@@ -119,7 +122,7 @@ const SupervisorAddLabour = () => {
             <img width={179} height={64} src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
             <Button
               variant="ghost"
-              onClick={() => navigate(`/branch/${branchId}/labours`)}
+              onClick={() => navigate(ROUTES.branch.labours(branchId))}
               className="mobile-back-button px-4 py-2"
             >
               <FaArrowLeft size={14} />

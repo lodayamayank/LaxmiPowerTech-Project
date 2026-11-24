@@ -15,6 +15,7 @@ import {
   FaShoppingCart,
 } from "react-icons/fa";
 import { MdSettings, MdInventory } from "react-icons/md";
+import { ROUTES } from '@/lib/routes';
 import { IoDocumentTextOutline } from "react-icons/io5";
 import { BiUserCheck } from "react-icons/bi";
 import { NavLink, useLocation, matchPath } from "react-router-dom";
@@ -100,34 +101,34 @@ const AppSidebar = ({
   };
 
   const menuItems = [
-    { label: "Dashboard", icon: <FaClipboardList />, path: "/dashboard" },
-    { label: "My Team", icon: <FaUsers />, path: "/admin/my-team" },
+    { label: "Dashboard", icon: <FaClipboardList />, path: ROUTES.dashboard },
+    { label: "My Team", icon: <FaUsers />, path: ROUTES.myTeam },
     {
       label: "Attendance",
       icon: <BiUserCheck />,
       children: [
-        { label: "Live Dashboard", path: "/dashboard/live-attendance" },
-        { label: "Supervisor", path: "/attendance/supervisor" },
-        { label: "Subcontractor", path: "/attendance/subcontractor" },
-        { label: "Labour", path: "/attendance/labour" },
-        { label: "Notes", path: "/attendance/notes" },
-        { label: "Leaves", path: "/attendance/leaves", badge: pendingLeaveCount },
-        { label: "Reimbursements", path: "/admin/reimbursements", badge: pendingReimbursementCount },
-        { label: "Delete Records", path: "/admin/attendance/delete" },
+        { label: "Live Dashboard", path: ROUTES.attendance.live },
+        { label: "Supervisor", path: ROUTES.attendance.supervisor },
+        { label: "Subcontractor", path: ROUTES.attendance.subcontractor },
+        { label: "Labour", path: ROUTES.attendance.labour },
+        { label: "Notes", path: ROUTES.attendance.notes },
+        { label: "Leaves", path: ROUTES.attendance.leaves, badge: pendingLeaveCount },
+        { label: "Reimbursements", path: ROUTES.adminReimbursements, badge: pendingReimbursementCount },
+        { label: "Delete Records", path: ROUTES.deleteAttendance },
         {
           label: "Salary",
           icon: <FaMoneyBillWave />,
           children: [
-            { label: "Dashboard", path: "/admin/salary" },
-            { label: "History", path: "/admin/salary-history" },
-            { label: "Holidays", path: "/admin/holidays" },
-            { label: "Policy", path: "/admin/salary-policy" },
+            { label: "Dashboard", path: ROUTES.salary.dashboard },
+            { label: "History", path: ROUTES.salary.history },
+            { label: "Holidays", path: ROUTES.salary.holidays },
+            { label: "Policy", path: ROUTES.salary.policy },
           ],
         },
       ],
     },
-    { label: "Projects", icon: <FaClipboardList />, path: "/admin/projects" },
-    { label: "Tasks", icon: <FaTasks />, path: "/admin/tasks" },
+    { label: "Projects", icon: <FaClipboardList />, path: ROUTES.projects },
+    { label: "Tasks", icon: <FaTasks />, path: ROUTES.tasks },
     {
       label: "Inventory",
       icon: <FaBoxes />,
@@ -136,27 +137,27 @@ const AppSidebar = ({
           label: "Material",
           icon: <MdInventory />,
           children: [
-            { label: "Upload Indent List", path: "/dashboard/material/uploadindent", icon: <FaFileUpload /> },
-            { label: "Intent (PO)", path: "/dashboard/material/intent", icon: <FaShoppingCart /> },
-            { label: "Site Transfers", path: "/dashboard/material/site-transfers", icon: <FaTruck /> },
-            { label: "Upcoming Deliveries", path: "/dashboard/material/upcoming-deliveries", icon: <FaClipboardCheck /> },
-            { label: "GRN", path: "/dashboard/material/grn", icon: <FaClipboardList /> },
+            { label: "Upload Indent List", path: ROUTES.adminMaterial.uploadIndent, icon: <FaFileUpload /> },
+            { label: "Intent (PO)", path: ROUTES.adminMaterial.intent, icon: <FaShoppingCart /> },
+            { label: "Site Transfers", path: ROUTES.adminMaterial.siteTransfers, icon: <FaTruck /> },
+            { label: "Upcoming Deliveries", path: ROUTES.adminMaterial.upcomingDeliveries, icon: <FaClipboardCheck /> },
+            { label: "GRN", path: ROUTES.adminMaterial.grn, icon: <FaClipboardList /> },
           ],
         },
         {
           label: "Labour",
           icon: <FaHardHat />,
           children: [
-            { label: "Manage Labour", path: "/dashboard/inventory/labour/manage" },
+            { label: "Manage Labour", path: ROUTES.inventoryLabourManage },
           ],
         },
       ],
     },
-    { label: "Work Orders", icon: <IoDocumentTextOutline />, path: "/dashboard/work-orders" },
-    { label: "Reports", icon: <FaClipboardList />, path: "/dashboard/report" },
-    { label: "Vendors", icon: <FaUserCog />, path: "/dashboard/vendors" },
-    { label: "Branches", icon: <FaSitemap />, path: "/dashboard/branches" },
-    { label: "Settings", icon: <MdSettings />, path: "/dashboard/settings", disabled: true },
+    { label: "Work Orders", icon: <IoDocumentTextOutline />, path: ROUTES.workOrders },
+    { label: "Reports", icon: <FaClipboardList />, path: ROUTES.reports },
+    { label: "Vendors", icon: <FaUserCog />, path: ROUTES.vendors },
+    { label: "Branches", icon: <FaSitemap />, path: ROUTES.branches },
+    { label: "Settings", icon: <MdSettings />, path: ROUTES.settings, disabled: true },
   ];
 
   // Settings sits in the footer (above Logout), everything else in the scroll area

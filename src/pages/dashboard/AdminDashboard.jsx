@@ -1,5 +1,6 @@
 // src/pages/AdminDashboard.jsx
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
+import { getToken } from '@/lib/session';
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import axios from "@/api/client";
@@ -223,7 +224,7 @@ const AdminDashboard = () => {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [addEmployeeOpen, setAddEmployeeOpen] = useState(false);
 
-  const token = useMemo(() => localStorage.getItem("token"), []);
+  const token = useMemo(() => getToken(), []);
   const today = getToday();
   const hasCustomRange = Boolean(startDate || endDate);
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);

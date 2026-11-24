@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { ROUTES } from '@/lib/routes';
+import { getUser } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
 import { fetchBranchesCached } from '@/hooks/useBranches';
@@ -237,11 +239,11 @@ export default function IntentCardDetails() {
       // If neither worked, show error
       console.error('❌ Failed to load Intent PO with id:', id);
       showToast('Failed to load intent details', 'error');
-      navigate('/material/intent');
+      navigate(ROUTES.material.intent);
     } catch (err) {
       console.error('Error fetching details:', err);
       showToast('Failed to load intent details', 'error');
-      navigate('/material/intent');
+      navigate(ROUTES.material.intent);
     } finally {
       setLoading(false);
     }
@@ -273,7 +275,7 @@ export default function IntentCardDetails() {
       localStorage.setItem(EVENTS.intentRefresh, Date.now().toString());
       localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
       
-      navigate('/material/intent');
+      navigate(ROUTES.material.intent);
     } catch (err) {
       // Error deleting purchase order
       showToast('Failed to delete purchase order', 'error');
@@ -496,7 +498,7 @@ export default function IntentCardDetails() {
     )].sort((a, b) => a.localeCompare(b));
   };
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (getUser() || {});
 
   if (loading) {
     return (

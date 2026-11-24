@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
+import { isFieldRole } from '@/lib/roles';
 import { useUsers } from '@/hooks/useUsers';
 import { useProjects } from '@/hooks/useProjects';
 import axios from "@/api/client";
@@ -108,7 +109,7 @@ const AdminTasks = () => {
   const { data: projects } = useProjects();
   const { data: allUsers } = useUsers();
   const supervisors = useMemo(
-    () => allUsers.filter((u) => u.role === "supervisor" || u.role === "subcontractor"),
+    () => allUsers.filter((u) => isFieldRole(u.role)),
     [allUsers]
   );
   const [loading, setLoading] = useState(true);

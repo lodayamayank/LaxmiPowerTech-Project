@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { getToken } from '@/lib/session';
 import { useProjects } from '@/hooks/useProjects';
 import DashboardLayout from '@/layouts/desktop/DashboardLayout';
 import axios from '@/api/client';
@@ -23,7 +24,7 @@ const AttendancePage = () => {
   const [selectedProject, setSelectedProject] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState('');
-  const token = localStorage.getItem('token');
+  const token = getToken();
 
   useEffect(() => {
     if (selectedProject && selectedMonth) {

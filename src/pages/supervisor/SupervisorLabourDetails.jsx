@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { ROUTES } from '@/lib/routes';
+import { getSelectedBranchName } from '@/lib/branchContext';
+import { getToken } from '@/lib/session';
 import { queryClient } from '@/lib/queryClient';
 import { USERS_KEY } from '@/hooks/useUsers';
 import { useNavigate, useParams } from "react-router-dom";
@@ -15,7 +18,7 @@ const SupervisorLabourDetails = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [projectName, setProjectName] = useState("");
-  const token = localStorage.getItem("token");
+  const token = getToken();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -30,7 +33,7 @@ const SupervisorLabourDetails = () => {
   });
 
   useEffect(() => {
-    const storedBranchName = localStorage.getItem("selectedBranchName");
+    const storedBranchName = getSelectedBranchName();
     if (storedBranchName) {
       setProjectName(storedBranchName);
     }
@@ -59,7 +62,7 @@ const SupervisorLabourDetails = () => {
     } catch (err) {
       console.error("Failed to fetch labour details:", err);
       toast.error("Failed to load labour details");
-      navigate(`/branch/${branchId}/labours`);
+      navigate(ROUTES.branch.labours(branchId));
     } finally {
       setLoading(false);
     }
@@ -106,7 +109,7 @@ const SupervisorLabourDetails = () => {
       queryClient.invalidateQueries({ queryKey: USERS_KEY });
 
       toast.success("Labour updated successfully!");
-      navigate(`/branch/${branchId}/labours`);
+      navigate(ROUTES.branch.labours(branchId));
     } catch (err) {
       console.error("Failed to update labour:", err);
       toast.error(err.response?.data?.message || "Failed to update labour");
@@ -130,7 +133,7 @@ const SupervisorLabourDetails = () => {
       });
       queryClient.invalidateQueries({ queryKey: USERS_KEY });
       toast.success("Labour deleted successfully");
-      navigate(`/branch/${branchId}/labours`);
+      navigate(ROUTES.branch.labours(branchId));
     } catch (err) {
       console.error("Failed to delete labour:", err);
       toast.error("Failed to delete labour");
@@ -161,7 +164,7 @@ const SupervisorLabourDetails = () => {
             />
             <Button
               variant="ghost"
-              onClick={() => navigate(`/branch/${branchId}/labours`)}
+              onClick={() => navigate(ROUTES.branch.labours(branchId))}
               className="mobile-back-button px-4 py-2"
             >
               <FaArrowLeft size={14} />

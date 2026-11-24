@@ -1,10 +1,20 @@
 // src/utils/axios.js
 import axios from 'axios';
-import { queryClient } from '@/lib/queryClient';
+import { ROUTES } from '@/lib/routes';
+import { clearSession, getToken } from '@/lib/session';
 
 // Use environment variable for API base URL
 // Always points to Render backend (no localhost fallback)
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://laxmipowertech-backend-1.onrender.com/api';
+
+/** API base URL (ends with /api). */
+export const API_BASE_URL = baseURL;
+
+/**
+ * Server origin for uploaded files and images (the API URL without /api).
+ * Kept exactly as the pages computed it: note its fallback (localhost:5002) differs from the one above.
+ */
+export const FILE_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5002';
 
 const instance = axios.create({
   baseURL,
@@ -15,7 +25,7 @@ const instance = axios.create({
 // Request interceptor
 instance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -37,9 +47,8 @@ instance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.clear();
-      queryClient.clear();
-      window.location.href = '/login';
+      clearSession({ all: true });
+      window.location.href = ROUTES.login;
     }
     return Promise.reject(error);
   }

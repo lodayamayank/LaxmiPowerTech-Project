@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ROUTES } from '@/lib/routes';
 import { useParams, useNavigate } from 'react-router-dom';
 import { X, Package, Calendar, MapPin, User, FileText, CheckCircle } from 'lucide-react';
 import { FaArrowLeft } from 'react-icons/fa';
@@ -32,13 +33,13 @@ export default function GRNCardDetails() {
           setDelivery(grnRecord);
         } else {
           showToast('GRN record not found', 'error');
-          navigate('/material/grn');
+          navigate(ROUTES.material.grn);
         }
       }
     } catch (err) {
       console.error('Error fetching GRN details:', err);
       showToast('Failed to load GRN details', 'error');
-      navigate('/material/grn');
+      navigate(ROUTES.material.grn);
     } finally {
       setLoading(false);
     }

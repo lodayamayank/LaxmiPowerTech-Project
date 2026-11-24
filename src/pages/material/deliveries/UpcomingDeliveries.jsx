@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { isFieldRole } from '@/lib/roles';
+import { ROUTES } from '@/lib/routes';
+import { getUser } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import usePolling from '@/hooks/usePolling';
 import { fetchBranchesCached } from '@/hooks/useBranches';
@@ -29,7 +32,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
     const [filterDateTo, setFilterDateTo] = useState('');
     const [sites, setSites] = useState([]);
 
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = (getUser() || {});
     const userAssignedBranches = user?.assignedBranches || [];
     const selectedBranchId = getSelectedBranchId();
     const selectedBranchName = getSelectedBranchName();
@@ -51,7 +54,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
             
             // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
             let filteredBranches = branches;
-            if (selectedBranchId && (user.role === 'supervisor' || user.role === 'subcontractor')) {
+            if (selectedBranchId && isFieldRole(user.role)) {
                 filteredBranches = branches.filter(branch => branch._id === selectedBranchId);
                 console.log('🔒 Upcoming Deliveries - Single branch mode:', selectedBranchName);
             } else if (userAssignedBranches && userAssignedBranches.length > 0) {
@@ -158,7 +161,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
         }
         
         // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
-        if (selectedBranchName && (user.role === 'supervisor' || user.role === 'subcontractor')) {
+        if (selectedBranchName && isFieldRole(user.role)) {
             const fromSite = delivery.from;
             const toSite = delivery.to;
             // Show delivery ONLY if either 'from' or 'to' matches SELECTED branch
@@ -248,7 +251,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
 
     const handleClick = (delivery) => {
         // Navigate with delivery data in state
-        navigate(`/dashboard/material/deliveries/${delivery._id}`, {
+        navigate(ROUTES.adminMaterial.deliveryDetail(delivery._id), {
             state: {
                 item: {
                     id: delivery._id,

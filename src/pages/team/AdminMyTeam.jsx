@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { getToken } from '@/lib/session';
 import { queryClient } from '@/lib/queryClient';
 import { useProjects } from '@/hooks/useProjects';
 import { useBranches } from '@/hooks/useBranches';
@@ -159,7 +160,7 @@ const AdminMyTeam = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
 
-  const token = localStorage.getItem("token");
+  const token = getToken();
   const headers = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {

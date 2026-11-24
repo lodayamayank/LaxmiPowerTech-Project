@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { isFieldRole } from '@/lib/roles';
+import { ROUTES } from '@/lib/routes';
+import { getUser } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import usePolling from '@/hooks/usePolling';
 import { fetchBranchesCached } from '@/hooks/useBranches';
@@ -33,7 +36,7 @@ export default function Intent({ isTabView = false }) {
   const [showPopup, setShowPopup] = useState(false);
   
   // Get user and selected branch for data isolation
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (getUser() || {});
   const userAssignedBranches = user?.assignedBranches || [];
   const selectedBranchId = getSelectedBranchId();
   const selectedBranchName = getSelectedBranchName();
@@ -68,7 +71,7 @@ export default function Intent({ isTabView = false }) {
       
       // ✅ CRITICAL: For supervisor/subcontractor with selected branch, show ONLY that branch
       let filteredBranches = branches;
-      if (selectedBranchId && (user.role === 'supervisor' || user.role === 'subcontractor')) {
+      if (selectedBranchId && isFieldRole(user.role)) {
         // Single branch isolation - show only selected branch
         filteredBranches = branches.filter(branch => branch._id === selectedBranchId);
         console.log('🔒 Intent - Single branch mode:', selectedBranchName);
@@ -176,7 +179,7 @@ export default function Intent({ isTabView = false }) {
       ));
       
       // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
-      if (selectedBranchName && (user.role === 'supervisor' || user.role === 'subcontractor')) {
+      if (selectedBranchName && isFieldRole(user.role)) {
         console.log('🔒 Intent - STRICT ISOLATION: Filtering by selected branch only:', selectedBranchName);
         
         combinedData = combinedData.filter(item => {
@@ -457,7 +460,7 @@ export default function Intent({ isTabView = false }) {
               key={indent._id}
               onClick={() => {
                 // Navigate to intent detail page
-                navigate(`/material/intent-details/${indent._id}`);
+                navigate(ROUTES.material.intentDetail(indent._id));
               }}
               className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
             >
@@ -596,7 +599,7 @@ export default function Intent({ isTabView = false }) {
             onClose={() => setShowPopup(false)}
             onUploadClick={() => {
               setShowPopup(false);
-              navigate('/material/intent/new');
+              navigate(ROUTES.material.intentNew);
             }}
           />
         )}
@@ -656,7 +659,7 @@ export default function Intent({ isTabView = false }) {
           onClose={() => setShowPopup(false)}
           onUploadClick={() => {
             setShowPopup(false);
-            navigate('/material/upload-photo');
+            navigate(ROUTES.material.uploadPhoto);
           }}
         />
       )}

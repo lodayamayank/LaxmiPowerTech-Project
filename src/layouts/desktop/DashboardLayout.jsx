@@ -15,9 +15,11 @@ import {
   FaClipboardList,
 } from "react-icons/fa";
 import { MdNotificationsActive } from "react-icons/md";
+import { ROUTES } from '@/lib/routes';
+import { STORAGE_KEYS, ROLES } from '@/lib/constants';
+import { clearSession, getUserRaw } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import usePolling from '@/hooks/usePolling';
-import { queryClient } from '@/lib/queryClient';
 import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import axios from "@/api/client";
@@ -28,8 +30,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import AppSidebar from "./AppSidebar";
 
-const LEAVE_CACHE_KEY = "pendingLeaveCount";
-const REIMBURSEMENT_CACHE_KEY = "pendingReimbursementCount";
+const LEAVE_CACHE_KEY = STORAGE_KEYS.pendingLeaveCount;
+const REIMBURSEMENT_CACHE_KEY = STORAGE_KEYS.pendingReimbursementCount;
 
 const readCachedCount = (key) => {
   try {
@@ -44,7 +46,7 @@ const writeCachedCount = (key, count) => {
   } catch {}
 };
 const canSeeApprovals = (user) =>
-  user?.role === "admin" || user?.role === "supervisor";
+  user?.role === ROLES.admin || user?.role === ROLES.supervisor;
 
 // Orange icon button used in the topbar (hamburger, theme toggle, bell, calendar)
 const ICON_BTN =
@@ -85,16 +87,16 @@ const DashboardLayoutContent = ({
   const location = useLocation();
 
   const materialQuickLinks = [
-    { label: "Upload", path: "/dashboard/material/uploadindent", icon: <FaFileUpload /> },
-    { label: "Intent PO", path: "/dashboard/material/intent", icon: <FaShoppingCart /> },
-    { label: "Transfers", path: "/dashboard/material/site-transfers", icon: <FaTruck /> },
-    { label: "Deliveries", path: "/dashboard/material/upcoming-deliveries", icon: <FaClipboardCheck /> },
-    { label: "GRN", path: "/dashboard/material/grn", icon: <FaClipboardList /> },
+    { label: "Upload", path: ROUTES.adminMaterial.uploadIndent, icon: <FaFileUpload /> },
+    { label: "Intent PO", path: ROUTES.adminMaterial.intent, icon: <FaShoppingCart /> },
+    { label: "Transfers", path: ROUTES.adminMaterial.siteTransfers, icon: <FaTruck /> },
+    { label: "Deliveries", path: ROUTES.adminMaterial.upcomingDeliveries, icon: <FaClipboardCheck /> },
+    { label: "GRN", path: ROUTES.adminMaterial.grn, icon: <FaClipboardList /> },
   ];
 
   const showMaterialQuickLinks = location.pathname.startsWith('/dashboard/material/');
-  const LEAVE_CACHE_KEY = "pendingLeaveCount";
-  const REIMBURSEMENT_CACHE_KEY = "pendingReimbursementCount";
+  const LEAVE_CACHE_KEY = STORAGE_KEYS.pendingLeaveCount;
+  const REIMBURSEMENT_CACHE_KEY = STORAGE_KEYS.pendingReimbursementCount;
 
   return (
     <div className="flex w-screen h-screen overflow-hidden bg-muted">
@@ -407,13 +409,13 @@ const DashboardLayout = ({ children, title }) => {
 
   // ── useEffect: dark mode + user ──────────────────────────────────────────────
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem("darkMode") === "true";
+    const savedDarkMode = localStorage.getItem(STORAGE_KEYS.darkMode) === "true";
     setDarkMode(savedDarkMode);
     if (savedDarkMode) {
       document.documentElement.classList.add("dark");
     }
 
-    const userData = localStorage.getItem("user");
+    const userData = getUserRaw();
     if (userData) {
       try {
         setUser(JSON.parse(userData));
@@ -442,7 +444,7 @@ const DashboardLayout = ({ children, title }) => {
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
     setDarkMode(newDarkMode);
-    localStorage.setItem("darkMode", newDarkMode.toString());
+    localStorage.setItem(STORAGE_KEYS.darkMode, newDarkMode.toString());
 
     if (newDarkMode) {
       document.documentElement.classList.add("dark");
@@ -515,16 +517,8 @@ const DashboardLayout = ({ children, title }) => {
 
   // ── handleLogout ─────────────────────────────────────────────────────────────
   const handleLogout = () => {
-    sessionStorage.removeItem(LEAVE_CACHE_KEY);
-    sessionStorage.removeItem(REIMBURSEMENT_CACHE_KEY);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    queryClient.clear();
-    localStorage.removeItem("role");
-    localStorage.removeItem("loginTime");
-    localStorage.removeItem("selectedBranchId");
-    localStorage.removeItem("selectedBranchName");
-    navigate("/login", { replace: true });
+    clearSession();
+    navigate(ROUTES.login, { replace: true });
   };
 
   return (

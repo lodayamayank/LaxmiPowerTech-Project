@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { ROLES } from '@/lib/constants';
+import { getSelectedBranchName } from '@/lib/branchContext';
+import { getUser } from '@/lib/session';
 import { fetchProjectsCached } from '@/hooks/useProjects';
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "@/api/client";
@@ -101,8 +104,8 @@ const FieldSelect = ({
 const TaskSubmission = () => {
   const navigate = useNavigate();
   const { branchId } = useParams();
-  const user = JSON.parse(localStorage.getItem("user"));
-  const selectedBranchName = localStorage.getItem("selectedBranchName");
+  const user = getUser();
+  const selectedBranchName = getSelectedBranchName();
 
   const [availableProjects, setAvailableProjects] = useState([]); // All projects in this branch
   const [selectedProject, setSelectedProject] = useState(null); // Currently selected project
@@ -1325,7 +1328,7 @@ const TaskSubmission = () => {
 
                 {/* Action Buttons - Only show if task is pending */}
                 {selectedTask.status === "pending" &&
-                  user?.role === "admin" && (
+                  user?.role === ROLES.admin && (
                     <div className="mt-6 flex gap-3">
                       <Button
                         onClick={() =>

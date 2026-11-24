@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { ROUTES } from '@/lib/routes';
 import { submitOffline } from "@/pwa/offlineSubmit";
 import { useNavigate } from "react-router-dom";
 import {
@@ -137,7 +138,7 @@ import MobileBackButton from "@/layouts/mobile/MobileBackButton";
       } else {
         toast.success("Reimbursement submitted successfully!");
       }
-      navigate("/reimbursements");
+      navigate(ROUTES.reimbursements);
     } catch (err) {
       console.error("Submission error:", err);
       toast.error(err.response?.data?.message || "Failed to submit reimbursement");

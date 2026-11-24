@@ -1,6 +1,9 @@
 // RoleBasedDashboard.jsx - Add error handling
 import React, { lazy, Suspense } from 'react';
-import { queryClient } from '@/lib/queryClient';
+import { ROLES } from '@/lib/constants';
+import { isFieldRole } from '@/lib/roles';
+import { ROUTES } from '@/lib/routes';
+import { clearSession, getToken, getUserRaw } from '@/lib/session';
 import { useNavigate } from 'react-router-dom';
 
 // Each role only loads its own dashboard chunk.
@@ -25,8 +28,8 @@ const RoleBasedDashboard = () => {
   const navigate = useNavigate();
   
   try {
-    const userString = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
+    const userString = getUserRaw();
+    const token = getToken();
     
     console.log('🔍 RoleBasedDashboard - Checking user...');
     console.log('📦 User string from localStorage:', userString);
@@ -34,7 +37,7 @@ const RoleBasedDashboard = () => {
     
     if (!userString || !token) {
       console.error('❌ No user or token found, redirecting to login');
-      navigate('/login');
+      navigate(ROUTES.login);
       return null;
     }
     
@@ -45,7 +48,7 @@ const RoleBasedDashboard = () => {
     console.log('🎭 User role detected:', role);
     console.log('📋 Full user data:', JSON.stringify(user, null, 2));
     
-    if (role === 'admin') {
+    if (role === ROLES.admin) {
       console.log('✅ Rendering AdminDashboard for role:', role);
       return (
         <Suspense fallback={<LoadingFallback />}>
@@ -54,7 +57,7 @@ const RoleBasedDashboard = () => {
       );
     }
     
-    if (role === 'supervisor' || role === 'subcontractor') {
+    if (isFieldRole(role)) {
       console.log('✅ Rendering SupervisorDashboard for role:', role);
       return (
         <Suspense fallback={<LoadingFallback />}>
@@ -63,7 +66,7 @@ const RoleBasedDashboard = () => {
       );
     }
     
-    if (role === 'labour' || role === 'staff') {
+    if (role === ROLES.labour || role === ROLES.staff) {
       console.log('✅ Rendering LabourDashboard for role:', role);
       return (
         <Suspense fallback={<LoadingFallback />}>
@@ -80,7 +83,7 @@ const RoleBasedDashboard = () => {
           <h1 className="text-2xl font-bold text-red-600 mb-4">❌ Unknown Role</h1>
           <p className="text-gray-600 mb-4">Role: {role || 'undefined'}</p>
           <button 
-            onClick={() => navigate('/login')}
+            onClick={() => navigate(ROUTES.login)}
             className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
           >
             Go to Login
@@ -97,9 +100,8 @@ const RoleBasedDashboard = () => {
           <p className="text-gray-600 mb-4">{err.message}</p>
           <button 
             onClick={() => {
-              localStorage.clear();
-              queryClient.clear();
-              navigate('/login');
+              clearSession({ all: true });
+              navigate(ROUTES.login);
             }}
             className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
           >

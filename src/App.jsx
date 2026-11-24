@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { getUser } from '@/lib/session';
 import { useEffect, lazy, Suspense } from 'react';
 import { migrateLegacyOfflinePunches } from '@/pwa/syncAttendance';
 import { toast } from 'sonner';
@@ -98,7 +99,7 @@ const LoadingFallback = () => (
 );
 
 function App() {
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = getUser();
   const notifier = useNotifier();
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 // src/pages/Leaves.jsx
 import { useEffect, useRef, useState } from "react";
+import { ROUTES } from '@/lib/routes';
 import axios from "@/api/client";
 import { submitOffline } from "@/pwa/offlineSubmit";
 import Webcam from "react-webcam";
@@ -170,7 +171,7 @@ export default function Leaves() {
      <>
        <MobileShell>
          <MobileHeader>
-           <MobileBackButton onClick={() => navigate("/dashboard")} />
+           <MobileBackButton onClick={() => navigate(ROUTES.dashboard)} />
 
            <div className="text-center pt-8">
              <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-lg border-4 border-white/30 mx-auto mb-3">

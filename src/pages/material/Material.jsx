@@ -1,4 +1,7 @@
 import React from "react";
+import { isFieldRole } from '@/lib/roles';
+import { ROUTES } from '@/lib/routes';
+import { getUser } from '@/lib/session';
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, FileText, Truck, Package, ClipboardCheck } from "lucide-react";
 import { MdFolder } from "react-icons/md";
@@ -12,7 +15,7 @@ import { Button } from "@/components/ui/button";
 export default function Material({ activeTab }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (getUser() || {});
   
   // Get branchId from location state if passed from supervisor/subcontractor flow
   const branchId = location.state?.branchId;
@@ -31,10 +34,10 @@ export default function Material({ activeTab }) {
   const currentTab = getCurrentTab();
 
   const tabs = [
-    { name: 'Intent', path: '/material/intent', key: 'intent', icon: FileText, color: 'blue' },
-    { name: 'Material Transfer', path: '/material/transfer', key: 'transfer', icon: Truck, color: 'orange' },
-    { name: 'Upcoming Deliveries', path: '/material/deliveries', key: 'deliveries', icon: Package, color: 'purple' },
-    { name: 'GRN', path: '/material/grn', key: 'grn', icon: ClipboardCheck, color: 'green' },
+    { name: 'Intent', path: ROUTES.material.intent, key: 'intent', icon: FileText, color: 'blue' },
+    { name: 'Material Transfer', path: ROUTES.material.transfer, key: 'transfer', icon: Truck, color: 'orange' },
+    { name: 'Upcoming Deliveries', path: ROUTES.material.deliveries, key: 'deliveries', icon: Package, color: 'purple' },
+    { name: 'GRN', path: ROUTES.material.grn, key: 'grn', icon: ClipboardCheck, color: 'green' },
   ];
 
   const renderContent = () => {
@@ -62,7 +65,7 @@ export default function Material({ activeTab }) {
             <Button
               variant="ghost"
               className="mobile-back-button h-auto px-3 py-2 text-white hover:bg-white/20 hover:text-white"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate(ROUTES.dashboard)}
             >
               <ArrowLeft size={18} className="size-[18px]" />
               <span className="text-sm font-semibold">Back</span>
@@ -73,7 +76,7 @@ export default function Material({ activeTab }) {
           </div>
           <div className="text-center">
             <h1 className="text-white text-xl font-bold">Material Management</h1>
-            {selectedBranchName && (user.role === 'supervisor' || user.role === 'subcontractor') && (
+            {selectedBranchName && isFieldRole(user.role) && (
               <div className="mt-2 flex items-center justify-center gap-2">
                 <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1.5">
                   <MdFolder className="text-white" size={14} />

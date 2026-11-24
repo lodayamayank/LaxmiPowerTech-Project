@@ -1,4 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { ROLES } from '@/lib/constants';
+import { ROUTES } from '@/lib/routes';
+import { getToken } from '@/lib/session';
 import { queryClient } from '@/lib/queryClient';
 import { USERS_KEY } from '@/hooks/useUsers';
 import DashboardLayout from '@/layouts/desktop/DashboardLayout';
@@ -106,7 +109,7 @@ const SalaryDashboard = () => {
   const [expandedRow, setExpandedRow] = useState(null);
   const [otherEdits, setOtherEdits] = useState({}); // { [userId]: { amount, type, saving } }
 
-  const token = localStorage.getItem('token');
+  const token = getToken();
 
   // Calculate salary date info (10th of every month)
   const salaryDateInfo = useMemo(() => {
@@ -525,7 +528,7 @@ const SalaryDashboard = () => {
                 <div className="flex gap-3">
                   <Button
                     onClick={() =>
-                      (window.location.href = "/admin/salary-history")
+                      (window.location.href = ROUTES.salary.history)
                     }
                     className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600"
                   >
@@ -775,11 +778,11 @@ const SalaryDashboard = () => {
                             <Badge
                               variant="outline"
                               className={`capitalize ${
-                                item.role === "admin"
+                                item.role === ROLES.admin
                                   ? "bg-purple-50 text-purple-800 border-purple-200"
-                                  : item.role === "staff"
+                                  : item.role === ROLES.staff
                                   ? "bg-blue-50 text-blue-800 border-blue-200"
-                                  : item.role === "labour"
+                                  : item.role === ROLES.labour
                                   ? "bg-green-50 text-green-800 border-green-200"
                                   : "bg-gray-50 text-gray-800 border-gray-200"
                               }`}

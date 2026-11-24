@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { queryClient } from '@/lib/queryClient';
+import { isFieldRole } from '@/lib/roles';
+import { ROUTES } from '@/lib/routes';
+import { clearSession, getToken, getUser, setSelectedBranchName } from '@/lib/session';
+import { getSelectedBranchName } from '@/lib/branchContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import fingerprint from '@/assets/fingerprint.png';
 import layer2 from '@/assets/calendar.png';
@@ -14,15 +17,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
 const LabourDashboard = () => {
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = getUser();
   const navigate = useNavigate();
   const { branchId } = useParams(); // Get branchId from route params if accessed from supervisor flow
   const [projectName, setProjectName] = useState('');
-  const token = localStorage.getItem('token');
+  const token = getToken();
 
   // Determine if this is a Supervisor viewing VPS dashboard (via branchId route)
   // Profile should NOT show for Supervisor in VPS dashboard, only for actual Labour/Staff users
-  const isSupervisorVPSView = branchId && (user?.role === 'supervisor' || user?.role === 'subcontractor');
+  const isSupervisorVPSView = branchId && isFieldRole(user?.role);
   const showProfile = !isSupervisorVPSView; // Show Profile only if NOT supervisor viewing VPS
 
   // Fetch branch/project name when supervisor views this page
@@ -34,7 +37,7 @@ const LabourDashboard = () => {
 
   const fetchBranchName = async () => {
     // PRIORITY 1: Try to get from localStorage first (set by SupervisorProjectList)
-    const storedBranchName = localStorage.getItem('selectedBranchName');
+    const storedBranchName = getSelectedBranchName();
     if (storedBranchName) {
       setProjectName(storedBranchName);
       // Success - no need for API call
@@ -48,7 +51,7 @@ const LabourDashboard = () => {
       });
       if (res.data && res.data.name) {
         setProjectName(res.data.name);
-        localStorage.setItem('selectedBranchName', res.data.name);
+        setSelectedBranchName(res.data.name);
       } else {
         // API returned but no name
         setProjectName('Project');
@@ -61,14 +64,8 @@ const LabourDashboard = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    queryClient.clear();
-    localStorage.removeItem('role');
-    localStorage.removeItem('loginTime');
-    localStorage.removeItem('selectedBranchId');
-    localStorage.removeItem('selectedBranchName');
-    navigate('/login', { replace: true });
+    clearSession();
+    navigate(ROUTES.login, { replace: true });
   };
 
   return (
@@ -144,7 +141,7 @@ const LabourDashboard = () => {
                   label="Material"
                   icon={null}
                   iconComponent={<MdInventory className="w-full h-full text-white" />}
-                  onClick={() => navigate('/material/intent', { state: { branchId } })}
+                  onClick={() => navigate(ROUTES.material.intent, { state: { branchId } })}
                   gradient="from-teal-400 to-teal-500"
                   bgColor="bg-teal-50"
                 />
@@ -152,7 +149,7 @@ const LabourDashboard = () => {
                   label="Task"
                   icon={null}
                   iconComponent={<FaTasks className="w-full h-full text-white" />}
-                  onClick={() => navigate(`/branch/${branchId}/tasks`)}
+                  onClick={() => navigate(ROUTES.branch.tasks(branchId))}
                   gradient="from-indigo-400 to-indigo-500"
                   bgColor="bg-indigo-50"
                 />
@@ -160,14 +157,14 @@ const LabourDashboard = () => {
                   label="Labour"
                   icon={null}
                   iconComponent={<FaUsers className="w-full h-full text-white" />}
-                  onClick={() => navigate(`/branch/${branchId}/labours`)}
+                  onClick={() => navigate(ROUTES.branch.labours(branchId))}
                   gradient="from-pink-400 to-pink-500"
                   bgColor="bg-pink-50"
                 />
                 <DashboardCard
                   label="Team Attendance"
                   icon={layer2}
-                  onClick={() => navigate(`/branch/${branchId}/team-attendance`)}
+                  onClick={() => navigate(ROUTES.branch.teamAttendance(branchId))}
                   gradient="from-green-400 to-green-500"
                   bgColor="bg-green-50"
                 />
@@ -178,7 +175,7 @@ const LabourDashboard = () => {
                 <DashboardCard
                   label="Mark Attendance"
                   icon={fingerprint}
-                  onClick={() => navigate('/punch')}
+                  onClick={() => navigate(ROUTES.punch)}
                   gradient="from-green-400 to-green-500"
                   bgColor="bg-green-50"
                 />
@@ -193,7 +190,7 @@ const LabourDashboard = () => {
                   <DashboardCard
                     label="Profile"
                     icon={avatar}
-                    onClick={() => navigate('/profile')}
+                    onClick={() => navigate(ROUTES.profile)}
                     gradient="from-purple-400 to-purple-500"
                     bgColor="bg-purple-50"
                   />
@@ -208,7 +205,7 @@ const LabourDashboard = () => {
                 <DashboardCard
                   label="Reimbursement"
                   icon={money}
-                  onClick={() => navigate('/reimbursements')}
+                  onClick={() => navigate(ROUTES.reimbursements)}
                   gradient="from-orange-400 to-orange-500"
                   bgColor="bg-orange-50"
                 />
@@ -217,7 +214,7 @@ const LabourDashboard = () => {
                     label="Connect to Server"
                     icon={null}
                     iconComponent={<FaServer className="w-full h-full text-white" />}
-                    onClick={() => navigate('/connect-server')}
+                    onClick={() => navigate(ROUTES.connectServer)}
                     gradient="from-purple-400 to-purple-500"
                     bgColor="bg-purple-50"
                   />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { getToken } from '@/lib/session';
 import { useProjects } from '@/hooks/useProjects';
 import { useBranches } from '@/hooks/useBranches';
 import axios from "@/api/client";
@@ -127,7 +128,7 @@ const ROLE_OPTIONS = [
 ];
 
 const EditUserModal = ({ user, onClose, onSave }) => {
-  const token = localStorage.getItem("token");
+  const token = getToken();
   const [activeTab, setActiveTab] = useState("basic");
   const [form, setForm] = useState(user || {});
   const { data: branchesRaw } = useBranches();

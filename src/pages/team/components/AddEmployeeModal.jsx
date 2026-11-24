@@ -1,5 +1,7 @@
 // src/components/AddEmployeeModal.jsx
 import React, { useEffect, useMemo, useState } from "react";
+import { ROLES } from '@/lib/constants';
+import { getToken } from '@/lib/session';
 import { queryClient } from '@/lib/queryClient';
 import { USERS_KEY } from '@/hooks/useUsers';
 import axios from "@/api/client";
@@ -105,7 +107,7 @@ const AddEmployeeModal = ({ open, onOpenChange, onCreated }) => {
 
   useEffect(() => {
     if (!open || (branches.length && roleOptions.length)) return;
-    const headers = { Authorization: `Bearer ${localStorage.getItem("token")}` };
+    const headers = { Authorization: `Bearer ${getToken()}` };
     axios
       .get("/branches", { headers })
       .then((res) =>
@@ -201,7 +203,7 @@ const AddEmployeeModal = ({ open, onOpenChange, onCreated }) => {
     try {
       setSubmitting(true);
       await axios.post("/users/register", payload, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
       });
       queryClient.invalidateQueries({ queryKey: USERS_KEY });
       toast.success(`${formData.name} added successfully`);
@@ -367,7 +369,7 @@ const AddEmployeeModal = ({ open, onOpenChange, onCreated }) => {
             {errors.role && <p className="text-xs text-destructive">{errors.role}</p>}
           </Section>
 
-          {formData.role !== "admin" && (
+          {formData.role !== ROLES.admin && (
             <Section step={4} title="Branch access">
               <div className="rounded-lg border">
                 <div className="flex items-center gap-2 border-b p-2">

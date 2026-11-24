@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { getToken, getUser } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import axios from "@/api/client";
 import { useNavigate } from "react-router-dom";
@@ -38,14 +39,14 @@ const MyAttendance = () => {
   const [month, setMonth] = useState(new Date().getMonth());
   const [year, setYear] = useState(new Date().getFullYear());
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+  const token = getToken();
 
   // localStorage can legitimately be empty (logged-out state, cleared
   // storage, etc.) — guard against JSON.parse(null) blowing up downstream
   // whenever user._id is read.
   const user = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem("user")) || {};
+      return getUser() || {};
     } catch {
       return {};
     }

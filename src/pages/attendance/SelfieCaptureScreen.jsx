@@ -1,5 +1,7 @@
 // src/screens/SelfieCaptureScreen.jsx
 import React, { useEffect, useRef, useState } from "react";
+import { ROUTES } from '@/lib/routes';
+import { getUserRaw } from '@/lib/session';
 import { useNavigate, useLocation } from "react-router-dom";
 import ConfirmModal from "@/pages/attendance/components/ConfirmModal";
 import FaceCamera from "@/pages/attendance/components/FaceCamera";
@@ -29,7 +31,7 @@ const devLog = (...args) => { if (isDev) console.log(...args); };
 // manual tampering, interrupted write). Never let JSON.parse crash render.
 function readStoredUser() {
   try {
-    const raw = localStorage.getItem("user");
+    const raw = getUserRaw();
     return raw ? JSON.parse(raw) : null;
   } catch (err) {
     console.error("SelfieCaptureScreen: failed to parse stored user.", err);
@@ -65,7 +67,7 @@ const SelfieCaptureScreen = () => {
   useEffect(() => {
     if (!hasRequiredParams) {
       toast.error("Missing punch details. Please start again from the dashboard.");
-      navigate("/dashboard", { replace: true });
+      navigate(ROUTES.dashboard, { replace: true });
     }
     // Only needs to run once on mount; locationState is fixed for this screen instance.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -180,7 +182,7 @@ const SelfieCaptureScreen = () => {
       } else {
         toast.success("✅ Punch recorded successfully!");
       }
-      navigate("/dashboard");
+      navigate(ROUTES.dashboard);
     } catch (err) {
       console.error('❌ Punch error:', err.response?.status, err.response?.data, err.message);
       toast.error(`❌ Failed to punch: ${extractErrorMessage(err, "Please try again.")}`);
@@ -232,7 +234,7 @@ const SelfieCaptureScreen = () => {
       } else {
         toast.success(result.data?.message || "Attendance recorded successfully!");
       }
-      navigate("/dashboard");
+      navigate(ROUTES.dashboard);
     } catch (err) {
       console.error("❌ Supervisor code punch error:", err.response?.status, err.response?.data, err.message);
       toast.error(`❌ ${extractErrorMessage(err, "Failed to record attendance.")}`);

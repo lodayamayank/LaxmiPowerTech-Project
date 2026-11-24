@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { queryClient } from '@/lib/queryClient';
+import { ROUTES } from '@/lib/routes';
+import { setSession } from '@/lib/session';
 import { useNavigate } from "react-router-dom";
 import axios from "@/api/client";
 import logo from "@/assets/logo.png";
@@ -65,12 +66,9 @@ const Login = () => {
         _id: data.user.id || data.user._id,
       };
 
-      queryClient.clear(); // never show a previous user's cached data
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(userToSave));
-      localStorage.setItem("loginTime", Date.now());
+      setSession({ token: data.token, user: userToSave });
 
-      navigate("/dashboard");
+      navigate(ROUTES.dashboard);
     } catch (err) {
       console.error("Login error:", err);
 

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { ROUTES } from '@/lib/routes';
+import { getUser } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
 import { ArrowLeft, X, Upload, ChevronDown } from 'lucide-react';
@@ -116,7 +118,7 @@ export default function IntentForm() {
   const [submitting, setSubmitting] = useState(false);
   
   // Get logged-in user from localStorage
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (getUser() || {});
   const userName = user?.name || '';
   const userId = user?._id || user?.id || '';
   
@@ -358,7 +360,7 @@ export default function IntentForm() {
         alert('Intent (PO) created successfully!');
         
         // Redirect to Indent tab
-        navigate('/material/intent');
+        navigate(ROUTES.material.intent);
       }
     } catch (error) {
       // Error creating purchase order
@@ -377,7 +379,7 @@ export default function IntentForm() {
           <Button
             variant="ghost"
             className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
-            onClick={() => navigate('/material/intent')}
+            onClick={() => navigate(ROUTES.material.intent)}
             disabled={submitting}
           >
             <FaArrowLeft size={16} />
@@ -724,7 +726,7 @@ export default function IntentForm() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate('/material/intent')}
+                onClick={() => navigate(ROUTES.material.intent)}
                 className="flex-1 h-auto bg-white border-2 border-gray-200 text-gray-700 font-semibold py-3.5 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
                 disabled={submitting}
               >

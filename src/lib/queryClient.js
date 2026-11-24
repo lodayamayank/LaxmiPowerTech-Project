@@ -1,6 +1,7 @@
 // src/lib/queryClient.js
 // Shared TanStack Query client + helpers for scoping cached data to the signed-in user.
 import { QueryClient } from '@tanstack/react-query';
+import { STORAGE_KEYS } from './constants';
 
 /** App-wide client. Reference data (branches, projects, ...) is cached for 5 minutes. */
 export const queryClient = new QueryClient({
@@ -21,7 +22,7 @@ export const queryClient = new QueryClient({
  */
 export function userScope() {
   try {
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(localStorage.getItem(STORAGE_KEYS.user));
     return `${user?._id || user?.id || 'anon'}:${user?.role || 'none'}`;
   } catch {
     return 'anon:none';

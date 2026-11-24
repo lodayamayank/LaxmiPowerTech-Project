@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { ROUTES } from '@/lib/routes';
+import { getToken, getUser, storeUser } from '@/lib/session';
 import { useNavigate } from "react-router-dom";
 import axios from "@/api/client";
 import { readPunchStatus, writePunchStatus } from "@/lib/punchStatusCache";
@@ -147,7 +149,7 @@ const PunchInScreen = () => {
   // site with no signal — which is exactly when someone needs to punch.
   const readCachedUser = () => {
     try {
-      return JSON.parse(localStorage.getItem("user") || "null");
+      return getUser();
     } catch {
       return null;
     }
@@ -159,11 +161,11 @@ const PunchInScreen = () => {
 
     try {
       const res = await axios.get("/auth/me", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
       });
       setUser(res.data.user);
       // Keep the offline copy current, including branch assignments/radii.
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      storeUser(res.data.user);
     } catch (err) {
       console.error(err);
       // Only a genuine problem if we have nothing cached to fall back on.
@@ -181,7 +183,7 @@ const PunchInScreen = () => {
 
     try {
       const res = await axios.get("/attendance/today", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
       });
       const status = {
         punchedIn: res.data.punchedIn || cached?.punchedIn || false,
@@ -216,7 +218,7 @@ const PunchInScreen = () => {
     // complete punch (selfie included) through the sync engine. Short-circuiting
     // to a local queue at this point is what used to drop the punch entirely,
     // since a punch with no selfie is not something the backend can accept.
-    navigate("/selfie", {
+    navigate(ROUTES.selfie, {
       state: {
         punchType: type,
         location: { lat, lng },

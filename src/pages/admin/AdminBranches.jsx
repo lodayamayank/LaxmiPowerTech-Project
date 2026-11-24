@@ -1,4 +1,5 @@
 import React, { useRef, useState, useCallback } from "react";
+import { getToken } from '@/lib/session';
 import { queryClient } from '@/lib/queryClient';
 import { useBranches, BRANCHES_KEY } from '@/hooks/useBranches';
 import axios from "@/api/client";
@@ -133,12 +134,12 @@ const AdminBranches = () => {
     try {
       if (editingId) {
         await axios.put(`/branches/${editingId}`, payload, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${getToken()}` },
         });
         toast.success("Branch updated");
       } else {
         await axios.post("/branches", payload, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${getToken()}` },
         });
         toast.success("Branch created");
       }
@@ -156,7 +157,7 @@ const AdminBranches = () => {
     if (!window.confirm("Are you sure you want to delete this branch?")) return;
     try {
       await axios.delete(`/branches/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
       });
       toast.success("Branch deleted");
       queryClient.invalidateQueries({ queryKey: BRANCHES_KEY });

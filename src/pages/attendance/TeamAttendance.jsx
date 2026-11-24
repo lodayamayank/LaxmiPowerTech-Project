@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { ROUTES } from '@/lib/routes';
+import { getSelectedBranchName } from '@/lib/branchContext';
+import { getToken } from '@/lib/session';
 import { fetchUsersCached } from '@/hooks/useUsers';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from '@/api/client';
@@ -27,8 +30,8 @@ const buildDateTime = (date, time) => {
 const TeamAttendance = () => {
   const navigate = useNavigate();
   const { branchId } = useParams();
-  const token = localStorage.getItem('token');
-  const projectName = localStorage.getItem('selectedBranchName') || 'Project';
+  const token = getToken();
+  const projectName = getSelectedBranchName() || 'Project';
 
   // ── Tab: 'summary' | 'mark' ──────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState('summary');
@@ -246,7 +249,7 @@ const TeamAttendance = () => {
             <img width={179} height={64} src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
             <Button
               variant="ghost"
-              onClick={() => navigate(`/branch/${branchId}/labour-dashboard`)}
+              onClick={() => navigate(ROUTES.branch.labourDashboard(branchId))}
               className="mobile-back-button px-4 py-2"
             >
               <FaArrowLeft size={14} />

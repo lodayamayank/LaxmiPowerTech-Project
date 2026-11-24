@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import { ROUTES } from '@/lib/routes';
+import { getUser } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaCamera, FaCheckCircle, FaImages } from "react-icons/fa";
@@ -21,7 +23,7 @@ export default function UploadPhoto() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (getUser() || {});
 
   // Generate Intent ID on mount
   useEffect(() => {
@@ -137,7 +139,7 @@ export default function UploadPhoto() {
 
       if (result.offline) {
         toast.info('📴 Offline – photo saved and will upload when you reconnect.');
-        setTimeout(() => navigate('/material/intent'), 1500);
+        setTimeout(() => navigate(ROUTES.material.intent), 1500);
         return;
       }
 
@@ -152,7 +154,7 @@ export default function UploadPhoto() {
 
         // Navigate back to Intent page after short delay
         setTimeout(() => {
-          navigate('/material/intent');
+          navigate(ROUTES.material.intent);
         }, 1500);
       }
     } catch (error) {
@@ -176,7 +178,7 @@ export default function UploadPhoto() {
             type="button"
             variant="ghost"
             className="mobile-back-button absolute top-6 left-6 h-auto"
-            onClick={() => navigate('/material/intent')}
+            onClick={() => navigate(ROUTES.material.intent)}
           >
             <FaArrowLeft size={16} />
             <span className="text-sm font-medium">Back</span>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getToken } from '@/lib/session';
 import { queryClient } from '@/lib/queryClient';
 import { useVendors, VENDORS_KEY } from '@/hooks/useVendors';
 import DashboardLayout from '@/layouts/desktop/DashboardLayout';
@@ -45,7 +46,7 @@ const AdminVendors = () => {
   const [editId, setEditId] = useState(null);
   const [errors, setErrors] = useState({});
 
-  const token = localStorage.getItem('token');
+  const token = getToken();
 
   const validate = () => {
     const newErrors = {};

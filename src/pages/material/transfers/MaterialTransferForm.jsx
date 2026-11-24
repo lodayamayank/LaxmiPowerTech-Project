@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { ROUTES } from '@/lib/routes';
+import { getUser } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import { fetchBranchesCached } from '@/hooks/useBranches';
 import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
@@ -133,7 +135,7 @@ export default function MaterialTransferForm() {
   const [submitting, setSubmitting] = useState(false);
   
   // Get logged-in user from localStorage
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (getUser() || {});
   const userName = user?.name || '';
   
   // Auto-resolve From Site from selected project
@@ -534,7 +536,7 @@ export default function MaterialTransferForm() {
         
         // Navigate back after short delay
         setTimeout(() => {
-          navigate('/material/transfer');
+          navigate(ROUTES.material.transfer);
         }, 1500);
       }
     } catch (err) {
@@ -561,7 +563,7 @@ export default function MaterialTransferForm() {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <button
             className="mobile-back-button absolute top-6 left-6"
-            onClick={() => navigate('/material/transfer')}
+            onClick={() => navigate(ROUTES.material.transfer)}
             disabled={submitting}
           >
             <ArrowLeft size={16} />
@@ -958,7 +960,7 @@ export default function MaterialTransferForm() {
             <div className="flex gap-3 mt-6">
               <button
                 type="button"
-                onClick={() => navigate('/material/transfer')}
+                onClick={() => navigate(ROUTES.material.transfer)}
                 className="flex-1 bg-white border-2 border-gray-200 text-gray-700 font-semibold py-3.5 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
                 disabled={submitting}
               >

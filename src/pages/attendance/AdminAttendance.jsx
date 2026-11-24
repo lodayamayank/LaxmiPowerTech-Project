@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { getToken } from '@/lib/session';
 import { useProjects } from '@/hooks/useProjects';
 import DashboardLayout from '@/layouts/desktop/DashboardLayout';
 import axios from '@/api/client';
@@ -21,7 +22,7 @@ const AdminAttendance = ({role}) => {
   const [selectedProject, setSelectedProject] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState('');
-  const token = localStorage.getItem('token');
+  const token = getToken();
 
   const fetchAttendanceSummary = useCallback(async () => {
     try {

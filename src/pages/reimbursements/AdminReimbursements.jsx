@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { getToken } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import axios from "@/api/client";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
@@ -71,7 +72,7 @@ const AdminReimbursements = () => {
   const [total, setTotal] = useState(0);
 
   // ✅ FIX: Memoize token
-  const token = useMemo(() => localStorage.getItem("token"), []);
+  const token = useMemo(() => getToken(), []);
 
   const totalPages = Math.max(Math.ceil(total / limit), 1);
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { getToken } from '@/lib/session';
 import axios from "@/api/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -151,7 +152,7 @@ const AttendanceGraphModal = ({ user, onClose }) => {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const token = localStorage.getItem("token");
+  const token = getToken();
   const userId = getUserId(user);
 
   const range = useMemo(() => {
