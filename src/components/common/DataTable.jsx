@@ -21,7 +21,7 @@ const STICKY_CELL =
   "sticky right-0 z-[1] bg-surface shadow-[inset_1px_0_0_hsl(var(--line))] group-hover/row:bg-surface-subtle group-data-[selected=true]/row:bg-primary-soft";
 const STICKY_HEAD = "sticky right-0 z-[2] bg-surface-subtle shadow-[inset_1px_0_0_hsl(var(--line))]";
 
-const DENSITY = { compact: "px-3 py-2.5", comfortable: "px-4 py-3.5" };
+const DENSITY = { compact: "px-3 py-2.5", list: "px-4 py-3", comfortable: "px-4 py-3.5" };
 
 const textOf = (node) => (typeof node === "string" || typeof node === "number" ? String(node) : undefined);
 
@@ -46,7 +46,7 @@ const colClass = (col, isHead) =>
  * - emptyState {node}: shown when rows is empty (default: <EmptyState title="No records found" />)
  * - onRowClick {(row)=>void}: makes rows clickable (and keyboard-activatable)
  * - footer {node}: rendered under the table (usually <PaginationBar />)
- * - density {"compact"|"comfortable"}: cell padding, default "compact" (px-3 py-2.5)
+ * - density {"compact"|"list"|"comfortable"}: cell padding, default "compact" (px-3 py-2.5); "list" is px-4 py-3
  * - mobileCard {(row, index)=>node}: below md, rows render as a stacked card list (divide-y, p-4) instead of the table;
  *   loading and empty states work in both
  * - selectable {boolean}: adds a first checkbox column (and a checkbox in each mobile card); needs rowKey

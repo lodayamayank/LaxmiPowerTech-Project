@@ -19,7 +19,8 @@ export default function useMemberProfile(userId) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [records, setRecords] = useState([]);
-  const now = useMemo(() => new Date(), []);
+  const [monthDate, setMonthDate] = useState(() => new Date());
+  const shiftMonth = (delta) => setMonthDate((d) => new Date(d.getFullYear(), d.getMonth() + delta, 1));
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -42,8 +43,8 @@ export default function useMemberProfile(userId) {
 
   useEffect(() => {
     let ignore = false;
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const start = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+    const end = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
     axios
       .get(`/attendance/user/${userId}`, { headers: { Authorization: `Bearer ${getToken()}` }, params: { startDate: toDateKey(start), endDate: toDateKey(end) } })
       .then((res) => {
@@ -55,9 +56,15 @@ export default function useMemberProfile(userId) {
     return () => {
       ignore = true;
     };
-  }, [userId, now]);
+  }, [userId, monthDate]);
 
-  const days = useMemo(() => computeDailyStatuses(records, now.getMonth(), now.getFullYear()), [records, now]);
+  const days = useMemo(() => computeDailyStatuses(records, monthDate.getMonth(), monthDate.getFullYear()), [records, monthDate]);
+  // Display-only estimate: hours worked beyond the member's standard day, summed over the month.
+  const overtimeHours = useMemo(() => {
+    const std = Number(user?.standardDailyHours) || 0;
+    if (!std) return 0;
+    return days.reduce((sum, d) => sum + Math.max(0, (Number(d.minutes) || 0) / 60 - std), 0);
+  }, [days, user]);
 
   const resetPassword = async (username) => {
     try {
@@ -74,5 +81,5 @@ export default function useMemberProfile(userId) {
     ? (Array.isArray(user.assignedBranches) ? user.assignedBranches : []).map((b) => (typeof b === "object" && b?.name) || branches.find((x) => x._id === idOf(b))?.name || "").filter(Boolean)
     : [];
 
-  return { user, loading, error, reload: load, branches, projects, days, monthDate: now, resetPassword, projectName, branchNames };
+  return { user, loading, error, reload: load, branches, projects, days, monthDate, shiftMonth, overtimeHours, resetPassword, projectName, branchNames };
 }

@@ -3,7 +3,8 @@
 // this file lays out the page. Adding a member opens a side panel (also reached from /admin/my-team/new).
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { KeyRound, Plus, Trash2, Users } from "lucide-react";
+import { SlidersHorizontal, Upload, Plus, Users } from "lucide-react";
+import { toast } from "sonner";
 import useDebounce from "@/hooks/useDebounce";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import AttendanceGraphModal from "@/pages/attendance/components/AttendanceGraphModal";
@@ -17,7 +18,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { PaginationBar } from "@/components/common/PaginationBar";
 import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
-import { SegmentedControl } from "@/components/common/SegmentedControl";
+import { UnderlineTabs } from "@/components/common/UnderlineTabs";
 import AddEmployeeModal from "./components/AddEmployeeModal";
 import EditUserModal from "./components/EditUserModal";
 import useMyTeam, { roleLabel, roleValue } from "./components/useMyTeam";
@@ -37,6 +38,7 @@ const AdminMyTeam = () => {
   const location = useLocation();
   const [addOpen, setAddOpen] = useState(Boolean(location.state?.addMember));
   const [branchFilter, setBranchFilter] = useState(ALL);
+  const [selected, setSelected] = useState([]); // row selection (select-all checkbox in the design; no bulk action yet)
 
   // Search (name, username, mobile) and the branch filter run on the loaded list; the role tab filter is the existing one.
   const dSearch = useDebounce(searchTerm, 300);
@@ -79,15 +81,20 @@ const AdminMyTeam = () => {
         title="My team"
         description="Manage logins, roles and branch access for everyone on site."
         actions={
-          <Button onClick={() => setAddOpen(true)}>
-            <Plus /> Add member
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => toast.info("Importing members is not available yet")}>
+              <Upload /> Import
+            </Button>
+            <Button onClick={() => setAddOpen(true)}>
+              <Plus /> Add member
+            </Button>
+          </>
         }
       />
 
       <SectionCard flush>
-        <div className="overflow-x-auto border-b border-line px-4 py-3">
-          <SegmentedControl aria-label="Filter by role" value={filterRole || ALL} onChange={(v) => setFilterRole(v === ALL ? "" : v)} options={tabs} />
+        <div className="overflow-x-auto px-5">
+          <UnderlineTabs aria-label="Filter by role" value={filterRole || ALL} onChange={(v) => setFilterRole(v === ALL ? "" : v)} options={tabs} />
         </div>
 
         <FilterBar
@@ -98,10 +105,10 @@ const AdminMyTeam = () => {
           }}
           showClear={hasFilters}
         >
-          <FilterField label="Search members" htmlFor="team-filter-search" grow={22} minWidth={220}>
+          <FilterField htmlFor="team-filter-search" style={{ flex: "2 1 260px" }}>
             <SearchInput id="team-filter-search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onClear={() => setSearchTerm("")} placeholder="Search by name, username or mobile" />
           </FilterField>
-          <FilterField label="Branch" htmlFor="team-filter-branch" grow={12} minWidth={160} maxWidth={240}>
+          <FilterField label="Branch" htmlFor="team-filter-branch" style={{ flex: "1 1 200px" }}>
             <Select value={branchFilter} onValueChange={setBranchFilter}>
               <SelectTrigger id="team-filter-branch">
                 <SelectValue placeholder="All branches" />
@@ -116,6 +123,9 @@ const AdminMyTeam = () => {
               </SelectContent>
             </Select>
           </FilterField>
+          <Button type="button" variant="outline" onClick={() => toast.info("No additional filters yet")}>
+            <SlidersHorizontal /> More filters
+          </Button>
         </FilterBar>
 
         <DataTable
@@ -124,9 +134,16 @@ const AdminMyTeam = () => {
           rowKey="_id"
           loading={loading}
           mobileCard={mobileCard}
+          selectable
+          density="list"
+          selectedKeys={selected}
+          onSelectionChange={setSelected}
+          rowLabel={(u) => u.name}
           emptyState={<EmptyState icon={Users} title="No team members found" description={hasFilters ? "Try a different search, role or branch." : "Add your first member to get started."} />}
           footer={
             <PaginationBar
+              variant="compact"
+              itemNoun="members"
               currentPage={currentPage}
               totalPages={totalPages}
               totalItems={filtered.length}

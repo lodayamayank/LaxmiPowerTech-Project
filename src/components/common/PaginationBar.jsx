@@ -61,6 +61,7 @@ const PageSizeSelect = ({ value, options, onChange }) => (
  *
  * Variants:
  * - "footer" (default): table-footer bar. "Showing a-b of N", per-page select, Prev/Next, numbered pages
+ * - "compact": table footer "Showing a–b of N {itemNoun}", rows-per-page select and icon-only previous / next buttons
  * - "full": Card with first / prev / numbered pages / next / last (legacy)
  * - "simple": Card with Prev / Next (legacy)
  *
@@ -72,7 +73,8 @@ const PageSizeSelect = ({ value, options, onChange }) => (
  * - pageSize {number}: rows per page (legacy alias: rowsPerPage)
  * - onPageSizeChange {(n:number)=>void}: shows the per-page select when given (legacy alias: onRowsPerPageChange)
  * - pageSizeOptions {number[]} default [10, 20, 25, 50] (legacy alias: rowsPerPageOptions)
- * - variant {"footer"|"full"|"simple"}
+ * - itemNoun {string} default "records": noun in the compact variant ("members")
+ * - variant {"footer"|"compact"|"full"|"simple"}
  * - className {string}
  */
 export const PaginationBar = ({
@@ -88,6 +90,7 @@ export const PaginationBar = ({
   pageSizeOptions,
   rowsPerPageOptions,
   variant = "footer",
+  itemNoun = "records",
   className,
 }) => {
   const total = totalItems ?? totalRecords;
@@ -179,6 +182,32 @@ export const PaginationBar = ({
             onClick={() => onPageChange(Math.min(safeTotalPages, currentPage + 1))}
           >
             Next <ChevronRight />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Compact variant: "Showing 1–14 of 61 members", rows per page, previous / next icons.
+  if (variant === "compact") {
+    const range = total != null && size != null;
+    const from = total === 0 ? 0 : (currentPage - 1) * (size || 0) + 1;
+    const to = range ? Math.min(currentPage * size, total) : 0;
+    return (
+      <div className={cn("flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3 text-small text-ink-3", className)}>
+        <span>{range ? `Showing ${from}–${to} of ${total} ${itemNoun}` : total != null ? `${total} ${itemNoun}` : null}</span>
+        <div className="flex items-center gap-2">
+          {sizeSelect ? (
+            <>
+              <span>Rows per page</span>
+              {sizeSelect}
+            </>
+          ) : null}
+          <Button variant="outline" size="icon" aria-label="Previous page" disabled={isFirst} onClick={() => onPageChange(Math.max(1, currentPage - 1))}>
+            <ChevronLeft />
+          </Button>
+          <Button variant="outline" size="icon" aria-label="Next page" disabled={isLast} onClick={() => onPageChange(Math.min(safeTotalPages, currentPage + 1))}>
+            <ChevronRight />
           </Button>
         </div>
       </div>
