@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ROUTES } from '@/lib/routes';
-import { clearSession, getUser, setSelectedBranch } from '@/lib/session';
+import { clearSession, getUser, setSelectedBranch, setSelectedBranchName } from '@/lib/session';
 import { fetchBranchesCached } from '@/hooks/useBranches';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import axios from '@/api/client';
 import logo from '@/assets/logo.png';
-import { FaSignOutAlt, FaSearch, FaChevronRight, FaArrowLeft } from 'react-icons/fa';
+import { FaSignOutAlt, FaSearch, FaChevronRight, FaArrowLeft, FaFileAlt } from 'react-icons/fa';
 import { MdFolder } from 'react-icons/md';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,8 +17,9 @@ const SupervisorProjectList = () => {
   const user = getUser();
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [openingDocsFor, setOpeningDocsFor] = useState(null);
 
   useEffect(() => {
     fetchAssignedProjects();
@@ -30,23 +33,23 @@ const SupervisorProjectList = () => {
       // Filter branches based on user's assignedBranches array
       // User model has an 'assignedBranches' field that stores array of branch IDs
       let assignedBranches = [];
-      
+
       if (user.assignedBranches && user.assignedBranches.length > 0) {
         // Extract branch IDs from user.assignedBranches (handle both object and string formats)
-        const assignedBranchIds = user.assignedBranches.map(branch => 
-          typeof branch === 'object' ? branch._id : branch
+        const assignedBranchIds = user.assignedBranches.map((branch) =>
+          typeof branch === "object" ? branch._id : branch,
         );
-        
+
         // Filter branches to show only assigned ones
-        assignedBranches = res.data.filter(branch => 
-          assignedBranchIds.includes(branch._id)
+        assignedBranches = res.data.filter((branch) =>
+          assignedBranchIds.includes(branch._id),
         );
       }
-      
+
       // Only show assigned branches, never show all branches
       setProjects(assignedBranches);
     } catch (err) {
-      console.error('Failed to fetch branches', err);
+      console.error("Failed to fetch branches", err);
       // If API fails, show empty list
       setProjects([]);
     } finally {
@@ -67,8 +70,26 @@ const SupervisorProjectList = () => {
     navigate(ROUTES.branch.labourDashboard(branchId));
   };
 
-  const filteredProjects = projects.filter(project =>
-    project.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  // Resolve the branch's project only when the button is tapped, instead of
+  // downloading every project on page load.
+  const handleOpenDocuments = async (branchId, branchName) => {
+    setOpeningDocsFor(branchId);
+    try {
+      const res = await axios.get(`/documents/project-for-branch/${branchId}`);
+      setSelectedBranchName(branchName || "Selected Branch");
+      navigate(`/supervisor/project/${res.data.projectId}/documents`);
+    } catch (err) {
+      toast.error(
+        err?.response?.data?.message ||
+          "Could not open documents. Please try again.",
+      );
+    } finally {
+      setOpeningDocsFor(null);
+    }
+  };
+
+  const filteredProjects = projects.filter((project) =>
+    project.name?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -95,7 +116,9 @@ const SupervisorProjectList = () => {
                 title="Logout"
               >
                 <FaSignOutAlt size={14} />
-                <span className="hidden sm:inline text-sm font-medium">Logout</span>
+                <span className="hidden sm:inline text-sm font-medium">
+                  Logout
+                </span>
               </Button>
             </div>
           </div>
@@ -103,7 +126,9 @@ const SupervisorProjectList = () => {
           {/* Title Section */}
           <div className="mt-6">
             <h2 className="text-white text-2xl font-bold">My Projects</h2>
-            <p className="text-white/80 text-sm mt-1">Select a project to view details</p>
+            <p className="text-white/80 text-sm mt-1">
+              Select a project to view details
+            </p>
           </div>
         </div>
 
@@ -111,7 +136,10 @@ const SupervisorProjectList = () => {
         <div className="px-6 py-6 -mt-4">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-4">
             <div className="relative">
-              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <FaSearch
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={16}
+              />
               <Input
                 type="text"
                 placeholder="Search projects..."
@@ -133,51 +161,77 @@ const SupervisorProjectList = () => {
               <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
                 <MdFolder className="text-gray-400" size={40} />
               </div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">No Projects Found</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                No Projects Found
+              </h3>
               <p className="text-sm text-gray-500">
-                {searchTerm ? 'Try a different search term' : 'No branches assigned to you yet'}
+                {searchTerm
+                  ? "Try a different search term"
+                  : "No branches assigned to you yet"}
               </p>
             </div>
           ) : (
             <div className="space-y-3">
               {filteredProjects.map((project, index) => (
-                <button
-                  type="button"
+                <div
                   key={project._id || index}
-                  onClick={() => handleProjectClick(project._id, project.name)}
-                  className="block w-full text-left bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer transform transition-all duration-300 hover:scale-[1.02] hover:shadow-md active:scale-[0.98] group"
+                  className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center shadow-md">
-                        <MdFolder className="text-white" size={24} />
+                  {/* Main tap area -> labour dashboard */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleProjectClick(project._id, project.name)
+                    }
+                    className="block w-full text-left p-4 active:bg-gray-50 transition-colors group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center shadow-md">
+                          <MdFolder className="text-white" size={24} />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-800 text-sm mb-0.5">
+                            {project.name || "Unnamed Project"}
+                          </h3>
+                          <p className="text-xs text-gray-500">
+                            {project.location || "No location specified"}
+                          </p>
+                          {project.status && (
+                            <Badge
+                              className={`inline-block mt-1 px-2 py-0.5 rounded-full border-0 text-xs font-medium ${
+                                project.status === "active"
+                                  ? "bg-green-100 text-green-700 hover:bg-green-100"
+                                  : "bg-gray-100 text-gray-700 hover:bg-gray-100"
+                              }`}
+                            >
+                              {project.status}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-800 text-sm mb-0.5">
-                          {project.name || 'Unnamed Project'}
-                        </h3>
-                        <p className="text-xs text-gray-500">
-                          {project.location || 'No location specified'}
-                        </p>
-                        {project.status && (
-                          <Badge
-                            className={`inline-block mt-1 px-2 py-0.5 rounded-full border-0 text-xs font-medium ${
-                              project.status === 'active' 
-                                ? 'bg-green-100 text-green-700 hover:bg-green-100' 
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            {project.status}
-                          </Badge>
-                        )}
-                      </div>
+                      <FaChevronRight
+                        className="text-gray-400 group-hover:text-orange-500 transition-colors"
+                        size={16}
+                      />
                     </div>
-                    <FaChevronRight 
-                      className="text-gray-400 group-hover:text-orange-500 transition-colors" 
-                      size={16} 
-                    />
-                  </div>
-                </button>
+                  </button>
+
+                  {/* Documents shortcut: looks up the project on tap */}
+                  <button
+                    type="button"
+                    disabled={openingDocsFor === project._id}
+                    onClick={() =>
+                      handleOpenDocuments(project._id, project.name)
+                    }
+                    className="flex w-full items-center justify-center gap-2 border-t border-gray-100 bg-orange-50/60 py-2.5 text-xs font-semibold text-orange-600 active:bg-orange-100 transition-colors disabled:opacity-50"
+                  >
+                    <FaFileAlt size={12} />
+                    {openingDocsFor === project._id
+                      ? "Opening..."
+                      : "Documents"}
+                  </button>
+                </div>
               ))}
             </div>
           )}
@@ -186,9 +240,7 @@ const SupervisorProjectList = () => {
         {/* Footer */}
         <div className="px-6 pb-6 pt-2">
           <div className="text-center">
-            <p className="text-xs text-gray-400">
-              Powered by Laxmi Power Tech
-            </p>
+            <p className="text-xs text-gray-400">Powered by Laxmi Power Tech</p>
           </div>
         </div>
       </div>

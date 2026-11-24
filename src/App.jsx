@@ -8,6 +8,7 @@ import syncEngine from '@/pwa/syncEngine';
 import OfflineBanner from '@/pwa/OfflineBanner';
 import { Toaster } from "@/components/ui/sonner";
 
+
 // Eager load only critical components
 import PrivateRoute from '@/routes/PrivateRoute';
 import InstallPWA from '@/pwa/InstallPWA';
@@ -64,6 +65,9 @@ const AdminIntent = lazy(() => import('@/pages/material/intent/AdminIntent'));
 const AdminGRN = lazy(() => import('@/pages/material/grn/AdminGRN'));
 const UploadPhoto = lazy(() => import('@/pages/material/intent/UploadPhoto'));
 const Intent = lazy(() => import('@/pages/material/intent/Intent'));
+const ProjectDocuments = lazy(() => import('@/pages/documents/ProjectDocuments'));
+const DocumentsRedirect = lazy(() => import('@/pages/documents/DocumentsRedirect'));
+const SupervisorProjectDocuments = lazy(() => import('@/pages/documents/SupervisorProjectDocuments'));
 
 // Salary Management Pages - Lazy loaded
 const SalaryDashboard = lazy(() => import('@/pages/payroll/SalaryDashboard'));
@@ -165,6 +169,23 @@ function App() {
             }
           />
           <Route
+            path="/projects/:projectId/documents"
+            element={
+              <PrivateRoute>
+                <ProjectDocuments />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/documents"
+            element={
+              <PrivateRoute>
+                <DocumentsRedirect />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
             path="/punch"
             element={
               <PrivateRoute>
@@ -219,6 +240,15 @@ function App() {
             path="/supervisor/projects"
             element={<SupervisorProjectList />}
           />
+          <Route
+            path="/supervisor/project/:projectId/documents"
+            element={
+              <PrivateRoute>
+                <SupervisorProjectDocuments />
+              </PrivateRoute>
+            }
+          />
+
           <Route
             path="/branch/:branchId/labour-dashboard"
             element={<LabourDashboard />}

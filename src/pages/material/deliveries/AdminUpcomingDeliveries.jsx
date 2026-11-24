@@ -458,35 +458,35 @@ export default function AdminUpcomingDeliveries() {
     }
   };
 
-  // Delete All handler
-  const handleDeleteAll = async () => {
-    if (!window.confirm('Are you sure you want to delete all records? This action cannot be undone.')) {
-      return;
-    }
+   // Delete All handler
+  // const handleDeleteAll = async () => {
+  //   if (!window.confirm('Are you sure you want to delete all records? This action cannot be undone.')) {
+  //     return;
+  //   }
 
-    try {
-      setDeleting(true);
-      const response = await upcomingDeliveryAPI.deleteAll();
+  //   try {
+  //     setDeleting(true);
+  //     const response = await upcomingDeliveryAPI.deleteAll();
       
-      if (response.success) {
-        // Clear local state
-        setDeliveries([]);
-        setTotalPages(1);
-        setCurrentPage(1);
+  //     if (response.success) {
+  //       // Clear local state
+  //       setDeliveries([]);
+  //       setTotalPages(1);
+  //       setCurrentPage(1);
         
-        // Notify other components
-        window.dispatchEvent(new Event(EVENTS.intentCreated));
-        localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
+  //       // Notify other components
+  //       window.dispatchEvent(new Event(EVENTS.intentCreated));
+  //       localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
         
-        showToast(`Successfully deleted all ${response.deletedCount} upcoming deliveries`, 'success');
-      }
-    } catch (err) {
-      console.error('Delete all error:', err);
-      showToast(err.response?.data?.message || 'Failed to delete all upcoming deliveries', 'error');
-    } finally {
-      setDeleting(false);
-    }
-  };
+  //       showToast(`Successfully deleted all ${response.deletedCount} upcoming deliveries`, 'success');
+  //     }
+  //   } catch (err) {
+  //     console.error('Delete all error:', err);
+  //     showToast(err.response?.data?.message || 'Failed to delete all upcoming deliveries', 'error');
+  //   } finally {
+  //     setDeleting(false);
+  //   }
+  // };
 
   return (
     <DashboardLayout title="Upcoming Deliveries">
@@ -496,14 +496,14 @@ export default function AdminUpcomingDeliveries() {
           <h1 className="text-2xl font-semibold text-gray-800">Upcoming Deliveries</h1>
           <p className="text-sm text-gray-500">View and manage upcoming deliveries</p>
         </div>
-        <Button
+        {/* <Button
           onClick={handleDeleteAll}
           disabled={deliveries.length === 0 || deleting}
           className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
         >
           <Trash2 size={18} />
           {deleting ? 'Deleting...' : 'Delete All'}
-        </Button>
+        </Button> */}
       </div>
 
       {error && (

@@ -12,8 +12,15 @@ export const PROJECTS_KEY = ['projects'];
 /** Full query key for the current user. */
 export const projectsQueryKey = () => [...PROJECTS_KEY, userScope()];
 
-export function useProjects() {
-  const q = useQuery({ queryKey: projectsQueryKey(), queryFn: getProjects });
+/**
+ * @param {{ lite?: boolean }} [options] lite: ask the API for the lighter list (GET /projects?lite=true);
+ *   it is cached apart from the full list, but still invalidated by PROJECTS_KEY.
+ */
+export function useProjects({ lite = false } = {}) {
+  const q = useQuery({
+    queryKey: lite ? [...projectsQueryKey(), 'lite'] : projectsQueryKey(),
+    queryFn: () => getProjects(lite ? { lite: true } : undefined),
+  });
   return { data: q.data ?? EMPTY, isLoading: q.isLoading, error: q.error, refetch: q.refetch };
 }
 

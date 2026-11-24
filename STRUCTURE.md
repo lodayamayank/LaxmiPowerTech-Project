@@ -20,7 +20,7 @@ src/
   pages/<domain>/components/     components (and their hooks) used only by that domain
 ```
 
-Domains: account, admin, attendance, auth, dashboard, dev (styleguide), inventory, leaves,
+Domains: account, admin, attendance, auth, dashboard, dev (styleguide), documents, inventory, leaves,
 material (intent, transfers, deliveries, grn, indent, components), payroll, projects,
 reimbursements, reports, supervisor, team.
 

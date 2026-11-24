@@ -13,7 +13,7 @@ export function asArray(payload, key) {
 }
 
 export const getBranches = async () => asArray(await branchesAPI.getAll(), 'branches');
-export const getProjects = async () => asArray(await projectsAPI.getAll(), 'projects');
+export const getProjects = async (params) => asArray(await projectsAPI.getAll(params), 'projects');
 export const getVendors = async () => asArray(await vendorsAPI.getAll(), 'vendors');
 export const getMaterialCatalog = async () => asArray(await materialCatalogAPI.getMaterials(), 'materials');
 

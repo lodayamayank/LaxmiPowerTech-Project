@@ -1,20 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { fetchBranchesCached } from '@/hooks/useBranches';
-import { Search, Eye, Package, Receipt, Edit2, Save, XCircle, DollarSign, Download, FileText, FileSpreadsheet, Trash2, MapPin, TrendingUp } from 'lucide-react';
+import { Search, Eye, Package, Receipt, Edit2, Save, XCircle, DollarSign, Download, FileText, FileSpreadsheet, MapPin, TrendingUp } from 'lucide-react';
 import { upcomingDeliveryAPI } from '@/api/material';
 import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/desktop/DashboardLayout';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-
 import {
   Dialog,
   DialogContent,
@@ -95,8 +84,6 @@ export default function AdminGRN() {
     siteSummary: [],
     materialSummary: []
   });
-  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchGRNRecords();
@@ -345,37 +332,6 @@ export default function AdminGRN() {
     }
 
     setFilteredDeliveries(filtered);
-  };
-
-  // ✅ Delete All GRN Data (Admin Only)
-  const handleDeleteAllGRN = async () => {
-    try {
-      setIsDeleting(true);
-      console.log('🗑️ Deleting all GRN data...');
-      
-      const response = await upcomingDeliveryAPI.deleteAll();
-      
-      if (response.success) {
-        console.log('✅ All GRN data deleted successfully');
-        toast.success('All GRN data has been deleted successfully!');
-        
-        // Refresh the data
-        setDeliveries([]);
-        setFilteredDeliveries([]);
-        setShowDeleteConfirmModal(false);
-        
-        // Fetch fresh data
-        fetchGRNRecords();
-      } else {
-        console.error('❌ Failed to delete GRN data:', response.message);
-        toast.error('Failed to delete GRN data: ' + response.message);
-      }
-    } catch (error) {
-      console.error('❌ Error deleting GRN data:', error);
-      toast.error('Error deleting GRN data. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
   };
 
   const fetchSites = async () => {
@@ -1168,15 +1124,6 @@ export default function AdminGRN() {
               <TrendingUp className="mr-2 h-4 w-4" />
               {showAnalytics ? "Hide Analytics" : "Show Analytics"}
             </Button>
-            <Button
-              variant="destructive"
-              onClick={() => setShowDeleteConfirmModal(true)}
-              title="Delete all GRN data (Admin only)"
-              className="shadow-md"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete All GRN
-            </Button>
           </div>
         </div>
 
@@ -1833,7 +1780,7 @@ export default function AdminGRN() {
 
       {/* Details Modal */}
       <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
-        <DialogContent className="max-w-5xl sm:max-w-5xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl sm:max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>GRN Details</DialogTitle>
             <DialogDescription>
@@ -2157,7 +2104,7 @@ export default function AdminGRN() {
                       <TableHead className="border px-4 py-3 text-left font-semibold text-gray-700">
                         Unit Price (₹)
                       </TableHead>
-                      <TableHead className="border px-4 py-3 text-left font-semibold text-gray-700">
+                      <TableHead className="border px-4 py-3 text-left font-semibold text-gray-700 min-w-[320px]">
                         Discount
                       </TableHead>
                       <TableHead className="border px-4 py-3 text-left font-semibold text-gray-700 bg-green-50">
@@ -2189,7 +2136,7 @@ export default function AdminGRN() {
                                   e.target.value
                                 )
                               }
-                              className={`w-full ${materialControlClass}`}
+                              className={`w-full max-w-[160px] ${materialControlClass}`}
                               placeholder="Unit price"
                               step="0.01"
                               min="0"
@@ -2202,7 +2149,7 @@ export default function AdminGRN() {
                         </TableCell>
                         <TableCell className="border px-4 py-3">
                           {isEditMode ? (
-                            <div className="flex gap-2">
+                            <div className="flex items-center gap-2 min-w-[300px]">
                               <Select
                                 value={material.discountType || "flat"}
                                 onValueChange={(value) =>
@@ -2213,7 +2160,7 @@ export default function AdminGRN() {
                                   )
                                 }
                               >
-                                <SelectTrigger className={materialControlClass}>
+                                <SelectTrigger className={`${materialControlClass} w-[70px] shrink-0`}>
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -2231,7 +2178,7 @@ export default function AdminGRN() {
                                   )
                                 }
                               >
-                                <SelectTrigger className={materialControlClass}>
+                                <SelectTrigger className={`${materialControlClass} w-[105px] shrink-0`}>
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -2249,8 +2196,8 @@ export default function AdminGRN() {
                                     e.target.value
                                   )
                                 }
-                                className={`flex-1 ${materialControlClass}`}
-                                placeholder="Enter discount"
+                                className={`${materialControlClass} flex-1 min-w-[80px]`}
+                                placeholder="Amount"
                                 step={
                                   material.discountType === "percentage"
                                     ? "1"
@@ -2468,62 +2415,6 @@ export default function AdminGRN() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Modal */}
-      <AlertDialog
-        open={showDeleteConfirmModal}
-        onOpenChange={(open) => {
-          if (!isDeleting) {
-            setShowDeleteConfirmModal(open);
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
-              <Trash2 className="h-5 w-5" />
-              Delete All GRN Data?
-            </AlertDialogTitle>
-
-            <AlertDialogDescription asChild>
-              <div className="space-y-4">
-                <div className="rounded-lg border-2 border-red-200 bg-red-50 p-4">
-                  <p className="font-semibold text-red-800">
-                    ⚠️ This action is irreversible.
-                  </p>
-
-                  <p className="mt-2 text-sm text-red-700">
-                    You are about to permanently delete all GRN data, including:
-                  </p>
-
-                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
-                    <li>All GRN records</li>
-                    <li>All billing information</li>
-                    <li>All material delivery records</li>
-                    <li>All associated attachments</li>
-                  </ul>
-                </div>
-
-                <p className="text-sm text-muted-foreground">
-                  This will affect both Admin and Client panels and the data
-                  cannot be recovered.
-                </p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-
-            <AlertDialogAction
-              onClick={handleDeleteAllGRN}
-              disabled={isDeleting}
-              className="bg-red-600 text-white hover:bg-red-700"
-            >
-              {isDeleting ? "Deleting..." : "Yes, Delete All"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
       </TooltipProvider>
     </DashboardLayout>
   );

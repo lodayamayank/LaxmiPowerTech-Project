@@ -1013,43 +1013,6 @@ export default function AdminIntent() {
     }
   };
 
-  // Delete All handler
-  const handleDeleteAll = async () => {
-    try {
-      setDeleting(true);
-      
-      // Delete all purchase orders and indents
-      const [poResponse, indentResponse] = await Promise.all([
-        purchaseOrderAPI.deleteAll().catch(() => ({ success: false })),
-        indentAPI.deleteAll().catch(() => ({ success: false }))
-      ]);
-      
-      const poCount = poResponse.deletedCount || 0;
-      const indentCount = indentResponse.deletedCount || 0;
-      const totalCount = poCount + indentCount;
-      
-      if (totalCount > 0) {
-        // Clear local state
-        setIndents([]);
-        setTotalPages(1);
-        setCurrentPage(1);
-        
-        // Notify other components
-        window.dispatchEvent(new Event(EVENTS.intentCreated));
-        localStorage.setItem(EVENTS.intentRefresh, Date.now().toString());
-        
-        showToast(`Successfully deleted all ${totalCount} records`, 'success');
-      } else {
-        showToast('No records to delete', 'error');
-      }
-    } catch (err) {
-      console.error('Delete all error:', err);
-      showToast(err.response?.data?.message || 'Failed to delete all records', 'error');
-    } finally {
-      setDeleting(false);
-    }
-  };
-
   const latestUploadedIndent = indents.find(indent => indent.type === 'indent' && indent.imageUrl);
   const activeFilterCount = [filterSite, filterStatus, filterDateFrom, filterDateTo].filter(Boolean).length;
 
@@ -1090,18 +1053,6 @@ export default function AdminIntent() {
           >
             <Plus size={16} />
             Add to Latest
-          </Button>
-          <Button
-            onClick={() => setConfirmation({
-              title: 'Delete all records?',
-              description: 'Are you sure you want to delete all records? This action cannot be undone.',
-              onConfirm: handleDeleteAll
-            })}
-            disabled={indents.length === 0 || deleting}
-            className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-300"
-          >
-            <Trash2 size={16} />
-            {deleting ? 'Deleting...' : 'Delete All'}
           </Button>
         </div>
       </div>
@@ -1368,7 +1319,7 @@ export default function AdminIntent() {
                               Approve
                             </Button>
                           )}
-                          {indent.type === 'indent' && indent.imageUrl && (
+                          {indent.status?.toLowerCase() === 'pending' && (
                             <Button
                               onClick={(e) => {
                                 e.stopPropagation();

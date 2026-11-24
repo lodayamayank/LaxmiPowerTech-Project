@@ -258,8 +258,9 @@ export const upcomingDeliveryAPI = {
 
 // Projects API
 export const projectsAPI = {
-  getAll: async () => {
-    const response = await axios.get('/projects');
+  // params: e.g. { lite: true } for the lighter list used by the project manager screen
+  getAll: async (params) => {
+    const response = await axios.get('/projects', params ? { params } : undefined);
     return response.data;
   }
 };
