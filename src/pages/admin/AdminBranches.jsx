@@ -1,464 +1,100 @@
-import React, { useRef, useState, useCallback } from "react";
-import { getToken } from '@/lib/session';
-import { queryClient } from '@/lib/queryClient';
-import { useBranches, BRANCHES_KEY } from '@/hooks/useBranches';
-import axios from "@/api/client";
+// src/pages/admin/AdminBranches.jsx  (route: Branches)
+// Data, map handlers and save/delete live in components/useBranchesPage.js (moved unchanged); this file lays out the page.
+import { useEffect, useMemo, useState } from "react";
+import { MapPin } from "lucide-react";
+import useDebounce from "@/hooks/useDebounce";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
-import { toast } from 'sonner';
-import {
-  GoogleMap,
-  MarkerF,
-  CircleF,  
-  Autocomplete,
-  useJsApiLoader,
-} from "@react-google-maps/api";
-import {
-  FaMapMarkerAlt,
-  FaEdit,
-  FaTrash,
-  FaPlus,
-  FaCheck,
-  FaTimes,
-  FaBuilding,
-  FaRulerCombined,
-  FaSearchLocation
-} from "react-icons/fa";
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { DataTable } from "@/components/common/DataTable";
+import { EmptyState } from "@/components/common/EmptyState";
+import { FilterBar, FilterField } from "@/components/common/FilterBar";
+import { PageHeader } from "@/components/common/PageHeader";
+import { PaginationBar } from "@/components/common/PaginationBar";
+import { SearchInput } from "@/components/common/SearchInput";
+import { SectionCard } from "@/components/common/SectionCard";
+import { StatCard } from "@/components/common/StatCard";
+import BranchForm from "./components/BranchForm";
+import useBranchesPage from "./components/useBranchesPage";
+import { getBranchColumns, getBranchMobileCard } from "./components/branchColumns";
 
-const MAP_STYLE = { height: "400px", width: "100%" };
-const DEFAULT_CENTER = { lat: -33.8688, lng: 151.2093 };
-const DEFAULT_ZOOM = 5;
-// Google Maps needs a literal color string (it cannot read CSS variables). Matches the orange primary (orange-500).
-const MAP_PRIMARY_COLOR = "#f97316";
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 const AdminBranches = () => {
-  const { data: branches, isLoading: loading } = useBranches();
-  const [editingId, setEditingId] = useState(null);
+  const b = useBranchesPage();
+  const { branches, loading, handleEdit, handleDelete, deleteId, setDeleteId, confirmDelete } = b;
 
-  const [formData, setFormData] = useState({
-    address: "",
-    name: "",
-    lat: null,
-    lng: null,
-    radius: 100,
-  });
+  // Client-side search over the loaded list (same list request as before).
+  const [search, setSearch] = useState("");
+  const dSearch = useDebounce(search, 300);
+  const filtered = useMemo(() => {
+    const q = dSearch.trim().toLowerCase();
+    return q ? branches.filter((x) => `${x.name || ""} ${x.address || ""}`.toLowerCase().includes(q)) : branches;
+  }, [branches, dSearch]);
 
-  const [searchInput, setSearchInput] = useState("");
-  const autocompleteRef = useRef(null);
-  const mapRef = useRef(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  useEffect(() => {
+    setPage(1);
+  }, [filtered, pageSize]);
+  const totalPages = Math.max(Math.ceil(filtered.length / pageSize), 1);
+  const currentPage = Math.min(page, totalPages);
+  const pageRows = useMemo(() => filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize), [filtered, currentPage, pageSize]);
 
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-    libraries: ["places"],
-  });
-
-  const onMapLoad = useCallback((map) => {
-    mapRef.current = map;
-  }, []);
-
-  const panTo = useCallback((lat, lng, zoom = 15) => {
-    if (mapRef.current) {
-      mapRef.current.panTo({ lat, lng });
-      mapRef.current.setZoom(zoom);
-    }
-  }, []);
-
-  const reverseGeocode = async (lat, lng) => {
-    try {
-      const geocoder = new window.google.maps.Geocoder();
-      const { results } = await geocoder.geocode({ location: { lat, lng } });
-      return results?.[0]?.formatted_address || "Unknown location";
-    } catch (e) {
-      console.error("Reverse geocode failed", e);
-      return "Unknown location";
-    }
-  };
-
-  const handleMapClick = async (e) => {
-    const lat = e.latLng.lat();
-    const lng = e.latLng.lng();
-    const address = await reverseGeocode(lat, lng);
-
-    setFormData((prev) => ({
-      ...prev,
-      lat,
-      lng,
-      address,
-    }));
-    setSearchInput(address);
-    toast.success("Location selected!");
-  };
-
-  const onPlaceChanged = async () => {
-    const ac = autocompleteRef.current;
-    if (!ac) return;
-    const place = ac.getPlace();
-    if (!place || !place.geometry) return;
-
-    const lat = place.geometry.location.lat();
-    const lng = place.geometry.location.lng();
-    const address = place.formatted_address || place.name || searchInput;
-
-    setFormData((prev) => ({
-      ...prev,
-      lat,
-      lng,
-      address,
-    }));
-    setSearchInput(address);
-    panTo(lat, lng, 15);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.name || !formData.lat || !formData.lng) {
-      toast.error("Please provide name and location");
-      return;
-    }
-
-    const payload = {
-      name: formData.name,
-      lat: formData.lat,
-      lng: formData.lng,
-      radius: formData.radius,
-      address: formData.address,
-    };
-
-    try {
-      if (editingId) {
-        await axios.put(`/branches/${editingId}`, payload, {
-          headers: { Authorization: `Bearer ${getToken()}` },
-        });
-        toast.success("Branch updated");
-      } else {
-        await axios.post("/branches", payload, {
-          headers: { Authorization: `Bearer ${getToken()}` },
-        });
-        toast.success("Branch created");
-      }
-      setFormData({ name: "", lat: null, lng: null, radius: 100, address: "" });
-      setSearchInput("");
-      setEditingId(null);
-      queryClient.invalidateQueries({ queryKey: BRANCHES_KEY });
-    } catch (err) {
-      console.error("Error saving branch:", err);
-      toast.error("Failed to save branch");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this branch?")) return;
-    try {
-      await axios.delete(`/branches/${id}`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
-      toast.success("Branch deleted");
-      queryClient.invalidateQueries({ queryKey: BRANCHES_KEY });
-    } catch (e) {
-      toast.error("Failed to delete branch");
-    }
-  };
-
-  const handleEdit = (branch) => {
-    setEditingId(branch._id);
-    setFormData({
-      name: branch.name,
-      lat: branch.lat,
-      lng: branch.lng,
-      radius: branch.radius,
-      address: branch.address || "",
-    });
-    setSearchInput(branch.address || "");
-    if (branch.lat && branch.lng) panTo(branch.lat, branch.lng, 15);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setFormData({ name: "", lat: null, lng: null, radius: 100, address: "" });
-    setSearchInput("");
-  };
+  const handlers = useMemo(
+    () => ({ onEdit: handleEdit, onDelete: handleDelete }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+  const columns = useMemo(() => getBranchColumns(handlers), [handlers]);
+  const mobileCard = useMemo(() => getBranchMobileCard(handlers), [handlers]);
 
   return (
-    <DashboardLayout title="Branches">
-      <div className="space-y-6">
-        {/* Header */}
-        <div>
-          {/* <h1 className="text-2xl font-bold text-gray-800">Branch Management</h1> */}
-          <p className="text-sm text-muted-foreground mt-1">Manage your branch locations with geofencing</p>
-        </div>
+    <DashboardLayout>
+      <PageHeader eyebrow="Admin / Branches" title="Branches" description="Site locations and the geofence used for punch-in." />
 
-        {/* Stats Card */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground font-medium">Total Branches</p>
-                  <p className="text-3xl font-bold text-foreground mt-1">{branches.length}</p>
-                </div>
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <FaBuilding className="text-primary" size={20} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Form */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-4">
-            <CardTitle className="text-lg font-semibold text-foreground">
-              {editingId ? "Edit Branch" : "Add New Branch"}
-            </CardTitle>
-            {editingId && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={handleCancelEdit}
-                className="text-muted-foreground hover:text-foreground"
-                title="Cancel"
-              >
-                <FaTimes size={16} />
-              </Button>
-            )}
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="block mb-1.5 font-semibold">
-                    Branch Name <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="relative">
-                    <FaBuilding className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
-                    <Input
-                      type="text"
-                      className="pl-10"
-                      placeholder="Enter branch name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="block mb-1.5 font-semibold">
-                    Radius (meters) <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="relative">
-                    <FaRulerCombined className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
-                    <Input
-                      type="number"
-                      className="pl-10"
-                      placeholder="Enter radius"
-                      value={formData.radius}
-                      onChange={(e) =>
-                        setFormData({ ...formData, radius: parseInt(e.target.value || "0", 10) })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label className="block mb-1.5 font-semibold">Address</Label>
-                <div className="relative">
-                  <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
-                  <Input
-                    type="text"
-                    className="pl-10 bg-muted"
-                    readOnly
-                    value={formData.address || "Select location on map or search below"}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label className="block mb-1.5 font-semibold">
-                  Search Location <span className="text-destructive">*</span>
-                </Label>
-                {isLoaded ? (
-                  <Autocomplete
-                    onLoad={(ac) => (autocompleteRef.current = ac)}
-                    onPlaceChanged={onPlaceChanged}
-                  >
-                    <div className="relative">
-                      <FaSearchLocation className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
-                      <Input
-                        type="text"
-                        className="pl-10"
-                        placeholder="Search for a place or address"
-                        value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
-                      />
-                    </div>
-                  </Autocomplete>
-                ) : (
-                  <Input
-                    type="text"
-                    className="bg-muted"
-                    placeholder="Loading Google Maps..."
-                    disabled
-                  />
-                )}
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  💡 Tip: Try searching "Mahim Mumbai" or a PIN code if the full address fails.
-                </p>
-              </div>
-
-              <div>
-                <Label className="block mb-1.5 font-semibold">
-                  Select Location on Map
-                </Label>
-                {isLoaded && (
-                  <div className="rounded-lg overflow-hidden border border-border">
-                    <GoogleMap
-                      mapContainerStyle={MAP_STYLE}
-                      center={
-                        formData.lat && formData.lng
-                          ? { lat: formData.lat, lng: formData.lng }
-                          : DEFAULT_CENTER
-                      }
-                      zoom={formData.lat ? 15 : DEFAULT_ZOOM}
-                      options={{ disableDefaultUI: true, zoomControl: true, clickableIcons: false }}
-                      onLoad={onMapLoad}
-                      onClick={handleMapClick}
-                    >
-                      {formData.lat && formData.lng && (
-                        <>
-                          <MarkerF position={{ lat: formData.lat, lng: formData.lng }} />
-                          <CircleF
-                            center={{ lat: formData.lat, lng: formData.lng }}
-                            radius={Number(formData.radius) || 0}
-                            options={{ 
-                              fillColor: MAP_PRIMARY_COLOR,
-                              fillOpacity: 0.15, 
-                              strokeColor: MAP_PRIMARY_COLOR,
-                              strokeOpacity: 0.6, 
-                              strokeWeight: 2 
-                            }}
-                          />
-                        </>
-                      )}
-                    </GoogleMap>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center gap-3 pt-2">
-                <Button type="submit" className="gap-2">
-                  {editingId ? (
-                    <>
-                      <FaCheck size={14} />
-                      Update Branch
-                    </>
-                  ) : (
-                    <>
-                      <FaPlus size={14} />
-                      Save Branch
-                    </>
-                  )}
-                </Button>
-
-                {editingId && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCancelEdit}
-                  >
-                    Cancel
-                  </Button>
-                )}
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Branches Table */}
-        <Card>
-          <CardHeader className="border-b border-border">
-            <CardTitle className="text-lg font-semibold text-foreground">Branches List</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">Manage your existing branches</p>
-          </CardHeader>
-
-          <CardContent className="p-0 overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="font-semibold text-foreground">Name</TableHead>
-                  <TableHead className="font-semibold text-foreground">Address</TableHead>
-                  <TableHead className="font-semibold text-foreground">Radius (m)</TableHead>
-                  <TableHead className="font-semibold text-foreground">Coordinates</TableHead>
-                  <TableHead className="font-semibold text-foreground">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  Array.from({ length: 4 }).map((_, i) => (
-                    <TableRow key={`skeleton-${i}`}>
-                      <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-24" /></TableCell>
-                    </TableRow>
-                  ))
-                ) : branches.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-6">
-                      No branches found. Add your first branch above.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  branches.map((b) => (
-                    <TableRow key={b._id}>
-                      <TableCell className="font-medium text-foreground">{b.name}</TableCell>
-                      <TableCell className="text-muted-foreground max-w-xs truncate">
-                        {b.address || "—"}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{b.radius}</TableCell>
-                      <TableCell className="text-muted-foreground font-mono text-xs">
-                        {b.lat?.toFixed(6)}, {b.lng?.toFixed(6)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(b)}
-                            className="text-primary hover:text-primary hover:bg-primary/10 gap-1 font-medium"
-                          >
-                            <FaEdit size={14} />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(b._id)}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1 font-medium"
-                          >
-                            <FaTrash size={14} />
-                            Delete
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
+        <StatCard label="Total branches" value={branches.length} icon={MapPin} tone="highlight" />
       </div>
+
+      <BranchForm b={b} />
+
+      <SectionCard title="All branches" description={`${branches.length} branches`} flush>
+        <FilterBar onClear={() => setSearch("")} showClear={Boolean(search)}>
+          <FilterField label="Search branches" htmlFor="branch-filter-search" grow={22} minWidth={220}>
+            <SearchInput id="branch-filter-search" value={search} onChange={(e) => setSearch(e.target.value)} onClear={() => setSearch("")} placeholder="Search branches" />
+          </FilterField>
+        </FilterBar>
+
+        <DataTable
+          columns={columns}
+          rows={pageRows}
+          rowKey="_id"
+          loading={loading}
+          mobileCard={mobileCard}
+          emptyState={<EmptyState icon={MapPin} title="No branches found" description={search ? "Try a different search." : "Add your first branch above."} />}
+          footer={
+            <PaginationBar
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              pageSizeOptions={PAGE_SIZE_OPTIONS}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          }
+        />
+      </SectionCard>
+
+      <ConfirmDialog
+        open={Boolean(deleteId)}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        title="Delete branch?"
+        description="Are you sure you want to delete this branch?"
+        confirmLabel="Delete"
+        tone="destructive"
+        onConfirm={confirmDelete}
+      />
     </DashboardLayout>
   );
 };

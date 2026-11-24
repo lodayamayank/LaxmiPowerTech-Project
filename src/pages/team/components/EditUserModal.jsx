@@ -4,25 +4,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { useBranches } from '@/hooks/useBranches';
 import axios from "@/api/client";
 import { toast } from 'sonner';
-import {
-  FaUser,
-  FaUserTag,
-  FaPhone,
-  FaEnvelope,
-  FaCalendarAlt,
-  FaBriefcase,
-  FaMapMarkerAlt,
-  FaIdCard,
-  FaTimes,
-  FaBuilding,
-  FaUserCircle,
-  FaAddressCard,
-  FaUserTie,
-  FaRupeeSign,
-  FaMoneyBillWave,
-  FaKey,
-  FaLock,
-} from "react-icons/fa";
+import { Banknote, Briefcase, Building2, Calendar, CircleUser, Contact, IdCard, IndianRupee, KeyRound, Lock, Mail, MapPin, Phone, Tag, User, UserRound, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -46,9 +28,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const labelClass = "block text-sm font-semibold text-gray-700 mb-1.5";
-const orangeFocus =
-  "focus-visible:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-500/30";
+const labelClass = "block text-sm font-semibold text-ink-2 mb-1.5";
+const orangeFocus = ""; // ui/Input already carries the token focus ring
 
 /**
  * Label + shadcn Input (+ optional leading icon and hint text).
@@ -72,7 +53,7 @@ const Field = ({
       </Label>
       <div className="relative">
         {icon && (
-          <span className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-gray-400">
+          <span className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-ink-4">
             {icon}
           </span>
         )}
@@ -82,11 +63,11 @@ const Field = ({
           type={type}
           value={value ?? ""}
           onChange={onChange}
-          className={`w-full bg-white ${icon ? "pl-9" : ""} ${orangeFocus}`}
+          className={`w-full bg-surface ${icon ? "pl-9" : ""} ${orangeFocus}`}
           {...rest}
         />
       </div>
-      {hint && <p className="text-xs text-gray-500 mt-1">{hint}</p>}
+      {hint && <p className="text-xs text-ink-3 mt-1">{hint}</p>}
     </div>
   );
 };
@@ -105,7 +86,7 @@ const SelectField = ({
       {label}
     </Label>
     <Select value={value || ""} onValueChange={onValueChange}>
-      <SelectTrigger id={id} className={`w-full bg-white ${orangeFocus}`}>
+      <SelectTrigger id={id} className={`w-full bg-surface ${orangeFocus}`}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -303,7 +284,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
   };
 
   const tabTriggerClass =
-    "h-auto min-h-10 w-full gap-2 px-3 py-2 text-base font-semibold data-[state=active]:bg-orange-500 data-[state=active]:text-white";
+    "h-auto min-h-10 w-full gap-2 px-3 py-2 text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground";
 
   return (
     <Dialog
@@ -314,16 +295,16 @@ const EditUserModal = ({ user, onClose, onSave }) => {
     >
       <DialogContent className="w-[calc(100%-2rem)] max-w-4xl sm:max-w-4xl max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col rounded-2xl">
         {/* Header */}
-        <DialogHeader className="shrink-0 border-b border-gray-200 px-6 py-4 text-left">
+        <DialogHeader className="shrink-0 border-b border-line px-6 py-4 text-left">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-              <FaUserCircle className="text-orange-500 text-xl" />
+            <div className="w-10 h-10 rounded-full bg-primary-soft flex items-center justify-center">
+              <CircleUser className="size-5 text-primary" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-bold text-gray-800">
+              <DialogTitle className="text-xl font-bold text-ink-1">
                 Edit User
               </DialogTitle>
-              <DialogDescription className="text-sm text-gray-500">
+              <DialogDescription className="text-sm text-ink-3">
                 Update user information
               </DialogDescription>
             </div>
@@ -336,19 +317,19 @@ const EditUserModal = ({ user, onClose, onSave }) => {
           className="flex min-h-0 flex-1 flex-col gap-0"
         >
           {/* Tabs */}
-          <div className="shrink-0 border-b border-gray-200 px-6 py-3">
+          <div className="shrink-0 border-b border-line px-6 py-3">
             <TabsList className="grid h-auto w-full grid-cols-2 sm:grid-cols-4">
               <TabsTrigger value="basic" className={tabTriggerClass}>
-                <FaUser size={14} /> Basic Info
+                <User size={14} /> Basic Info
               </TabsTrigger>
               <TabsTrigger value="personal" className={tabTriggerClass}>
-                <FaAddressCard size={14} /> Personal
+                <Contact size={14} /> Personal
               </TabsTrigger>
               <TabsTrigger value="employee" className={tabTriggerClass}>
-                <FaBriefcase size={14} /> Employment
+                <Briefcase size={14} /> Employment
               </TabsTrigger>
               <TabsTrigger value="security" className={tabTriggerClass}>
-                <FaKey size={14} /> Security
+                <KeyRound size={14} /> Security
               </TabsTrigger>
             </TabsList>
           </div>
@@ -365,7 +346,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                   <Field
                     label="Full Name"
                     name="name"
-                    icon={<FaUser size={14} />}
+                    icon={<User size={14} />}
                     placeholder="Enter full name"
                     value={form.name}
                     onChange={handleChange}
@@ -373,7 +354,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                   <Field
                     label="Username"
                     name="username"
-                    icon={<FaUserTag size={14} />}
+                    icon={<Tag size={14} />}
                     placeholder="Enter username"
                     value={form.username}
                     onChange={handleChange}
@@ -381,7 +362,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                   <Field
                     label="Mobile Number"
                     name="mobileNumber"
-                    icon={<FaPhone size={14} />}
+                    icon={<Phone size={14} />}
                     placeholder="Enter mobile number"
                     value={form.mobileNumber}
                     onChange={handleChange}
@@ -411,10 +392,10 @@ const EditUserModal = ({ user, onClose, onSave }) => {
 
                 {/* Assigned Branches */}
                 <div>
-                  <Label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <Label className="block text-sm font-semibold text-ink-2 mb-2">
                     Assigned Branches
                   </Label>
-                  <div className="flex flex-wrap items-center gap-2 border border-gray-300 rounded-lg p-3 min-h-[50px] bg-gray-50">
+                  <div className="flex flex-wrap items-center gap-2 border border-line-input rounded-lg p-3 min-h-[50px] bg-surface-subtle">
                     {(form.assignedBranches || []).map((branchItem) => {
                       const branchId =
                         typeof branchItem === "object"
@@ -425,9 +406,9 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                         <Badge
                           key={branchId}
                           variant="secondary"
-                          className="gap-1.5 bg-orange-100 text-orange-700 rounded-full pl-3 pr-1 py-1 text-sm font-medium hover:bg-orange-200"
+                          className="gap-1.5 bg-primary-soft text-primary-soft-foreground rounded-full pl-3 pr-1 py-1 text-sm font-medium hover:bg-primary-soft"
                         >
-                          <FaMapMarkerAlt size={12} />
+                          <MapPin size={12} />
                           {branch?.name || "Unknown Branch"}
                           <Button
                             type="button"
@@ -444,9 +425,9 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                                 ),
                               }))
                             }
-                            className="h-5 w-5 rounded-full text-orange-700 hover:bg-orange-300 hover:text-orange-900"
+                            className="h-5 w-5 rounded-full text-primary-soft-foreground hover:bg-surface-muted"
                           >
-                            <FaTimes size={10} />
+                            <X size={10} />
                           </Button>
                         </Badge>
                       );
@@ -468,7 +449,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                     >
                       <SelectTrigger
                         aria-label="Add branch"
-                        className="w-full flex-1 min-w-[200px] bg-white"
+                        className="w-full flex-1 min-w-[200px] bg-surface"
                       >
                         <SelectValue placeholder="+ Add Branch" />
                       </SelectTrigger>
@@ -502,7 +483,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                     label="Personal Email"
                     name="personalEmail"
                     type="email"
-                    icon={<FaEnvelope size={14} />}
+                    icon={<Mail size={14} />}
                     placeholder="email@example.com"
                     value={form.personalEmail || ""}
                     onChange={handleChange}
@@ -511,7 +492,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                     label="Date of Birth"
                     name="dateOfBirth"
                     type="date"
-                    icon={<FaCalendarAlt size={14} />}
+                    icon={<Calendar size={14} />}
                     value={form.dateOfBirth?.split("T")[0] || ""}
                     onChange={handleChange}
                   />
@@ -532,7 +513,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                   <Field
                     label="Aadhaar Number"
                     name="aadhaarNumber"
-                    icon={<FaIdCard size={14} />}
+                    icon={<IdCard size={14} />}
                     placeholder="XXXX-XXXX-XXXX"
                     value={form.aadhaarNumber}
                     onChange={handleChange}
@@ -540,7 +521,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                   <Field
                     label="PAN Number"
                     name="panNumber"
-                    icon={<FaIdCard size={14} />}
+                    icon={<IdCard size={14} />}
                     placeholder="ABCDE1234F"
                     value={form.panNumber}
                     onChange={handleChange}
@@ -548,7 +529,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                   <Field
                     label="Driving License"
                     name="drivingLicense"
-                    icon={<FaIdCard size={14} />}
+                    icon={<IdCard size={14} />}
                     placeholder="DL Number"
                     value={form.drivingLicense}
                     onChange={handleChange}
@@ -565,7 +546,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                       onChange={handleChange}
                       rows={3}
                       placeholder="Enter complete address"
-                      className={`w-full bg-white resize-none ${orangeFocus}`}
+                      className={`w-full bg-surface resize-none ${orangeFocus}`}
                     />
                   </div>
 
@@ -573,7 +554,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                     <Field
                       label="Emergency Contact"
                       name="emergencyContact"
-                      icon={<FaPhone size={14} />}
+                      icon={<Phone size={14} />}
                       placeholder="Emergency contact number"
                       value={form.emergencyContact}
                       onChange={handleChange}
@@ -586,8 +567,8 @@ const EditUserModal = ({ user, onClose, onSave }) => {
               <TabsContent value="employee" className="space-y-6">
                 {/* Employee Information Section */}
                 <div>
-                  <h3 className="text-md font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                    <FaBriefcase className="text-orange-500" />
+                  <h3 className="text-md font-semibold text-ink-1 mb-3 flex items-center gap-2">
+                    <Briefcase className="text-tone-highlight-fg" />
                     Employee Information
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -608,7 +589,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                     <Field
                       label="Employee ID"
                       name="employeeId"
-                      icon={<FaIdCard size={14} />}
+                      icon={<IdCard size={14} />}
                       placeholder="EMP-001"
                       value={form.employeeId || ""}
                       onChange={handleChange}
@@ -616,7 +597,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                     <Field
                       label="Department"
                       name="department"
-                      icon={<FaBuilding size={14} />}
+                      icon={<Building2 size={14} />}
                       placeholder="e.g., Engineering"
                       value={form.department || ""}
                       onChange={handleChange}
@@ -624,7 +605,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                     <Field
                       label="Job Title"
                       name="jobTitle"
-                      icon={<FaUserTie size={14} />}
+                      icon={<UserRound size={14} />}
                       placeholder="e.g., Electrician"
                       value={form.jobTitle || ""}
                       onChange={handleChange}
@@ -633,7 +614,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                       label="Date of Joining"
                       name="dateOfJoining"
                       type="date"
-                      icon={<FaCalendarAlt size={14} />}
+                      icon={<Calendar size={14} />}
                       value={form.dateOfJoining?.split("T")[0] || ""}
                       onChange={handleChange}
                     />
@@ -641,7 +622,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                       label="Date of Leaving"
                       name="dateOfLeaving"
                       type="date"
-                      icon={<FaCalendarAlt size={14} />}
+                      icon={<Calendar size={14} />}
                       value={form.dateOfLeaving?.split("T")[0] || ""}
                       onChange={handleChange}
                     />
@@ -650,21 +631,21 @@ const EditUserModal = ({ user, onClose, onSave }) => {
 
                 {/* Salary Information Section */}
                 <div>
-                  <h3 className="text-md font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                    <FaMoneyBillWave className="text-green-500" />
+                  <h3 className="text-md font-semibold text-ink-1 mb-3 flex items-center gap-2">
+                    <Banknote className="text-tone-ok-fg" />
                     Salary Information
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-green-50 p-4 rounded-lg border border-green-200">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-tone-ok-soft p-4 rounded-lg border border-tone-ok-border">
                     <Field
                       label={
                         <>
                           CTC Amount{" "}
-                          <span className="text-gray-500 text-xs">(₹)</span>
+                          <span className="text-ink-3 text-xs">(₹)</span>
                         </>
                       }
                       name="ctcAmount"
                       type="number"
-                      icon={<FaRupeeSign size={14} />}
+                      icon={<IndianRupee size={14} />}
                       value={form.ctcAmount || 0}
                       onChange={handleChange}
                       placeholder="Enter CTC amount"
@@ -691,7 +672,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                         label="Effective Date of Change"
                         name="salaryEffectiveDate"
                         type="date"
-                        icon={<FaCalendarAlt size={14} />}
+                        icon={<Calendar size={14} />}
                         value={form.salaryEffectiveDate?.split("T")[0] || ""}
                         onChange={handleChange}
                         hint="Date when this salary becomes effective (leave blank for current date)"
@@ -702,21 +683,21 @@ const EditUserModal = ({ user, onClose, onSave }) => {
 
                 {/* Travel & Overtime Configuration Section */}
                 <div>
-                  <h3 className="text-md font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                    <FaRupeeSign className="text-blue-500" />
+                  <h3 className="text-md font-semibold text-ink-1 mb-3 flex items-center gap-2">
+                    <IndianRupee className="text-tone-info-fg" />
                     Travel Allowance & Overtime
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-tone-info-soft p-4 rounded-lg border border-line-card">
                     <Field
                       label={
                         <>
                           Per Day Travel Allowance{" "}
-                          <span className="text-gray-500 text-xs">(₹)</span>
+                          <span className="text-ink-3 text-xs">(₹)</span>
                         </>
                       }
                       name="perDayTravelAllowance"
                       type="number"
-                      icon={<FaRupeeSign size={14} />}
+                      icon={<IndianRupee size={14} />}
                       value={form.perDayTravelAllowance || 0}
                       onChange={handleChange}
                       placeholder="Enter per day amount"
@@ -729,12 +710,12 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                       label={
                         <>
                           Monthly Railway Pass{" "}
-                          <span className="text-gray-500 text-xs">(₹)</span>
+                          <span className="text-ink-3 text-xs">(₹)</span>
                         </>
                       }
                       name="railwayPassAmount"
                       type="number"
-                      icon={<FaRupeeSign size={14} />}
+                      icon={<IndianRupee size={14} />}
                       value={form.railwayPassAmount || 0}
                       onChange={handleChange}
                       placeholder="Enter pass amount"
@@ -773,12 +754,12 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                       label={
                         <>
                           Other Amount{" "}
-                          <span className="text-gray-500 text-xs">(₹)</span>
+                          <span className="text-ink-3 text-xs">(₹)</span>
                         </>
                       }
                       name="otherAmount"
                       type="number"
-                      icon={<FaRupeeSign size={14} />}
+                      icon={<IndianRupee size={14} />}
                       value={form.otherAmount || 0}
                       onChange={handleChange}
                       placeholder="0"
@@ -807,12 +788,12 @@ const EditUserModal = ({ user, onClose, onSave }) => {
 
               {/* SECURITY */}
               <TabsContent value="security" className="space-y-5">
-                <Alert className="border-orange-100 bg-orange-50">
-                  <FaLock className="text-orange-600" />
-                  <AlertTitle className="text-base font-semibold text-gray-900">
+                <Alert className="border-line-card bg-tone-highlight-soft">
+                  <Lock className="text-tone-highlight-fg" />
+                  <AlertTitle className="text-base font-semibold text-ink-1">
                     Password Access
                   </AlertTitle>
-                  <AlertDescription className="text-sm text-gray-600">
+                  <AlertDescription className="text-sm text-ink-3">
                     Current password is securely protected and cannot be viewed.
                     Set a new password here if this user needs help logging in.
                   </AlertDescription>
@@ -823,7 +804,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                     label="New Password"
                     name="newPassword"
                     type="password"
-                    icon={<FaLock size={14} />}
+                    icon={<Lock size={14} />}
                     placeholder="Enter new password"
                     value={passwordForm.newPassword}
                     onKeyDown={passwordKeyDown}
@@ -838,7 +819,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                     label="Confirm Password"
                     name="confirmPassword"
                     type="password"
-                    icon={<FaLock size={14} />}
+                    icon={<Lock size={14} />}
                     placeholder="Confirm new password"
                     value={passwordForm.confirmPassword}
                     onKeyDown={passwordKeyDown}
@@ -855,22 +836,22 @@ const EditUserModal = ({ user, onClose, onSave }) => {
                   type="button"
                   onClick={handlePasswordSubmit}
                   disabled={passwordSaving}
-                  className="bg-gray-900 hover:bg-gray-800 text-white shadow-md"
+                  variant="secondary"
                 >
-                  <FaKey size={14} />
+                  <KeyRound size={14} />
                   {passwordSaving ? "Updating..." : "Set New Password"}
                 </Button>
               </TabsContent>
             </div>
 
             {/* Footer Buttons */}
-            <DialogFooter className="shrink-0 border-t border-gray-200 px-6 py-4 gap-3 sm:gap-3">
+            <DialogFooter className="shrink-0 border-t border-line px-6 py-4 gap-3 sm:gap-3">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="bg-orange-500 hover:bg-orange-600 text-white shadow-md"
+                
               >
                 Save Changes
               </Button>
