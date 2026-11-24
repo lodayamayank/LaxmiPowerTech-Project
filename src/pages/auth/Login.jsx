@@ -3,7 +3,7 @@ import { ROUTES } from '@/lib/routes';
 import { setSession } from '@/lib/session';
 import { useNavigate } from "react-router-dom";
 import axios from "@/api/client";
-import logo from "@/assets/logo.png";
+import Logo from "@/components/common/Logo";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -111,11 +111,7 @@ const Login = () => {
         {/* Company branding */}
         <div className="relative flex items-center gap-3">
           <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#e87a30]">
-            <img width={28} height={10}
-              src={logo}
-              alt="Laxmi PowerTech"
-              className="max-h-7 max-w-7 object-contain"
-            />
+            <Logo width={28} height={10} priority plate={false} alt="Laxmi PowerTech" className="max-h-7 max-w-7 object-contain" />
           </div>
 
           <div className="leading-tight">
@@ -166,11 +162,7 @@ const Login = () => {
           {/* Mobile branding */}
           <div className="mb-8 flex items-center gap-3 lg:hidden">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#e87a30]">
-              <img width={24} height={9}
-                src={logo}
-                alt="Laxmi PowerTech"
-                className="max-h-6 max-w-6 object-contain"
-              />
+              <Logo width={24} height={9} priority plate={false} alt="Laxmi PowerTech" className="max-h-6 max-w-6 object-contain" />
             </div>
             <div className="leading-tight">
               <div className="text-sm font-bold tracking-tight text-stone-950">

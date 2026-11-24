@@ -5,7 +5,7 @@ import { fetchBranchesCached } from '@/hooks/useBranches';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import axios from '@/api/client';
-import logo from '@/assets/logo.png';
+import Logo from "@/components/common/Logo";
 import { FaSignOutAlt, FaSearch, FaChevronRight, FaArrowLeft, FaFileAlt } from 'react-icons/fa';
 import { MdFolder } from 'react-icons/md';
 import { Button } from '@/components/ui/button';
@@ -98,7 +98,7 @@ const SupervisorProjectList = () => {
         {/* Header with Gradient */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
           <div className="flex items-center justify-between mb-4">
-            <img width={179} height={64} src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
+            <Logo width={179} height={64} priority plate={false} className="h-16 w-50 bg-logo-plate box-shadow rounded-2xl" />
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"

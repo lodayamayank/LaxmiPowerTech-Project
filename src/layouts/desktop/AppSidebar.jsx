@@ -4,7 +4,7 @@
 import { memo, useMemo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
-import logo from '@/assets/logo.png';
+import Logo from "@/components/common/Logo";
 import {
   Sidebar,
   SidebarContent,
@@ -144,7 +144,7 @@ function AppSidebar({ role, pendingLeaveCount = 0, pendingReimbursementCount = 0
       <SidebarHeader className="px-3 pb-0 pt-[18px] group-data-[collapsible=icon]:px-2">
         <div className="mb-1 flex items-center justify-between border-b border-line px-2 pb-3.5">
           <div className={cn('flex flex-1 justify-start', COLLAPSED_HIDE)}>
-            <img width={134} height={48} src={logo} alt="Laxmi Powertech" className="h-auto w-full max-h-12 object-contain object-left" />
+            <Logo width={134} height={48} priority className="h-auto w-full max-h-12 object-contain object-left" />
           </div>
           {/* Compact badge: collapsed rail only */}
           <div className="mx-auto hidden h-10 w-10 items-center justify-center rounded-control bg-primary text-body font-extrabold text-primary-foreground group-data-[collapsible=icon]:flex" title="Laxmi Powertech">

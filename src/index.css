@@ -118,6 +118,7 @@
     --highlight-soft: 23.5 100% 95.5%;
     --page: 220 17.6% 96.7%;
     --surface: 0 0% 100%;
+    --logo-plate: 0 0% 100%;
     --surface-subtle: 210 20% 98%;
     --surface-muted: 216 23.8% 95.9%;
     --line: 220 16.7% 92.9%;
@@ -156,6 +157,7 @@
     --highlight-soft: 23.3 90.6% 54.3% / 0.15; /* provisional dark */
     --page: 222.2 84% 4.9%; /* provisional dark */
     --surface: 222.2 84% 4.9%; /* provisional dark */
+    --logo-plate: 0 0% 100%;
     --surface-subtle: 217.2 32.6% 10%; /* provisional dark */
     --surface-muted: 217.2 32.6% 17.5%; /* provisional dark */
     --line: 217.2 32.6% 14%; /* provisional dark */
@@ -335,4 +337,9 @@ h1 {
 .pac-container {
   pointer-events: auto;
   z-index: 100;
+}
+
+/* Logo is dark-on-transparent: give it a white tile on dark surfaces (see components/common/Logo.jsx). */
+.dark .logo-plate {
+  background-color: hsl(var(--logo-plate));
 }

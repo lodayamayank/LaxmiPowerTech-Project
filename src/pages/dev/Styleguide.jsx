@@ -53,6 +53,7 @@ import { Notice } from "@/components/common/Notice";
 import { Switch } from "@/components/ui/switch";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { Sheet, SheetPanel, SheetPanelBody, SheetPanelFooter, SheetPanelHeader, SheetTrigger } from "@/components/ui/sheet";
+import { Logo } from "@/components/common/Logo";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { formatCurrency, formatDate } from "@/lib/format";
 
@@ -523,6 +524,36 @@ export default function Styleguide() {
             <DataTable columns={TABLE_COLUMNS.slice(0, 3)} rows={[]} />
           </SectionCard>
         </div>
+
+        <SectionCard title="Logo" description="Dark-on-transparent image: a white tile appears on dark surfaces only (plate). Forced themes below.">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {[["Light", ""], ["Dark", "dark"]].map(([mode, cls]) => (
+              <div key={mode} className={cls}>
+                <div className="space-y-3 rounded-card border border-line-card bg-surface p-4 text-ink-1">
+                  <p className="text-small font-semibold">{mode}</p>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="rounded-control border border-line bg-surface p-2">
+                      <Logo width={134} height={48} className="h-auto max-h-12 object-contain" />
+                      <p className="mt-1 text-caption text-ink-3">sidebar / surface, 134x48</p>
+                    </div>
+                    <div className="rounded-control border border-line bg-surface p-2">
+                      <Logo width={179} height={64} className="h-auto max-h-16 object-contain" />
+                      <p className="mt-1 text-caption text-ink-3">header, 179x64</p>
+                    </div>
+                    <div className="rounded-control bg-primary p-2">
+                      <Logo width={134} height={48} className="h-auto max-h-12 object-contain" />
+                      <p className="mt-1 text-caption text-primary-foreground">on primary, plate</p>
+                    </div>
+                    <div className="rounded-control bg-primary p-2">
+                      <Logo width={134} height={48} plate={false} className="h-auto max-h-12 rounded-control bg-logo-plate object-contain" />
+                      <p className="mt-1 text-caption text-primary-foreground">own plate, no wrapper</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
 
         <SectionCard title="Dialogs">
           <div className="flex flex-wrap gap-3">

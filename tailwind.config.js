@@ -93,6 +93,7 @@ export default {
         },
         page: "hsl(var(--page))",
         scrim: "hsl(var(--scrim))",
+        "logo-plate": "hsl(var(--logo-plate))",
         surface: {
           DEFAULT: "hsl(var(--surface))",
           subtle: "hsl(var(--surface-subtle))",

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from '@/api/client';
 import fingerprint from '@/assets/fingerprint.png';
 import layer2 from '@/assets/calendar.png';
-import logo from '@/assets/logo.png';
+import Logo from "@/components/common/Logo";
 import avatar from '@/assets/user.png';
 import leaves from '@/assets/leave.png';
 import money from '@/assets/salary.png';
@@ -82,7 +82,7 @@ const SupervisorDashboard = () => {
         {/* Header with Gradient */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
           <div className="flex items-center justify-between mb-4">
-            <img width={179} height={64} src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
+            <Logo width={179} height={64} priority plate={false} className="h-16 w-50 bg-logo-plate box-shadow rounded-2xl" />
             <Button
               variant="ghost"
               onClick={handleLogout}
