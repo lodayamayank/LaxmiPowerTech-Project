@@ -1,13 +1,4 @@
-import {
-  FaFilePdf,
-  FaFileImage,
-  FaFileExcel,
-  FaFileWord,
-  FaFileCsv,
-  FaFileAlt,
-  FaDraftingCompass,
-  FaFile,
-} from 'react-icons/fa';
+import { DraftingCompass, File, FileImage, FileSpreadsheet, FileText } from 'lucide-react';
 
 export function formatBytes(bytes) {
   if (!bytes) return '0 B';
@@ -38,23 +29,23 @@ export function formatDateTime(value) {
 }
 
 const ICONS = {
-  pdf: [FaFilePdf, 'text-red-500'],
-  jpg: [FaFileImage, 'text-purple-500'],
-  jpeg: [FaFileImage, 'text-purple-500'],
-  png: [FaFileImage, 'text-purple-500'],
-  webp: [FaFileImage, 'text-purple-500'],
-  xls: [FaFileExcel, 'text-green-600'],
-  xlsx: [FaFileExcel, 'text-green-600'],
-  csv: [FaFileCsv, 'text-green-600'],
-  doc: [FaFileWord, 'text-blue-600'],
-  docx: [FaFileWord, 'text-blue-600'],
-  txt: [FaFileAlt, 'text-gray-500'],
-  dwg: [FaDraftingCompass, 'text-orange-500'],
-  dxf: [FaDraftingCompass, 'text-orange-500'],
+  pdf: [FileText, 'text-tone-bad-fg'],
+  jpg: [FileImage, 'text-tone-purple-fg'],
+  jpeg: [FileImage, 'text-tone-purple-fg'],
+  png: [FileImage, 'text-tone-purple-fg'],
+  webp: [FileImage, 'text-tone-purple-fg'],
+  xls: [FileSpreadsheet, 'text-tone-ok-fg'],
+  xlsx: [FileSpreadsheet, 'text-tone-ok-fg'],
+  csv: [FileSpreadsheet, 'text-tone-ok-fg'],
+  doc: [FileText, 'text-tone-info-fg'],
+  docx: [FileText, 'text-tone-info-fg'],
+  txt: [FileText, 'text-ink-3'],
+  dwg: [DraftingCompass, 'text-tone-highlight-fg'],
+  dxf: [DraftingCompass, 'text-tone-highlight-fg'],
 };
 
 export function getFileIcon(extension) {
-  const [Icon, className] = ICONS[String(extension || '').toLowerCase()] || [FaFile, 'text-gray-400'];
+  const [Icon, className] = ICONS[String(extension || '').toLowerCase()] || [File, 'text-ink-4'];
   return { Icon, className };
 }
 

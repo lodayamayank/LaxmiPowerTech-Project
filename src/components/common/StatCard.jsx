@@ -3,35 +3,24 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { IconTile } from "./IconTile";
 
-// Legacy `color` presets (old API) -> tone.
-const COLOR_TO_TONE = {
-  orange: "highlight",
-  blue: "info",
-  green: "ok",
-  red: "bad",
-  purple: "purple",
-  yellow: "warn",
-};
-
 /**
  * StatCard: metric card (icon tile + label, big value, optional sub-line).
  *
  * Props:
- * - label {node}: metric name (legacy alias: `title`)
+ * - label {node}: metric name
  * - value {node}: the figure
  * - sub {node}: small text under the value
  * - icon {React.ComponentType}: icon for the tile
- * - tone {string}: IconTile tone (legacy alias: `color` = orange|blue|green|red|purple|yellow)
+ * - tone {string}: IconTile tone
  * - className {string}
  * - ...props spread onto the root Card
  */
-export const StatCard = ({ label, title, value, sub, icon, tone, color, className, ...props }) => {
-  const resolvedTone = tone || COLOR_TO_TONE[color] || "highlight";
+export const StatCard = ({ label, value, sub, icon, tone = "highlight", className, ...props }) => {
   return (
     <Card className={cn("flex flex-col gap-1.5 p-5", className)} {...props}>
       <div className="flex items-center gap-2.5">
-        {icon ? <IconTile icon={icon} tone={resolvedTone} /> : null}
-        <span className="text-small font-medium text-ink-3">{label ?? title}</span>
+        {icon ? <IconTile icon={icon} tone={tone} /> : null}
+        <span className="text-small font-medium text-ink-3">{label}</span>
       </div>
       <div className="text-kpi tabular-nums text-ink-1">{value}</div>
       {sub ? <div className="text-caption-lg text-ink-3">{sub}</div> : null}

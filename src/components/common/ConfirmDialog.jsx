@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
  * - confirmLabel {string} default "Confirm", cancelLabel {string} default "Cancel"
  * - tone {"default"|"destructive"}: confirm button style
  * - loading {boolean}: disables both buttons and shows a spinner on confirm
+ * - children {node}: optional extra content (e.g. a reason field) shown under the description
  * - onConfirm {()=>void}
  */
 export const ConfirmDialog = ({
@@ -33,6 +34,7 @@ export const ConfirmDialog = ({
   tone = "default",
   loading = false,
   onConfirm,
+  children,
 }) => (
   <AlertDialog open={open} onOpenChange={onOpenChange}>
     <AlertDialogContent>
@@ -40,6 +42,7 @@ export const ConfirmDialog = ({
         <AlertDialogTitle>{title}</AlertDialogTitle>
         {description ? <AlertDialogDescription>{description}</AlertDialogDescription> : null}
       </AlertDialogHeader>
+      {children}
       <AlertDialogFooter>
         <AlertDialogCancel disabled={loading}>{cancelLabel}</AlertDialogCancel>
         <Button

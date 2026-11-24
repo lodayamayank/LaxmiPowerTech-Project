@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { documentsApi } from '@/api/projectDocuments';
 import { errorMessage, formatBytes, formatDateTime, getFileIcon } from '@/lib/documentUtils';
-import { FaFolder } from 'react-icons/fa';
+import { Folder } from 'lucide-react';
 
 const ACTION_LABELS = {
   created: 'Created',
@@ -17,9 +17,9 @@ const ACTION_LABELS = {
 };
 
 const Row = ({ label, children }) => (
-  <div className="grid grid-cols-3 gap-3 py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0 text-sm">
-    <dt className="text-muted-foreground">{label}</dt>
-    <dd className="col-span-2 text-gray-900 dark:text-gray-100 break-words">{children || '-'}</dd>
+  <div className="grid grid-cols-3 gap-3 py-2 border-b border-line last:border-b-0 text-sm">
+    <dt className="text-ink-3">{label}</dt>
+    <dd className="col-span-2 text-ink-1 break-words">{children || '-'}</dd>
   </div>
 );
 
@@ -71,8 +71,8 @@ useEffect(() => {
 const { loading, error, record, breadcrumbs, type } = state;
 const isFolder = type === "folder";
   const doc = !isFolder ? record : null;
-  const Icon = doc ? getFileIcon(doc.extension).Icon : FaFolder;
-  const iconClass = doc ? getFileIcon(doc.extension).className : 'text-yellow-500';
+  const Icon = doc ? getFileIcon(doc.extension).Icon : Folder;
+  const iconClass = doc ? getFileIcon(doc.extension).className : 'text-tone-warn-fg';
   const location = ['All Documents', ...breadcrumbs.slice(0, isFolder ? -1 : undefined).map((b) => b.name)].join(' / ');
 
   return (
@@ -97,7 +97,7 @@ const isFolder = type === "folder";
             ))}
           </div>
         )}
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-tone-bad-fg">{error}</p>}
 
         {record && (
           <>
@@ -122,10 +122,7 @@ const isFolder = type === "folder";
               </Row>
               {record.deleteRequest && (
                 <Row label="Status">
-                  <Badge
-                    variant="outline"
-                    className="bg-orange-100 text-orange-700 border-orange-200"
-                  >
+                  <Badge variant="warn">
                     Deletion requested{" "}
                     {formatDateTime(record.deleteRequest.requestedAt)}
                   </Badge>
@@ -135,23 +132,23 @@ const isFolder = type === "folder";
 
             {isAdmin && record.audit?.length > 0 && (
               <div>
-                <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-2">
+                <h4 className="font-semibold text-sm text-ink-1 mb-2">
                   Activity history
                 </h4>
-                <ul className="space-y-1.5 text-sm border border-gray-100 dark:border-gray-700 rounded-lg p-3 max-h-48 overflow-y-auto">
+                <ul className="space-y-1.5 text-sm border border-line rounded-lg p-3 max-h-48 overflow-y-auto">
                   {[...record.audit].reverse().map((a, i) => (
                     <li key={i} className="flex flex-col">
                       <span>
                         <span className="font-medium">
                           {ACTION_LABELS[a.action] || a.action}
                         </span>
-                        <span className="text-muted-foreground">
+                        <span className="text-ink-3">
                           {" "}
                           by {a.by?.name || "unknown"} · {formatDateTime(a.at)}
                         </span>
                       </span>
                       {a.detail && (
-                        <span className="text-xs text-muted-foreground break-words">
+                        <span className="text-xs text-ink-3 break-words">
                           {a.detail}
                         </span>
                       )}

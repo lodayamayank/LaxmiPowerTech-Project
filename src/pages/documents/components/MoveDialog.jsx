@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FaFolder, FaFolderOpen } from 'react-icons/fa';
+import { Folder, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -65,9 +65,9 @@ export default function MoveDialog({ open, onOpenChange, projectId, item, onMove
   };
 
   const rowClass = (selected, disabled) =>
-    `flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm ${
-      disabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-accent cursor-pointer'
-    } ${selected ? 'bg-orange-50 ring-1 ring-orange-300 dark:bg-orange-950/30' : ''}`;
+    `!h-auto w-full justify-start gap-2 rounded-control px-3 py-2 text-left text-small font-normal ${
+      disabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-surface-muted cursor-pointer'
+    } ${selected ? 'bg-primary-soft ring-1 ring-primary' : ''}`;
 
   return (
     <Dialog open={open} onOpenChange={(o) => !saving && onOpenChange(o)}>
@@ -77,7 +77,7 @@ export default function MoveDialog({ open, onOpenChange, projectId, item, onMove
           <DialogDescription className="truncate">Choose a destination for "{item?.name}"</DialogDescription>
         </DialogHeader>
 
-        <div className="max-h-72 overflow-y-auto rounded-lg border border-gray-100 dark:border-gray-700 p-1">
+        <div className="max-h-72 overflow-y-auto rounded-lg border border-line p-1">
           {loading ? (
             <div className="space-y-2 p-2">
               <Skeleton className="h-8 w-full" />
@@ -86,33 +86,34 @@ export default function MoveDialog({ open, onOpenChange, projectId, item, onMove
             </div>
           ) : (
             <>
-              <button type="button" className={rowClass(target === 'root', false)} onClick={() => setTarget('root')}>
-                <FaFolderOpen className="text-orange-500" /> All Documents (project root)
-              </button>
+              <Button type="button" variant="ghost" className={rowClass(target === 'root', false)} onClick={() => setTarget('root')}>
+                <FolderOpen className="text-primary" /> All Documents (project root)
+              </Button>
               {rows.map(({ folder, depth, blocked }) => (
-                <button
+                <Button
                   key={folder._id}
                   type="button"
+                  variant="ghost"
                   disabled={blocked}
                   className={rowClass(target === folder._id, blocked)}
                   style={{ paddingLeft: `${12 + (depth + 1) * 16}px` }}
                   onClick={() => setTarget(folder._id)}
                 >
-                  <FaFolder className="text-yellow-500" />
+                  <Folder className="text-tone-warn-fg" />
                   <span className="truncate">{folder.name}</span>
-                </button>
+                </Button>
               ))}
             </>
           )}
         </div>
-        {unchanged && !loading && <p className="text-xs text-muted-foreground">It is already in this location.</p>}
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {unchanged && !loading && <p className="text-xs text-ink-3">It is already in this location.</p>}
+        {error && <p className="text-sm text-tone-bad-fg">{error}</p>}
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" disabled={saving} onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button disabled={saving || loading || unchanged} onClick={submit} className="bg-orange-500 hover:bg-orange-600 text-white">
+          <Button disabled={saving || loading || unchanged} onClick={submit}>
             {saving ? 'Moving...' : 'Move here'}
           </Button>
         </div>

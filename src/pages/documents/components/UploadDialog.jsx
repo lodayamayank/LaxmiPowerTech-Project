@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { FaCloudUploadAlt, FaTimes, FaCheckCircle, FaExclamationCircle, FaRedo } from 'react-icons/fa';
+import { CheckCircle2, CircleAlert, CloudUpload, RotateCw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { uploadFile } from '@/api/projectDocuments';
@@ -147,17 +148,17 @@ export default function UploadDialog({
             if (!running) addFiles(e.dataTransfer.files);
           }}
           className={`flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed p-6 text-center cursor-pointer transition-colors ${
-            dragOver ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20' : 'border-gray-300 dark:border-gray-600 hover:border-orange-400'
+            dragOver ? 'border-primary bg-primary-soft' : 'border-line-input bg-surface-subtle hover:bg-primary-soft'
           }`}
         >
-          <FaCloudUploadAlt size={30} className="text-orange-500" />
-          <p className="text-sm font-medium text-gray-800 dark:text-gray-100">Drag and drop files here, or click to browse</p>
-          <p className="text-xs text-muted-foreground">
+          <CloudUpload size={30} className="text-primary" />
+          <p className="text-sm font-medium text-ink-1">Drag and drop files here, or click to browse</p>
+          <p className="text-xs text-ink-3">
             {config
               ? `Up to ${formatBytes(config.maxUploadBytes)} per file. ${config.allowedExtensions.map((e) => e.toUpperCase()).join(', ')}`
               : 'Loading limits...'}
           </p>
-          <input
+          <Input
             ref={inputRef}
             type="file"
             multiple
@@ -171,7 +172,7 @@ export default function UploadDialog({
         </div>
 
         {items.length > 0 && (
-          <div className="max-h-64 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700 border border-gray-100 dark:border-gray-700 rounded-lg">
+          <div className="max-h-64 overflow-y-auto divide-y divide-line border border-line rounded-lg">
             {items.map((it) => {
               const { Icon, className } = getFileIcon(extOf(it.file.name));
               const failed = it.status === 'error' || it.status === 'rejected';
@@ -179,27 +180,27 @@ export default function UploadDialog({
                 <div key={it.id} className="flex items-center gap-3 p-3">
                   <Icon className={className} size={18} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{it.file.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="truncate text-sm font-medium text-ink-1">{it.file.name}</p>
+                    <p className="text-xs text-ink-3">
                       {formatBytes(it.file.size)}
                       {it.status === 'done' && it.savedName !== it.file.name && ` · saved as "${it.savedName}"`}
                       {it.duplicate && it.status === 'queued' && ' · name exists here, it will be renamed automatically'}
                     </p>
                     {it.status === 'uploading' && <Progress value={it.progress} className="h-1.5 mt-1.5" />}
-                    {failed && it.error && <p className="text-xs text-red-600 mt-0.5">{it.error}</p>}
-                    {it.status === 'queued' && it.error && <p className="text-xs text-orange-600 mt-0.5">{it.error}</p>}
+                    {failed && it.error && <p className="text-xs text-tone-bad-fg mt-0.5">{it.error}</p>}
+                    {it.status === 'queued' && it.error && <p className="text-xs text-tone-warn-fg mt-0.5">{it.error}</p>}
                   </div>
-                  {it.status === 'done' && <FaCheckCircle className="text-green-600" />}
-                  {failed && <FaExclamationCircle className="text-red-500" />}
-                  {it.status === 'uploading' && <span className="text-xs text-muted-foreground w-9 text-right">{it.progress}%</span>}
+                  {it.status === 'done' && <CheckCircle2 className="size-4 text-tone-ok-fg" />}
+                  {failed && <CircleAlert className="size-4 text-tone-bad-fg" />}
+                  {it.status === 'uploading' && <span className="text-xs text-ink-3 w-9 text-right">{it.progress}%</span>}
                   {!running && it.status === 'error' && (
                     <Button variant="ghost" size="icon" title="Retry" onClick={() => uploadOne(it, new AbortController().signal).then((ok) => ok && onUploaded?.())}>
-                      <FaRedo size={12} />
+                      <RotateCw size={12} />
                     </Button>
                   )}
                   {!running && it.status !== 'done' && it.status !== 'uploading' && (
                     <Button variant="ghost" size="icon" title="Remove" onClick={() => setItems((p) => p.filter((x) => x.id !== it.id))}>
-                      <FaTimes size={12} />
+                      <X size={12} />
                     </Button>
                   )}
                 </div>
@@ -218,11 +219,7 @@ export default function UploadDialog({
               {allDone ? 'Done' : 'Close'}
             </Button>
           )}
-          <Button
-            disabled={running || waiting === 0}
-            onClick={startUpload}
-            className="bg-orange-500 hover:bg-orange-600 text-white"
-          >
+          <Button disabled={running || waiting === 0} onClick={startUpload}>
             {running ? 'Uploading...' : `Upload ${waiting || ''} file${waiting === 1 ? '' : 's'}`.replace('  ', ' ')}
           </Button>
         </div>

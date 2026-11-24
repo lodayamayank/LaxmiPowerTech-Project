@@ -1,16 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import {
-  FaArrowLeft,
-  FaEllipsisV,
-  FaFolder,
-  FaFolderPlus,
-  FaSearch,
-  FaTimes,
-  FaUpload,
-  FaChevronRight,
-} from "react-icons/fa";
+import { ArrowLeft, ChevronRight, Folder, FolderPlus, MoreVertical, Search, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -30,16 +21,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { PaginationBar } from "@/components/common/PaginationBar";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { getSelectedBranch } from "@/lib/session";
 import { documentsApi } from "@/api/projectDocuments";
@@ -59,8 +42,8 @@ import PreviewDialog from "./components/PreviewDialog";
 const PAGE_SIZE = 20;
 
 const Shell = ({ children }) => (
-  <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-    <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
+  <div className="min-h-screen bg-page">
+    <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
       {children}
     </div>
   </div>
@@ -270,7 +253,7 @@ const SupervisorProjectDocuments = () => {
   if (!user.canUseDocuments) {
     return (
       <Shell>
-        <div className="p-8 text-center text-sm text-gray-600">
+        <div className="p-8 text-center text-sm text-ink-3">
           You do not have permission to view project documents.
         </div>
       </Shell>
@@ -281,7 +264,7 @@ const SupervisorProjectDocuments = () => {
     return (
       <Shell>
         <div className="p-8 text-center space-y-3">
-          <p className="text-sm text-gray-700">{accessError}</p>
+          <p className="text-sm text-ink-2">{accessError}</p>
           <Button
             variant="outline"
             onClick={() => navigate("/supervisor/projects")}
@@ -306,7 +289,7 @@ const SupervisorProjectDocuments = () => {
           className="h-9 w-9 shrink-0"
           title="Actions"
         >
-          <FaEllipsisV size={13} />
+          <MoreVertical size={13} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -347,7 +330,7 @@ const SupervisorProjectDocuments = () => {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           disabled={Boolean(item.deleteRequest)}
-          className="text-red-600 focus:text-red-600"
+          className="text-tone-bad-fg focus:text-tone-bad-fg"
           onClick={() => setDeleteTarget({ type, item })}
         >
           {item.deleteRequest ? "Deletion requested" : deleteLabel}
@@ -358,10 +341,7 @@ const SupervisorProjectDocuments = () => {
 
   const requestedBadge = (item) =>
     item.deleteRequest ? (
-      <Badge
-        variant="outline"
-        className="mt-1 bg-orange-100 text-orange-700 border-orange-200 text-[10px]"
-      >
+      <Badge variant="warn" className="mt-1 text-[10px]">
         Deletion requested
       </Badge>
     ) : null;
@@ -369,21 +349,21 @@ const SupervisorProjectDocuments = () => {
   return (
     <Shell>
       {/* Header */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-5 pt-5 pb-7 rounded-b-3xl shadow-lg">
+      <div className="bg-primary px-5 pt-5 pb-7 rounded-b-3xl shadow-lg">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             onClick={handleBack}
             className="mobile-back-button px-3 py-2"
           >
-            <FaArrowLeft size={14} />
+            <ArrowLeft size={14} />
             <span className="text-sm font-medium">Back</span>
           </Button>
           <div className="min-w-0">
-            <h2 className="text-white text-xl font-bold leading-tight">
+            <h2 className="text-primary-foreground text-xl font-bold leading-tight">
               Documents
             </h2>
-            <p className="text-white/80 text-xs truncate">
+            <p className="text-primary-foreground/80 text-xs truncate">
               {summary?.projectName || branchName || "Project"}
             </p>
           </div>
@@ -398,10 +378,10 @@ const SupervisorProjectDocuments = () => {
           ].map(([label, value]) => (
             <div
               key={label}
-              className="rounded-xl bg-white/15 px-2 py-2 text-center"
+              className="rounded-xl bg-primary-foreground/15 px-2 py-2 text-center"
             >
-              <p className="text-white text-sm font-bold">{value}</p>
-              <p className="text-white/80 text-[10px] uppercase tracking-wide">
+              <p className="text-primary-foreground text-sm font-bold">{value}</p>
+              <p className="text-primary-foreground/80 text-[10px] uppercase tracking-wide">
                 {label}
               </p>
             </div>
@@ -411,10 +391,10 @@ const SupervisorProjectDocuments = () => {
 
       <div className="px-5 -mt-3 pb-28">
         {/* Search + filter */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 space-y-2">
+        <div className="bg-surface rounded-2xl shadow-sm border border-line-card p-3 space-y-2">
           <div className="relative">
-            <FaSearch
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-4"
               size={14}
             />
             <Input
@@ -424,14 +404,14 @@ const SupervisorProjectDocuments = () => {
               className="pl-9 pr-9 h-10 text-sm"
             />
             {search && (
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+              <Button
+                variant="ghost" type="button"
+                className="!h-auto font-normal hover:bg-transparent absolute right-3 top-1/2 -translate-y-1/2 p-0 text-ink-4"
                 onClick={() => setSearch("")}
                 title="Clear"
               >
-                <FaTimes size={12} />
-              </button>
+                <X size={12} />
+              </Button>
             )}
           </div>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -455,36 +435,36 @@ const SupervisorProjectDocuments = () => {
           aria-label="Breadcrumb"
         >
           {breadcrumbs.length === 0 ? (
-            <span className="font-semibold text-gray-800">All Documents</span>
+            <span className="font-semibold text-ink-1">All Documents</span>
           ) : (
-            <button
-              type="button"
-              className="text-orange-600"
+            <Button
+              variant="ghost" type="button"
+              className="!h-auto font-normal hover:bg-transparent p-0 text-primary"
               onClick={() => openFolder(null)}
             >
               All Documents
-            </button>
+            </Button>
           )}
           {breadcrumbs.map((b, i) => (
             <React.Fragment key={b._id}>
-              <FaChevronRight size={8} className="text-gray-400 shrink-0" />
+              <ChevronRight size={8} className="text-ink-4 shrink-0" />
               {i === breadcrumbs.length - 1 ? (
-                <span className="font-semibold text-gray-800">{b.name}</span>
+                <span className="font-semibold text-ink-1">{b.name}</span>
               ) : (
-                <button
-                  type="button"
-                  className="text-orange-600"
+                <Button
+                  variant="ghost" type="button"
+                  className="!h-auto font-normal hover:bg-transparent p-0 text-primary"
                   onClick={() => openFolder(b._id)}
                 >
                   {b.name}
-                </button>
+                </Button>
               )}
             </React.Fragment>
           ))}
         </nav>
 
         {isFiltering && (
-          <p className="mt-2 text-[11px] text-gray-500">
+          <p className="mt-2 text-[11px] text-ink-3">
             Showing matches from all folders. Clear search and filter to browse
             folders.
           </p>
@@ -496,7 +476,7 @@ const SupervisorProjectDocuments = () => {
             Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
-                className="flex items-center gap-3 rounded-xl border border-gray-100 p-3"
+                className="flex items-center gap-3 rounded-xl border border-line-card p-3"
               >
                 <Skeleton className="h-10 w-10 rounded-lg" />
                 <div className="flex-1 space-y-2">
@@ -507,10 +487,10 @@ const SupervisorProjectDocuments = () => {
             ))
           ) : empty ? (
             <div className="text-center py-12">
-              <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                <FaFolder className="text-gray-400" size={26} />
+              <div className="w-16 h-16 rounded-full bg-surface-muted flex items-center justify-center mx-auto mb-3">
+                <Folder className="text-ink-4" size={26} />
               </div>
-              <p className="text-sm text-gray-500 px-6">
+              <p className="text-sm text-ink-3 px-6">
                 {isFiltering
                   ? "No files match your search."
                   : "This folder is empty. Upload files or create a folder to get started."}
@@ -521,26 +501,26 @@ const SupervisorProjectDocuments = () => {
               {folders.map((f) => (
                 <div
                   key={`f-${f._id}`}
-                  className="flex items-center gap-1 rounded-xl border border-gray-100 bg-white shadow-sm pr-1"
+                  className="flex items-center gap-1 rounded-xl border border-line-card bg-surface shadow-sm pr-1"
                 >
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost" type="button"
                     onClick={() => openFolder(f._id)}
-                    className="flex flex-1 min-w-0 items-center gap-3 p-3 text-left active:bg-gray-50 rounded-xl"
+                    className="!h-auto justify-start whitespace-normal font-normal hover:bg-transparent flex flex-1 min-w-0 items-center gap-3 p-3 text-left active:bg-surface-subtle rounded-xl"
                   >
-                    <div className="w-10 h-10 shrink-0 rounded-lg bg-yellow-50 flex items-center justify-center">
-                      <FaFolder className="text-yellow-500" size={18} />
+                    <div className="w-10 h-10 shrink-0 rounded-lg bg-tone-warn-soft flex items-center justify-center">
+                      <Folder className="text-tone-warn-fg" size={18} />
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-gray-800">
+                      <p className="truncate text-sm font-medium text-ink-1">
                         {f.name}
                       </p>
-                      <p className="truncate text-[11px] text-gray-500">
+                      <p className="truncate text-[11px] text-ink-3">
                         Folder · {formatDate(f.createdAt)}
                       </p>
                       {requestedBadge(f)}
                     </div>
-                  </button>
+                  </Button>
                   {renderMenu("folder", f)}
                 </div>
               ))}
@@ -550,30 +530,30 @@ const SupervisorProjectDocuments = () => {
                 return (
                   <div
                     key={`d-${d._id}`}
-                    className="flex items-center gap-1 rounded-xl border border-gray-100 bg-white shadow-sm pr-1"
+                    className="flex items-center gap-1 rounded-xl border border-line-card bg-surface shadow-sm pr-1"
                   >
-                    <button
-                      type="button"
+                    <Button
+                      variant="ghost" type="button"
                       onClick={() => setPreviewDoc(d)}
-                      className="flex flex-1 min-w-0 items-center gap-3 p-3 text-left active:bg-gray-50 rounded-xl"
+                      className="!h-auto justify-start whitespace-normal font-normal hover:bg-transparent flex flex-1 min-w-0 items-center gap-3 p-3 text-left active:bg-surface-subtle rounded-xl"
                     >
-                      <div className="w-10 h-10 shrink-0 rounded-lg bg-gray-50 flex items-center justify-center">
+                      <div className="w-10 h-10 shrink-0 rounded-lg bg-surface-subtle flex items-center justify-center">
                         <Icon className={className} size={18} />
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-gray-800">
+                        <p className="truncate text-sm font-medium text-ink-1">
                           {d.originalName}
                         </p>
-                        <p className="truncate text-[11px] text-gray-500">
+                        <p className="truncate text-[11px] text-ink-3">
                           <span className="uppercase">{d.extension}</span> ·{" "}
                           {formatBytes(d.fileSize)} · {formatDate(d.createdAt)}
                         </p>
-                        <p className="truncate text-[11px] text-gray-400">
+                        <p className="truncate text-[11px] text-ink-4">
                           by {d.uploadedBy?.name || "-"}
                         </p>
                         {requestedBadge(d)}
                       </div>
-                    </button>
+                    </Button>
                     {renderMenu("document", d)}
                   </div>
                 );
@@ -584,29 +564,7 @@ const SupervisorProjectDocuments = () => {
 
         {/* Pagination */}
         {docs.total > PAGE_SIZE && (
-          <div className="mt-4 flex items-center justify-between text-xs">
-            <span className="text-gray-500">
-              Page {page} of {totalPages}
-            </span>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page <= 1 || loading}
-                onClick={() => setPage((p) => p - 1)}
-              >
-                Prev
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page >= totalPages || loading}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
+          <PaginationBar variant="simple" className="mt-4" currentPage={page} totalPages={totalPages} onPageChange={setPage} />
         )}
       </div>
 
@@ -616,16 +574,16 @@ const SupervisorProjectDocuments = () => {
           <Button
             variant="outline"
             onClick={() => setNewFolderOpen(true)}
-            className="pointer-events-auto h-12 w-12 rounded-full bg-white shadow-lg p-0"
+            className="pointer-events-auto h-12 w-12 rounded-full bg-surface shadow-lg p-0"
             title="New folder"
           >
-            <FaFolderPlus size={16} />
+            <FolderPlus size={16} />
           </Button>
           <Button
             onClick={() => setUploadOpen(true)}
-            className="pointer-events-auto h-12 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-lg gap-2 px-5"
+            className="pointer-events-auto h-12 rounded-full shadow-lg gap-2 px-5"
           >
-            <FaUpload size={13} /> Upload
+            <Upload size={13} /> Upload
           </Button>
         </div>
       </div>
@@ -718,55 +676,33 @@ const SupervisorProjectDocuments = () => {
         onDownload={downloadDocument}
       />
 
-      <AlertDialog
+      <ConfirmDialog
         open={Boolean(deleteTarget)}
         onOpenChange={(o) => !o && !deleting && closeDelete()}
+        title={`${user.isAdmin ? "Delete" : "Request deletion of"} "${deleteTarget?.item?.name || deleteTarget?.item?.originalName}"?`}
+        description={
+          cascadeInfo
+            ? `This folder contains ${cascadeInfo.folders} subfolder(s) and ${cascadeInfo.documents} file(s). Everything inside will be permanently deleted. This cannot be undone.`
+            : user.isAdmin
+            ? deleteTarget?.type === "folder"
+              ? "The folder will be deleted. This cannot be undone."
+              : "The file will be permanently deleted from storage. This cannot be undone."
+            : "Your request will be sent to an admin. Nothing is deleted until they approve it."
+        }
+        confirmLabel={deleting ? "Working..." : cascadeInfo ? "Delete everything" : user.isAdmin ? "Delete" : "Send request"}
+        tone="destructive"
+        loading={deleting}
+        onConfirm={confirmDelete}
       >
-        <AlertDialogContent className="max-w-[92vw] sm:max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="break-words">
-              {user.isAdmin ? "Delete" : "Request deletion of"} "
-              {deleteTarget?.item?.name || deleteTarget?.item?.originalName}"?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {cascadeInfo
-                ? `This folder contains ${cascadeInfo.folders} subfolder(s) and ${cascadeInfo.documents} file(s). Everything inside will be permanently deleted. This cannot be undone.`
-                : user.isAdmin
-                ? deleteTarget?.type === "folder"
-                  ? "The folder will be deleted. This cannot be undone."
-                  : "The file will be permanently deleted from storage. This cannot be undone."
-                : "Your request will be sent to an admin. Nothing is deleted until they approve it."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          {!user.isAdmin && (
-            <Textarea
-              placeholder="Reason (optional)"
-              maxLength={500}
-              value={deleteReason}
-              onChange={(e) => setDeleteReason(e.target.value)}
-            />
-          )}
-          <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={(e) => {
-                e.preventDefault();
-                confirmDelete();
-              }}
-            >
-              {deleting
-                ? "Working..."
-                : cascadeInfo
-                ? "Delete everything"
-                : user.isAdmin
-                ? "Delete"
-                : "Send request"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        {!user.isAdmin && (
+          <Textarea
+            placeholder="Reason (optional)"
+            maxLength={500}
+            value={deleteReason}
+            onChange={(e) => setDeleteReason(e.target.value)}
+          />
+        )}
+      </ConfirmDialog>
     </Shell>
   );
 };

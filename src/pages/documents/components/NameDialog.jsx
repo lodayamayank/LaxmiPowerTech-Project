@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { FormField } from '@/components/common/FormField';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { errorMessage } from '@/lib/documentUtils';
 
@@ -44,9 +44,9 @@ export default function NameDialog({ open, onOpenChange, title, description, lab
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
-          <div>
-            <Label className="block mb-1.5 font-semibold">{label}</Label>
+          <FormField label={label} htmlFor="name-dialog-input" error={error}>
             <Input
+              id="name-dialog-input"
               autoFocus
               value={value}
               maxLength={255}
@@ -57,13 +57,12 @@ export default function NameDialog({ open, onOpenChange, title, description, lab
                 else e.target.select();
               }}
             />
-            {error && <p className="text-sm text-red-600 mt-1.5">{error}</p>}
-          </div>
+          </FormField>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" disabled={saving} onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={saving} className="bg-orange-500 hover:bg-orange-600 text-white">
+            <Button type="submit" disabled={saving}>
               {saving ? 'Saving...' : submitLabel}
             </Button>
           </div>

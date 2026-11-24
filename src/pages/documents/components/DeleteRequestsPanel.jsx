@@ -1,20 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { FaFolder } from 'react-icons/fa';
+import { Folder } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { documentsApi } from '@/api/projectDocuments';
 import { errorMessage, formatDateTime, getFileIcon } from '@/lib/documentUtils';
 
@@ -79,28 +70,28 @@ export default function DeleteRequestsPanel({ open, onOpenChange, onChanged }) {
               <Skeleton className="h-14 w-full" />
             </div>
           ) : rows.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">No pending delete requests.</p>
+            <p className="py-8 text-center text-sm text-ink-3">No pending delete requests.</p>
           ) : (
-            <div className="divide-y divide-gray-100 dark:divide-gray-700 border border-gray-100 dark:border-gray-700 rounded-lg">
+            <div className="divide-y divide-line border border-line rounded-lg">
               {rows.map((row) => {
-                const { Icon, className } = row.kind === 'folder' ? { Icon: FaFolder, className: 'text-yellow-500' } : getFileIcon(row.extension);
+                const { Icon, className } = row.kind === 'folder' ? { Icon: Folder, className: 'text-tone-warn-fg' } : getFileIcon(row.extension);
                 return (
                   <div key={`${row.kind}-${row.id}`} className="flex flex-wrap items-center gap-3 p-3">
                     <Icon className={className} />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <div className="truncate text-sm font-medium text-ink-1">
                         {row.name} {row.kind === 'folder' && <Badge variant="secondary" className="ml-1">Folder</Badge>}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
+                      </div>
+                      <p className="text-xs text-ink-3">
                         {row.projectName} · requested by {row.request.requestedBy?.name || 'unknown'} · {formatDateTime(row.request.requestedAt)}
                       </p>
-                      {row.request.reason && <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">Reason: {row.request.reason}</p>}
+                      {row.request.reason && <p className="text-xs text-ink-3 mt-0.5">Reason: {row.request.reason}</p>}
                     </div>
                     <div className="flex gap-2">
                       <Button size="sm" variant="outline" disabled={busyId === row.id} onClick={() => act(row, 'reject')}>
                         Reject
                       </Button>
-                      <Button size="sm" disabled={busyId === row.id} onClick={() => setConfirm(row)} className="bg-red-600 hover:bg-red-700 text-white">
+                      <Button size="sm" variant="destructive" disabled={busyId === row.id} onClick={() => setConfirm(row)}>
                         Approve & delete
                       </Button>
                     </div>
@@ -112,30 +103,19 @@ export default function DeleteRequestsPanel({ open, onOpenChange, onChanged }) {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={Boolean(confirm)} onOpenChange={(o) => !o && setConfirm(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete "{confirm?.name}"?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {confirm?.kind === 'folder'
-                ? 'This permanently deletes the folder, all its subfolders, and every file inside them. This cannot be undone.'
-                : 'This permanently deletes the file from storage. This cannot be undone.'}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={(e) => {
-                e.preventDefault();
-                act(confirm, 'approve');
-              }}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={Boolean(confirm)}
+        onOpenChange={(o) => !o && setConfirm(null)}
+        title={`Delete "${confirm?.name}"?`}
+        description={
+          confirm?.kind === 'folder'
+            ? 'This permanently deletes the folder, all its subfolders, and every file inside them. This cannot be undone.'
+            : 'This permanently deletes the file from storage. This cannot be undone.'
+        }
+        confirmLabel="Delete"
+        tone="destructive"
+        onConfirm={() => act(confirm, 'approve')}
+      />
     </>
   );
 }

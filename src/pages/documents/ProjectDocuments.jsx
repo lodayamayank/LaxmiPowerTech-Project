@@ -1,405 +1,161 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+// src/pages/documents/ProjectDocuments.jsx  (route: Documents)
+// Data, requests and handlers live in components/useProjectDocuments.js (moved unchanged); this file lays out the page.
+import { Fragment, useMemo } from 'react';
+import { ArrowLeft, ChevronRight, Database, FileText, Folder, FolderPlus, Inbox, Upload } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  FaArrowLeft,
-  FaDatabase,
-  FaEllipsisV,
-  FaFileAlt,
-  FaFolder,
-  FaFolderPlus,
-  FaInbox,
-  FaSortAmountDown,
-  FaSortAmountUp,
-  FaTimes,
-  FaUpload,
-} from 'react-icons/fa';
 import DashboardLayout from '@/layouts/desktop/DashboardLayout';
-import StatCard from '@/components/common/StatCard';
-import EmptyTableRow from '@/components/common/EmptyTableRow';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import useCurrentUser from '@/hooks/useCurrentUser';
+import { Textarea } from '@/components/ui/textarea';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { DataTable } from '@/components/common/DataTable';
+import { EmptyState } from '@/components/common/EmptyState';
+import { FilterBar, FilterField } from '@/components/common/FilterBar';
+import { PageHeader } from '@/components/common/PageHeader';
+import { PaginationBar } from '@/components/common/PaginationBar';
+import { SearchInput } from '@/components/common/SearchInput';
+import { SectionCard } from '@/components/common/SectionCard';
+import { StatCard } from '@/components/common/StatCard';
 import { documentsApi } from '@/api/projectDocuments';
-import { CATEGORY_LABELS, errorMessage, formatBytes, formatDate, getFileIcon } from '@/lib/documentUtils';
+import { CATEGORY_LABELS, formatBytes } from '@/lib/documentUtils';
 import UploadDialog from './components/UploadDialog';
 import NameDialog from './components/NameDialog';
 import MoveDialog from './components/MoveDialog';
 import DetailsDialog from './components/DetailsDialog';
 import PreviewDialog from './components/PreviewDialog';
 import DeleteRequestsPanel from './components/DeleteRequestsPanel';
+import useProjectDocuments, { PAGE_SIZE } from './components/useProjectDocuments';
+import { documentRowKey, getDocumentColumns, getDocumentMobileCard, toDocumentRows } from './components/documentColumns';
 
-const PAGE_SIZE = 25;
-
+// shadcn SelectItem can't use value="", so "All types" uses the existing "all" value
 const ProjectDocuments = () => {
-  const { projectId } = useParams();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const user = useCurrentUser();
+  const d = useProjectDocuments();
+  const {
+    projectId, navigate, user, folderId, summary, folders, docs, breadcrumbs, config, loading, accessError, pendingCount, search, setSearch,
+    typeFilter, setTypeFilter, sort, page, setPage, isFiltering, currentFolderName, uploadOpen, setUploadOpen, droppedFiles, setDroppedFiles,
+    newFolderOpen, setNewFolderOpen, renameTarget, setRenameTarget, moveTarget, setMoveTarget, detailsTarget, setDetailsTarget, previewDoc,
+    setPreviewDoc, requestsOpen, setRequestsOpen, deleteTarget, setDeleteTarget, deleteReason, setDeleteReason, cascadeInfo, deleting,
+    setBreadcrumbs, refresh, openFolder, toggleSort, downloadDocument, closeDelete, confirmDelete, onPageDrop,
+  } = d;
 
-  const folderId = searchParams.get('folder') || null;
-
-  // data
-  const [summary, setSummary] = useState(null);
-  const [folders, setFolders] = useState([]);
-  const [docs, setDocs] = useState({ items: [], total: 0 });
-  const [breadcrumbs, setBreadcrumbs] = useState([]);
-  const [config, setConfig] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [accessError, setAccessError] = useState('');
-  const [pendingCount, setPendingCount] = useState(0);
-
-  // view state
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [sort, setSort] = useState({ by: 'date', order: 'desc' });
-  const [page, setPage] = useState(1);
-
-  // dialogs
-  const [uploadOpen, setUploadOpen] = useState(false);
-  const [droppedFiles, setDroppedFiles] = useState(null);
-  const [newFolderOpen, setNewFolderOpen] = useState(false);
-  const [renameTarget, setRenameTarget] = useState(null); // { type, item }
-  const [moveTarget, setMoveTarget] = useState(null); // { type, id, name, parentId }
-  const [detailsTarget, setDetailsTarget] = useState(null); // { type, id }
-  const [previewDoc, setPreviewDoc] = useState(null);
-  const [requestsOpen, setRequestsOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null); // { type, item }
-  const [deleteReason, setDeleteReason] = useState('');
-  const [cascadeInfo, setCascadeInfo] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-
-  const requestSeq = useRef(0);
-  const isFiltering = Boolean(debouncedSearch || typeFilter !== 'all');
-  const currentFolderName = breadcrumbs.length ? breadcrumbs[breadcrumbs.length - 1].name : null;
-
-  // debounce search
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search.trim()), 350);
-    return () => clearTimeout(t);
-  }, [search]);
-
-  // back to page 1 whenever the view changes
-  useEffect(() => {
-    setPage(1);
-  }, [folderId, debouncedSearch, typeFilter, sort]);
-
-  const load = useCallback(async () => {
-    if (!user.canUseDocuments) return;
-    const seq = ++requestSeq.current;
-    setLoading(true);
-    try {
-      const docParams = { page, limit: PAGE_SIZE, sortBy: sort.by, order: sort.order };
-      if (debouncedSearch) docParams.q = debouncedSearch;
-      if (typeFilter !== 'all') docParams.fileType = typeFilter;
-      if (!isFiltering) docParams.folderId = folderId || 'root';
-
-      const [docRes, folderRes, sum] = await Promise.all([
-        documentsApi.listDocuments(projectId, docParams),
-        isFiltering ? Promise.resolve([]) : documentsApi.listFolders(projectId, { parentFolderId: folderId || 'root' }),
-        documentsApi.getSummary(projectId),
-      ]);
-      if (seq !== requestSeq.current) return; // a newer request superseded this one
-      setDocs(docRes);
-      setFolders(folderRes);
-      setSummary(sum);
-      setAccessError('');
-    } catch (err) {
-      if (seq !== requestSeq.current) return;
-      const status = err?.response?.status;
-      if (status === 403 || status === 404) setAccessError(errorMessage(err, 'You do not have access to this project'));
-      else toast.error(errorMessage(err, 'Failed to load documents'));
-    } finally {
-      if (seq === requestSeq.current) setLoading(false);
-    }
-  }, [projectId, folderId, page, sort, debouncedSearch, typeFilter, isFiltering, user.canUseDocuments]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  // breadcrumbs follow the current folder
-  useEffect(() => {
-    if (!user.canUseDocuments) return;
-    if (!folderId) {
-      setBreadcrumbs([]);
-      return;
-    }
-    documentsApi
-      .getFolder(projectId, folderId)
-      .then((res) => setBreadcrumbs(res.breadcrumbs))
-      .catch(() => {
-        toast.error('That folder no longer exists');
-        setSearchParams({});
-      });
-  }, [projectId, folderId, user.canUseDocuments, setSearchParams]);
-
-  useEffect(() => {
-    if (user.canUseDocuments) documentsApi.getUploadConfig().then(setConfig).catch(() => {});
-  }, [user.canUseDocuments]);
-
-  const loadPendingCount = useCallback(() => {
-    if (!user.isAdmin) return;
-    documentsApi
-      .listDeleteRequests()
-      .then((r) => setPendingCount(r.documents.length + r.folders.length))
-      .catch(() => {});
-  }, [user.isAdmin]);
-
-  useEffect(() => {
-    loadPendingCount();
-  }, [loadPendingCount]);
-
-  const refresh = () => {
-    load();
-    loadPendingCount();
-  };
-
-  /* ---------------- navigation ---------------- */
-
-  const openFolder = (id) => {
-    setSearch('');
-    setTypeFilter('all');
-    setSearchParams(id ? { folder: id } : {});
-  };
-
-  const toggleSort = (by) =>
-    setSort((s) => (s.by === by ? { by, order: s.order === 'asc' ? 'desc' : 'asc' } : { by, order: by === 'name' ? 'asc' : 'desc' }));
-
-  const sortIcon = (by) =>
-    sort.by === by ? (sort.order === 'asc' ? <FaSortAmountUp size={11} className="inline ml-1" /> : <FaSortAmountDown size={11} className="inline ml-1" />) : null;
-
-  /* ---------------- actions ---------------- */
-
-  const downloadDocument = async (doc) => {
-    try {
-      const { url } = await documentsApi.getDownloadUrl(doc._id);
-      const a = document.createElement('a');
-      a.href = url;
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    } catch (err) {
-      toast.error(errorMessage(err, 'Failed to download'));
-    }
-  };
-
-  const closeDelete = () => {
-    setDeleteTarget(null);
-    setDeleteReason('');
-    setCascadeInfo(null);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    const { type, item } = deleteTarget;
-    setDeleting(true);
-    try {
-      const reason = deleteReason.trim() || undefined;
-      const res =
-        type === 'folder'
-          ? await documentsApi.deleteFolder(projectId, item._id, { cascade: Boolean(cascadeInfo), reason })
-          : await documentsApi.deleteDocument(item._id, { reason });
-      if (res.status === 202) toast.info('Delete request sent to an admin for approval');
-      else toast.success(type === 'folder' ? 'Folder deleted' : 'File deleted');
-      closeDelete();
-      refresh();
-    } catch (err) {
-      const data = err?.response?.data;
-      if (err?.response?.status === 409 && data?.requiresCascade) {
-        setCascadeInfo({ folders: data.folders, documents: data.documents }); // ask once more, with counts
-      } else {
-        toast.error(errorMessage(err, 'Failed to delete'));
-      }
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  /* ---------------- page-level drag & drop ---------------- */
-
-  const onPageDrop = (e) => {
-    e.preventDefault();
-    if (e.dataTransfer?.files?.length) {
-      setDroppedFiles(Array.from(e.dataTransfer.files));
-      setUploadOpen(true);
-    }
-  };
-
-  /* ---------------- render ---------------- */
+  const deleteLabel = user.isAdmin ? 'Delete' : 'Request deletion';
+  const rows = useMemo(() => toDocumentRows(folders, docs.items), [folders, docs.items]);
+  const handlers = useMemo(
+    () => ({ openFolder, setPreviewDoc, downloadDocument, setRenameTarget, setMoveTarget, setDetailsTarget, setDeleteTarget, deleteLabel }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [folderId, deleteLabel],
+  );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const columns = useMemo(() => getDocumentColumns(handlers, sort, toggleSort), [handlers, sort]);
+  const mobileCard = useMemo(() => getDocumentMobileCard(handlers), [handlers]);
 
   if (!user.canUseDocuments) {
     return (
-      <DashboardLayout title="Documents">
-        <Card>
-          <CardContent className="p-8 text-center text-gray-600">You do not have permission to view project documents.</CardContent>
-        </Card>
+      <DashboardLayout>
+        <SectionCard>
+          <EmptyState icon={Inbox} title="You do not have permission to view project documents." />
+        </SectionCard>
       </DashboardLayout>
     );
   }
   if (accessError) {
     return (
-      <DashboardLayout title="Documents">
-        <Card>
-          <CardContent className="p-8 text-center space-y-3">
-            <p className="text-gray-700">{accessError}</p>
-            <Button variant="outline" onClick={() => navigate(user.isAdmin ? '/admin/projects' : '/documents')}>
-              Go back
-            </Button>
-          </CardContent>
-        </Card>
+      <DashboardLayout>
+        <SectionCard>
+          <EmptyState
+            icon={Inbox}
+            title={accessError}
+            action={
+              <Button variant="outline" onClick={() => navigate(user.isAdmin ? '/admin/projects' : '/documents')}>
+                Go back
+              </Button>
+            }
+          />
+        </SectionCard>
       </DashboardLayout>
     );
   }
 
   const totalPages = Math.max(1, Math.ceil(docs.total / PAGE_SIZE));
-  const empty = !loading && folders.length === 0 && docs.items.length === 0;
-  const deleteLabel = user.isAdmin ? 'Delete' : 'Request deletion';
-
-  const renderMenu = (type, item) => (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" title="Actions">
-          <FaEllipsisV size={13} />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {type === 'folder' ? (
-          <DropdownMenuItem onClick={() => openFolder(item._id)}>Open</DropdownMenuItem>
-        ) : (
-          <>
-            <DropdownMenuItem onClick={() => setPreviewDoc(item)}>{item.previewable ? 'Preview' : 'View info'}</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => downloadDocument(item)}>Download</DropdownMenuItem>
-          </>
-        )}
-        <DropdownMenuItem onClick={() => setRenameTarget({ type, item })}>Rename</DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() =>
-            setMoveTarget({
-              type,
-              id: item._id,
-              name: type === 'folder' ? item.name : item.originalName,
-              parentId: type === 'folder' ? item.parentFolderId : item.folderId,
-            })
-          }
-        >
-          Move
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setDetailsTarget({ type, id: item._id })}>Details</DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          disabled={Boolean(item.deleteRequest)}
-          className="text-red-600 focus:text-red-600"
-          onClick={() => setDeleteTarget({ type, item })}
-        >
-          {item.deleteRequest ? 'Deletion requested' : deleteLabel}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+  const hasFilters = Boolean(search) || typeFilter !== 'all';
+  const uploadAction = (
+    <Button onClick={() => setUploadOpen(true)}>
+      <Upload /> Upload Files
+    </Button>
   );
 
-  const requestedBadge = (item) =>
-    item.deleteRequest ? (
-      <Badge variant="outline" className="ml-2 bg-orange-100 text-orange-700 border-orange-200 text-[10px]">
-        Deletion requested
-      </Badge>
-    ) : null;
-
   return (
-    <DashboardLayout title="Documents">
-      <div className="space-y-6" onDragOver={(e) => e.preventDefault()} onDrop={onPageDrop}>
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            {user.isAdmin && (
-              <Button variant="ghost" size="icon" title="Back to projects" onClick={() => navigate('/admin/projects')}>
-                <FaArrowLeft size={14} />
-              </Button>
-            )}
-            <div>
-              <p className="text-sm text-gray-500">{summary?.projectName || 'Project'}</p>
-              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Documents</h1>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {user.isAdmin && (
-              <Button variant="outline" onClick={() => setRequestsOpen(true)} className="gap-2">
-                Delete requests
-                {pendingCount > 0 && <Badge className="bg-red-600 text-white">{pendingCount}</Badge>}
-              </Button>
-            )}
-            <Button variant="outline" onClick={() => setNewFolderOpen(true)} className="gap-2">
-              <FaFolderPlus size={14} /> New Folder
-            </Button>
-            <Button onClick={() => setUploadOpen(true)} className="bg-orange-500 hover:bg-orange-600 text-white shadow-md gap-2">
-              <FaUpload size={13} /> Upload Files
-            </Button>
-          </div>
-        </div>
-
-        {/* Summary */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <StatCard title="Total Documents" value={summary?.totalDocuments ?? 0} icon={FaFileAlt} color="orange" />
-          <StatCard title="Total Storage" value={formatBytes(summary?.totalSize ?? 0)} icon={FaDatabase} color="blue" />
-          <StatCard title="Total Folders" value={summary?.totalFolders ?? 0} icon={FaFolder} color="green" />
-        </div>
-
-        <Card>
-          <CardHeader className="border-b border-gray-100 dark:border-gray-700 space-y-3">
-            {/* Breadcrumbs */}
-            <nav className="flex flex-wrap items-center gap-1 text-sm" aria-label="Breadcrumb">
-              {breadcrumbs.length === 0 ? (
-                <span className="font-semibold text-gray-800 dark:text-gray-100">All Documents</span>
-              ) : (
-                <button type="button" className="text-orange-600 hover:underline" onClick={() => openFolder(null)}>
-                  All Documents
-                </button>
+    <DashboardLayout>
+      <div className="flex flex-col gap-6" onDragOver={(e) => e.preventDefault()} onDrop={onPageDrop}>
+        <PageHeader
+          eyebrow="Projects / Documents"
+          title="Documents"
+          description={summary?.projectName || 'Project'}
+          actions={
+            <>
+              {user.isAdmin && (
+                <Button variant="ghost" size="icon" title="Back to projects" aria-label="Back to projects" onClick={() => navigate('/admin/projects')}>
+                  <ArrowLeft />
+                </Button>
               )}
-              {breadcrumbs.map((b, i) => (
-                <React.Fragment key={b._id}>
-                  <span className="text-gray-400">/</span>
-                  {i === breadcrumbs.length - 1 ? (
-                    <span className="font-semibold text-gray-800 dark:text-gray-100">{b.name}</span>
-                  ) : (
-                    <button type="button" className="text-orange-600 hover:underline" onClick={() => openFolder(b._id)}>
-                      {b.name}
-                    </button>
-                  )}
-                </React.Fragment>
-              ))}
-            </nav>
+              {user.isAdmin && (
+                <Button variant="outline" onClick={() => setRequestsOpen(true)}>
+                  Delete requests
+                  {pendingCount > 0 && <Badge variant="bad">{pendingCount}</Badge>}
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => setNewFolderOpen(true)}>
+                <FolderPlus /> New Folder
+              </Button>
+              {uploadAction}
+            </>
+          }
+        />
 
-            {/* Search and filter */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <Input placeholder="Search files in this project..." value={search} onChange={(e) => setSearch(e.target.value)} />
-                {search && (
-                  <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" onClick={() => setSearch('')} title="Clear">
-                    <FaTimes size={12} />
-                  </button>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
+          <StatCard label="Total Documents" value={summary?.totalDocuments ?? 0} icon={FileText} tone="highlight" />
+          <StatCard label="Total Storage" value={formatBytes(summary?.totalSize ?? 0)} icon={Database} tone="info" />
+          <StatCard label="Total Folders" value={summary?.totalFolders ?? 0} icon={Folder} tone="ok" />
+        </div>
+
+        <SectionCard flush>
+          {/* Breadcrumbs */}
+          <nav className="flex flex-wrap items-center gap-1 border-b border-line px-4 py-3 text-small" aria-label="Breadcrumb">
+            {breadcrumbs.length === 0 ? (
+              <span className="font-semibold text-ink-1">All Documents</span>
+            ) : (
+              <Button variant="ghost" size="sm" className="h-auto px-1 py-0.5 text-primary" onClick={() => openFolder(null)}>
+                All Documents
+              </Button>
+            )}
+            {breadcrumbs.map((b, i) => (
+              <Fragment key={b._id}>
+                <ChevronRight className="size-3.5 text-ink-4" aria-hidden="true" />
+                {i === breadcrumbs.length - 1 ? (
+                  <span className="font-semibold text-ink-1">{b.name}</span>
+                ) : (
+                  <Button variant="ghost" size="sm" className="h-auto px-1 py-0.5 text-primary" onClick={() => openFolder(b._id)}>
+                    {b.name}
+                  </Button>
                 )}
-              </div>
+              </Fragment>
+            ))}
+          </nav>
+
+          <FilterBar
+            onClear={() => {
+              setSearch('');
+              setTypeFilter('all');
+            }}
+            showClear={hasFilters}
+          >
+            <FilterField label="Search files" htmlFor="doc-filter-search" grow={22} minWidth={220}>
+              <SearchInput id="doc-filter-search" value={search} onChange={(e) => setSearch(e.target.value)} onClear={() => setSearch('')} placeholder="Search files in this project..." />
+            </FilterField>
+            <FilterField label="Type" htmlFor="doc-filter-type" grow={12} minWidth={160} maxWidth={220}>
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="sm:w-48">
+                <SelectTrigger id="doc-filter-type">
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
                 <SelectContent>
@@ -411,110 +167,30 @@ const ProjectDocuments = () => {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            {isFiltering && <p className="text-xs text-muted-foreground">Showing matching files from all folders. Clear the search and type filter to browse folders.</p>}
-          </CardHeader>
+            </FilterField>
+          </FilterBar>
+          {isFiltering && <p className="px-4 pb-3 text-caption-lg text-ink-3">Showing matching files from all folders. Clear the search and type filter to browse folders.</p>}
 
-          <CardContent className="p-0 overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="dark:border-gray-700">
-                  <TableHead className="font-semibold cursor-pointer select-none" onClick={() => toggleSort('name')}>
-                    Name
-                    {sortIcon('name')}
-                  </TableHead>
-                  <TableHead className="font-semibold">Type</TableHead>
-                  <TableHead className="font-semibold cursor-pointer select-none" onClick={() => toggleSort('size')}>
-                    Size
-                    {sortIcon('size')}
-                  </TableHead>
-                  <TableHead className="font-semibold">Uploaded By</TableHead>
-                  <TableHead className="font-semibold cursor-pointer select-none" onClick={() => toggleSort('date')}>
-                    Uploaded Date
-                    {sortIcon('date')}
-                  </TableHead>
-                  <TableHead className="font-semibold text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={`sk-${i}`}>
-                      {Array.from({ length: 6 }).map((__, j) => (
-                        <TableCell key={j}>
-                          <Skeleton className="h-4 w-full max-w-[140px]" />
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : empty ? (
-                  <EmptyTableRow
-                    colSpan={6}
-                    message={isFiltering ? 'No files match your search.' : 'This folder is empty. Upload files or create a folder to get started.'}
-                  />
-                ) : (
-                  <>
-                    {folders.map((f) => (
-                      <TableRow key={`f-${f._id}`} className="dark:border-gray-700">
-                        <TableCell>
-                          <button type="button" className="flex items-center gap-2 font-medium text-gray-900 dark:text-gray-100 hover:text-orange-600" onClick={() => openFolder(f._id)}>
-                            <FaFolder className="text-yellow-500" size={17} />
-                            <span className="truncate max-w-[280px]">{f.name}</span>
-                          </button>
-                          {requestedBadge(f)}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">Folder</TableCell>
-                        <TableCell className="text-muted-foreground">-</TableCell>
-                        <TableCell className="text-muted-foreground">{f.createdBy?.name || '-'}</TableCell>
-                        <TableCell className="text-muted-foreground">{formatDate(f.createdAt)}</TableCell>
-                        <TableCell className="text-right">
-                          {renderMenu('folder', f)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {docs.items.map((d) => {
-                      const { Icon, className } = getFileIcon(d.extension);
-                      return (
-                        <TableRow key={`d-${d._id}`} className="dark:border-gray-700">
-                          <TableCell>
-                            <button type="button" className="flex items-center gap-2 font-medium text-gray-900 dark:text-gray-100 hover:text-orange-600" onClick={() => setPreviewDoc(d)}>
-                              <Icon className={className} size={16} />
-                              <span className="truncate max-w-[280px]">{d.originalName}</span>
-                            </button>
-                            {requestedBadge(d)}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground uppercase">{d.extension}</TableCell>
-                          <TableCell className="text-muted-foreground">{formatBytes(d.fileSize)}</TableCell>
-                          <TableCell className="text-muted-foreground">{d.uploadedBy?.name || '-'}</TableCell>
-                          <TableCell className="text-muted-foreground">{formatDate(d.createdAt)}</TableCell>
-                          <TableCell className="text-right">
-                            {renderMenu('document', d)}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </>
-                )}
-              </TableBody>
-            </Table>
-
-            {docs.total > PAGE_SIZE && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-gray-700 text-sm">
-                <span className="text-muted-foreground">
-                  Page {page} of {totalPages} · {docs.total} files
-                </span>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" disabled={page <= 1 || loading} onClick={() => setPage((p) => p - 1)}>
-                    Previous
-                  </Button>
-                  <Button variant="outline" size="sm" disabled={page >= totalPages || loading} onClick={() => setPage((p) => p + 1)}>
-                    Next
-                  </Button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          <DataTable
+            columns={columns}
+            rows={rows}
+            rowKey={documentRowKey}
+            loading={loading}
+            mobileCard={mobileCard}
+            emptyState={
+              <EmptyState
+                icon={Inbox}
+                title={isFiltering ? 'No files match your search.' : 'This folder is empty. Upload files or create a folder to get started.'}
+                action={isFiltering ? undefined : uploadAction}
+              />
+            }
+            footer={
+              docs.total > PAGE_SIZE ? (
+                <PaginationBar currentPage={page} totalPages={totalPages} totalItems={docs.total} pageSize={PAGE_SIZE} onPageChange={setPage} />
+              ) : undefined
+            }
+          />
+        </SectionCard>
       </div>
 
       {/* Dialogs */}
@@ -529,7 +205,7 @@ const ProjectDocuments = () => {
         folderName={currentFolderName}
         config={config}
         initialFiles={droppedFiles}
-        existingNames={docs.items.map((d) => d.originalName)}
+        existingNames={docs.items.map((x) => x.originalName)}
         onUploaded={refresh}
       />
 
@@ -581,40 +257,26 @@ const ProjectDocuments = () => {
 
       {user.isAdmin && <DeleteRequestsPanel open={requestsOpen} onOpenChange={setRequestsOpen} onChanged={refresh} />}
 
-      <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(o) => !o && !deleting && closeDelete()}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {user.isAdmin ? 'Delete' : 'Request deletion of'} "{deleteTarget?.item?.name || deleteTarget?.item?.originalName}"?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {cascadeInfo
-                ? `This folder contains ${cascadeInfo.folders} subfolder(s) and ${cascadeInfo.documents} file(s). Everything inside will be permanently deleted. This cannot be undone.`
-                : user.isAdmin
-                ? deleteTarget?.type === 'folder'
-                  ? 'The folder will be deleted. This cannot be undone.'
-                  : 'The file will be permanently deleted from storage. This cannot be undone.'
-                : 'Your request will be sent to an admin. Nothing is deleted until they approve it.'}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          {!user.isAdmin && (
-            <Textarea placeholder="Reason (optional)" maxLength={500} value={deleteReason} onChange={(e) => setDeleteReason(e.target.value)} />
-          )}
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={(e) => {
-                e.preventDefault();
-                confirmDelete();
-              }}
-            >
-              {deleting ? 'Working...' : cascadeInfo ? 'Delete everything' : user.isAdmin ? 'Delete' : 'Send request'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(o) => !o && !deleting && closeDelete()}
+        title={`${user.isAdmin ? 'Delete' : 'Request deletion of'} "${deleteTarget?.item?.name || deleteTarget?.item?.originalName}"?`}
+        description={
+          cascadeInfo
+            ? `This folder contains ${cascadeInfo.folders} subfolder(s) and ${cascadeInfo.documents} file(s). Everything inside will be permanently deleted. This cannot be undone.`
+            : user.isAdmin
+            ? deleteTarget?.type === 'folder'
+              ? 'The folder will be deleted. This cannot be undone.'
+              : 'The file will be permanently deleted from storage. This cannot be undone.'
+            : 'Your request will be sent to an admin. Nothing is deleted until they approve it.'
+        }
+        confirmLabel={deleting ? 'Working...' : cascadeInfo ? 'Delete everything' : user.isAdmin ? 'Delete' : 'Send request'}
+        tone="destructive"
+        loading={deleting}
+        onConfirm={confirmDelete}
+      >
+        {!user.isAdmin && <Textarea placeholder="Reason (optional)" maxLength={500} value={deleteReason} onChange={(e) => setDeleteReason(e.target.value)} />}
+      </ConfirmDialog>
     </DashboardLayout>
   );
 };

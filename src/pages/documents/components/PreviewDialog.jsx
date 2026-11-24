@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FaDownload, FaExternalLinkAlt } from "react-icons/fa";
+import { Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -96,19 +96,18 @@ export default function PreviewDialog({ open, onOpenChange, doc, onDownload }) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 overflow-auto rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40">
+        <div className="flex-1 min-h-0 overflow-auto rounded-lg border border-line bg-surface-subtle">
           {doc && !doc.previewable && (
             <div className="p-6 sm:p-10 text-center space-y-3">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-ink-3">
                 {doc.fileType === "cad"
                   ? "CAD drawings cannot be previewed in the browser yet. Download the file to open it in your CAD software."
                   : "This file type cannot be previewed in the browser. Download it to open it."}
               </p>
               <Button
                 onClick={() => onDownload?.(doc)}
-                className="bg-orange-500 hover:bg-orange-600 text-white gap-2"
               >
-                <FaDownload size={12} /> Download
+                <Download size={12} /> Download
               </Button>
             </div>
           )}
@@ -116,27 +115,26 @@ export default function PreviewDialog({ open, onOpenChange, doc, onDownload }) {
           {doc?.previewable && loading && (
             <Skeleton className="h-[55dvh] w-full" />
           )}
-          {error && <p className="p-6 text-sm text-red-600">{error}</p>}
+          {error && <p className="p-6 text-sm text-tone-bad-fg">{error}</p>}
 
           {/* PDF: iframe on desktop, open-in-new-tab on phones */}
           {url && isPdf && !isMobile && (
             <iframe
               title={doc.originalName}
               src={url}
-              className="w-full h-[70dvh] bg-white"
+              className="w-full h-[70dvh] bg-surface"
             />
           )}
           {url && isPdf && isMobile && (
             <div className="p-6 text-center space-y-3">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-ink-3">
                 PDFs open best in your phone's viewer.
               </p>
               <Button
                 asChild
-                className="bg-orange-500 hover:bg-orange-600 text-white gap-2"
               >
                 <a href={url} target="_blank" rel="noopener noreferrer">
-                  <FaExternalLinkAlt size={12} /> Open PDF
+                  <ExternalLink size={12} /> Open PDF
                 </a>
               </Button>
             </div>
@@ -166,7 +164,7 @@ export default function PreviewDialog({ open, onOpenChange, doc, onDownload }) {
               onClick={() => onDownload?.(doc)}
               className="gap-2 w-full sm:w-auto"
             >
-              <FaDownload size={12} /> Download
+              <Download size={12} /> Download
             </Button>
           </div>
         )}

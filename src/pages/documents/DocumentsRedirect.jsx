@@ -10,7 +10,7 @@ export default function DocumentsRedirect() {
   if (user.isAdmin) return <Navigate to="/admin/projects" replace />;
   if (user.project) return <Navigate to={`/projects/${user.project}/documents`} replace />;
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 text-center text-gray-600">
+    <div className="min-h-screen flex items-center justify-center p-6 text-center text-ink-3">
       You are not assigned to a project yet. Please ask an admin to assign you to one.
     </div>
   );
