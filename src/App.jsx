@@ -85,6 +85,9 @@ const MobileMyIndents = lazy(() => import('./pages/MobileMyIndents'));
 const MaterialTransferMobile = lazy(() => import('./pages/MaterialTransferMobile'));
 const ConnectServer = lazy(() => import('./pages/ConnectServer'));
 
+// Dev-only design system page (not part of the production bundle)
+const Styleguide = import.meta.env.DEV ? lazy(() => import('./pages/dev/Styleguide')) : null;
+
 // Loading fallback component
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -339,6 +342,10 @@ function App() {
             path="/material/transfer-mobile"
             element={<MaterialTransferMobile />}
           />
+          {/* Dev-only */}
+          {import.meta.env.DEV && Styleguide && (
+            <Route path="/styleguide" element={<Styleguide />} />
+          )}
           {/* Offline Sync */}
           <Route path="/connect-server" element={<ConnectServer />} />
         </Routes>
