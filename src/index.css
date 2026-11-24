@@ -153,6 +153,7 @@
     --tone-pink-soft: 316.4 73.3% 97.1%;
     --tone-pink-fg: 326.9 80.4% 42%;
     --tone-bad-solid: 4.2 76.5% 40%;
+    --scrim: 0 0% 0%;
   }
 
   .dark {
@@ -193,6 +194,7 @@
     --tone-pink-soft: 316.4 90.4% 55% / 0.15; /* provisional dark */
     --tone-pink-fg: 326.9 90.4% 75%; /* provisional dark */
     --tone-bad-solid: 4.2 70% 38%; /* provisional dark */
+    --scrim: 0 0% 0%;
   }
 }
 

@@ -97,6 +97,7 @@ export default {
           soft: "hsl(var(--highlight-soft))",
         },
         page: "hsl(var(--page))",
+        scrim: "hsl(var(--scrim))",
         surface: {
           DEFAULT: "hsl(var(--surface))",
           subtle: "hsl(var(--surface-subtle))",
@@ -160,6 +161,9 @@ export default {
       },
       boxShadow: {
         control: "0 1px 2px rgba(16, 24, 40, 0.08)",
+      },
+      width: {
+        control: "40px",
       },
       height: {
         control: "40px",
