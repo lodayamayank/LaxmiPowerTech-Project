@@ -84,11 +84,107 @@ export default {
             foreground: "hsl(var(--sidebar-accent-foreground))",
           },
         },
+
+        // ── Design tokens (additive; see index.css) ──
+        "primary-brand": {
+          DEFAULT: "hsl(var(--primary-brand))",
+          strong: "hsl(var(--primary-brand-strong))",
+          soft: "hsl(var(--primary-brand-soft))",
+        },
+        highlight: {
+          DEFAULT: "hsl(var(--highlight))",
+          foreground: "hsl(var(--highlight-foreground))",
+          soft: "hsl(var(--highlight-soft))",
+        },
+        page: "hsl(var(--page))",
+        surface: {
+          DEFAULT: "hsl(var(--surface))",
+          subtle: "hsl(var(--surface-subtle))",
+          muted: "hsl(var(--surface-muted))",
+        },
+        line: {
+          DEFAULT: "hsl(var(--line))",
+          card: "hsl(var(--line-card))",
+          input: "hsl(var(--line-input))",
+        },
+        ink: {
+          1: "hsl(var(--ink-1))",
+          2: "hsl(var(--ink-2))",
+          3: "hsl(var(--ink-3))",
+          4: "hsl(var(--ink-4))",
+          5: "hsl(var(--ink-5))",
+        },
+        "tone-ok": {
+          soft: "hsl(var(--tone-ok-soft))",
+          fg: "hsl(var(--tone-ok-fg))",
+          border: "hsl(var(--tone-ok-border))",
+        },
+        "tone-warn": {
+          soft: "hsl(var(--tone-warn-soft))",
+          fg: "hsl(var(--tone-warn-fg))",
+        },
+        "tone-bad": {
+          soft: "hsl(var(--tone-bad-soft))",
+          fg: "hsl(var(--tone-bad-fg))",
+          border: "hsl(var(--tone-bad-border))",
+          solid: "hsl(var(--tone-bad-solid))",
+        },
+        "tone-info": {
+          soft: "hsl(var(--tone-info-soft))",
+          fg: "hsl(var(--tone-info-fg))",
+        },
+        "tone-neutral": {
+          soft: "hsl(var(--tone-neutral-soft))",
+          fg: "hsl(var(--tone-neutral-fg))",
+        },
+        "tone-highlight": {
+          soft: "hsl(var(--tone-highlight-soft))",
+          fg: "hsl(var(--tone-highlight-fg))",
+        },
+        "tone-purple": {
+          soft: "hsl(var(--tone-purple-soft))",
+          fg: "hsl(var(--tone-purple-fg))",
+        },
+        "tone-pink": {
+          soft: "hsl(var(--tone-pink-soft))",
+          fg: "hsl(var(--tone-pink-fg))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        control: "8px",
+        card: "12px",
+        pill: "12px",
+      },
+      boxShadow: {
+        control: "0 1px 2px rgba(16, 24, 40, 0.08)",
+      },
+      height: {
+        control: "40px",
+        "control-sm": "32px",
+        "control-tab": "42px",
+        "control-seg": "34px",
+      },
+      minHeight: {
+        control: "40px",
+        "control-sm": "32px",
+        "control-tab": "42px",
+        "control-seg": "34px",
+      },
+      fontSize: {
+        caption: ["12px", { lineHeight: "16px" }],
+        "caption-lg": ["12.5px", { lineHeight: "16px" }],
+        small: ["13px", { lineHeight: "18px" }],
+        body: ["14px", { lineHeight: "20px" }],
+        "card-title": ["16px", { lineHeight: "24px", fontWeight: "600" }],
+        "page-title": ["26px", { lineHeight: "32px", fontWeight: "600", letterSpacing: "-0.02em" }],
+        kpi: ["28px", { lineHeight: "34px", fontWeight: "600", letterSpacing: "-0.02em" }],
+      },
+      fontFamily: {
+        ui: ["Inter", "system-ui", "sans-serif"],
+        data: ['"JetBrains Mono"', "ui-monospace", "monospace"],
       },
       keyframes: {
         "accordion-down": {
