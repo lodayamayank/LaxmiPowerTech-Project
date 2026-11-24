@@ -19,7 +19,7 @@ export default function StructureSummary({ buildings }) {
   ];
   return (
     <SectionCard title="Project Summary" className="mt-4">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(104px,1fr))] gap-3">
         {items.map(([label, value, color]) => (
           <div key={label} className="rounded-control bg-surface-muted p-2">
             <p className="text-caption-lg text-ink-3">{label}</p>
