@@ -34,7 +34,8 @@ export const ROUTES = {
     leaves: '/attendance/leaves',
   },
 
-  // Admin attendance register (AdminAttendance); the Supervisor path keeps the capital S used in App.jsx.
+  // Project/month attendance register (AdminAttendance). Not linked from the sidebar or any tab: kept as
+  // routes only (the Supervisor path keeps the capital S used in App.jsx).
   adminAttendance: {
     labour: '/admin/attendance/labour',
     supervisor: '/admin/attendance/Supervisor',

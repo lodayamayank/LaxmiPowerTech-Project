@@ -41,6 +41,10 @@ export const STATUS_TONES = {
   // highlight
   partial: "highlight",
   "sick leave": "highlight",
+  // live attendance
+  "punched in": "ok",
+  "punched out": "info",
+  "no punch in": "neutral",
   // leave types (AdminLeaves)
   sick: "highlight",
   unpaid: "purple",
@@ -59,17 +63,17 @@ export const STATUS_TONES = {
 
 /** Role -> badge tone (used for role badges). */
 export const ROLE_TONES = {
+  admin: "purple",
+  supervisor: "highlight",
+  staff: "info",
   labour: "ok",
-  supervisor: "info",
-  subcontractor: "purple",
-  staff: "neutral",
-  admin: "highlight",
+  subcontractor: "neutral",
 };
 
 /**
  * Tone for a role string (case-insensitive).
  * @param {string|null|undefined} role
- * @returns {"ok"|"info"|"purple"|"neutral"|"highlight"} "neutral" for anything else
+ * @returns {"purple"|"highlight"|"info"|"ok"|"neutral"} "neutral" for anything else
  */
 export function getRoleTone(role) {
   return ROLE_TONES[String(role ?? "").trim().toLowerCase()] || "neutral";
