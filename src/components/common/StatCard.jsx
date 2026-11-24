@@ -1,79 +1,40 @@
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { IconTile } from "./IconTile";
 
-/**
- * Color presets mapping color names to Tailwind classes for
- * the value text, icon circle background, and icon color.
- * Supports both light and dark mode.
- */
-const COLOR_PRESETS = {
-  orange: {
-    text: "text-gray-800 dark:text-gray-100",
-    bg: "bg-orange-100 dark:bg-orange-950/40",
-    icon: "text-orange-600 dark:text-orange-400",
-  },
-  blue: {
-    text: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-100 dark:bg-blue-950/40",
-    icon: "text-blue-600 dark:text-blue-400",
-  },
-  green: {
-    text: "text-green-600 dark:text-green-400",
-    bg: "bg-green-100 dark:bg-green-950/40",
-    icon: "text-green-600 dark:text-green-400",
-  },
-  red: {
-    text: "text-red-600 dark:text-red-400",
-    bg: "bg-red-100 dark:bg-red-950/40",
-    icon: "text-red-600 dark:text-red-400",
-  },
-  purple: {
-    text: "text-purple-600 dark:text-purple-400",
-    bg: "bg-purple-100 dark:bg-purple-950/40",
-    icon: "text-purple-600 dark:text-purple-400",
-  },
-  yellow: {
-    text: "text-yellow-600 dark:text-yellow-400",
-    bg: "bg-yellow-100 dark:bg-yellow-950/40",
-    icon: "text-yellow-600 dark:text-yellow-400",
-  },
+// Legacy `color` presets (old API) -> tone.
+const COLOR_TO_TONE = {
+  orange: "highlight",
+  blue: "info",
+  green: "ok",
+  red: "bad",
+  purple: "purple",
+  yellow: "warn",
 };
 
 /**
- * StatCard — Reusable metric/stat card with an icon circle.
+ * StatCard: metric card (icon tile + label, big value, optional sub-line).
  *
- * @param {string} title — Label text (e.g. "Total Branches")
- * @param {string|number} value — Displayed metric value
- * @param {React.ComponentType} icon — Icon component (e.g. FaBuilding)
- * @param {string} [color="orange"] — Color preset name
- * @param {string} [className] — Additional Card classes
+ * Props:
+ * - label {node}: metric name (legacy alias: `title`)
+ * - value {node}: the figure
+ * - sub {node}: small text under the value
+ * - icon {React.ComponentType}: icon for the tile
+ * - tone {string}: IconTile tone (legacy alias: `color` = orange|blue|green|red|purple|yellow)
+ * - className {string}
+ * - ...props spread onto the root Card
  */
-const StatCard = ({ title, value, icon: Icon, color = "orange", className }) => {
-  const preset = COLOR_PRESETS[color] || COLOR_PRESETS.orange;
-
+export const StatCard = ({ label, title, value, sub, icon, tone, color, className, ...props }) => {
+  const resolvedTone = tone || COLOR_TO_TONE[color] || "highlight";
   return (
-    <Card className={cn(className)}>
-      <CardContent className="p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground font-medium">{title}</p>
-            <p className={cn("text-3xl font-bold mt-1", preset.text)}>
-              {value}
-            </p>
-          </div>
-          {Icon && (
-            <div
-              className={cn(
-                "w-12 h-12 rounded-full flex items-center justify-center",
-                preset.bg
-              )}
-            >
-              <Icon className={preset.icon} size={20} />
-            </div>
-          )}
-        </div>
-      </CardContent>
+    <Card className={cn("flex flex-col gap-1.5 p-5", className)} {...props}>
+      <div className="flex items-center gap-2.5">
+        {icon ? <IconTile icon={icon} tone={resolvedTone} /> : null}
+        <span className="text-small font-medium text-ink-3">{label ?? title}</span>
+      </div>
+      <div className="text-kpi tabular-nums text-ink-1">{value}</div>
+      {sub ? <div className="text-caption-lg text-ink-3">{sub}</div> : null}
     </Card>
   );
 };
