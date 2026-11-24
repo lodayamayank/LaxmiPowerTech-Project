@@ -48,6 +48,9 @@ import { PaginationBar } from "@/components/common/PaginationBar";
 import { FormField } from "@/components/common/FormField";
 import { SearchInput } from "@/components/common/SearchInput";
 import { FilterBar, FilterField } from "@/components/common/FilterBar";
+import { SelectionBar } from "@/components/common/SelectionBar";
+import { Notice } from "@/components/common/Notice";
+import { Switch } from "@/components/ui/switch";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { formatCurrency, formatDate } from "@/lib/format";
@@ -228,6 +231,8 @@ export default function Styleguide() {
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [checked, setChecked] = useState(true);
+  const [switchOn, setSwitchOn] = useState(true);
+  const [selectedRows, setSelectedRows] = useState([]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -337,6 +342,20 @@ export default function Styleguide() {
             <div className="flex items-center gap-2">
               <Checkbox id="sg-cb2" />
               <Label htmlFor="sg-cb2">Unchecked</Label>
+            </div>
+            <div className="flex items-center gap-3">
+              <Switch checked={switchOn} onCheckedChange={setSwitchOn} aria-label="Active" />
+              <span className="text-small text-ink-2">Switch: {switchOn ? "on" : "off"}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Switch checked disabled aria-label="Disabled switch" />
+              <span className="text-small text-ink-3">Disabled</span>
+            </div>
+            <div className="md:col-span-2 grid gap-3">
+              <Notice tone="info" icon={Info}>Info notice with a leading icon.</Notice>
+              <Notice tone="neutral" icon={Info} action={<Button variant="outline" size="sm">Action</Button>}>
+                Neutral notice with a trailing action.
+              </Notice>
             </div>
             <div className="md:col-span-2">
               <SearchInput
@@ -467,7 +486,14 @@ export default function Styleguide() {
               </Select>
             </FilterField>
           </FilterBar>
+          <SelectionBar count={selectedRows.length}>
+            <Button size="sm" variant="outline" onClick={() => setSelectedRows([])}>Clear selection</Button>
+          </SelectionBar>
           <DataTable
+            selectable
+            selectedKeys={selectedRows}
+            onSelectionChange={setSelectedRows}
+            rowLabel={(r) => r.name}
             columns={TABLE_COLUMNS}
             rows={pageRows}
             mobileCard={sampleMobileCard}

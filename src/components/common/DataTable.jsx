@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -17,7 +18,7 @@ const ALIGN = { left: "text-left", center: "text-center", right: "text-right" };
 // Sticky-right column: pinned while the table wrapper scrolls. The inset shadow draws the left edge
 // (borders are lost on sticky cells under border-collapse); hover bg follows the row's hover.
 const STICKY_CELL =
-  "sticky right-0 z-[1] bg-surface shadow-[inset_1px_0_0_hsl(var(--line))] group-hover/row:bg-surface-subtle";
+  "sticky right-0 z-[1] bg-surface shadow-[inset_1px_0_0_hsl(var(--line))] group-hover/row:bg-surface-subtle group-data-[selected=true]/row:bg-primary-soft";
 const STICKY_HEAD = "sticky right-0 z-[2] bg-surface-subtle shadow-[inset_1px_0_0_hsl(var(--line))]";
 
 const DENSITY = { compact: "px-3 py-2.5", comfortable: "px-4 py-3.5" };
@@ -48,6 +49,10 @@ const colClass = (col, isHead) =>
  * - density {"compact"|"comfortable"}: cell padding, default "compact" (px-3 py-2.5)
  * - mobileCard {(row, index)=>node}: below md, rows render as a stacked card list (divide-y, p-4) instead of the table;
  *   loading and empty states work in both
+ * - selectable {boolean}: adds a first checkbox column (and a checkbox in each mobile card); needs rowKey
+ * - selectedKeys {Set|Array}: keys of the selected rows
+ * - onSelectionChange {(keys:Array)=>void}: new selection (the header checkbox toggles the rows currently rendered)
+ * - rowLabel {(row)=>string}: names a row for its checkbox's aria-label ("Select <label>")
  * - className {string}: merged onto the wrapper
  */
 export const DataTable = ({
@@ -60,6 +65,10 @@ export const DataTable = ({
   footer,
   density = "compact",
   mobileCard,
+  selectable = false,
+  selectedKeys,
+  onSelectionChange,
+  rowLabel,
   className,
 }) => {
   const isNarrow = useIsMobile(768);
@@ -80,6 +89,26 @@ export const DataTable = ({
     if (typeof rowKey === "function") return rowKey(row, index);
     return row?.[rowKey] ?? row?._id ?? index;
   };
+
+  // Row selection (only used when `selectable`).
+  const selected = useMemo(() => new Set(selectedKeys || []), [selectedKeys]);
+  const renderedKeys = rows.map((row, index) => getKey(row, index));
+  const selectedHere = renderedKeys.filter((k) => selected.has(k)).length;
+  const allSelected = renderedKeys.length > 0 && selectedHere === renderedKeys.length;
+  const headState = allSelected ? true : selectedHere > 0 ? "indeterminate" : false;
+  const toggleAll = () => {
+    const next = new Set(selected);
+    if (allSelected) renderedKeys.forEach((k) => next.delete(k));
+    else renderedKeys.forEach((k) => next.add(k));
+    onSelectionChange?.(Array.from(next));
+  };
+  const toggleRow = (key) => {
+    const next = new Set(selected);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    onSelectionChange?.(Array.from(next));
+  };
+  const labelOf = (row) => `Select ${rowLabel ? rowLabel(row) : "row"}`;
 
   if (asCards) {
     return (
@@ -102,9 +131,22 @@ export const DataTable = ({
               <div
                 key={getKey(row, index)}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                className={cn("flex flex-col gap-2 p-4", onRowClick && "cursor-pointer")}
+                data-selected={selectable && selected.has(getKey(row, index)) ? "true" : undefined}
+                className={cn(
+                  "flex gap-3 p-4 data-[selected=true]:bg-primary-soft/50",
+                  onRowClick && "cursor-pointer"
+                )}
               >
-                {mobileCard(row, index)}
+                {selectable ? (
+                  <Checkbox
+                    className="mt-0.5"
+                    checked={selected.has(getKey(row, index))}
+                    onCheckedChange={() => toggleRow(getKey(row, index))}
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label={labelOf(row)}
+                  />
+                ) : null}
+                <div className="flex min-w-0 flex-1 flex-col gap-2">{mobileCard(row, index)}</div>
               </div>
             ))}
           </div>
@@ -120,6 +162,11 @@ export const DataTable = ({
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
+              {selectable ? (
+                <TableHead scope="col" className={cn("w-10", cellPad)}>
+                  <Checkbox checked={headState} onCheckedChange={toggleAll} aria-label="Select all" />
+                </TableHead>
+              ) : null}
               {columns.map((col) => (
                 <TableHead
                   key={col.key}
@@ -136,6 +183,11 @@ export const DataTable = ({
             {loading ? (
               Array.from({ length: 5 }, (_, i) => (
                 <TableRow key={`skeleton-${i}`} className="group/row hover:bg-transparent">
+                  {selectable ? (
+                    <TableCell className={cellPad}>
+                      <Skeleton className="size-4" />
+                    </TableCell>
+                  ) : null}
                   {columns.map((col) => (
                     <TableCell key={col.key} className={cn(colClass(col), cellPad)}>
                       <Skeleton className="h-4 w-full" />
@@ -145,7 +197,7 @@ export const DataTable = ({
               ))
             ) : rows.length === 0 ? (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={columns.length} className="p-0">
+                <TableCell colSpan={columns.length + (selectable ? 1 : 0)} className="p-0">
                   {emptyState ?? <EmptyState title="No records found" />}
                 </TableCell>
               </TableRow>
@@ -165,8 +217,19 @@ export const DataTable = ({
                       : undefined
                   }
                   tabIndex={onRowClick ? 0 : undefined}
-                  className={cn("group/row", onRowClick && "cursor-pointer")}
+                  data-selected={selectable && selected.has(getKey(row, index)) ? "true" : undefined}
+                  className={cn("group/row data-[selected=true]:bg-primary-soft/50", onRowClick && "cursor-pointer")}
                 >
+                  {selectable ? (
+                    <TableCell className={cn("w-10", cellPad)}>
+                      <Checkbox
+                        checked={selected.has(getKey(row, index))}
+                        onCheckedChange={() => toggleRow(getKey(row, index))}
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={labelOf(row)}
+                      />
+                    </TableCell>
+                  ) : null}
                   {columns.map((col) => (
                     <TableCell key={col.key} className={cn(colClass(col), cellPad)}>
                       {renderCell(col, row, index)}
