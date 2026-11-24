@@ -3,6 +3,8 @@ import * as SheetPrimitive from "@radix-ui/react-dialog"
 import { cva } from "class-variance-authority"
 import { X } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
+
 import { cn } from "@/lib/utils"
 
 const Sheet = SheetPrimitive.Root
@@ -96,6 +98,53 @@ const SheetDescription = React.forwardRef(({ className, ...props }, ref) => (
 ))
 SheetDescription.displayName = SheetPrimitive.Description.displayName
 
+/**
+ * Design right-side panel (create / edit forms): <=560px, full width on phones.
+ * Layout: SheetPanelHeader (title + description + close) / SheetPanelBody (scrolls) / SheetPanelFooter (actions).
+ */
+const SheetPanel = React.forwardRef(({ className, children, ...props }, ref) => (
+  <SheetPortal>
+    <SheetOverlay />
+    <SheetPrimitive.Content
+      ref={ref}
+      className={cn(
+        "fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col border-l border-line-card bg-surface text-ink-1 shadow-lg sm:max-w-[560px]",
+        "transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-300 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </SheetPrimitive.Content>
+  </SheetPortal>
+))
+SheetPanel.displayName = "SheetPanel"
+
+const SheetPanelHeader = ({ title, description, className }) => (
+  <div className={cn("flex items-start justify-between gap-3 border-b border-line px-5 py-4", className)}>
+    <div className="min-w-0">
+      <SheetTitle>{title}</SheetTitle>
+      <SheetDescription className="mt-0.5">{description}</SheetDescription>
+    </div>
+    <SheetPrimitive.Close asChild>
+      <Button type="button" variant="ghost" size="icon" aria-label="Close panel" className="shrink-0">
+        <X />
+      </Button>
+    </SheetPrimitive.Close>
+  </div>
+)
+SheetPanelHeader.displayName = "SheetPanelHeader"
+
+const SheetPanelBody = ({ className, ...props }) => (
+  <div className={cn("min-h-0 flex-1 overflow-y-auto px-5 py-4", className)} {...props} />
+)
+SheetPanelBody.displayName = "SheetPanelBody"
+
+const SheetPanelFooter = ({ className, ...props }) => (
+  <div className={cn("flex items-center justify-between gap-2 border-t border-line px-5 py-3", className)} {...props} />
+)
+SheetPanelFooter.displayName = "SheetPanelFooter"
+
 export {
   Sheet,
   SheetPortal,
@@ -107,4 +156,8 @@ export {
   SheetFooter,
   SheetTitle,
   SheetDescription,
+  SheetPanel,
+  SheetPanelHeader,
+  SheetPanelBody,
+  SheetPanelFooter,
 }

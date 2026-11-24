@@ -1,187 +1,16 @@
-import React, { useState } from "react";
-import {
-  FaPlus,
-  FaTrash,
-  FaCopy,
-  FaBuilding,
-  FaLayerGroup,
-  FaDoorOpen,
-} from "react-icons/fa";
+// src/pages/projects/components/TowerHierarchyBuilder.jsx
+// Editable Tower > Floor > Flat > Rooms tree. State handlers are moved unchanged; presentation lives in builder/.
+import { useState } from "react";
+import { Building2, Copy, Plus, Trash2 } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-
-const ROOM_TYPES = [
-  { value: "living_room", label: "Living Room / Hall" },
-  { value: "bedroom", label: "Bedroom" },
-  { value: "kitchen", label: "Kitchen" },
-  { value: "bathroom", label: "Bathroom" },
-  { value: "balcony", label: "Balcony" },
-  { value: "utility", label: "Utility / Store" },
-  { value: "dining", label: "Dining Room" },
-  { value: "study", label: "Study Room" },
-  { value: "pooja", label: "Pooja Room" },
-  { value: "terrace", label: "Terrace" },
-];
-
-const FLAT_TYPES = [
-  "1RK",
-  "1BHK",
-  "2BHK",
-  "3BHK",
-  "4BHK",
-  "Studio",
-  "Penthouse",
-  "Duplex",
-  "Office",
-  "Shop",
-  "Cafeteria",
-  "Godown",
-  "Showroom",
-  "Custom",
-];
-
-const fieldLabelClass = "text-sm font-medium text-gray-700 mb-1.5 block";
-const smallInputClass = "h-8 bg-white text-sm";
-
-/**
- * Reusable block for Staircases / Podiums / Common Areas.
- * Full Tailwind class names are passed in via `tone` so they are not purged.
- */
-const AreaSection = ({
-  title,
-  addLabel,
-  emptyText,
-  items,
-  tone,
-  nameClassName,
-  namePlaceholder,
-  secondField,
-  secondPlaceholder,
-  onAdd,
-  onDelete,
-  onUpdate,
-}) => (
-  <Card className={`gap-0 py-0 border-2 shadow-none rounded-lg ${tone.card}`}>
-    <CardContent className="p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h4 className={`font-semibold flex items-center gap-2 ${tone.title}`}>
-          {title}
-        </h4>
-        <Button
-          type="button"
-          size="sm"
-          onClick={onAdd}
-          className={`text-white ${tone.button}`}
-        >
-          <FaPlus /> {addLabel}
-        </Button>
-      </div>
-      {!items || items.length === 0 ? (
-        <p className={`text-sm ${tone.empty}`}>{emptyText}</p>
-      ) : (
-        <div className="space-y-2">
-          {items.map((item, idx) => (
-            <div
-              key={idx}
-              className={`flex items-center gap-2 bg-white p-2 rounded border ${tone.row}`}
-            >
-              <Input
-                type="text"
-                value={item.name}
-                onChange={(e) => onUpdate(idx, "name", e.target.value)}
-                className={`${smallInputClass} ${nameClassName}`}
-                placeholder={namePlaceholder}
-              />
-              <Input
-                type="text"
-                value={item[secondField] || ""}
-                onChange={(e) => onUpdate(idx, secondField, e.target.value)}
-                className={`${smallInputClass} flex-1`}
-                placeholder={secondPlaceholder}
-              />
-              <Button
-                type="button"
-                size="sm"
-                aria-label="Delete"
-                onClick={() => onDelete(idx)}
-                className="bg-red-600 hover:bg-red-700 text-white px-2"
-              >
-                <FaTrash size={12} />
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
-    </CardContent>
-  </Card>
-);
-
-const TONES = {
-  purple: {
-    card: "border-purple-200 bg-purple-50",
-    title: "text-purple-800",
-    button: "bg-purple-600 hover:bg-purple-700",
-    empty: "text-purple-600",
-    row: "border-purple-300",
-  },
-  yellow: {
-    card: "border-yellow-200 bg-yellow-50",
-    title: "text-yellow-800",
-    button: "bg-yellow-600 hover:bg-yellow-700",
-    empty: "text-yellow-600",
-    row: "border-yellow-300",
-  },
-  cyan: {
-    card: "border-cyan-200 bg-cyan-50",
-    title: "text-cyan-800",
-    button: "bg-cyan-600 hover:bg-cyan-700",
-    empty: "text-cyan-600",
-    row: "border-cyan-300",
-  },
-};
-
-const CountInput = ({ label, value, onChange }) => (
-  <div>
-    <Label className={fieldLabelClass}>{label}</Label>
-    <Input
-      type="number"
-      min="0"
-      max="10"
-      value={value}
-      onChange={(e) =>
-        onChange(e.target.value === "" ? 0 : parseInt(e.target.value))
-      }
-      className="w-full text-sm focus-visible:border-indigo-500 focus-visible:ring-indigo-500/30"
-    />
-  </div>
-);
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { EmptyState } from "@/components/common/EmptyState";
+import { AreaSection } from "./builder/AreaSection";
+import { AREA_TONES } from "./builder/hierarchyConstants";
+import FloorList from "./builder/FloorList";
+import StructureSummary from "./builder/StructureSummary";
 
 const TowerHierarchyBuilder = ({ buildings, onChange }) => {
   const [expandedTowers, setExpandedTowers] = useState({});
@@ -592,96 +421,65 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
     onChange(newBuildings);
   };
 
+  const h = { addFloor, addBasement, updateFloor, deleteFloor, addFlat, updateFlat, deleteFlat, handleFlatTypeChange, handleBedroomCountChange, autoGenerateRooms, toggleRoom, isRoomSelected };
+
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-            <FaBuilding className="text-orange-600" />
-            Tower-Based Project Structure
-          </h3>
-          <p className="text-xs text-gray-500 mt-1">
-            Build your project hierarchy: Tower → Floor → Flat → Rooms
-          </p>
+          <h3 className="text-card-title text-ink-1">Tower-Based Project Structure</h3>
+          <p className="text-caption-lg text-ink-3">Build your project hierarchy: Tower → Floor → Flat → Rooms</p>
         </div>
-        <Button
-          type="button"
-          onClick={addTower}
-          className="bg-orange-600 hover:bg-orange-700 text-white shadow-md"
-        >
-          <FaPlus /> Add Tower
+        <Button type="button" onClick={addTower}>
+          <Plus /> Add Tower
         </Button>
       </div>
 
       {buildings.length === 0 ? (
-        <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600">
-          <FaBuilding className="text-gray-400 dark:text-gray-500 text-5xl mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-300 font-medium">
-            No towers added yet
-          </p>
-          <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
-            Click "Add Tower" to start building your project structure
-          </p>
-        </div>
+        <EmptyState icon={Building2} title="No towers added yet" description='Click "Add Tower" to start building your project structure' />
       ) : (
         <Accordion
           type="multiple"
-          value={buildings
-            .map((_, index) => String(index))
-            .filter((value) => expandedTowers[value])}
+          value={buildings.map((_, index) => String(index)).filter((value) => expandedTowers[value])}
           onValueChange={(values) =>
             setExpandedTowers(() => {
               const expandedValues = new Set(values);
-              return Object.fromEntries(
-                buildings.map((_, index) => [
-                  index,
-                  expandedValues.has(String(index)),
-                ])
-              );
+              return Object.fromEntries(buildings.map((_, index) => [index, expandedValues.has(String(index))]));
             })
           }
           className="space-y-4"
         >
           {buildings.map((tower, tIdx) => (
-            <AccordionItem
-              key={tIdx}
-              value={String(tIdx)}
-              className="overflow-hidden rounded-xl border-2 border-orange-200 bg-white shadow-sm"
-            >
+            <AccordionItem key={tIdx} value={String(tIdx)} className="overflow-hidden rounded-card border border-line-card bg-surface">
               {/* Tower Header */}
-              <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4">
+              <div className="border-b border-line bg-surface-muted p-3">
                 <div className="flex items-center gap-3">
                   <AccordionTrigger
                     aria-label={`Toggle tower ${tower.name || tIdx + 1}`}
-                    className="h-8 w-8 flex-none justify-center rounded p-1 text-white hover:bg-white/20 hover:no-underline"
+                    className="h-8 w-8 flex-none justify-center rounded p-1 text-ink-3 hover:text-ink-1 hover:no-underline"
                   />
-                  <FaBuilding className="text-white text-xl" />
+                  <Building2 className="size-5 shrink-0 text-primary" aria-hidden="true" />
                   <Input
                     type="text"
                     value={tower.name}
                     onChange={(e) => updateTowerName(tIdx, e.target.value)}
                     placeholder="Tower Name"
-                    className="flex-1 h-10 bg-white/20 border-white/30 text-white placeholder:text-white/70 font-semibold focus-visible:bg-white/30 focus-visible:border-white/50 focus-visible:ring-white/30"
+                    aria-label="Tower name"
+                    className="flex-1 font-semibold"
                   />
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => copyTower(tIdx)}
-                    className="bg-white/20 hover:bg-white/30 text-white"
-                    title="Copy Tower"
-                  >
-                    <FaCopy /> Copy
+                  <Button type="button" size="sm" variant="outline" onClick={() => copyTower(tIdx)} title="Copy Tower">
+                    <Copy /> Copy
                   </Button>
                   <Button
                     type="button"
-                    size="sm"
+                    size="icon"
+                    variant="ghost"
                     aria-label="Delete tower"
                     onClick={() => deleteTower(tIdx)}
-                    className="bg-red-500 hover:bg-red-600 text-white"
+                    className="h-control-sm w-control-sm text-tone-bad-fg"
                     title="Delete Tower"
                   >
-                    <FaTrash />
+                    <Trash2 />
                   </Button>
                 </div>
               </div>
@@ -694,515 +492,46 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
                     addLabel="Add Staircase"
                     emptyText="No staircases added yet"
                     items={tower.staircases}
-                    tone={TONES.purple}
+                    tone={AREA_TONES.purple}
                     nameClassName="flex-1"
                     namePlaceholder="Staircase name"
                     secondField="type"
                     secondPlaceholder="Type (e.g., Main, Service)"
                     onAdd={() => addStaircase(tIdx)}
                     onDelete={(i) => deleteStaircase(tIdx, i)}
-                    onUpdate={(i, field, value) =>
-                      updateStaircase(tIdx, i, field, value)
-                    }
+                    onUpdate={(i, field, value) => updateStaircase(tIdx, i, field, value)}
                   />
-
                   <AreaSection
                     title="🏛️ Podiums"
                     addLabel="Add Podium"
                     emptyText="No podiums added yet"
                     items={tower.podiums}
-                    tone={TONES.yellow}
+                    tone={AREA_TONES.yellow}
                     nameClassName="w-24 flex-none font-medium"
                     namePlaceholder="P1, P2..."
                     secondField="description"
                     secondPlaceholder="Description (optional)"
                     onAdd={() => addPodium(tIdx)}
                     onDelete={(i) => deletePodium(tIdx, i)}
-                    onUpdate={(i, field, value) =>
-                      updatePodium(tIdx, i, field, value)
-                    }
+                    onUpdate={(i, field, value) => updatePodium(tIdx, i, field, value)}
                   />
-
                   <AreaSection
                     title="🏢 Common Areas"
                     addLabel="Add Common Area"
                     emptyText="No common areas added yet"
                     items={tower.commonAreas}
-                    tone={TONES.cyan}
+                    tone={AREA_TONES.cyan}
                     nameClassName="w-24 flex-none font-medium"
                     namePlaceholder="CA1, CA2..."
                     secondField="description"
                     secondPlaceholder="Description (e.g., Gym, Pool)"
                     onAdd={() => addCommonArea(tIdx)}
                     onDelete={(i) => deleteCommonArea(tIdx, i)}
-                    onUpdate={(i, field, value) =>
-                      updateCommonArea(tIdx, i, field, value)
-                    }
+                    onUpdate={(i, field, value) => updateCommonArea(tIdx, i, field, value)}
                   />
-
                   {/* Wings and Floors */}
                   {tower.wings?.map((wing, wIdx) => (
-                    <div key={wIdx} className="pt-0">
-                      {/* Floor Management Buttons */}
-                      <div className="flex gap-2 mb-4">
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={() => addFloor(tIdx, wIdx)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white"
-                        >
-                          <FaPlus /> Add Floor
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={() => addBasement(tIdx, wIdx)}
-                          className="bg-gray-600 hover:bg-gray-700 text-white"
-                        >
-                          <FaPlus /> Add Basement
-                        </Button>
-                      </div>
-
-                      {/* Floors List */}
-                      {wing.floors?.length === 0 ? (
-                        <div className="text-center py-8 bg-blue-50 rounded-lg border border-blue-200">
-                          <FaLayerGroup className="text-blue-400 text-3xl mx-auto mb-2" />
-                          <p className="text-blue-600 text-sm">
-                            No floors added yet. Add a floor or basement to get
-                            started.
-                          </p>
-                        </div>
-                      ) : (
-                        <Accordion type="multiple" className="space-y-3">
-                          {wing.floors.map((floor, fIdx) => {
-                            const floorKey = `${tIdx}-${wIdx}-${fIdx}`;
-                            return (
-                              <AccordionItem
-                                key={fIdx}
-                                value={`floor-${floorKey}`}
-                                className={`rounded-lg border-2 ${
-                                  floor.isBasement
-                                    ? "border-gray-300 bg-gray-50"
-                                    : "border-blue-200 bg-blue-50"
-                                }`}
-                              >
-                                {/* Floor Header */}
-                                <div className="p-3">
-                                  <div className="flex items-center gap-2">
-                                    <AccordionTrigger
-                                      aria-label={`Toggle floor ${
-                                        floor.name || fIdx + 1
-                                      }`}
-                                      className="h-8 w-8 flex-none justify-center rounded p-1 text-gray-600 hover:text-gray-800 hover:no-underline"
-                                    />
-                                    <FaLayerGroup
-                                      className={
-                                        floor.isBasement
-                                          ? "text-gray-600"
-                                          : "text-blue-600"
-                                      }
-                                    />
-                                    <Input
-                                      type="text"
-                                      value={floor.name}
-                                      onChange={(e) =>
-                                        updateFloor(
-                                          tIdx,
-                                          wIdx,
-                                          fIdx,
-                                          "name",
-                                          e.target.value
-                                        )
-                                      }
-                                      placeholder="Floor Name"
-                                      className="flex-1 bg-white text-sm font-medium focus-visible:border-blue-500 focus-visible:ring-blue-500/30"
-                                    />
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      onClick={() => addFlat(tIdx, wIdx, fIdx)}
-                                      className="bg-green-600 hover:bg-green-700 text-white"
-                                    >
-                                      <FaPlus /> Unit
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      aria-label="Delete floor"
-                                      onClick={() =>
-                                        deleteFloor(tIdx, wIdx, fIdx)
-                                      }
-                                      className="bg-red-600 hover:bg-red-700 text-white"
-                                    >
-                                      <FaTrash />
-                                    </Button>
-                                  </div>
-                                </div>
-
-                                {/* Flats */}
-                                <AccordionContent className="p-3 pt-0">
-                                  {floor.flats?.length === 0 ? (
-                                    <div className="text-center py-6 bg-white rounded-lg border border-gray-200">
-                                      <FaDoorOpen className="text-gray-400 text-2xl mx-auto mb-2" />
-                                      <p className="text-gray-500 text-sm">
-                                        No units added. Click "Add Unit" to add
-                                        units to this floor.
-                                      </p>
-                                    </div>
-                                  ) : (
-                                    <Accordion
-                                      type="multiple"
-                                      className="space-y-2"
-                                    >
-                                      {floor.flats.map((flat, flatIdx) => {
-                                        const flatKey = `${tIdx}-${wIdx}-${fIdx}-${flatIdx}`;
-                                        return (
-                                          <AccordionItem
-                                            key={flatIdx}
-                                            value={`flat-${flatKey}`}
-                                            className="rounded-lg border-2 border-green-200 bg-green-50"
-                                          >
-                                            {/* Flat Header */}
-                                            <div className="p-3">
-                                              <div className="flex items-center gap-2">
-                                                <AccordionTrigger
-                                                  aria-label={`Toggle flat ${
-                                                    flat.name || flatIdx + 1
-                                                  }`}
-                                                  className="h-8 w-8 flex-none justify-center rounded p-1 text-gray-600 hover:text-gray-800 hover:no-underline"
-                                                />
-                                                <FaDoorOpen className="text-green-600" />
-                                                <Input
-                                                  type="text"
-                                                  value={flat.name}
-                                                  onChange={(e) =>
-                                                    updateFlat(
-                                                      tIdx,
-                                                      wIdx,
-                                                      fIdx,
-                                                      flatIdx,
-                                                      "name",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  placeholder="Flat Name"
-                                                  className={`${smallInputClass} flex-1 font-medium focus-visible:border-green-500 focus-visible:ring-green-500/30`}
-                                                />
-                                                <Input
-                                                  type="text"
-                                                  value={flat.flatNumber || ""}
-                                                  onChange={(e) =>
-                                                    updateFlat(
-                                                      tIdx,
-                                                      wIdx,
-                                                      fIdx,
-                                                      flatIdx,
-                                                      "flatNumber",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  placeholder="Flat No."
-                                                  className={`${smallInputClass} w-24 flex-none focus-visible:border-green-500 focus-visible:ring-green-500/30`}
-                                                />
-                                                <Select
-                                                  value={
-                                                    flat.flatType || "2BHK"
-                                                  }
-                                                  onValueChange={(val) =>
-                                                    handleFlatTypeChange(
-                                                      tIdx,
-                                                      wIdx,
-                                                      fIdx,
-                                                      flatIdx,
-                                                      val
-                                                    )
-                                                  }
-                                                >
-                                                  <SelectTrigger
-                                                    aria-label="Flat type"
-                                                    className="w-32 flex-none bg-white text-sm data-[size=default]:h-8 focus-visible:border-green-500 focus-visible:ring-green-500/30"
-                                                  >
-                                                    <SelectValue />
-                                                  </SelectTrigger>
-                                                  <SelectContent>
-                                                    {FLAT_TYPES.map((type) => (
-                                                      <SelectItem
-                                                        key={type}
-                                                        value={type}
-                                                      >
-                                                        {type}
-                                                      </SelectItem>
-                                                    ))}
-                                                  </SelectContent>
-                                                </Select>
-                                                <Button
-                                                  type="button"
-                                                  size="sm"
-                                                  aria-label="Delete flat"
-                                                  onClick={() =>
-                                                    deleteFlat(
-                                                      tIdx,
-                                                      wIdx,
-                                                      fIdx,
-                                                      flatIdx
-                                                    )
-                                                  }
-                                                  className="bg-red-600 hover:bg-red-700 text-white px-2"
-                                                >
-                                                  <FaTrash />
-                                                </Button>
-                                              </div>
-                                            </div>
-
-                                            {/* Flat Configuration & Rooms */}
-                                            <AccordionContent className="px-3 pb-3 space-y-4">
-                                              {/* Flat Configuration */}
-                                              <Card className="gap-0 py-0 rounded-lg border-2 border-indigo-200 bg-white shadow-sm">
-                                                <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 px-4 py-3 border-b border-indigo-200 rounded-t-lg">
-                                                  <h4 className="text-sm font-bold text-indigo-900">
-                                                    Unit Configuration
-                                                  </h4>
-                                                  <p className="text-xs text-indigo-600 mt-0.5">
-                                                    Configure bedroom, bathroom,
-                                                    balcony, and unit details
-                                                  </p>
-                                                </div>
-                                                <CardContent className="p-4">
-                                                  <div className="grid grid-cols-2 gap-4">
-                                                    <div>
-                                                      <Label
-                                                        className={
-                                                          fieldLabelClass
-                                                        }
-                                                      >
-                                                        Variation
-                                                      </Label>
-                                                      <Input
-                                                        type="text"
-                                                        value={
-                                                          flat.variation ||
-                                                          "Standard"
-                                                        }
-                                                        onChange={(e) =>
-                                                          updateFlat(
-                                                            tIdx,
-                                                            wIdx,
-                                                            fIdx,
-                                                            flatIdx,
-                                                            "variation",
-                                                            e.target.value
-                                                          )
-                                                        }
-                                                        placeholder="e.g., Premium, Standard, Deluxe"
-                                                        className="w-full text-sm focus-visible:border-indigo-500 focus-visible:ring-indigo-500/30"
-                                                      />
-                                                    </div>
-                                                    <CountInput
-                                                      label="Bedrooms"
-                                                      value={
-                                                        flat.bedroomCount ?? 2
-                                                      }
-                                                      onChange={(val) =>
-                                                        handleBedroomCountChange(
-                                                          tIdx,
-                                                          wIdx,
-                                                          fIdx,
-                                                          flatIdx,
-                                                          val
-                                                        )
-                                                      }
-                                                    />
-                                                    <CountInput
-                                                      label="Bathrooms"
-                                                      value={
-                                                        flat.bathroomCount ?? 2
-                                                      }
-                                                      onChange={(val) =>
-                                                        updateFlat(
-                                                          tIdx,
-                                                          wIdx,
-                                                          fIdx,
-                                                          flatIdx,
-                                                          "bathroomCount",
-                                                          val
-                                                        )
-                                                      }
-                                                    />
-                                                    <CountInput
-                                                      label="Balconies"
-                                                      value={
-                                                        flat.balconyCount ?? 1
-                                                      }
-                                                      onChange={(val) =>
-                                                        updateFlat(
-                                                          tIdx,
-                                                          wIdx,
-                                                          fIdx,
-                                                          flatIdx,
-                                                          "balconyCount",
-                                                          val
-                                                        )
-                                                      }
-                                                    />
-                                                  </div>
-
-                                                  <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-200">
-                                                    <Label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
-                                                      <Checkbox
-                                                        checked={
-                                                          flat.hasLivingRoom !==
-                                                          false
-                                                        }
-                                                        onCheckedChange={(
-                                                          checked
-                                                        ) =>
-                                                          updateFlat(
-                                                            tIdx,
-                                                            wIdx,
-                                                            fIdx,
-                                                            flatIdx,
-                                                            "hasLivingRoom",
-                                                            checked === true
-                                                          )
-                                                        }
-                                                        className="w-4 h-4 border-indigo-500 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 data-[state=checked]:text-white"
-                                                      />
-                                                      <span className="text-sm font-medium text-gray-700">
-                                                        Living Room
-                                                      </span>
-                                                    </Label>
-                                                    <Label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
-                                                      <Checkbox
-                                                        checked={
-                                                          flat.hasKitchen !==
-                                                          false
-                                                        }
-                                                        onCheckedChange={(
-                                                          checked
-                                                        ) =>
-                                                          updateFlat(
-                                                            tIdx,
-                                                            wIdx,
-                                                            fIdx,
-                                                            flatIdx,
-                                                            "hasKitchen",
-                                                            checked === true
-                                                          )
-                                                        }
-                                                        className="w-4 h-4 border-indigo-500 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 data-[state=checked]:text-white"
-                                                      />
-                                                      <span className="text-sm font-medium text-gray-700">
-                                                        Kitchen
-                                                      </span>
-                                                    </Label>
-                                                  </div>
-
-                                                  <Button
-                                                    type="button"
-                                                    onClick={() =>
-                                                      autoGenerateRooms(
-                                                        tIdx,
-                                                        wIdx,
-                                                        fIdx,
-                                                        flatIdx
-                                                      )
-                                                    }
-                                                    className="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-sm"
-                                                  >
-                                                    ⚡ Auto-Generate Rooms
-                                                  </Button>
-                                                </CardContent>
-                                              </Card>
-
-                                              {/* Room Selection */}
-                                              <Card className="gap-0 py-0 rounded-lg border-2 border-green-200 bg-white shadow-sm">
-                                                <div className="bg-gradient-to-r from-green-50 to-green-100 px-4 py-3 border-b border-green-200 rounded-t-lg">
-                                                  <h4 className="text-sm font-bold text-green-900">
-                                                    Room Types (Manual
-                                                    Selection)
-                                                  </h4>
-                                                  <p className="text-xs text-green-600 mt-0.5">
-                                                    Manually select additional
-                                                    room types if needed
-                                                  </p>
-                                                </div>
-                                                <CardContent className="p-4">
-                                                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                                    {ROOM_TYPES.map(
-                                                      (roomType) => (
-                                                        <Label
-                                                          key={roomType.value}
-                                                          className={`flex items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                                                            isRoomSelected(
-                                                              flat,
-                                                              roomType
-                                                            )
-                                                              ? "border-green-500 bg-green-50"
-                                                              : "border-gray-200 bg-white hover:border-green-300 hover:bg-green-50"
-                                                          }`}
-                                                        >
-                                                          <Checkbox
-                                                            checked={
-                                                              !!isRoomSelected(
-                                                                flat,
-                                                                roomType
-                                                              )
-                                                            }
-                                                            onCheckedChange={() =>
-                                                              toggleRoom(
-                                                                tIdx,
-                                                                wIdx,
-                                                                fIdx,
-                                                                flatIdx,
-                                                                roomType
-                                                              )
-                                                            }
-                                                            className="w-4 h-4 border-green-500 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600 data-[state=checked]:text-white"
-                                                          />
-                                                          <span className="text-sm font-medium text-gray-700">
-                                                            {roomType.label}
-                                                          </span>
-                                                        </Label>
-                                                      )
-                                                    )}
-                                                  </div>
-
-                                                  {flat.rooms?.length > 0 && (
-                                                    <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
-                                                      <p className="text-xs font-semibold text-green-800 mb-2">
-                                                        Selected Rooms (
-                                                        {flat.rooms.length}):
-                                                      </p>
-                                                      <div className="flex flex-wrap gap-1.5">
-                                                        {flat.rooms.map(
-                                                          (r, rIdx) => (
-                                                            <Badge
-                                                              key={`${r.type}-${rIdx}`}
-                                                              variant="secondary"
-                                                              className="bg-white text-gray-700 border border-green-200 text-xs font-normal"
-                                                            >
-                                                              {r.name}
-                                                            </Badge>
-                                                          )
-                                                        )}
-                                                      </div>
-                                                    </div>
-                                                  )}
-                                                </CardContent>
-                                              </Card>
-                                            </AccordionContent>
-                                          </AccordionItem>
-                                        );
-                                      })}
-                                    </Accordion>
-                                  )}
-                                </AccordionContent>
-                              </AccordionItem>
-                            );
-                          })}
-                        </Accordion>
-                      )}
-                    </div>
+                    <FloorList key={wIdx} wing={wing} tIdx={tIdx} wIdx={wIdx} h={h} />
                   ))}
                 </div>
               </AccordionContent>
@@ -1211,115 +540,23 @@ const TowerHierarchyBuilder = ({ buildings, onChange }) => {
         </Accordion>
       )}
 
-      {/* Structure Summary */}
-      {buildings.length > 0 && (
-        <Card className="gap-0 py-0 mt-4 rounded-lg border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-none">
-          <CardContent className="p-4">
-            <p className="text-sm font-semibold text-gray-700 mb-2">
-              📊 Project Summary:
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 text-xs">
-              <div className="bg-white p-2 rounded">
-                <p className="text-gray-500">Towers</p>
-                <p className="text-xl font-bold text-orange-600">
-                  {buildings.length}
-                </p>
-              </div>
-              <div className="bg-white p-2 rounded">
-                <p className="text-gray-500">Staircases</p>
-                <p className="text-xl font-bold text-purple-600">
-                  {buildings.reduce(
-                    (sum, t) => sum + (t.staircases?.length || 0),
-                    0
-                  )}
-                </p>
-              </div>
-              <div className="bg-white p-2 rounded">
-                <p className="text-gray-500">Podiums</p>
-                <p className="text-xl font-bold text-yellow-600">
-                  {buildings.reduce(
-                    (sum, t) => sum + (t.podiums?.length || 0),
-                    0
-                  )}
-                </p>
-              </div>
-              <div className="bg-white p-2 rounded">
-                <p className="text-gray-500">Common Areas</p>
-                <p className="text-xl font-bold text-cyan-600">
-                  {buildings.reduce(
-                    (sum, t) => sum + (t.commonAreas?.length || 0),
-                    0
-                  )}
-                </p>
-              </div>
-              <div className="bg-white p-2 rounded">
-                <p className="text-gray-500">Total Floors</p>
-                <p className="text-xl font-bold text-blue-600">
-                  {buildings.reduce(
-                    (sum, t) => sum + (t.wings?.[0]?.floors?.length || 0),
-                    0
-                  )}
-                </p>
-              </div>
-              <div className="bg-white p-2 rounded">
-                <p className="text-gray-500">Total Flats</p>
-                <p className="text-xl font-bold text-green-600">
-                  {buildings.reduce(
-                    (sum, t) =>
-                      sum +
-                      (t.wings?.[0]?.floors?.reduce(
-                        (fSum, f) => fSum + (f.flats?.length || 0),
-                        0
-                      ) || 0),
-                    0
-                  )}
-                </p>
-              </div>
-              <div className="bg-white p-2 rounded">
-                <p className="text-gray-500">Basements</p>
-                <p className="text-xl font-bold text-gray-600">
-                  {buildings.reduce(
-                    (sum, t) =>
-                      sum +
-                      (t.wings?.[0]?.floors?.filter((f) => f.isBasement)
-                        ?.length || 0),
-                    0
-                  )}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {buildings.length > 0 && <StructureSummary buildings={buildings} />}
 
       {/* Delete confirmation (replaces window.confirm) */}
-      <AlertDialog
+      <ConfirmDialog
         open={!!confirmState}
         onOpenChange={(open) => {
           if (!open) setConfirmState(null);
         }}
-      >
-        <AlertDialogContent className="max-w-sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{confirmState?.title}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {confirmState?.description}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700 text-white"
-              onClick={() => {
-                confirmState?.onConfirm?.();
-                setConfirmState(null);
-              }}
-            >
-              {confirmState?.actionLabel || "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title={confirmState?.title}
+        description={confirmState?.description}
+        confirmLabel={confirmState?.actionLabel || "Delete"}
+        tone="destructive"
+        onConfirm={() => {
+          confirmState?.onConfirm?.();
+          setConfirmState(null);
+        }}
+      />
     </div>
   );
 };

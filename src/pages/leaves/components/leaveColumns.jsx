@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import { formatDate } from "@/lib/format";
-import { getStatusTone } from "@/lib/status";
+import { getLeaveTypeTone } from "@/lib/status";
 
 const getProofUrl = (proofUrl) => {
   if (!proofUrl) return "";
@@ -78,7 +78,7 @@ export function getLeaveColumns(onAction) {
       header: "Type",
       cell: (r) =>
         r.type ? (
-          <Badge variant={getStatusTone(r.type)} className="capitalize">
+          <Badge variant={getLeaveTypeTone(r.type)} className="capitalize">
             {r.type}
           </Badge>
         ) : (
@@ -158,7 +158,7 @@ export function getLeaveMobileCard(onAction) {
         </div>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-small text-ink-2">
           {r.type ? (
-            <Badge variant={getStatusTone(r.type)} className="capitalize">
+            <Badge variant={getLeaveTypeTone(r.type)} className="capitalize">
               {r.type}
             </Badge>
           ) : null}

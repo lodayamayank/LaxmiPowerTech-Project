@@ -52,6 +52,7 @@ import { SelectionBar } from "@/components/common/SelectionBar";
 import { Notice } from "@/components/common/Notice";
 import { Switch } from "@/components/ui/switch";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
+import { Sheet, SheetPanel, SheetPanelBody, SheetPanelFooter, SheetPanelHeader, SheetTrigger } from "@/components/ui/sheet";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { formatCurrency, formatDate } from "@/lib/format";
 
@@ -543,6 +544,23 @@ export default function Styleguide() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline">Open side panel</Button>
+              </SheetTrigger>
+              <SheetPanel>
+                <SheetPanelHeader title="New project" description="Build Tower > Floor > Flat > Rooms, or generate it in one go." />
+                <SheetPanelBody>
+                  <FormField label="Name" htmlFor="sg-sheet">
+                    <Input id="sg-sheet" defaultValue="Tower B" />
+                  </FormField>
+                </SheetPanelBody>
+                <SheetPanelFooter>
+                  <Button variant="outline">Cancel</Button>
+                  <Button>Save</Button>
+                </SheetPanelFooter>
+              </SheetPanel>
+            </Sheet>
             <Button variant="destructive" onClick={() => setConfirmOpen(true)}>
               <Trash2 /> Delete record
             </Button>

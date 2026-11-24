@@ -80,6 +80,23 @@ export function getRoleTone(role) {
   return ROLE_TONES[String(role ?? "").trim().toLowerCase()] || "neutral";
 }
 
+/** Leave type -> badge tone. Types are categories, not statuses, so "paid" is blue here (it stays green as a status). */
+export const LEAVE_TYPE_TONES = {
+  paid: "info",
+  sick: "highlight",
+  unpaid: "purple",
+  casual: "pink",
+};
+
+/**
+ * Tone for a leave type (case-insensitive).
+ * @param {string|null|undefined} type
+ * @returns {"info"|"highlight"|"purple"|"pink"|"neutral"} "neutral" for any other type
+ */
+export function getLeaveTypeTone(type) {
+  return LEAVE_TYPE_TONES[String(type ?? "").trim().toLowerCase()] || "neutral";
+}
+
 const normalise = (status) =>
   String(status ?? "")
     .trim()
