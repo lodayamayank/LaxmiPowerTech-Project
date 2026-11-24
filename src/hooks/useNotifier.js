@@ -1,11 +1,11 @@
-import { toast } from "react-toastify";
+import { toast } from 'sonner';
 
 const useNotifier = () => {
   return {
-    success: (msg) => toast.success(msg, { position: "top-center" }),
-    error: (msg) => toast.error(msg, { position: "top-center" }),
-    info: (msg) => toast.info(msg, { position: "top-center" }),
-    warn: (msg) => toast.warn(msg, { position: "top-center" }),
+    success: (msg) => toast.success(msg),
+    error: (msg) => toast.error(msg),
+    info: (msg) => toast.info(msg),
+    warn: (msg) => toast.warning(msg),
   };
 };
 

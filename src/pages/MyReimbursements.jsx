@@ -14,7 +14,7 @@ import {
 import MobileShell from "@/components/mobile/MobileShell";
 import MobileHeader from "@/components/mobile/MobileHeader";
 import MobileBackButton from "@/components/mobile/MobileBackButton";
-import { toast } from "react-toastify";
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

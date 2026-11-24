@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import axios from "../utils/axios";
-import { toast } from "react-toastify";
+import { toast } from 'sonner';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";

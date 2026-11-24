@@ -17,7 +17,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
-import { toast } from "react-toastify";
+import { toast } from 'sonner';
 import {
   Select,
   SelectContent,

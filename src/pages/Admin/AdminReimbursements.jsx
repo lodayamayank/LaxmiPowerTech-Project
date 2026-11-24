@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "react-toastify";
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -626,7 +626,7 @@ const ReimbursementDetailsModal = ({ reimbursement, onClose, onApprove, onReject
                               rel="noopener noreferrer"
                               className="block"
                             >
-                              <img
+                              <img loading="lazy" decoding="async"
                                 src={`${axios.defaults.baseURL}${receipt}`}
                                 alt={`Receipt ${idx + 1}`}
                                 className="w-full h-20 object-cover rounded-lg border border-gray-300 hover:border-orange-500 transition-all cursor-pointer"

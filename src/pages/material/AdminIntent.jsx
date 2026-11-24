@@ -40,7 +40,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -1299,7 +1299,7 @@ export default function AdminIntent() {
                       <TableCell className="border px-4 py-2">
                         {indent.imageUrl ? (
                           <div className="flex items-center gap-2">
-                            <img 
+                            <img loading="lazy" decoding="async" 
                               src={resolveFileUrl(indent.imageUrl)}
                               alt="Intent"
                               className="w-12 h-12 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80"
@@ -1584,7 +1584,7 @@ export default function AdminIntent() {
                     Uploaded Intent Image
                   </h3>
                   <div className="border rounded-lg overflow-hidden bg-gray-50">
-                    <img
+                    <img loading="lazy" decoding="async"
                       src={resolveFileUrl(selectedIndent.imageUrl)}
                       alt="Uploaded intent"
                       className="w-full max-h-[60vh] object-contain bg-white"
@@ -1699,7 +1699,7 @@ export default function AdminIntent() {
                           </div>
                         </div>
                         <div className="flex-1 overflow-auto rounded-lg border bg-white">
-                          <img
+                          <img loading="lazy" decoding="async"
                             src={resolveFileUrl(selectedIndent.imageUrl)}
                             alt="Uploaded intent reference"
                             className="mx-auto max-w-none object-contain bg-white transition-all duration-150"
@@ -2159,7 +2159,7 @@ export default function AdminIntent() {
                             {/* Image Thumbnail */}
                             <div className="flex-shrink-0">
                               {isImage ? (
-                                <img 
+                                <img loading="lazy" decoding="async" 
                                   src={fileURL} 
                                   alt={fileName}
                                   className="w-20 h-20 object-cover rounded border"

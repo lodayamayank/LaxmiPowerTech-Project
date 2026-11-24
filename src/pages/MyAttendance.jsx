@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "../utils/axios";
 import { useNavigate } from "react-router-dom";
 import { Button } from '@/components/ui/button';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { computeDailyStatuses } from "../utils/attendanceCalculations";
 import {

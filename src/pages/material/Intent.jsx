@@ -469,7 +469,7 @@ export default function Intent({ isTabView = false }) {
                 <div className="flex items-center gap-3">
                   {indent.hasImage && indent.imageUrl ? (
                     <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-orange-200 flex-shrink-0">
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={resolveFileUrl(indent.imageUrl)}
                         alt="Intent"
                         className="w-full h-full object-cover"

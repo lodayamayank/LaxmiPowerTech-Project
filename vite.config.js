@@ -19,8 +19,7 @@ export default defineConfig({
           // Split vendor libraries
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'ui-vendor': ['lucide-react', 'react-icons'],
-          'utils-vendor': ['axios', 'xlsx', 'dayjs'],
-          'map-vendor': ['leaflet', 'react-leaflet'],
+          'utils-vendor': ['axios', 'dayjs'],
         },
         // Optimize asset file names
         assetFileNames: (assetInfo) => {

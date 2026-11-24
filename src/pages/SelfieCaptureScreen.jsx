@@ -5,7 +5,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import FaceCamera from "../components/FaceCamera";
 import { submitOffline } from "../utils/offlineSubmit";
 import { markPunchedLocally } from "../utils/punchStatusCache";
-import { toast } from "react-toastify";
+import { toast } from 'sonner';
 import {
   FaArrowLeft,
   FaCamera,

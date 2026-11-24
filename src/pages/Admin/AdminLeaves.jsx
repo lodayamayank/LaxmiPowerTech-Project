@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import axios from "@/utils/axios";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import dayjs from "dayjs";
-import { toast } from "react-toastify";
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +17,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-//import "react-toastify/dist/ReactToastify.css";
 
 // Radix SelectItem cannot use an empty-string value, so "All ..." options use
 // this sentinel in the UI. It is mapped back to "" before touching filters state.
@@ -318,7 +317,7 @@ export default function AdminLeaves() {
                                                             rel="noreferrer"
                                                             title="Open medical proof"
                                                         >
-                                                            <img
+                                                            <img loading="lazy" decoding="async"
                                                                 src={getProofUrl(r.proofUrl)}
                                                                 alt="Medical proof"
                                                                 className="h-12 w-12 rounded-md border object-cover"

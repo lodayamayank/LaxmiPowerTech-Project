@@ -111,7 +111,7 @@ const Login = () => {
         {/* Company branding */}
         <div className="relative flex items-center gap-3">
           <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#e87a30]">
-            <img
+            <img width={28} height={10}
               src={logo}
               alt="Laxmi PowerTech"
               className="max-h-7 max-w-7 object-contain"
@@ -166,7 +166,7 @@ const Login = () => {
           {/* Mobile branding */}
           <div className="mb-8 flex items-center gap-3 lg:hidden">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#e87a30]">
-              <img
+              <img width={24} height={9}
                 src={logo}
                 alt="Laxmi PowerTech"
                 className="max-h-6 max-w-6 object-contain"

@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Eye, Package, Receipt, Edit2, Save, XCircle, DollarSign, Download, FileText, FileSpreadsheet, Trash2, MapPin, TrendingUp } from 'lucide-react';
 import { upcomingDeliveryAPI, branchesAPI } from '../../utils/materialAPI';
-import * as XLSX from 'xlsx';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import {
   AlertDialog,
@@ -852,8 +849,10 @@ export default function AdminGRN() {
   };
 
   // Export to Excel
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     try {
+      // Loaded on demand: xlsx is large and only needed when exporting.
+      const XLSX = await import('xlsx');
       // Use filtered deliveries for export
       const dataToExport = filteredDeliveries.length > 0 ? filteredDeliveries : deliveries;
       
@@ -985,8 +984,13 @@ export default function AdminGRN() {
   };
 
   // Export to PDF
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     try {
+      // Loaded on demand: jsPDF + autoTable are large and only needed when exporting.
+      const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+        import('jspdf'),
+        import('jspdf-autotable'),
+      ]);
       // Use filtered deliveries for export
       const dataToExport = filteredDeliveries.length > 0 ? filteredDeliveries : deliveries;
       
@@ -2388,7 +2392,7 @@ export default function AdminGRN() {
                             {/* Image Preview */}
                             {isImage ? (
                               <div className="relative bg-gray-100">
-                                <img
+                                <img loading="lazy" decoding="async"
                                   src={attachmentUrl}
                                   alt={`Challan ${index + 1}`}
                                   className="w-full h-48 object-contain"

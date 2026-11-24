@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axios from '../utils/axios';
 import logo from '../assets/logo.png';
 import { FaArrowLeft, FaCalendarAlt, FaCheckCircle, FaTimesCircle, FaClock, FaUsers, FaEdit } from 'react-icons/fa';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -242,7 +242,7 @@ const TeamAttendance = () => {
         {/* ── Header (unchanged design) ── */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
           <div className="flex items-center justify-between mb-4">
-            <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
+            <img width={179} height={64} src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
             <Button
               variant="ghost"
               onClick={() => navigate(`/branch/${branchId}/labour-dashboard`)}

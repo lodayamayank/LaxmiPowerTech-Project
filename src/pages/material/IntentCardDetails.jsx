@@ -697,7 +697,7 @@ export default function IntentCardDetails() {
             <CardContent className="p-4">
             <h2 className="font-semibold text-gray-900 mb-3">Uploaded Image</h2>
             <div className="border rounded-lg overflow-hidden">
-              <img
+              <img loading="lazy" decoding="async"
                 src={indent.imageUrl}
                 alt="Intent"
                 className="w-full h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
@@ -984,7 +984,7 @@ export default function IntentCardDetails() {
                 
                 return (
                 <div key={index} className="relative group">
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={imageUrl}
                     alt={`Attachment ${index + 1}`}
                     className="w-full h-24 object-cover rounded border cursor-pointer"

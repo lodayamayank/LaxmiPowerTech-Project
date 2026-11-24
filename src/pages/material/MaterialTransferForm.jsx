@@ -925,7 +925,7 @@ export default function MaterialTransferForm() {
                     const preview = URL.createObjectURL(file);
                     return (
                       <div key={index} className="relative group">
-                        <img
+                        <img loading="lazy" decoding="async"
                           src={preview}
                           alt={`Preview ${index + 1}`}
                           className="w-full h-24 object-cover rounded-xl border-2 border-gray-200 shadow-sm"

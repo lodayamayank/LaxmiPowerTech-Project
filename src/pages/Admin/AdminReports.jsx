@@ -8,9 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
-import * as XLSX from 'xlsx';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 const REPORT_TYPES = [
   {
@@ -136,8 +133,10 @@ const AdminReports = () => {
     return date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
   }, []);
 
-  const exportToExcel = useCallback(() => {
+  const exportToExcel = useCallback(async () => {
     if (!reportData) return;
+    // Loaded on demand: xlsx is large and only needed when exporting.
+    const XLSX = await import('xlsx');
     const wb = XLSX.utils.book_new();
     const projectName = reportData.projectName || 'Report';
     const period = getMonthLabel(selectedMonth);
@@ -212,8 +211,13 @@ const AdminReports = () => {
     XLSX.writeFile(wb, `${projectName}_Report_${selectedMonth}.xlsx`);
   }, [reportData, summaryCard, selectedMonth, getMonthLabel]);
 
-  const exportToPDF = useCallback(() => {
+  const exportToPDF = useCallback(async () => {
     if (!reportData) return;
+    // Loaded on demand: jsPDF + autoTable are large and only needed when exporting.
+    const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ]);
     const doc = new jsPDF('l', 'mm', 'a4');
     const projectName = reportData.projectName || 'Report';
     const period = getMonthLabel(selectedMonth);

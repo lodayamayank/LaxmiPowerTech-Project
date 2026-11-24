@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "../utils/axios";
 import { FaArrowLeft, FaSave, FaTrash } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast } from 'sonner';
 import logo from "../assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -150,7 +150,7 @@ const SupervisorLabourDetails = () => {
         {/* Header */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg sticky top-0 z-10">
           <div className="flex items-center justify-between mb-4">
-            <img
+            <img width={179} height={64}
               src={logo}
               alt="Logo"
               className="h-16 w-50 bg-white box-shadow rounded-2xl"

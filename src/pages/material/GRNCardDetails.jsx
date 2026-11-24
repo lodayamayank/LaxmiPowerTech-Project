@@ -362,7 +362,7 @@ export default function GRNCardDetails() {
                                 setShowImageModal(true);
                               }}
                             >
-                              <img 
+                              <img loading="lazy" decoding="async" 
                                 src={attachmentUrl} 
                                 alt={`Challan ${index + 1}`}
                                 className="w-full h-48 object-contain"
@@ -451,7 +451,7 @@ export default function GRNCardDetails() {
             </button>
             
             {/* Full-Size Image */}
-            <img 
+            <img loading="lazy" decoding="async" 
               src={selectedImage} 
               alt="Challan Full Size"
               className="w-full h-auto max-h-[85vh] object-contain rounded-lg"

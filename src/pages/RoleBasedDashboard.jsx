@@ -1,12 +1,24 @@
 // RoleBasedDashboard.jsx - Add error handling
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Dashboard from './Admin/AdminDashboard'; 
-import LabourDashboard from './LabourDashboard';
-import SupervisorDashboard from './SupervisorDashboard';
+
+// Each role only loads its own dashboard chunk.
+const Dashboard = lazy(() => import('./Admin/AdminDashboard'));
+const LabourDashboard = lazy(() => import('./LabourDashboard'));
+const SupervisorDashboard = lazy(() => import('./SupervisorDashboard'));
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+
+// Same markup as the Suspense fallback in App.jsx (not exported there, and importing App from a page would be circular).
+const LoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+      <p className="text-gray-600">Loading...</p>
+    </div>
+  </div>
+);
 
 const RoleBasedDashboard = () => {
   const navigate = useNavigate();
@@ -34,17 +46,29 @@ const RoleBasedDashboard = () => {
     
     if (role === 'admin') {
       console.log('✅ Rendering AdminDashboard for role:', role);
-      return <Dashboard />;
+      return (
+        <Suspense fallback={<LoadingFallback />}>
+          <Dashboard />
+        </Suspense>
+      );
     }
     
     if (role === 'supervisor' || role === 'subcontractor') {
       console.log('✅ Rendering SupervisorDashboard for role:', role);
-      return <SupervisorDashboard />;
+      return (
+        <Suspense fallback={<LoadingFallback />}>
+          <SupervisorDashboard />
+        </Suspense>
+      );
     }
     
     if (role === 'labour' || role === 'staff') {
       console.log('✅ Rendering LabourDashboard for role:', role);
-      return <LabourDashboard />;
+      return (
+        <Suspense fallback={<LoadingFallback />}>
+          <LabourDashboard />
+        </Suspense>
+      );
     }
     
     console.warn('⚠️ Unknown role:', role);

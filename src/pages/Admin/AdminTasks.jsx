@@ -979,7 +979,7 @@ const AdminTasks = () => {
                 <div className="space-y-4">
                   {selectedTask.photoUrl && (
                     <div>
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={selectedTask.photoUrl}
                         alt="Task"
                         className="w-full rounded-lg"

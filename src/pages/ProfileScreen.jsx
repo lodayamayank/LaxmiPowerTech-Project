@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../utils/axios';
 import { useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'sonner';
 import {
   FaArrowLeft,
   FaUser,
@@ -415,11 +414,6 @@ const ProfileScreen = () => {
           </div>
         </MobileShell>
 
-        <ToastContainer
-          position="top-center"
-          autoClose={2000}
-          hideProgressBar
-        />
       </>
     );
 };

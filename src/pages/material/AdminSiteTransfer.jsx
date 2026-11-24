@@ -1009,7 +1009,7 @@ export default function AdminSiteTransfer() {
                               {/* Image Thumbnail */}
                               <div className="flex-shrink-0">
                                 {isImage ? (
-                                  <img 
+                                  <img loading="lazy" decoding="async" 
                                     src={fileURL} 
                                     alt={fileName}
                                     className="w-20 h-20 object-cover rounded border"

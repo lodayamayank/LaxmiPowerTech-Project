@@ -82,7 +82,7 @@ const SupervisorDashboard = () => {
         {/* Header with Gradient */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
           <div className="flex items-center justify-between mb-4">
-            <img src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
+            <img width={179} height={64} src={logo} alt="Logo" className="h-16 w-50 bg-white box-shadow rounded-2xl" />
             <Button
               variant="ghost"
               onClick={handleLogout}

@@ -429,7 +429,7 @@ export default function DeliveryChecklist() {
                                             <div className="relative">
                                                 {/* Image Thumbnail */}
                                                 {isImage ? (
-                                                    <img 
+                                                    <img loading="lazy" decoding="async" 
                                                         src={fileURL} 
                                                         alt={fileName}
                                                         className="w-full h-32 object-cover cursor-pointer"

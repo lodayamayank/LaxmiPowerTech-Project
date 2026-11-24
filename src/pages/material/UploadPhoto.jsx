@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaCamera, FaCheckCircle, FaImages } from "react-icons/fa";
 import { Upload, X } from "lucide-react";
 import { submitOffline } from "../../utils/offlineSubmit";
-import { toast } from "react-toastify";
+import { toast } from 'sonner';
 import { getSelectedBranchName } from '../../utils/branchContext';
 // NOTE: import paths assume the standard shadcn "@/" alias. Adjust if this project uses relative paths.
 import { Button } from "@/components/ui/button";
@@ -266,7 +266,7 @@ export default function UploadPhoto() {
               </div>
             ) : (
               <div className="relative rounded-2xl overflow-hidden border-2 border-gray-200 shadow-md">
-                <img
+                <img loading="lazy" decoding="async"
                   src={imagePreview}
                   alt="Preview"
                   className="w-full h-64 object-cover"

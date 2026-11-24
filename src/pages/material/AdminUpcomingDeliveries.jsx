@@ -818,7 +818,7 @@ export default function AdminUpcomingDeliveries() {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">Uploaded Image</h3>
                   <div className="border rounded-lg overflow-hidden inline-block">
-                    <img
+                    <img loading="lazy" decoding="async"
                       src={`${axios.defaults.baseURL.replace('/api', '')}${relatedIndent.imageUrl}`}
                       alt="Intent"
                       className="max-w-full h-auto max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
@@ -1004,7 +1004,7 @@ export default function AdminUpcomingDeliveries() {
                           <div className="relative">
                             {/* Image Thumbnail */}
                             {isImage ? (
-                              <img 
+                              <img loading="lazy" decoding="async" 
                                 src={fileURL} 
                                 alt={fileName}
                                 className="w-full h-48 object-cover cursor-pointer"

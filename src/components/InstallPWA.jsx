@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaDownload, FaTimes, FaApple, FaShareAlt } from 'react-icons/fa';
+import { Download, X, Apple, Share2 } from 'lucide-react';
 
 const InstallPWA = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -63,7 +63,7 @@ const InstallPWA = () => {
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-2xl p-4">
           <div className="flex items-start gap-3">
             <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-              <FaApple className="text-white" size={28} />
+              <Apple className="text-white" size={28} />
             </div>
             <div className="flex-1">
               <h3 className="text-white font-bold text-sm mb-2">Install App</h3>
@@ -74,7 +74,7 @@ const InstallPWA = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-white text-xs">1.</span>
                   <p className="text-white/90 text-xs">
-                    Tap the <FaShareAlt className="inline mx-1" size={12} /> Share button below
+                    Tap the <Share2 className="inline mx-1" size={12} /> Share button below
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -89,7 +89,7 @@ const InstallPWA = () => {
               onClick={handleDismiss}
               className="text-white/80 hover:text-white transition-colors"
             >
-              <FaTimes size={18} />
+              <X size={18} />
             </button>
           </div>
         </div>
@@ -102,7 +102,7 @@ const InstallPWA = () => {
     <div className="fixed bottom-4 left-4 right-4 z-50 max-w-md mx-auto">
       <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl shadow-2xl p-4 flex items-center gap-4">
         <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-          <FaDownload className="text-white" size={24} />
+          <Download className="text-white" size={24} />
         </div>
         <div className="flex-1">
           <h3 className="text-white font-bold text-sm mb-1">Install App</h3>
@@ -120,7 +120,7 @@ const InstallPWA = () => {
           onClick={handleDismiss}
           className="text-white/80 hover:text-white transition-colors"
         >
-          <FaTimes size={18} />
+          <X size={18} />
         </button>
       </div>
     </div>

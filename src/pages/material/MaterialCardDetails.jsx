@@ -636,7 +636,7 @@ export default function MaterialCardDetails() {
                     return (
                       <div key={index} className="relative border border-gray-300 rounded-lg overflow-hidden bg-white">
                         {isImage ? (
-                          <img 
+                          <img loading="lazy" decoding="async" 
                             src={fileURL} 
                             alt={fileName}
                             className="w-full h-32 object-cover"
@@ -899,7 +899,7 @@ export default function MaterialCardDetails() {
                       onClick={() => window.open(fileURL, '_blank')}
                     >
                       {isImage ? (
-                        <img 
+                        <img loading="lazy" decoding="async" 
                           src={fileURL} 
                           alt={fileName}
                           className="w-full h-32 object-cover"

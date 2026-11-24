@@ -496,7 +496,7 @@ const TaskSubmission = () => {
         {/* Header */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
           <div className="flex items-center justify-between mb-4">
-            <img
+            <img width={179} height={64}
               src={logo}
               alt="Logo"
               className="h-16 w-50 bg-white box-shadow rounded-2xl"
@@ -770,7 +770,7 @@ const TaskSubmission = () => {
                       >
                         <CardContent className="p-4">
                           <div className="flex gap-3">
-                            <img
+                            <img loading="lazy" decoding="async"
                               src={task.photoUrl}
                               alt="Task"
                               className="w-20 h-20 rounded-lg object-cover border-2 border-gray-200"
@@ -1125,7 +1125,7 @@ const TaskSubmission = () => {
                   </Label>
                   {photoPreview && (
                     <div className="mt-3">
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={photoPreview}
                         alt="Preview"
                         className="w-full h-48 object-cover rounded-xl"
@@ -1196,7 +1196,7 @@ const TaskSubmission = () => {
               <div className="overflow-y-auto p-6">
                 {/* Photo */}
                 <div className="mb-6">
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={selectedTask.photoUrl}
                     alt="Task Photo"
                     className="w-full h-64 object-cover rounded-xl shadow-lg"

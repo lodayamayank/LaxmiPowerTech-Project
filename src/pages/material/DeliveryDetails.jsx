@@ -623,7 +623,7 @@ export default function DeliveryDetails() {
                         key={preview}
                         className="relative border border-gray-300 rounded-lg overflow-hidden"
                       >
-                        <img
+                        <img loading="lazy" decoding="async"
                           src={preview}
                           alt={`Delivery proof ${index + 1}`}
                           className="w-full h-32 object-cover"

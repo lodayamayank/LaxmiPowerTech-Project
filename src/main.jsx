@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import { BrowserRouter } from 'react-router-dom';
+import '@fontsource-variable/inter'; // self-hosted Inter (variable weight)
 import './index.css';
 import { register } from './registerServiceWorker';
 

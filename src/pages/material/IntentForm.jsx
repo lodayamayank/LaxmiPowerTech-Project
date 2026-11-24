@@ -698,7 +698,7 @@ export default function IntentForm() {
                 <div className="grid grid-cols-3 gap-3">
                   {imagePreviews.map((preview, index) => (
                     <div key={index} className="relative group">
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={preview}
                         alt={`Preview ${index + 1}`}
                         className="w-full h-24 object-cover rounded-xl border-2 border-gray-200 shadow-sm"

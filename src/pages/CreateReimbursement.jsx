@@ -10,7 +10,7 @@ import {
   FaMoneyBillWave,
   FaTimes,
 } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -339,7 +339,7 @@ import MobileBackButton from "@/components/mobile/MobileBackButton";
                         <div className="grid grid-cols-3 gap-2">
                           {item.receiptPreviews.map((preview, receiptIndex) => (
                             <div key={receiptIndex} className="relative group">
-                              <img
+                              <img loading="lazy" decoding="async"
                                 src={preview}
                                 alt={`Receipt ${receiptIndex + 1}`}
                                 className="w-full h-20 object-cover rounded-lg border border-gray-200"

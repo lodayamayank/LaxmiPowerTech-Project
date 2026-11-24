@@ -857,14 +857,14 @@ const AdminDashboard = () => {
                             {item.selfieIn || item.selfieOut ? (
                               <div className="flex items-center gap-2">
                                 {item.selfieIn && (
-                                  <img
+                                  <img loading="lazy" decoding="async"
                                     src={item.selfieIn}
                                     alt="Punch in selfie"
                                     className="w-10 h-10 object-cover rounded"
                                   />
                                 )}
                                 {item.selfieOut && (
-                                  <img
+                                  <img loading="lazy" decoding="async"
                                     src={item.selfieOut}
                                     alt="Punch out selfie"
                                     className="w-10 h-10 object-cover rounded"

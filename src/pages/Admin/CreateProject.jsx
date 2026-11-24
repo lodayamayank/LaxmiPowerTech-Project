@@ -44,7 +44,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ChevronsUpDown } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,

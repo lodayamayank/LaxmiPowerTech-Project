@@ -5,8 +5,7 @@ import { submitOffline } from "../utils/offlineSubmit";
 import Webcam from "react-webcam";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'sonner';
 import { Textarea } from "@/components/ui/textarea";
 import {
   FaArrowLeft,
@@ -476,7 +475,6 @@ export default function Leaves() {
          </div>
        </MobileShell>
 
-       <ToastContainer position="top-center" autoClose={2000} hideProgressBar />
      </>
    );
 }

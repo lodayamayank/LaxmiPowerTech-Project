@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import axios from '@/utils/axios';
 import { FaExclamationTriangle, FaTrash, FaImage } from 'react-icons/fa';
@@ -102,7 +102,7 @@ const AdminDeleteAttendance = () => {
       toast.success(parts.join(' and '));
 
       if (res.data.cloudinaryFailed) {
-        toast.warn(`${res.data.cloudinaryFailed} selfie(s) could not be removed from Cloudinary`);
+        toast.warning(`${res.data.cloudinaryFailed} selfie(s) could not be removed from Cloudinary`);
       }
 
       setConfirmOpen(false);

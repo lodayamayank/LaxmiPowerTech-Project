@@ -342,10 +342,10 @@ const AppSidebar = ({
         <div className="flex items-center justify-between">
           {/* Full logo — expanded / mobile */}
           <div className="flex-1 flex items-center justify-start group-data-[collapsible=icon]:hidden">
-            <img
+            <img width={134} height={48}
               src={logo}
               alt="Laxmi Powertech"
-              className="w-full max-h-12 object-contain object-left"
+              className="h-auto w-full max-h-12 object-contain object-left"
             />
           </div>
 

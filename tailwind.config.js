@@ -187,7 +187,7 @@ export default {
         kpi: ["28px", { lineHeight: "34px", fontWeight: "600", letterSpacing: "-0.02em" }],
       },
       fontFamily: {
-        ui: ["Inter", "system-ui", "sans-serif"],
+        ui: ["Inter Variable", "Inter", "system-ui", "sans-serif"],
         data: ['"JetBrains Mono"', "ui-monospace", "monospace"],
       },
       keyframes: {

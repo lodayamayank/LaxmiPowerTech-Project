@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import axios from "../../utils/axios";
 import DashboardLayout from "../../layouts/DashboardLayout";
-import { toast } from "react-toastify";
+import { toast } from 'sonner';
 import {
   GoogleMap,
   MarkerF,

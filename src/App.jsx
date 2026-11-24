@@ -1,8 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, lazy, Suspense } from 'react';
 import { migrateLegacyOfflinePunches } from './utils/syncAttendance';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'sonner';
 import useNotifier from './hooks/useNotifier';
 import syncEngine from './utils/syncEngine';
 import OfflineBanner from './components/OfflineBanner';
@@ -114,9 +113,9 @@ function App() {
     migrateLegacyOfflinePunches()
       .then(({ unrecoverable }) => {
         if (unrecoverable > 0) {
-          toast.warn(
+          toast.warning(
             `${unrecoverable} attendance punch(es) saved by an older version of the app could not be recovered. Please re-punch if needed.`,
-            { autoClose: 10000 }
+            { duration: 10000 }
           );
         }
       })
@@ -125,7 +124,6 @@ function App() {
 
   return (
     <>
-      <ToastContainer newestOnTop theme="colored" autoClose={3000} />
       <Toaster position="top-center" richColors closeButton />
       <InstallPWA />
       <OfflineBanner />
