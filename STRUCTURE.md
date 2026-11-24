@@ -8,7 +8,7 @@ src/
   components/ui/                 shadcn primitives only
   components/common/             shared design-system components (DataTable, PaginationBar, ...)
   hooks/                         shared hooks (use-mobile.js)
-  layouts/desktop/               DashboardLayout, AppSidebar
+  layouts/desktop/               DashboardLayout, AppSidebar, Topbar, NotificationsPopover, AccountMenu, MaterialQuickNav, navConfig (menu data), usePendingCounts/useDarkMode/useSidebarMenus
   layouts/mobile/                MobileShell, MobileHeader, MobileBackButton
   lib/                           utils.js (cn) + pure helpers: format, status, date, dateRange,
                                  branchContext, attendanceCalculations, faceValidation, punchStatusCache

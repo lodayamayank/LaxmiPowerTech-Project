@@ -73,3 +73,14 @@ export function getInitials(name) {
   const out = parts.slice(0, 2).map((p) => p[0].toUpperCase()).join("");
   return out || "?";
 }
+
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/**
+ * Today's date for the top bar, e.g. "Mon, 23 Nov 2026" (local time).
+ * @param {Date} [now] defaults to the current time
+ * @returns {string}
+ */
+export function formatToday(now = new Date()) {
+  return `${WEEKDAYS[now.getDay()]}, ${pad(now.getDate())} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from 'react-router-dom';
 import { Inbox, Users, Wallet, Clock, Plus, Trash2, Search, Moon, Sun, CheckCircle2, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -557,6 +558,12 @@ export default function Styleguide() {
               <Skeleton className="h-4 w-48" />
             </div>
           </div>
+        </SectionCard>
+
+        <SectionCard title="Desktop shell" description="Sidebar, top bar and content area">
+          <Link to="/styleguide/shell" className="text-body font-medium text-primary underline-offset-4 hover:underline">
+            Open the shell preview
+          </Link>
         </SectionCard>
 
         <SectionCard title="EmptyState" flush>

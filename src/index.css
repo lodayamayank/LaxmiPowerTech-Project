@@ -58,9 +58,10 @@
       --info-soft: 214.3 94.6% 92.7%;
       --info-soft-foreground: 224.3 76.3% 48%;
     /* Sidebar (references, so they follow light/dark automatically) */
-      --sidebar-background: var(--card);
-        --sidebar-foreground: var(--foreground);
-        --sidebar-border: var(--border);
+      /* Design tokens by reference: they resolve to the .dark values too (same element). */
+      --sidebar-background: var(--surface);
+        --sidebar-foreground: var(--ink-2);
+        --sidebar-border: var(--line-card);
         --sidebar-ring: var(--ring);
         --sidebar-accent: var(--primary-soft);
         --sidebar-accent-foreground: var(--primary-soft-foreground);

@@ -87,6 +87,7 @@ const ConnectServer = lazy(() => import('@/pages/auth/ConnectServer'));
 
 // Dev-only design system page (not part of the production bundle)
 const Styleguide = import.meta.env.DEV ? lazy(() => import('@/pages/dev/Styleguide')) : null;
+const ShellPreview = import.meta.env.DEV ? lazy(() => import('@/pages/dev/ShellPreview')) : null;
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -344,6 +345,9 @@ function App() {
           {/* Dev-only */}
           {import.meta.env.DEV && Styleguide && (
             <Route path="/styleguide" element={<Styleguide />} />
+          )}
+          {import.meta.env.DEV && ShellPreview && (
+            <Route path="/styleguide/shell" element={<ShellPreview />} />
           )}
           {/* Offline Sync */}
           <Route path="/connect-server" element={<ConnectServer />} />
