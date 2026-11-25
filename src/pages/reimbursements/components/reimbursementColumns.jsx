@@ -1,7 +1,8 @@
 // src/pages/reimbursements/components/reimbursementColumns.jsx
-// DataTable columns and mobile card for the admin reimbursement list.
+// DataTable columns and mobile card for the admin reimbursement list. The list is read-only: every claim opens in the
+// details dialog (ReimbursementDetailsDialog), which holds the items, receipts and the Approve / Reject / Mark paid actions.
 import { memo } from "react";
-import { Check, Eye, X } from "lucide-react";
+import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { UserAvatar } from "@/components/common/UserAvatar";
@@ -12,36 +13,12 @@ const itemsLabel = (r) => {
   return `${n} ${n === 1 ? "item" : "items"}`;
 };
 
-/** View for every row; Approve / Reject for pending; Mark paid for approved (same actions as before). */
-const ReimbursementActions = memo(function ReimbursementActions({ row, onView, onApprove, onReject, onMarkPaid, full }) {
+/** One "View" button per row (every status): opens the details dialog. */
+const ReimbursementActions = memo(function ReimbursementActions({ row, onView, full }) {
   return (
-    <div className={full ? "flex gap-2" : "flex items-center justify-end gap-2"}>
-      <Button
-        variant="ghost"
-        size="icon"
-        className={full ? "shrink-0" : "h-control-sm w-control-sm"}
-        aria-label="View details"
-        title="View details"
-        onClick={() => onView(row._id)}
-      >
-        <Eye />
-      </Button>
-      {row.status === "pending" ? (
-        <>
-          <Button variant="reject" size="sm" className={full ? "flex-1 whitespace-nowrap" : "whitespace-nowrap"} onClick={() => onReject(row._id)}>
-            <X /> Reject
-          </Button>
-          <Button variant="approve" size="sm" className={full ? "flex-1 whitespace-nowrap" : "whitespace-nowrap"} onClick={() => onApprove(row._id)}>
-            <Check /> Approve
-          </Button>
-        </>
-      ) : null}
-      {row.status === "approved" ? (
-        <Button variant="outline" size="sm" className={full ? "flex-1 whitespace-nowrap" : "whitespace-nowrap"} onClick={() => onMarkPaid(row._id)}>
-          Mark paid
-        </Button>
-      ) : null}
-    </div>
+    <Button variant="outline" size="sm" className={full ? "w-full" : "whitespace-nowrap"} onClick={() => onView(row._id)}>
+      <Eye /> View
+    </Button>
   );
 });
 
@@ -60,22 +37,22 @@ export function getReimbursementColumns(handlers) {
         </div>
       ),
     },
+    { key: "submitted", header: "Submitted", cell: (r) => <span className="tabular-nums">{formatDate(r.submittedAt)}</span> },
+    { key: "items", header: "Items", cell: (r) => <span className="text-ink-3">{itemsLabel(r)}</span> },
+    { key: "status", header: "Status", cell: (r) => <StatusBadge status={r.status} /> },
+    // Approver is hidden below xl so the table never needs a horizontal scrollbar; it is in the details dialog.
+    { key: "approver", header: "Approver", className: "hidden xl:table-cell", cell: (r) => <span className="text-small text-ink-3">{r.approver?.name || "—"}</span> },
     {
       key: "amount",
       header: "Amount",
       align: "right",
       cell: (r) => <span className="font-semibold tabular-nums text-ink-1">{formatCurrency(r.totalAmount)}</span>,
     },
-    { key: "items", header: "Items", cell: (r) => <span className="text-ink-3">{itemsLabel(r)}</span> },
-    { key: "submitted", header: "Submitted", cell: (r) => <span className="tabular-nums">{formatDate(r.submittedAt)}</span> },
-    { key: "status", header: "Status", cell: (r) => <StatusBadge status={r.status} /> },
-    { key: "approver", header: "Approver", cell: (r) => <span className="text-caption-lg text-ink-3">{r.approver?.name || "-"}</span> },
     {
       key: "actions",
-      header: "Actions",
+      header: "",
       align: "right",
-      sticky: "right",
-      cell: (r) => <ReimbursementActions row={r} {...handlers} />,
+      cell: (r) => <ReimbursementActions row={r} onView={handlers.onView} />,
     },
   ];
 }
@@ -101,7 +78,7 @@ export function getReimbursementMobileCard(handlers) {
           <span>· {formatDate(r.submittedAt)}</span>
         </div>
         {r.approver?.name ? <div className="text-caption-lg text-ink-3">Approver: {r.approver.name}</div> : null}
-        <ReimbursementActions row={r} full {...handlers} />
+        <ReimbursementActions row={r} onView={handlers.onView} full />
       </>
     );
   };

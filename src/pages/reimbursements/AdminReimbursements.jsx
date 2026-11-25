@@ -209,7 +209,7 @@ const AdminReimbursements = () => {
         <Tabs
           value={filters.status || "all"}
           onValueChange={(v) => applyFilters({ ...filters, status: v === "all" ? "" : v })}
-          className="px-5"
+          className="overflow-x-auto px-5"
         >
           <TabsList>
             {TABS.map((t) => (

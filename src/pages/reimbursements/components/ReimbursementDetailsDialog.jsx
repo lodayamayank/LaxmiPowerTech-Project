@@ -4,7 +4,7 @@ import { Banknote, Check, X } from "lucide-react";
 import axios from "@/api/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { getRoleTone } from "@/lib/status";
@@ -16,9 +16,7 @@ export default function ReimbursementDetailsDialog({ reimbursement, onClose, onA
       <DialogContent className="flex max-h-[90vh] max-w-4xl flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="shrink-0 border-b border-line px-6 py-4 text-left">
           <DialogTitle>Reimbursement details</DialogTitle>
-          <DialogDescription className="sr-only">
-            Details, expense items and actions for the selected reimbursement request
-          </DialogDescription>
+          <DialogDescription>Expense items, receipts and decision for this claim.</DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-6">
@@ -116,26 +114,28 @@ export default function ReimbursementDetailsDialog({ reimbursement, onClose, onA
               </div>
             </div>
           </div>
-
-          {r.status === "pending" || r.status === "approved" ? (
-            <div className="mt-6 flex gap-3 border-t border-line pt-6">
-              {r.status === "pending" ? (
-                <>
-                  <Button variant="approve" className="flex-1" onClick={() => onApprove(r._id)}>
-                    <Check /> Approve
-                  </Button>
-                  <Button variant="reject" className="flex-1" onClick={() => onReject(r._id)}>
-                    <X /> Reject
-                  </Button>
-                </>
-              ) : (
-                <Button className="w-full" onClick={() => onMarkPaid(r._id)}>
-                  <Banknote /> Mark as paid
-                </Button>
-              )}
-            </div>
-          ) : null}
         </div>
+
+        <DialogFooter className="shrink-0 border-t border-line px-6 py-4">
+          <Button variant="outline" onClick={onClose}>
+            Close
+          </Button>
+          {r.status === "pending" ? (
+            <>
+              <Button variant="reject" onClick={() => onReject(r._id)}>
+                <X /> Reject
+              </Button>
+              <Button variant="approve" onClick={() => onApprove(r._id)}>
+                <Check /> Approve
+              </Button>
+            </>
+          ) : null}
+          {r.status === "approved" ? (
+            <Button onClick={() => onMarkPaid(r._id)}>
+              <Banknote /> Mark as paid
+            </Button>
+          ) : null}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
