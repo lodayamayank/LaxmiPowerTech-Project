@@ -57,7 +57,19 @@ export const isSessionExpired = () =>
  *   logout has always kept them).
  * - all: wipe localStorage completely (401 handler, expired session, "Clear storage" button).
  */
+// The service worker keeps offline copies of some API answers (projects, branches, tasks, attendance...). They are
+// stored by URL only, so they must not outlive the session or the next person on this device could be shown them.
+function clearOfflineApiCache() {
+  try {
+    if (typeof caches === 'undefined') return;
+    caches.keys().then((names) => names.filter((n) => n.startsWith('lpt-api')).forEach((n) => caches.delete(n))).catch(() => {});
+  } catch {
+    // caches API unavailable (insecure origin or old browser): nothing to clear
+  }
+}
+
 export function clearSession({ all = false, keepSelectedBranch = false, keepLoginTime = false } = {}) {
+  clearOfflineApiCache();
   if (all) {
     localStorage.clear();
     queryClient.clear();

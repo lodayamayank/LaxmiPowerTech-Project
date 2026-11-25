@@ -4,6 +4,25 @@ const STATIC_CACHE = 'lpt-static-v3';
 const API_CACHE = 'lpt-api-v3';
 const CACHE_NAMES = [STATIC_CACHE, API_CACHE];
 
+// Upper bounds so the caches cannot grow without limit (old hashed build files and visited URLs pile up otherwise).
+const MAX_ENTRIES = { [STATIC_CACHE]: 150, [API_CACHE]: 80 };
+
+// Store a copy of a response without ever breaking the request: runs inside waitUntil (the worker is not stopped
+// before the write finishes), swallows quota/other errors, and trims the oldest entries beyond the limit.
+function putInCache(event, cacheName, request, response) {
+  event.waitUntil(
+    caches
+      .open(cacheName)
+      .then(async (cache) => {
+        await cache.put(request, response);
+        const keys = await cache.keys();
+        const extra = keys.length - MAX_ENTRIES[cacheName];
+        for (let i = 0; i < extra; i++) await cache.delete(keys[i]);
+      })
+      .catch(() => {})
+  );
+}
+
 const urlsToCache = [
   '/',
   '/login',
@@ -72,8 +91,7 @@ self.addEventListener('fetch', (event) => {
       fetch(request)
         .then(response => {
           if (response && response.status === 200 && isCacheableAPI(request.url)) {
-            const clone = response.clone();
-            caches.open(API_CACHE).then(cache => cache.put(request, clone));
+            putInCache(event, API_CACHE, request, response.clone());
           }
           return response;
         })
@@ -99,8 +117,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then(response => {
-          const clone = response.clone();
-          caches.open(STATIC_CACHE).then(cache => cache.put(request, clone));
+          // Only keep good pages (not 404/500 error pages) as the offline app shell.
+          if (response && response.ok && !response.redirected) putInCache(event, STATIC_CACHE, request, response.clone());
           return response;
         })
         .catch(() => {
@@ -123,8 +141,10 @@ self.addEventListener('fetch', (event) => {
         if (cached) return cached;
         return fetch(request).then(response => {
           if (!response || response.status !== 200) return response;
-          const clone = response.clone();
-          caches.open(STATIC_CACHE).then(cache => cache.put(request, clone));
+          // A host that answers a missing file with the HTML app shell (status 200) must not get cached under a
+          // script/style URL: cache-first would then serve that HTML forever.
+          const type = response.headers.get('content-type') || '';
+          if (!type.includes('text/html')) putInCache(event, STATIC_CACHE, request, response.clone());
           return response;
         }).catch(() => new Response('', { status: 503 }));
       })
@@ -136,8 +156,7 @@ self.addEventListener('fetch', (event) => {
     fetch(request)
       .then(response => {
         if (response && response.status === 200 && !url.pathname.startsWith('/src/') && !url.pathname.startsWith('/node_modules/') && !url.pathname.startsWith('/@')) {
-          const clone = response.clone();
-          caches.open(STATIC_CACHE).then(cache => cache.put(request, clone));
+          putInCache(event, STATIC_CACHE, request, response.clone());
         }
         return response;
       })
