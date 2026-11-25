@@ -94,11 +94,14 @@ const SalaryHistory = () => {
                     headers: { Authorization: `Bearer ${token}` },
                 }
             );
-            toast.success('Marked as paid successfully');
+            toast.success('Marked as paid', { description: 'The salary slip is now paid.' });
             fetchSlips();
         } catch (err) {
             console.error('Failed to mark as paid:', err);
-            toast.error('Failed to update payment status');
+            toast.error('Couldn’t update the payment', {
+                description: 'Check your connection and try again.',
+                action: { label: 'Retry', onClick: () => markAsPaid(slipId) },
+            });
         }
     };
 
@@ -108,11 +111,14 @@ const SalaryHistory = () => {
             await axios.delete(`/salary-slips/${slipId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            toast.success('Salary slip deleted successfully');
+            toast.success('Salary slip deleted');
             fetchSlips();
         } catch (err) {
             console.error('Failed to delete slip:', err);
-            toast.error(err.response?.data?.message || 'Failed to delete slip');
+            toast.error('Couldn’t delete the slip', {
+                description: err.response?.data?.message || 'Check your connection and try again.',
+                action: { label: 'Retry', onClick: () => deleteSlip(slipId) },
+            });
         }
     };
 

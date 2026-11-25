@@ -18,7 +18,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { PaginationBar } from "@/components/common/PaginationBar";
 import LeaveDetailsDialog from "./components/LeaveDetailsDialog";
 import LeaveFilters from "./components/LeaveFilters";
-import { getLeaveColumns, getLeaveMobileCard } from "./components/leaveColumns";
+import { dateRange, getLeaveColumns, getLeaveMobileCard } from "./components/leaveColumns";
 
 const INITIAL_FILTERS = { role: "", branchId: "", status: "", type: "", from: "", to: "", search: "" };
 
@@ -60,7 +60,10 @@ export default function AdminLeaves() {
       setTotal(res.data.total || 0);
     } catch (e) {
       console.error(e);
-      toast.error("Failed to load leaves");
+      toast.error("Couldn't load leave requests", {
+        description: "Check your connection and try again.",
+        action: { label: "Retry", onClick: () => loadLeaves() },
+      });
     } finally {
       setLoading(false);
     }
@@ -77,19 +80,25 @@ export default function AdminLeaves() {
     loadLeaves();
   };
 
-  const handleAction = useCallback(async (id, status) => {
+  // `leave` (optional) only adds the details to the confirmation toast.
+  const handleAction = useCallback(async function decide(id, status, leave) {
     try {
       await axios.patch(`/leaves/${id}/status`, { status }); // ✅ correct endpoint
       window.dispatchEvent(new Event(EVENTS.pendingCountsRefresh));
       setRows((prev) => prev.map((r) => (r._id === id ? { ...r, status } : r)));
       setViewing(null);
-      toast.success(`Leave ${status} successfully`);
+      toast.success(status === "approved" ? "Leave approved" : "Leave rejected", {
+        description: leave ? `${leave.user?.username}’s ${leave.type || ""} leave, ${dateRange(leave)}, is now ${status}.` : `The request is now ${status}.`,
+      });
 
       // 🔹 optional: broadcast event for AdminDashboard & MyAttendance
       window.dispatchEvent(new CustomEvent(EVENTS.leaveUpdated, { detail: { id, status } }));
     } catch (e) {
       console.error(e);
-      toast.error("Failed to update status");
+      toast.error("Couldn’t update the request", {
+        description: "Check your connection and try again.",
+        action: { label: "Retry", onClick: () => decide(id, status, leave) },
+      });
     }
   }, []);
 

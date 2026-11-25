@@ -71,21 +71,27 @@ export default function useMyTeam() {
   const deleteUser = async (id) => {
     try {
       await axios.delete(`/users/${id}`, { headers });
-      toast.success("User deleted successfully!");
+      toast.success("Member deleted");
       queryClient.invalidateQueries({ queryKey: USERS_KEY });
     } catch (err) {
       console.error("Failed to delete user", err);
-      toast.error("Failed to delete user");
+      toast.error("Couldn’t delete the member", {
+        description: "Check your connection and try again.",
+        action: { label: "Retry", onClick: () => deleteUser(id) },
+      });
     }
   };
 
   const resetPassword = async (username) => {
     try {
       await axios.post(`/users/reset-password/${username}`, {}, { headers });
-      toast.success(`Password reset for ${username} to default123`);
+      toast.success("Password reset", { description: `${username}’s password is now default123.` });
     } catch (err) {
       console.error("Failed to reset password", err);
-      toast.error("Error resetting password");
+      toast.error("Couldn’t reset the password", {
+        description: "Check your connection and try again.",
+        action: { label: "Retry", onClick: () => resetPassword(username) },
+      });
     }
   };
 

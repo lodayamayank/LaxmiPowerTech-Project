@@ -114,10 +114,10 @@ export default function LeaveDetailsDialog({ leave, onClose, onAction }) {
           </Button>
           {pending ? (
             <>
-              <Button variant="reject" onClick={() => onAction(leave._id, "rejected")}>
+              <Button variant="reject" onClick={() => onAction(leave._id, "rejected", leave)}>
                 <X /> Reject
               </Button>
-              <Button variant="approve" onClick={() => onAction(leave._id, "approved")}>
+              <Button variant="approve" onClick={() => onAction(leave._id, "approved", leave)}>
                 <Check /> Approve
               </Button>
             </>

@@ -84,7 +84,10 @@ const AdminReimbursements = () => {
         if (err.response?.status === 403) {
           toast.error("Access denied. Admin privileges required.");
         } else {
-          toast.error("Failed to load reimbursements");
+          toast.error("Couldn't load reimbursements", {
+            description: "Check your connection and try again.",
+            action: { label: "Retry", onClick: () => fetchList(f, p, l) },
+          });
         }
         setReimbursements([]);
         setTotal(0);
@@ -129,13 +132,18 @@ const AdminReimbursements = () => {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       window.dispatchEvent(new Event(EVENTS.pendingCountsRefresh)); // sidebar badge refresh
-      toast.success(`Reimbursement ${status} successfully`);
+      toast.success(status === "approved" ? "Reimbursement approved" : status === "paid" ? "Marked as paid" : "Reimbursement rejected", {
+        description: "The claim status has been updated.",
+      });
       fetchList(filters, page, limit);
       setShowDetailsModal(false);
       setSelectedReimbursement(null);
     } catch (error) {
       console.error("Failed to update status", error);
-      toast.error(error.response?.data?.message || "Failed to update status");
+      toast.error("Couldn’t update the claim", {
+        description: error.response?.data?.message || "Check your connection and try again.",
+        action: { label: "Retry", onClick: () => handleStatusUpdate(id, status, rejectionReason) },
+      });
     }
   };
 
