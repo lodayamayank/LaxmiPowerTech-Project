@@ -56,6 +56,7 @@ const MemberEdit = () => {
   const { user, loading, loadError, form, setField, handleChange, handleSubmit, passwordForm, setPasswordForm, passwordSaving, handlePasswordSubmit, passwordKeyDown, branches, projects, dirty, discard } = e;
   const [active, setActive] = useState("basic");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmDeactivate, setConfirmDeactivate] = useState(false);
 
   useEffect(() => {
     const els = SECTIONS.map((s) => document.getElementById(s.id)).filter(Boolean);
@@ -261,15 +262,12 @@ const MemberEdit = () => {
             </div>
           </SectionCard>
 
-          <SectionCard title="Danger zone" description="Deactivate keeps their history and blocks sign-in. Delete removes the member permanently." className="border-tone-bad-border">
+          <SectionCard title="Danger zone" description="Deactivate sets their date of leaving to today: they show as Inactive and their history is kept. Delete removes the member permanently." className="border-tone-bad-border">
             <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  setField("dateOfLeaving")(new Date().toISOString().split("T")[0]);
-                  toast.info("Date of leaving set to today. Save changes to apply.");
-                }}
+                onClick={() => setConfirmDeactivate(true)}
               >
                 Deactivate
               </Button>
@@ -298,6 +296,20 @@ const MemberEdit = () => {
           </div>
         </div>
       </form>
+
+      <ConfirmDialog
+        open={confirmDeactivate}
+        onOpenChange={setConfirmDeactivate}
+        title="Deactivate this member?"
+        description={`${user.name} (${user.username}) will be marked as left today and shown as Inactive. Their attendance and payroll history is kept. You still need to press Save changes to apply it.`}
+        confirmLabel="Deactivate"
+        tone="destructive"
+        onConfirm={() => {
+          setField("dateOfLeaving")(new Date().toISOString().split("T")[0]);
+          setConfirmDeactivate(false);
+          toast.info("Date of leaving set to today", { description: "Save changes to apply." });
+        }}
+      />
 
       <ConfirmDialog
         open={confirmDelete}
