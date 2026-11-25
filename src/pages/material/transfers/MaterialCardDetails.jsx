@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { EmptyState } from '@/components/common/EmptyState';
 import useConfirm from '@/hooks/useConfirm';
 import { showToast } from '@/lib/showToast';
 import { toast } from 'sonner';
@@ -454,21 +455,9 @@ export default function MaterialCardDetails() {
   // ✅ ERROR SCREEN - MATCHING INTENT PO STYLE
   if (!transfer) {
     return (
-      <div className="min-h-screen bg-tone-highlight-soft flex flex-col items-center justify-center px-4">
-        <div className="bg-surface rounded-xl shadow-lg border border-line-card p-8 text-center max-w-md">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-tone-bad-soft flex items-center justify-center">
-            <X size={32} className="text-tone-bad-fg" />
-          </div>
-          <h2 className="text-lg font-bold text-ink-1 mb-2">Transfer Not Found</h2>
-          <p className="text-ink-3 mb-6 text-sm">The material transfer you're looking for doesn't exist or has been deleted.</p>
-          <Button
-            onClick={() => navigate(-1)}
-            className="h-auto px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary-strong transition-colors font-medium"
-          >
-            Go Back
-          </Button>
-        </div>
-      </div>
+      <MobilePage title="Transfer Not Found" back onBack={() => navigate(-1)}>
+        <EmptyState icon={X} title="Transfer Not Found" description="The material transfer you're looking for doesn't exist or has been deleted." action={<Button onClick={() => navigate(-1)}>Go back</Button>} />
+      </MobilePage>
     );
   }
 
@@ -632,7 +621,7 @@ export default function MaterialCardDetails() {
                           type="button"
                           onClick={() => handleDeleteAttachment(index)}
                           disabled={deletingAttachment === index}
-                          className="absolute top-2 right-2 h-auto w-auto p-1.5 bg-tone-bad-solid text-primary-foreground rounded-full hover:bg-primary-strong transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                          className="absolute top-2 right-2 h-auto w-auto p-1.5 bg-tone-bad-solid text-primary-foreground rounded-full hover:bg-primary-strong transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Delete attachment"
                         >
                           {deletingAttachment === index ? (
@@ -692,7 +681,7 @@ export default function MaterialCardDetails() {
           </div>
           
           {/* Fixed Bottom Buttons */}
-          <div className="fixed bottom-0 left-0 right-0 bg-surface border-t shadow-lg p-4 z-50">
+          <div className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md border-t border-line bg-surface p-4">
             <div className="max-w-md mx-auto flex gap-3">
               <Button
                 type="button"
@@ -855,7 +844,7 @@ export default function MaterialCardDetails() {
                   return (
                     <div 
                       key={index} 
-                      className="relative border border-line-input rounded-lg overflow-hidden bg-surface cursor-pointer hover:shadow-md transition-shadow"
+                      className="relative border border-line-input rounded-lg overflow-hidden bg-surface cursor-pointer transition-shadow"
                       onClick={() => window.open(fileURL, '_blank')}
                     >
                       {isImage ? (
@@ -886,7 +875,7 @@ export default function MaterialCardDetails() {
         </div>
 
         {/* Fixed Bottom Buttons - Only Edit and Delete (No Back Button) */}
-        <div className="fixed bottom-0 left-0 right-0 bg-surface border-t shadow-lg p-4 z-50">
+        <div className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md border-t border-line bg-surface p-4">
           <div className="max-w-md mx-auto flex gap-3">
             <Button
               type="button"

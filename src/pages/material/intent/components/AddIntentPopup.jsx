@@ -40,7 +40,7 @@ export default function AddIndentPopup({ onClose }) {
   <Sheet open={true} onOpenChange={(open) => !open && onClose()}>
     <SheetContent
       side="bottom"
-      className="w-full max-w-md mx-auto rounded-t-3xl px-6 pb-6"
+      className="w-full max-w-md mx-auto rounded-t-[20px] px-6 pb-6"
     >
       <SheetHeader className="mb-6">
         <SheetTitle className="text-left text-lg font-bold text-ink-1">

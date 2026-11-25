@@ -93,7 +93,7 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
       </div>
 
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-surface border border-line-input rounded-md shadow-lg max-h-[300px] overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-surface border border-line-input rounded-md max-h-[300px] overflow-y-auto">
           {filteredOptions.length > 0 ? (
             <ul className="py-1">
               {filteredOptions.map((option, index) => (
@@ -535,8 +535,8 @@ export default function MaterialTransferForm() {
           {/* Form Content */}
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Transfer Information Section */}
-            <div className="bg-surface-subtle rounded-2xl p-5 border border-line-card shadow-sm">
-              <h3 className="text-tone-highlight-fg font-bold text-sm mb-4">Transfer Information</h3>
+            <div className="bg-surface-subtle rounded-[14px] p-5 border border-line-card">
+              <h3 className="text-tone-highlight-fg font-semibold text-sm mb-4">Transfer Information</h3>
 
               <div className="mb-4">
                 <label className="text-ink-2 text-sm font-medium mb-2 block">
@@ -563,7 +563,7 @@ export default function MaterialTransferForm() {
                   onChange={(e) => setFormData(prev => ({ ...prev, toSite: e.target.value }))}
                   className="w-full bg-surface border border-line-card rounded-xl px-4 py-3 text-sm text-ink-1 focus:outline-none focus-visible:border-primary focus:ring-2 focus-visible:ring-ring appearance-none font-medium"
                   style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23f97316' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                     backgroundPosition: 'right 1rem center',
                     backgroundRepeat: 'no-repeat',
                     backgroundSize: '1.25em 1.25em'
@@ -611,8 +611,8 @@ export default function MaterialTransferForm() {
             </div>
 
             {/* Materials Section */}
-            <div className="bg-surface-subtle rounded-2xl p-5 border border-line-card shadow-sm">
-              <h3 className="text-tone-highlight-fg font-bold text-sm mb-4">Materials</h3>
+            <div className="bg-surface-subtle rounded-[14px] p-5 border border-line-card">
+              <h3 className="text-tone-highlight-fg font-semibold text-sm mb-4">Materials</h3>
               
               {/* Warning if From Site not selected */}
               {!formData.fromSite && (
@@ -635,10 +635,10 @@ export default function MaterialTransferForm() {
               <button
                 type="button"
                 onClick={addMaterialRow}
-                className={`w-full mb-4 py-3 rounded-xl font-semibold text-sm transition-all shadow-md ${
+                className={`w-full mb-4 py-3 rounded-xl font-semibold text-sm transition-all ${
                   !formData.fromSite || grnMaterials.length === 0
                     ? 'bg-surface-muted text-ink-3 cursor-not-allowed'
-                    : 'bg-primary text-primary-foreground hover:bg-primary-strong   hover:shadow-lg transform hover:scale-[1.02]'
+                    : 'bg-primary text-primary-foreground hover:bg-primary-strong   transform hover:scale-[1.02]'
                 }`}
                 disabled={submitting || !formData.fromSite || grnMaterials.length === 0}
                 title={!formData.fromSite ? 'Please select From Site first' : grnMaterials.length === 0 ? 'No materials available in GRN' : 'Add material'}
@@ -858,8 +858,8 @@ export default function MaterialTransferForm() {
             </div>
 
             {/* Attachments Section */}
-            <div className="bg-surface-subtle rounded-2xl p-5 border border-line-card shadow-sm">
-              <h3 className="text-tone-highlight-fg font-bold text-sm mb-4">Attachments (Optional)</h3>
+            <div className="bg-surface-subtle rounded-[14px] p-5 border border-line-card">
+              <h3 className="text-tone-highlight-fg font-semibold text-sm mb-4">Attachments (Optional)</h3>
               
               <div className="mb-4">
                 <label className="flex items-center justify-center w-full px-6 py-6 border-2 border-dashed border-line-input rounded-xl cursor-pointer hover:border-primary hover:bg-tone-highlight-soft transition-all">
@@ -890,7 +890,7 @@ export default function MaterialTransferForm() {
                         <img loading="lazy" decoding="async"
                           src={preview}
                           alt={`Preview ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-xl border-2 border-line-card shadow-sm"
+                          className="w-full h-24 object-cover rounded-xl border-2 border-line-card"
                         />
                         <button
                           type="button"
@@ -898,7 +898,7 @@ export default function MaterialTransferForm() {
                             const updatedAttachments = attachments.filter((_, i) => i !== index);
                             setAttachments(updatedAttachments);
                           }}
-                          className="absolute -top-2 -right-2 p-1.5 bg-tone-bad-solid text-primary-foreground rounded-full hover:bg-primary-strong shadow-lg transition-all transform hover:scale-110"
+                          className="absolute -top-2 -right-2 p-1.5 bg-tone-bad-solid text-primary-foreground rounded-full hover:bg-primary-strong transition-all transform hover:scale-110"
                           disabled={submitting}
                         >
                           <X size={14} />
@@ -915,7 +915,7 @@ export default function MaterialTransferForm() {
               <button
                 type="button"
                 onClick={() => navigate(ROUTES.material.transfer)}
-                className="flex-1 bg-surface border-2 border-line-card text-ink-2 font-semibold py-3.5 rounded-xl hover:bg-surface-muted hover:border-line-input transition-all shadow-sm"
+                className="flex-1 bg-surface border-2 border-line-card text-ink-2 font-semibold py-3.5 rounded-xl hover:bg-surface-muted hover:border-line-input transition-all"
                 disabled={submitting}
               >
                 Cancel
@@ -923,7 +923,7 @@ export default function MaterialTransferForm() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 bg-primary text-primary-foreground hover:bg-primary-strong font-semibold py-3.5 rounded-xl   transition-all shadow-md hover:shadow-lg disabled:cursor-not-allowed transform hover:scale-[1.02]"
+                className="flex-1 bg-primary text-primary-foreground hover:bg-primary-strong font-semibold py-3.5 rounded-xl   transition-all disabled:cursor-not-allowed transform hover:scale-[1.02]"
               >
                 {submitting ? (
                   <span className="flex items-center justify-center gap-2">

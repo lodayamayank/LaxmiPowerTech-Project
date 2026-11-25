@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { EmptyState } from '@/components/common/EmptyState';
 import useConfirm from '@/hooks/useConfirm';
 import { showToast } from '@/lib/showToast';
 import MobilePage from '@/layouts/mobile/MobilePage';
@@ -92,7 +93,7 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
       </div>
 
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-surface border border-line-input rounded-md shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-surface border border-line-input rounded-md max-h-60 overflow-y-auto">
           {filteredOptions.length > 0 ? (
             <ul className="py-1">
               {filteredOptions.map((option, index) => (
@@ -511,21 +512,9 @@ export default function IntentCardDetails() {
 
   if (!purchaseOrder && !indent) {
     return (
-      <div className="min-h-screen bg-tone-highlight-soft flex items-center justify-center">
-        <div className="text-center px-6">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-tone-bad-soft flex items-center justify-center">
-            <X size={32} className="text-tone-bad-fg" />
-          </div>
-          <p className="text-ink-1 font-semibold text-lg mb-2">Intent Not Found</p>
-          <p className="text-ink-3 text-sm mb-6">The requested intent could not be found</p>
-          <Button
-            onClick={() => navigate(-1)} 
-            className="h-auto bg-primary text-primary-foreground hover:bg-primary-strong px-6 py-3 rounded-xl font-semibold   transition-all shadow-md"
-          >
-            Go Back
-          </Button>
-        </div>
-      </div>
+      <MobilePage title="Intent Not Found" back onBack={() => navigate(-1)}>
+        <EmptyState icon={X} title="Intent Not Found" description="The requested intent could not be found" action={<Button onClick={() => navigate(-1)}>Go back</Button>} />
+      </MobilePage>
     );
   }
 
@@ -1021,7 +1010,7 @@ export default function IntentCardDetails() {
         </div>
 
       {/* Fixed Action Buttons at Bottom - Mobile Snapshot Style */}
-      <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-line-card shadow-lg z-50">
+      <div className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md border-t border-line bg-surface p-4">
         <div className="max-w-[390px] mx-auto px-4 py-3">
           {editing ? (
             <div className="flex gap-3">
@@ -1037,7 +1026,7 @@ export default function IntentCardDetails() {
               <Button
                 type="button"
                 onClick={handleSaveChanges}
-                className="flex-1 h-auto bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:opacity-100 disabled:bg-surface-muted disabled:cursor-not-allowed"
+                className="flex-1 h-auto bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors disabled:opacity-100 disabled:bg-surface-muted disabled:cursor-not-allowed"
                 disabled={submitting}
               >
                 {submitting ? (
@@ -1058,14 +1047,14 @@ export default function IntentCardDetails() {
               <Button
                 type="button"
                 onClick={handleEdit}
-                className="flex-1 h-auto bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md"
+                className="flex-1 h-auto bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors"
               >
                 Edit
               </Button>
               <Button
                 type="button"
                 onClick={handleDelete}
-                className="flex-1 h-auto bg-tone-bad-solid text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md"
+                className="flex-1 h-auto bg-tone-bad-solid text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors"
               >
                 Delete
               </Button>

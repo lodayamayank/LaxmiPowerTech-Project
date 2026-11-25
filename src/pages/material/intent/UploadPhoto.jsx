@@ -226,26 +226,26 @@ export default function UploadPhoto() {
                 <Button
                   type="button"
                   onClick={() => cameraInputRef.current?.click()}
-                  className="w-full h-auto flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:bg-primary-strong py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] [&_svg]:size-6"
+                  className="w-full h-auto flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:bg-primary-strong py-5 rounded-[14px] transition-all active:scale-[0.98] [&_svg]:size-6"
                 >
                   <Camera size={24} />
-                  <span className="text-lg font-bold">Take Photo</span>
+                  <span className="text-lg font-semibold">Take Photo</span>
                 </Button>
 
                 {/* Gallery Button */}
                 <Button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-auto flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:bg-primary-strong py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] [&_svg]:size-6"
+                  className="w-full h-auto flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:bg-primary-strong py-5 rounded-[14px] transition-all active:scale-[0.98] [&_svg]:size-6"
                 >
                   <Images size={24} />
-                  <span className="text-lg font-bold">Choose from Gallery</span>
+                  <span className="text-lg font-semibold">Choose from Gallery</span>
                 </Button>
 
                 <p className="text-center text-ink-4 text-xs">JPG, PNG or JPEG (Max 10MB) • Auto-compressed</p>
               </div>
             ) : (
-              <div className="relative rounded-2xl overflow-hidden border-2 border-line-card shadow-md">
+              <div className="relative rounded-[14px] overflow-hidden border-2 border-line-card">
                 <img loading="lazy" decoding="async"
                   src={imagePreview}
                   alt="Preview"
@@ -256,7 +256,7 @@ export default function UploadPhoto() {
                   size="icon"
                   aria-label="Remove image"
                   onClick={handleRemoveImage}
-                  className="absolute top-3 right-3 h-auto w-auto bg-tone-bad-solid text-primary-foreground p-2 rounded-full hover:bg-primary-strong transition-all shadow-lg [&_svg]:size-5"
+                  className="absolute top-3 right-3 h-auto w-auto bg-tone-bad-solid text-primary-foreground p-2 rounded-full hover:bg-primary-strong transition-all [&_svg]:size-5"
                 >
                   <X size={20} />
                 </Button>
@@ -272,7 +272,7 @@ export default function UploadPhoto() {
             type="button"
             onClick={handleSubmit}
             disabled={uploading || !indentId || !project || !selectedImage}
-            className="w-full h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-base font-semibold py-4 rounded-xl   transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:pointer-events-auto disabled:cursor-not-allowed flex items-center justify-center gap-2 [&_svg]:size-5"
+            className="w-full h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-base font-semibold py-4 rounded-xl   transition-all disabled:opacity-50 disabled:pointer-events-auto disabled:cursor-not-allowed flex items-center justify-center gap-2 [&_svg]:size-5"
           >
             {uploading ? (
               <>

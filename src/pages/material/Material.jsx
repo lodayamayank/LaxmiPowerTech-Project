@@ -38,15 +38,15 @@ export default function Material({ activeTab }) {
   const renderContent = () => {
     switch (currentTab) {
       case 'intent':
-        return <Intent isTabView={true} branchId={branchId} />;
+        return <Intent />;
       case 'transfer':
-        return <MaterialTransfer isTabView={true} branchId={branchId} />;
+        return <MaterialTransfer />;
       case 'deliveries':
-        return <UpcomingDeliveries isTabView={true} branchId={branchId} />;
+        return <UpcomingDeliveries />;
       case 'grn':
-          return <GRN isTabView={true} branchId={branchId} />;
+          return <GRN />;
       default:
-        return <Intent isTabView={true} branchId={branchId} />;
+        return <Intent />;
     }
   };
 

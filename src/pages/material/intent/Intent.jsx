@@ -27,7 +27,7 @@ const resolveFileUrl = (url) => {
   return `${backendBase}${normalizedPath}`;
 };
 
-export default function Intent({ isTabView = false }) {
+export default function Intent() {
   const navigate = useNavigate();
   const [indents, setIndents] = useState([]); // Changed from purchaseOrders
   const [loading, setLoading] = useState(false);
@@ -285,7 +285,7 @@ export default function Intent({ isTabView = false }) {
 
   // Render content only (for tab view)
   const renderContent = () => (
-    <div className="px-6 py-6">
+    <div className="flex flex-col gap-3.5">
       {/* ✅ Filter Toggle Button */}
       <div className="mb-3">
         <Button
@@ -303,7 +303,7 @@ export default function Intent({ isTabView = false }) {
 
       {/* ✅ Filters Panel */}
       {showFilters && (
-        <div className="mb-3 bg-surface border border-line-card rounded-lg p-3 shadow-sm space-y-2.5">
+        <div className="mb-3 bg-surface border border-line-card rounded-lg p-3 space-y-2.5">
           {/* Site Filter */}
           <div>
             <Label className="block text-xs font-semibold text-ink-2 mb-1">
@@ -408,7 +408,7 @@ export default function Intent({ isTabView = false }) {
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="rounded-2xl border border-line-card p-5 space-y-4"
+              className="rounded-[14px] border border-line-card p-5 space-y-4"
             >
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
@@ -450,7 +450,7 @@ export default function Intent({ isTabView = false }) {
                 // Navigate to intent detail page
                 navigate(ROUTES.material.intentDetail(indent._id));
               }}
-              className="bg-surface-subtle rounded-2xl border border-line-card p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
+              className="bg-surface-subtle rounded-[14px] border border-line-card p-5 transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
             >
               {/* Header with Image Thumbnail */}
               <div className="flex justify-between items-start mb-4">
@@ -486,7 +486,7 @@ export default function Intent({ isTabView = false }) {
                     </div>
                   )}
                   <div>
-                    <h3 className="font-bold text-ink-1 text-base">
+                    <h3 className="font-semibold text-ink-1 text-base">
                       {indent.displayId ||
                         indent.indentId ||
                         indent.purchaseOrderId ||
@@ -504,7 +504,7 @@ export default function Intent({ isTabView = false }) {
                 </div>
                 <Badge
                   variant="outline"
-                  className={`text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm border-transparent ${getStatusColor(
+                  className={`text-xs px-3 py-1.5 rounded-full font-semibold border-transparent ${getStatusColor(
                     indent.status
                   )}`}
                 >
@@ -567,76 +567,17 @@ export default function Intent({ isTabView = false }) {
   );
 
   // If in tab view mode, return content only
-  if (isTabView) {
-    return (
-      <>
-        {renderContent()}
-        
-        {/* Floating Action Button - Bottom Center */}
-        <Button
-          type="button"
-          onClick={() => setShowPopup(true)}
-          className="fixed bottom-24 left-1/2 -translate-x-1/2 size-14 p-0 rounded-full shadow-lg z-50"
-        >
-          <Plus size={28} strokeWidth={2.5} className="size-7" />
-        </Button>
-
-        {/* Add Intent Popup */}
-        {showPopup && (
-          <AddIntentPopup
-            onClose={() => setShowPopup(false)}
-            onUploadClick={() => {
-              setShowPopup(false);
-              navigate(ROUTES.material.intentNew);
-            }}
-          />
-        )}
-      </>
-    );
-  }
-
-  // Standalone mode with full page layout
+  // (The old standalone page layout with its own navy header was removed: this screen is only shown inside
+  // the Materials page, which provides the mobile top bar, section chips and tab bar.)
   return (
-    <div className="min-h-screen bg-tone-highlight-soft">
-      {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
-        {/* Header with Gradient */}
-        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <Button
-            variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-primary-foreground hover:bg-surface-muted hover:text-primary-foreground"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft size={16} />
-            <span className="text-sm font-medium">Back</span>
-          </Button>
-
-          <div className="text-center pt-8">
-            <h1 className="text-primary-foreground text-2xl font-bold mb-2">Material Intent</h1>
-            <p className="text-primary-foreground/80 text-sm">{user?.name || 'User'}</p>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="px-6 py-6 -mt-4">
-          {renderContent().props.children}
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 pb-6 pt-2">
-          <div className="text-center">
-            <p className="text-xs text-ink-4">
-              Powered by Laxmi Power Tech
-            </p>
-          </div>
-        </div>
-      </div>
-
+    <>
+      {renderContent()}
+      
       {/* Floating Action Button - Bottom Center */}
       <Button
         type="button"
         onClick={() => setShowPopup(true)}
-        className="fixed bottom-24 left-1/2 -translate-x-1/2 size-14 p-0 rounded-full shadow-lg z-50"
+        className="fixed bottom-24 left-1/2 -translate-x-1/2 size-14 p-0 rounded-full z-50"
       >
         <Plus size={28} strokeWidth={2.5} className="size-7" />
       </Button>
@@ -647,10 +588,11 @@ export default function Intent({ isTabView = false }) {
           onClose={() => setShowPopup(false)}
           onUploadClick={() => {
             setShowPopup(false);
-            navigate(ROUTES.material.uploadPhoto);
+            navigate(ROUTES.material.intentNew);
           }}
         />
       )}
-    </div>
+    </>
   );
+
 }

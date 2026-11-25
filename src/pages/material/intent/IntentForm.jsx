@@ -86,7 +86,7 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
       </div>
 
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-surface border border-line-input rounded-md shadow-lg max-h-[300px] overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-surface border border-line-input rounded-md max-h-[300px] overflow-y-auto">
           {filteredOptions.length > 0 ? (
             <ul className="py-1">
               {filteredOptions.map((option, index) => (
@@ -436,7 +436,7 @@ export default function IntentForm() {
               <Button
                 type="button"
                 onClick={addMaterialRow}
-                className="w-full h-auto mb-4 py-3 bg-primary text-primary-foreground hover:bg-primary-strong rounded-xl font-semibold text-sm   transition-all shadow-md hover:shadow-lg transform hover:scale-[1.02]"
+                className="w-full h-auto mb-4 py-3 bg-primary text-primary-foreground hover:bg-primary-strong rounded-xl font-semibold text-sm   transition-all transform hover:scale-[1.02]"
                 disabled={submitting}
               >
                 + Add Material
@@ -688,12 +688,12 @@ export default function IntentForm() {
                       <img loading="lazy" decoding="async"
                         src={preview}
                         alt={`Preview ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-xl border-2 border-line-card shadow-sm"
+                        className="w-full h-24 object-cover rounded-xl border-2 border-line-card"
                       />
                       <Button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute -top-2 -right-2 h-auto w-auto p-1.5 bg-tone-bad-solid text-primary-foreground rounded-full hover:bg-primary-strong shadow-lg transition-all transform hover:scale-110"
+                        className="absolute -top-2 -right-2 h-auto w-auto p-1.5 bg-tone-bad-solid text-primary-foreground rounded-full hover:bg-primary-strong transition-all transform hover:scale-110"
                         disabled={submitting}
                       >
                         <X size={14} className="size-3.5" />

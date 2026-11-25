@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { EmptyState } from "@/components/common/EmptyState";
 import MobilePage from "@/layouts/mobile/MobilePage";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -365,7 +366,7 @@ const SupervisorProjectDocuments = () => {
 
       <div className="pb-24">
         {/* Search + filter */}
-        <div className="bg-surface rounded-2xl shadow-sm border border-line-card p-3 space-y-2">
+        <div className="bg-surface rounded-[14px] border border-line-card p-3 space-y-2">
           <div className="relative">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-4"
@@ -460,22 +461,17 @@ const SupervisorProjectDocuments = () => {
               </div>
             ))
           ) : empty ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 rounded-full bg-surface-muted flex items-center justify-center mx-auto mb-3">
-                <Folder className="text-ink-4" size={26} />
-              </div>
-              <p className="text-sm text-ink-3 px-6">
-                {isFiltering
-                  ? "No files match your search."
-                  : "This folder is empty. Upload files or create a folder to get started."}
-              </p>
-            </div>
+            <EmptyState
+              icon={Folder}
+              title={isFiltering ? "No files match your search" : "This folder is empty"}
+              description={isFiltering ? "Try a different search or file type." : "Upload files or create a folder to get started."}
+            />
           ) : (
             <>
               {folders.map((f) => (
                 <div
                   key={`f-${f._id}`}
-                  className="flex items-center gap-1 rounded-xl border border-line-card bg-surface shadow-sm pr-1"
+                  className="flex items-center gap-1 rounded-xl border border-line-card bg-surface pr-1"
                 >
                   <Button
                     variant="ghost" type="button"
@@ -504,7 +500,7 @@ const SupervisorProjectDocuments = () => {
                 return (
                   <div
                     key={`d-${d._id}`}
-                    className="flex items-center gap-1 rounded-xl border border-line-card bg-surface shadow-sm pr-1"
+                    className="flex items-center gap-1 rounded-xl border border-line-card bg-surface pr-1"
                   >
                     <Button
                       variant="ghost" type="button"
@@ -548,14 +544,14 @@ const SupervisorProjectDocuments = () => {
           <Button
             variant="outline"
             onClick={() => setNewFolderOpen(true)}
-            className="pointer-events-auto h-12 w-12 rounded-full bg-surface shadow-lg p-0"
+            className="pointer-events-auto h-12 w-12 rounded-full bg-surface p-0"
             title="New folder"
           >
             <FolderPlus size={16} />
           </Button>
           <Button
             onClick={() => setUploadOpen(true)}
-            className="pointer-events-auto h-12 rounded-full shadow-lg gap-2 px-5"
+            className="pointer-events-auto h-12 rounded-full gap-2 px-5"
           >
             <Upload size={13} /> Upload
           </Button>

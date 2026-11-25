@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import MobilePage from "@/layouts/mobile/MobilePage";
+import { ChoiceChips } from "@/components/common/ChoiceChips";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -113,98 +115,29 @@ export default function MaterialTransferMobile() {
   }
 
   return (
-    <div className="min-h-screen bg-surface shadow-md rounded-xl overflow-hidden safe-area-bottom">
-      {/* Header */}
-      <div className="p-3 border-b">
-        <div className="flex items-center justify-between">
-          <h2 className="text-ink-2 text-sm sm:text-base font-semibold">
-            Material Transfer
-          </h2>
-
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              onClick={() => setShowFilter(true)}
-              className="h-auto px-3 py-1 bg-primary hover:bg-primary-strong text-primary-foreground rounded-full text-xs sm:text-sm btn-shadow active:scale-95 transition-transform"
-            >
-              Filter
-            </Button>
-
-            <div className="w-9 h-9 rounded-full bg-surface-muted flex items-center justify-center">
-              {/* avatar placeholder */}
-              <svg
-                className="w-4 h-4 text-ink-3"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5.121 17.804A13.937 13.937 0 0112 15c2.761 0 5.312.832 7.379 2.246M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="mt-3 flex flex-wrap gap-2 text-xs sm:text-sm">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setActiveTab("indent")}
-            className={`h-auto px-2 py-1 rounded text-xs sm:text-sm hover:bg-transparent ${
-              activeTab === "indent"
-                ? "text-tone-highlight-fg hover:text-primary-strong font-semibold border-b-2 border-line-card"
-                : "text-ink-3 hover:text-ink-1 font-normal"
-            }`}
-          >
-            Indent
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setActiveTab("material")}
-            className={`h-auto px-2 py-1 rounded text-xs sm:text-sm hover:bg-transparent ${
-              activeTab === "material"
-                ? "text-tone-highlight-fg hover:text-primary-strong font-semibold border-b-2 border-line-card"
-                : "text-ink-3 hover:text-ink-1 font-normal"
-            }`}
-          >
-            Material Transfer
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setActiveTab("upcoming")}
-            className={`h-auto px-2 py-1 rounded text-xs sm:text-sm hover:bg-transparent ${
-              activeTab === "upcoming"
-                ? "text-tone-highlight-fg hover:text-primary-strong font-semibold border-b-2 border-line-card"
-                : "text-ink-3 hover:text-ink-1 font-normal"
-            }`}
-          >
-            Upcoming Deliveries
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setActiveTab("grn")}
-            className={`h-auto px-2 py-1 rounded text-xs sm:text-sm hover:bg-transparent ${
-              activeTab === "grn"
-                ? "text-tone-highlight-fg hover:text-primary-strong font-semibold border-b-2 border-line-card"
-                : "text-ink-3 hover:text-ink-1 font-normal"
-            }`}
-          >
-            GRN
-          </Button>
-        </div>
-      </div>
+    <MobilePage
+      title="Material transfer"
+      back
+      right={
+        <Button type="button" size="sm" onClick={() => setShowFilter(true)}>
+          Filter
+        </Button>
+      }
+    >
+      <ChoiceChips
+        aria-label="Section"
+        value={activeTab}
+        onChange={setActiveTab}
+        options={[
+          { value: "indent", label: "Indent" },
+          { value: "material", label: "Material transfer" },
+          { value: "upcoming", label: "Upcoming deliveries" },
+          { value: "grn", label: "GRN" },
+        ]}
+      />
 
       {/* Body */}
-      <div className="p-3">
+      <div>
         {!showForm && (
           <>
             {/* Search */}
@@ -287,7 +220,7 @@ export default function MaterialTransferMobile() {
             />
 
             <div
-              className="relative w-full sm:w-11/12 max-w-md bg-surface rounded-t-2xl sm:rounded-lg p-4 shadow-lg overflow-auto"
+              className="relative w-full sm:w-11/12 max-w-md bg-surface rounded-t-2xl sm:rounded-lg p-4 overflow-auto"
               style={{ maxHeight: "92vh" }}
             >
               <div className="flex items-center justify-between mb-3">
@@ -482,7 +415,7 @@ export default function MaterialTransferMobile() {
                   <Button
                     type="button"
                     onClick={() => setShowForm(false)}
-                    className="flex-1 h-auto px-6 py-3 bg-surface-muted hover:bg-surface-muted text-ink-1 font-semibold rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200"
+                    className="flex-1 h-auto px-6 py-3 bg-surface-muted hover:bg-surface-muted text-ink-1 font-semibold rounded-full active:scale-95 transition-all duration-200"
                   >
                     Cancel
                   </Button>
@@ -491,7 +424,7 @@ export default function MaterialTransferMobile() {
                   <Button
                     type="button"
                     onClick={saveForm}
-                    className="flex-1 h-auto px-6 py-3 bg-primary hover:bg-primary-strong text-primary-foreground font-semibold rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200"
+                    className="flex-1 h-auto px-6 py-3 bg-primary hover:bg-primary-strong text-primary-foreground font-semibold rounded-full active:scale-95 transition-all duration-200"
                   >
                     Done
                   </Button>
@@ -511,7 +444,7 @@ export default function MaterialTransferMobile() {
             type="button"
             onClick={openNewForm}
             aria-label="New site transfer"
-            className="w-14 h-14 p-0 rounded-full bg-surface-muted hover:bg-surface-muted text-ink-1 flex items-center justify-center text-3xl pb-1 font-bold leading-none btn-shadow active:scale-95 transition-transform"
+            className="w-14 h-14 p-0 rounded-full bg-surface-muted hover:bg-surface-muted text-ink-1 flex items-center justify-center text-3xl pb-1 font-semibold leading-none btn-shadow active:scale-95 transition-transform"
           >
             +
           </Button>
@@ -526,7 +459,7 @@ export default function MaterialTransferMobile() {
             className="absolute inset-0 bg-scrim/40"
           />
           <div
-            className="absolute right-0 top-0 bottom-0 w-full sm:w-80 bg-surface shadow-lg p-4 overflow-auto rounded-t-2xl sm:rounded-none"
+            className="absolute right-0 top-0 bottom-0 w-full sm:w-80 bg-surface p-4 overflow-auto rounded-t-2xl sm:rounded-none"
             style={{ maxHeight: "92vh" }}
           >
             <div className="flex items-center justify-between">
@@ -639,6 +572,6 @@ export default function MaterialTransferMobile() {
           </div>
         </div>
       )}
-    </div>
+    </MobilePage>
   );
 }

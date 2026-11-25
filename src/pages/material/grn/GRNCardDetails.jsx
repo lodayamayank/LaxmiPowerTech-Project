@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { EmptyState } from '@/components/common/EmptyState';
 import { showToast } from '@/lib/showToast';
 import MobilePage from '@/layouts/mobile/MobilePage';
 import { ArrowLeft } from 'lucide-react';
@@ -112,21 +113,9 @@ export default function GRNCardDetails() {
 
   if (!delivery) {
     return (
-      <div className="min-h-screen bg-tone-highlight-soft flex items-center justify-center">
-        <div className="text-center px-6">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-tone-bad-soft flex items-center justify-center">
-            <X size={32} className="text-tone-bad-fg" />
-          </div>
-          <p className="text-ink-1 font-semibold text-lg mb-2">GRN Not Found</p>
-          <p className="text-ink-3 text-sm mb-6">The requested GRN record could not be found</p>
-          <Button
-            onClick={() => navigate(-1)} 
-            className="h-auto bg-primary text-primary-foreground hover:bg-primary-strong px-6 py-3 rounded-xl font-semibold   transition-all shadow-md"
-          >
-            Go Back
-          </Button>
-        </div>
-      </div>
+      <MobilePage title="GRN Not Found" back onBack={() => navigate(-1)}>
+        <EmptyState icon={X} title="GRN Not Found" description="The requested GRN record could not be found" action={<Button onClick={() => navigate(-1)}>Go back</Button>} />
+      </MobilePage>
     );
   }
 
@@ -149,7 +138,7 @@ export default function GRNCardDetails() {
                     <Label className={labelClass}>
                       {delivery.type === 'PO' ? 'Vendor-wise PO ID' : 'ST ID'}
                     </Label>
-                    <p className="font-bold text-ink-1 text-lg">{delivery.transfer_number || delivery.st_id}</p>
+                    <p className="font-semibold text-ink-1 text-lg">{delivery.transfer_number || delivery.st_id}</p>
                   </div>
                   
                   <div>
@@ -272,15 +261,15 @@ export default function GRNCardDetails() {
                           <div className="grid grid-cols-3 gap-2 text-xs">
                             <div>
                               <span className="text-ink-3">Ordered</span>
-                              <p className="font-bold text-tone-info-fg">{orderedQty}</p>
+                              <p className="font-semibold text-tone-info-fg">{orderedQty}</p>
                             </div>
                             <div>
                               <span className="text-ink-3">Received</span>
-                              <p className="font-bold text-tone-ok-fg">✓ {receivedQty}</p>
+                              <p className="font-semibold text-tone-ok-fg">✓ {receivedQty}</p>
                             </div>
                             <div>
                               <span className="text-ink-3">Pending</span>
-                              <p className="font-bold text-tone-highlight-fg">{pendingQty}</p>
+                              <p className="font-semibold text-tone-highlight-fg">{pendingQty}</p>
                             </div>
                           </div>
                         </div>
@@ -309,7 +298,7 @@ export default function GRNCardDetails() {
                       const isImage = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(attachmentUrl);
                       
                       return (
-                        <div key={index} className="border rounded-lg overflow-hidden bg-surface shadow-sm">
+                        <div key={index} className="border rounded-lg overflow-hidden bg-surface">
                           {/* Image Thumbnail - Clickable */}
                           {isImage ? (
                             <div 
@@ -371,11 +360,11 @@ export default function GRNCardDetails() {
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <p className="text-ink-3">Total Materials</p>
-                    <p className="font-bold text-ink-1">{delivery.items?.length || 0}</p>
+                    <p className="font-semibold text-ink-1">{delivery.items?.length || 0}</p>
                   </div>
                   <div>
                     <p className="text-ink-3">Status</p>
-                    <p className="font-bold text-tone-ok-fg">✅ Transferred</p>
+                    <p className="font-semibold text-tone-ok-fg">✅ Transferred</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-ink-3">Intent Request Date</p>

@@ -309,13 +309,13 @@ export default function DeliveryChecklist() {
                 {/* Main Content */}
                 <div className="flex flex-col gap-3.5 pb-24">
                     {/* Info Card - Fixed Colors */}
-                    <div className="bg-surface rounded-xl shadow-md border-2 border-line-card p-4 space-y-3 mb-4">
+                    <div className="bg-surface rounded-xl border-2 border-line-card p-4 space-y-3 mb-4">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="col-span-2 bg-surface-subtle rounded-lg p-2 border border-line-card">
                                 <label className="text-xs font-semibold text-ink-3 block mb-1">
                                     {delivery.type === 'PO' ? 'PO ID' : 'ST-ID'}
                                 </label>
-                                <p className="font-bold text-ink-1 text-sm">{delivery.transfer_number || delivery.st_id}</p>
+                                <p className="font-semibold text-ink-1 text-sm">{delivery.transfer_number || delivery.st_id}</p>
                             </div>
                             <div className="bg-surface-subtle rounded-lg p-2 border border-line-card">
                                 <label className="text-xs font-semibold text-ink-3 block mb-1">Status</label>
@@ -323,49 +323,49 @@ export default function DeliveryChecklist() {
                             </div>
                             <div className="bg-surface-subtle rounded-lg p-2 border border-line-card">
                                 <label className="text-xs font-semibold text-ink-3 block mb-1">Type</label>
-                                <p className="font-bold text-ink-1">{delivery.type || 'ST'}</p>
+                                <p className="font-semibold text-ink-1">{delivery.type || 'ST'}</p>
                             </div>
                             <div className="bg-surface-subtle rounded-lg p-2 border border-line-card">
                                 <label className="text-xs font-semibold text-ink-3 block mb-1">From</label>
-                                <p className="font-bold text-ink-1 text-xs">{delivery.from || 'N/A'}</p>
+                                <p className="font-semibold text-ink-1 text-xs">{delivery.from || 'N/A'}</p>
                             </div>
                             <div className="bg-surface-subtle rounded-lg p-2 border border-line-card">
                                 <label className="text-xs font-semibold text-ink-3 block mb-1">To</label>
-                                <p className="font-bold text-ink-1 text-xs">{delivery.to || 'N/A'}</p>
+                                <p className="font-semibold text-ink-1 text-xs">{delivery.to || 'N/A'}</p>
                             </div>
                             <div className="bg-surface-subtle rounded-lg p-2 border border-line-card">
                                 <label className="text-xs font-semibold text-ink-3 block mb-1">Requested By</label>
-                                <p className="font-bold text-ink-1 text-xs">{delivery.requested_by || delivery.createdBy || 'N/A'}</p>
+                                <p className="font-semibold text-ink-1 text-xs">{delivery.requested_by || delivery.createdBy || 'N/A'}</p>
                             </div>
                             <div className="bg-surface-subtle rounded-lg p-2 border border-line-card">
                                 <label className="text-xs font-semibold text-ink-3 block mb-1">Date</label>
-                                <p className="font-bold text-ink-1 text-xs">{formatDate(delivery.date)}</p>
+                                <p className="font-semibold text-ink-1 text-xs">{formatDate(delivery.date)}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* All Transferred Banner */}
                     {allTransferred && (
-                        <div className="p-3 bg-tone-ok-soft border-2 border-tone-ok-border rounded-xl flex items-center gap-2 mb-4 shadow-sm">
+                        <div className="p-3 bg-tone-ok-soft border-2 border-tone-ok-border rounded-xl flex items-center gap-2 mb-4">
                             <CheckCircle className="text-tone-ok-fg" size={20} />
-                            <span className="text-sm text-tone-ok-fg font-bold">All items transferred</span>
+                            <span className="text-sm text-tone-ok-fg font-semibold">All items transferred</span>
                         </div>
                     )}
 
                     {/* Summary - Fixed Colors */}
-                    <div className="p-4 bg-tone-highlight-soft border-2 border-line-card rounded-xl mb-4 shadow-md">
+                    <div className="p-4 bg-tone-highlight-soft border-2 border-line-card rounded-xl mb-4">
                         <div className="grid grid-cols-3 gap-3 text-sm">
                             <div className="text-center bg-surface rounded-lg p-2 border border-line-card">
                                 <span className="block text-xs font-semibold text-ink-3 mb-1">Submitted</span>
-                                <span className="block font-bold text-lg text-ink-1">{totalSubmitted}</span>
+                                <span className="block font-semibold text-lg text-ink-1">{totalSubmitted}</span>
                             </div>
                             <div className="text-center bg-surface rounded-lg p-2 border border-tone-ok-border">
                                 <span className="block text-xs font-semibold text-ink-3 mb-1">Received</span>
-                                <span className="block font-bold text-lg text-tone-ok-fg">{totalReceived}</span>
+                                <span className="block font-semibold text-lg text-tone-ok-fg">{totalReceived}</span>
                             </div>
                             <div className="text-center bg-surface rounded-lg p-2 border border-line-card">
                                 <span className="block text-xs font-semibold text-ink-3 mb-1">Missing</span>
-                                <span className="block font-bold text-lg text-tone-highlight-fg">{missing}</span>
+                                <span className="block font-semibold text-lg text-tone-highlight-fg">{missing}</span>
                             </div>
                         </div>
                     </div>
@@ -373,10 +373,10 @@ export default function DeliveryChecklist() {
                     {/* ✅ ATTACHMENTS SECTION - Delivery Receipt Images */}
                     <div className="mb-4">
                         <div className="flex justify-between items-center mb-3">
-                            <h3 className="text-base font-bold text-ink-1">
+                            <h3 className="text-base font-semibold text-ink-1">
                                 Delivery Receipts ({delivery.attachments?.length || 0})
                             </h3>
-                            <label className="px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary-strong transition-colors cursor-pointer flex items-center gap-2 text-xs font-semibold shadow-sm">
+                            <label className="px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary-strong transition-colors cursor-pointer flex items-center gap-2 text-xs font-semibold">
                                 <Upload size={14} />
                                 {uploadingReceipt ? 'Uploading...' : 'Upload'}
                                 <input
@@ -402,7 +402,7 @@ export default function DeliveryChecklist() {
                                     const isImage = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
                                     
                                     return (
-                                        <div key={index} className="border-2 border-line-card rounded-lg overflow-hidden bg-surface shadow-sm">
+                                        <div key={index} className="border-2 border-line-card rounded-lg overflow-hidden bg-surface">
                                             <div className="relative">
                                                 {/* Image Thumbnail */}
                                                 {isImage ? (
@@ -428,7 +428,7 @@ export default function DeliveryChecklist() {
                                                     aria-label="Delete attachment"
                                                     onClick={() => handleDeleteAttachment(index)}
                                                     disabled={deletingAttachment === index}
-                                                    className="absolute top-2 right-2 p-1.5 bg-tone-bad-solid text-primary-foreground rounded-full hover:bg-primary-strong transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                                                    className="absolute top-2 right-2 p-1.5 bg-tone-bad-solid text-primary-foreground rounded-full hover:bg-primary-strong transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                                     title="Delete attachment"
                                                 >
                                                     {deletingAttachment === index ? (
@@ -472,13 +472,13 @@ export default function DeliveryChecklist() {
                     return (
                       <div
                         key={item.itemId || item._id}
-                        className="bg-surface rounded-xl border-2 border-line-card p-4 shadow-md"
+                        className="bg-surface rounded-xl border-2 border-line-card p-4"
                       >
                         <div className="space-y-3">
                           {/* Item Info */}
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <div className="text-sm font-bold text-ink-1">
+                              <div className="text-sm font-semibold text-ink-1">
                                 {getItemDisplayName(item)}
                               </div>
                               <div className="text-xs text-ink-3 mt-1 font-medium">
@@ -508,7 +508,7 @@ export default function DeliveryChecklist() {
                               <label className="text-xs font-semibold text-ink-3 block mb-1.5">
                                 Requested
                               </label>
-                              <div className="px-3 py-2.5 bg-surface-subtle rounded-lg text-sm font-bold text-ink-1 border border-line-input">
+                              <div className="px-3 py-2.5 bg-surface-subtle rounded-lg text-sm font-semibold text-ink-1 border border-line-input">
                                 {formatQuantity(requestedQty)}
                               </div>
                             </div>
@@ -516,7 +516,7 @@ export default function DeliveryChecklist() {
                               <label className="text-xs font-semibold text-ink-3 block mb-1.5">
                                 Previously Received
                               </label>
-                              <div className="px-3 py-2.5 bg-tone-ok-soft rounded-lg text-sm font-bold text-tone-ok-fg border border-tone-ok-border">
+                              <div className="px-3 py-2.5 bg-tone-ok-soft rounded-lg text-sm font-semibold text-tone-ok-fg border border-tone-ok-border">
                                 {formatQuantity(previouslyReceivedQty)}
                               </div>
                             </div>
@@ -538,7 +538,7 @@ export default function DeliveryChecklist() {
                                     ? "Already complete"
                                     : `Max ${formatQuantity(remainingQty)}`
                                 }
-                                className={`w-full px-3 py-2.5 border-2 rounded-lg text-sm font-bold bg-surface ${
+                                className={`w-full px-3 py-2.5 border-2 rounded-lg text-sm font-semibold bg-surface ${
                                   validationErrors[index]
                                     ? "border-tone-bad-border focus-visible:ring-ring text-tone-bad-fg"
                                     : "border-line-input focus-visible:ring-ring text-ink-1 disabled:bg-surface-muted disabled:text-ink-3"
@@ -570,12 +570,12 @@ export default function DeliveryChecklist() {
                 </div>
 
                 {/* Fixed Bottom Button */}
-                <div className="fixed bottom-0 left-0 right-0 bg-surface border-t shadow-lg p-4 z-50">
+                <div className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md border-t border-line bg-surface p-4">
                     <div className="max-w-md mx-auto">
                     <Button
                         onClick={handleSubmit}
                         disabled={submitting || Object.keys(validationErrors).length > 0}
-                        className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary-strong disabled:bg-surface-muted disabled:cursor-not-allowed transition-colors shadow-md"
+                        className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary-strong disabled:bg-surface-muted disabled:cursor-not-allowed transition-colors"
                     >
                         {submitting ? "Submitting..." : "Submit Changes"}
                     </Button>

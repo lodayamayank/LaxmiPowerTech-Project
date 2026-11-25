@@ -72,7 +72,7 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
       </div>
 
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-surface border border-line-input rounded-md shadow-md max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-surface border border-line-input rounded-md max-h-60 overflow-y-auto">
           {filteredOptions.length > 0 ? (
             <ul className="py-1">
               {filteredOptions.map((option, index) => (
@@ -119,7 +119,7 @@ export default function MaterialLineItem({
       value={isEditing ? 'material' : ''}
       onValueChange={(value) => (value ? onEdit() : onDoneEditing())}
     >
-      <AccordionItem value="material" className="overflow-hidden rounded-md border border-line-input bg-surface shadow-sm">
+      <AccordionItem value="material" className="overflow-hidden rounded-md border border-line-input bg-surface">
         <div className="flex items-start justify-between">
           <div className="min-w-0 flex-1">
             <AccordionTrigger className="p-3 text-left hover:no-underline">

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { PageLoader } from '@/components/common/PageLoader';
 import useConfirm from '@/hooks/useConfirm';
 import { toast } from 'sonner';
 import MobilePage from '@/layouts/mobile/MobilePage';
@@ -343,14 +344,7 @@ export default function DeliveryDetails() {
   };
 
   if (loading || !delivery) {
-    return (
-      <div className="min-h-screen bg-tone-highlight-soft flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-line-card mx-auto mb-4"></div>
-          <p className="text-ink-3">Loading delivery details...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader label="Loading delivery details" />;
   }
 
   return (
@@ -362,7 +356,7 @@ export default function DeliveryDetails() {
             {validationError && (
               <div className="bg-tone-bad-soft border-2 border-tone-bad-border rounded-lg p-4 flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-tone-bad-solid flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-primary-foreground font-bold text-sm">!</span>
+                  <span className="text-primary-foreground font-semibold text-sm">!</span>
                 </div>
                 <div className="flex-1">
                   <p className="text-tone-bad-fg text-sm font-medium">
@@ -478,15 +472,15 @@ export default function DeliveryDetails() {
                   return (
                     <div
                       key={itemId || index}
-                      className="bg-surface-subtle rounded-lg border border-line-card p-4 hover:shadow-md transition-shadow"
+                      className="bg-surface-subtle rounded-lg border border-line-card p-4 transition-shadow"
                     >
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start gap-2 mb-2">
-                            <span className="text-xs font-bold text-ink-3 mt-1">
+                            <span className="text-xs font-semibold text-ink-3 mt-1">
                               #{index + 1}
                             </span>
-                            <p className="text-sm font-bold text-ink-1 leading-snug">
+                            <p className="text-sm font-semibold text-ink-1 leading-snug">
                               {getMaterialName(material)}
                             </p>
                           </div>
@@ -520,7 +514,7 @@ export default function DeliveryDetails() {
                           <label className="text-xs text-ink-3 font-medium block mb-1">
                             Requested
                           </label>
-                          <p className="text-sm font-bold text-tone-highlight-fg">
+                          <p className="text-sm font-semibold text-tone-highlight-fg">
                             {requestedQty} {unit}
                           </p>
                         </div>
@@ -528,7 +522,7 @@ export default function DeliveryDetails() {
                           <label className="text-xs text-ink-3 font-medium block mb-1">
                             Previously Received
                           </label>
-                          <p className="text-sm font-bold text-tone-ok-fg">
+                          <p className="text-sm font-semibold text-tone-ok-fg">
                             {alreadyReceivedQty} {unit}
                           </p>
                         </div>
@@ -536,7 +530,7 @@ export default function DeliveryDetails() {
                           <label className="text-xs text-ink-3 font-medium block mb-1">
                             Remaining
                           </label>
-                          <p className="text-sm font-bold text-ink-1">
+                          <p className="text-sm font-semibold text-ink-1">
                             {remainingQty} {unit}
                           </p>
                         </div>
@@ -600,7 +594,7 @@ export default function DeliveryDetails() {
                   <h2 className="font-semibold text-ink-1">
                     Delivery Proof - Challan Upload
                   </h2>
-                  <span className="text-xs font-bold text-tone-bad-fg bg-tone-bad-soft px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-semibold text-tone-bad-fg bg-tone-bad-soft px-2 py-0.5 rounded-full">
                     * REQUIRED
                   </span>
                 </div>
@@ -657,7 +651,7 @@ export default function DeliveryDetails() {
           </div>
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-line-card shadow-lg z-50">
+        <div className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md border-t border-line bg-surface p-4">
           <div className="max-w-[390px] mx-auto px-4 py-3">
             {!isEditMode ? (
               <div className="flex gap-3">
@@ -672,7 +666,7 @@ export default function DeliveryDetails() {
                   variant="ghost"
                   onClick={() => setIsEditMode(true)}
                   disabled={delivery.status === "Transferred"}
-                  className="h-auto flex-1 bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:bg-surface-muted disabled:cursor-not-allowed"
+                  className="h-auto flex-1 bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors disabled:bg-surface-muted disabled:cursor-not-allowed"
                 >
                   Edit
                 </Button>
@@ -697,7 +691,7 @@ export default function DeliveryDetails() {
                   variant="ghost"
                   onClick={handleSubmit}
                   disabled={submitting}
-                  className="h-auto flex-1 bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:bg-surface-muted disabled:cursor-wait"
+                  className="h-auto flex-1 bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors disabled:bg-surface-muted disabled:cursor-wait"
                 >
                   {submitting ? "Submitting..." : "Submit"}
                 </Button>

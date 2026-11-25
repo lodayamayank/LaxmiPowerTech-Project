@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 
-export default function UpcomingDeliveries({ isTabView = false }) {
+export default function UpcomingDeliveries() {
     const navigate = useNavigate();
     const [deliveries, setDeliveries] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -299,7 +299,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                 
                 {/* ✅ Additional Filters Panel */}
                 {showFilters && (
-                    <div className="bg-surface border border-line-card rounded-lg p-3 shadow-sm space-y-2.5">
+                    <div className="bg-surface border border-line-card rounded-lg p-3 space-y-2.5">
                         {/* Site Filter */}
                         <div>
                             <Label htmlFor="upcoming-deliveries-site" className="block text-xs font-semibold text-ink-2 mb-1">Site</Label>
@@ -383,7 +383,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                         onChange={(e) => setTypeFilter(e.target.value)}
                         className="w-full px-4 py-2 border border-line-input rounded-lg focus:outline-none focus:ring-2 focus-visible:ring-ring bg-surface text-ink-1 font-medium"
                         style={{
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23f97316' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                             backgroundPosition: 'right 1rem center',
                             backgroundRepeat: 'no-repeat',
                             backgroundSize: '1.25em 1.25em',
@@ -443,19 +443,19 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                         <Card
                             key={delivery._id}
                             onClick={() => handleClick(delivery)}
-                            className="bg-surface-subtle rounded-2xl border border-line-card shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
+                            className="bg-surface-subtle rounded-[14px] border border-line-card transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
                         >
                             <CardContent className="p-5">
                                 {/* Header */}
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-16 h-16 rounded-lg border flex items-center justify-center flex-shrink-0 ${
+                                        <div className={`size-11 rounded-lg border flex items-center justify-center flex-shrink-0 ${
                                             delivery.type === 'PO' ? 'border-line-card bg-tone-info-soft' : 'border-line-card bg-tone-purple-soft'
                                         }`}>
-                                            <Package size={28} className={delivery.type === 'PO' ? 'text-tone-info-fg' : 'text-tone-purple-fg'} />
+                                            <Package size={20} className={delivery.type === 'PO' ? 'text-tone-info-fg' : 'text-tone-purple-fg'} />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-ink-1 text-base">
+                                            <h3 className="font-semibold text-ink-1 text-base">
                                                 {delivery.transfer_number || delivery.st_id}
                                             </h3>
                                             <p className="text-xs text-ink-1 font-medium mt-1">
@@ -471,7 +471,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                                             </p>
                                         </div>
                                     </div>
-                                    <span className={`text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm ${getStatusBadge(delivery.status)}`}>
+                                    <span className={`text-xs px-3 py-1.5 rounded-full font-semibold ${getStatusBadge(delivery.status)}`}>
                                         {getStatusText(delivery.status)}
                                     </span>
                                 </div>
@@ -512,47 +512,8 @@ export default function UpcomingDeliveries({ isTabView = false }) {
     );
 
     // Tab view: body inside the standard padded wrapper
-    if (isTabView) {
-        return <div className="px-6 py-6">{renderBody()}</div>;
-    }
-
-    // Standalone mode with full page layout
-    return (
-        <div className="min-h-screen bg-tone-highlight-soft">
-            {/* Container with consistent mobile width */}
-            <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
-                {/* Header with Gradient */}
-                <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        className="absolute top-6 left-6 h-auto text-primary-foreground hover:text-primary-foreground flex items-center gap-2 hover:bg-surface-muted px-3 py-1.5 rounded-full transition-all"
-                        onClick={() => navigate(-1)}
-                    >
-                        <ArrowLeft size={16} />
-                        <span className="text-sm font-medium">Back</span>
-                    </Button>
-
-                    <div className="text-center pt-8">
-                        <h1 className="text-primary-foreground text-2xl font-bold mb-2">Upcoming Deliveries</h1>
-                        <p className="text-primary-foreground/80 text-sm">{user?.name || 'User'}</p>
-                    </div>
-                </div>
-
-                {/* Main Content (same padding as before, plus the -mt-4 overlap) */}
-                <div className="px-6 py-6 -mt-4">
-                    {renderBody()}
-                </div>
-
-                {/* Footer */}
-                <div className="px-6 pb-6 pt-2">
-                    <div className="text-center">
-                        <p className="text-xs text-ink-4">
-                            Powered by Laxmi Power Tech
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+  // (The old standalone page layout with its own navy header was removed: this screen is only shown inside
+  // the Materials page, which provides the mobile top bar, section chips and tab bar.)
+      return <div className="flex flex-col gap-3.5">{renderBody()}</div>;
+  
 }

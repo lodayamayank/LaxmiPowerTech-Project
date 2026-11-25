@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function MaterialTransfer({ isTabView = false }) {
+export default function MaterialTransfer() {
   const navigate = useNavigate();
   const [transfers, setTransfers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -254,7 +254,7 @@ export default function MaterialTransfer({ isTabView = false }) {
 
   // Render content only (for tab view)
   const renderContent = () => (
-    <div className="px-6 py-6">
+    <div className="flex flex-col gap-3.5">
       {/* ✅ Filter Toggle Button */}
       <div className="mb-3">
         <Button
@@ -274,7 +274,7 @@ export default function MaterialTransfer({ isTabView = false }) {
       
       {/* ✅ Filters Panel */}
       {showFilters && (
-        <div className="mb-3 bg-surface border border-line-card rounded-lg p-3 shadow-sm space-y-2.5">
+        <div className="mb-3 bg-surface border border-line-card rounded-lg p-3 space-y-2.5">
           {/* Site Filter */}
           <div>
             <Label htmlFor="transfer-filter-site" className="mb-1 block text-xs font-semibold leading-4 text-ink-2">Site</Label>
@@ -352,7 +352,7 @@ export default function MaterialTransfer({ isTabView = false }) {
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((item) => (
-            <Card key={item} className="rounded-2xl border-line-card shadow-sm">
+            <Card key={item} className="rounded-[14px] border-line-card">
               <CardContent className="space-y-4 p-5">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -388,7 +388,7 @@ export default function MaterialTransfer({ isTabView = false }) {
             <Card
               key={transfer._id}
               onClick={() => navigate(ROUTES.material.transferDetail(transfer._id))}
-              className="bg-surface-subtle rounded-2xl border-line-card shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
+              className="bg-surface-subtle rounded-[14px] border-line-card transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
             >
               <CardContent className="p-5">
                 {/* Header */}
@@ -398,7 +398,7 @@ export default function MaterialTransfer({ isTabView = false }) {
                       <Truck size={28} className="text-tone-purple-fg" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-ink-1 text-base">
+                      <h3 className="font-semibold text-ink-1 text-base">
                         {transfer.siteTransferId}
                       </h3>
                       <p className="text-xs text-ink-3 mt-1">
@@ -409,7 +409,7 @@ export default function MaterialTransfer({ isTabView = false }) {
                       </p>
                     </div>
                   </div>
-                  <span className={`text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm ${getStatusColor(transfer.status)}`}>
+                  <span className={`text-xs px-3 py-1.5 rounded-full font-semibold ${getStatusColor(transfer.status)}`}>
                     {getStatusText(transfer.status)}
                   </span>
                 </div>
@@ -451,11 +451,11 @@ export default function MaterialTransfer({ isTabView = false }) {
             variant="outline"
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
-            className="h-auto px-4 py-2 bg-surface border-line-card rounded-xl font-medium text-sm text-ink-2 hover:text-ink-1 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-muted transition-all shadow-sm"
+            className="h-auto px-4 py-2 bg-surface border-line-card rounded-xl font-medium text-sm text-ink-2 hover:text-ink-1 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-muted transition-all"
           >
             Previous
           </Button>
-          <span className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary-strong rounded-xl font-semibold text-sm shadow-sm">
+          <span className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary-strong rounded-xl font-semibold text-sm">
             {currentPage} / {totalPages}
           </span>
           <Button
@@ -463,7 +463,7 @@ export default function MaterialTransfer({ isTabView = false }) {
             variant="outline"
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
             disabled={currentPage === totalPages}
-            className="h-auto px-4 py-2 bg-surface border-line-card rounded-xl font-medium text-sm text-ink-2 hover:text-ink-1 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-muted transition-all shadow-sm"
+            className="h-auto px-4 py-2 bg-surface border-line-card rounded-xl font-medium text-sm text-ink-2 hover:text-ink-1 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-muted transition-all"
           >
             Next
           </Button>
@@ -473,69 +473,21 @@ export default function MaterialTransfer({ isTabView = false }) {
   );
 
   // If in tab view mode, return content only
-  if (isTabView) {
-    return (
-      <>
-        {renderContent()}
-        
-        {/* Floating Action Button - Bottom Center */}
-        <Button
-          type="button"
-          onClick={handleCreateTransfer}
-          className="fixed bottom-24 left-1/2 -translate-x-1/2 size-14 p-0 rounded-full shadow-lg z-50 [&_svg]:size-7"
-        >
-          <Plus size={28} strokeWidth={2.5} />
-        </Button>
-      </>
-    );
-  }
-
-  // Standalone mode with full page layout
+  // (The old standalone page layout with its own navy header was removed: this screen is only shown inside
+  // the Materials page, which provides the mobile top bar, section chips and tab bar.)
   return (
-    <div className="min-h-screen bg-tone-highlight-soft">
-      {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
-        {/* Header with Gradient */}
-        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <Button
-            type="button"
-            variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto hover:bg-transparent"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft size={16} />
-            <span className="text-sm font-medium">Back</span>
-          </Button>
-
-          <div className="text-center pt-8">
-            <h1 className="text-primary-foreground text-2xl font-bold mb-2">Site Transfers</h1>
-            <p className="text-primary-foreground/80 text-sm">{user?.name || 'User'}</p>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="px-6 py-6 -mt-4">
-          {renderContent().props.children}
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 pb-6 pt-2">
-          <div className="text-center">
-            <p className="text-xs text-ink-4">
-              Powered by Laxmi Power Tech
-            </p>
-          </div>
-        </div>
-      </div>
-
+    <>
+      {renderContent()}
+      
       {/* Floating Action Button - Bottom Center */}
       <Button
         type="button"
         onClick={handleCreateTransfer}
-        className="fixed bottom-24 left-1/2 -translate-x-1/2 size-14 p-0 rounded-full shadow-lg z-50 [&_svg]:size-7"
+        className="fixed bottom-24 left-1/2 -translate-x-1/2 size-14 p-0 rounded-full z-50 [&_svg]:size-7"
       >
         <Plus size={28} strokeWidth={2.5} />
       </Button>
-    </div>
+    </>
   );
+
 }
