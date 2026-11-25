@@ -3,7 +3,7 @@
 // (moved unchanged); this file is the layout.
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarCheck, Clock, FileText, MapPin, Plus, UserCheck, UserX, Users } from "lucide-react";
+import { CalendarCheck, Clock, FileText, MapPin, Package, Plus, Receipt, TriangleAlert, UserCheck, UserX, Users } from "lucide-react";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import AddEmployeeModal from "@/pages/team/components/AddEmployeeModal";
 import { ROUTES } from "@/lib/routes";
 import { getUserRaw } from "@/lib/session";
 import useAdminDashboard from "./components/useAdminDashboard";
+import useDashboardAttention from "./components/useDashboardAttention";
 
 const ALL = "all";
 const PUNCH_TYPES = {
@@ -96,6 +97,7 @@ const WeeklyChart = ({ days }) => {
 
 const AdminDashboard = () => {
   const d = useAdminDashboard();
+  const extra = useDashboardAttention();
   const { stats, loading, filtered, currentItems, totalItems, totalPages, currentPage, goToPage, itemsPerPage, setItemsPerPage } = d;
   const { searchStaff, setSearchStaff, role, setRole, month, setMonth, year, setYear, startDate, endDate, hasCustomRange, today } = d;
   const [addOpen, setAddOpen] = useState(false);
@@ -103,9 +105,12 @@ const AdminDashboard = () => {
   const hasFilters = Boolean(searchStaff || role || startDate || endDate);
 
   const attention = [
-    { n: stats.pendingLeaves, title: "Leave requests pending approval", sub: "Waiting for a decision", tone: "highlight", to: ROUTES.attendance.leaves, cta: "Review" },
-    { n: stats.absent, title: "Marked absent today", sub: "Check the records below", tone: "bad", to: "#records", cta: "Open" },
-    { n: stats.incomplete, title: "Employees with incomplete punch-out", sub: "Punched in but not out", tone: "warn", to: "#records", cta: "Open" },
+    { key: "leaves", n: stats.pendingLeaves, title: "Leave requests pending approval", sub: "Waiting for a decision", tone: "highlight", icon: CalendarCheck, to: ROUTES.attendance.leaves, cta: "Review" },
+    ...(extra.reimbursements ? [{ key: "reimb", n: extra.reimbursements, title: `Reimbursement${extra.reimbursements === 1 ? "" : "s"} pending approval`, sub: "Waiting for a decision", tone: "highlight", icon: Receipt, to: ROUTES.adminReimbursements, cta: "Review" }] : []),
+    ...extra.retention.map((r) => ({ key: r.id, title: r.title, sub: r.sub, tone: r.overdue ? "bad" : "warn", icon: TriangleAlert, to: ROUTES.workOrders, cta: "Open" })),
+    ...(extra.deliveries.open ? [{ key: "deliv", title: `${extra.deliveries.open} deliveries still open`, sub: `${extra.deliveries.partial} partially received, ${extra.deliveries.pending} pending`, tone: "warn", icon: Package, to: ROUTES.adminMaterial.upcomingDeliveries, cta: "View" }] : []),
+    { key: "absent", n: stats.absent, title: "Marked absent today", sub: "Check the records below", tone: "bad", icon: UserX, to: "#records", cta: "Open" },
+    { key: "incomplete", n: stats.incomplete, title: "Employees with incomplete punch-out", sub: "Punched in but not out", tone: "warn", icon: Clock, to: "#records", cta: "Open" },
   ];
 
   const columns = [
@@ -210,18 +215,20 @@ const AdminDashboard = () => {
         />
         <StatCard icon={UserX} tone="bad" label="Absent today" value={stats.absent} sub={`${stats.pctAbsent.toFixed(1)}% of employees${stats.trends.absent != null ? ` · ${stats.trends.absent >= 0 ? "↑" : "↓"} ${Math.abs(stats.trends.absent)}%` : ""}`} />
         <StatCard icon={Clock} tone="warn" label="Late arrivals" value={stats.late} sub={`${stats.pctLate.toFixed(1)}% of present${stats.trends.late != null ? ` · ${stats.trends.late >= 0 ? "↑" : "↓"} ${Math.abs(stats.trends.late)}%` : ""}`} />
-        <StatCard icon={CalendarCheck} tone="info" label="Pending leaves" value={stats.pendingLeaves} sub="Awaiting approval" />
+        <StatCard icon={CalendarCheck} tone="warn" label="Pending leaves" value={stats.pendingLeaves} sub={extra.reimbursements ? `${extra.reimbursements} reimbursement${extra.reimbursements === 1 ? "" : "s"} also pending` : "Awaiting approval"} />
+        <StatCard icon={Package} tone="info" label="Open deliveries" value={extra.deliveries.open} sub="Awaiting GRN" />
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(380px,1fr))] gap-4">
         <SectionCard flush title="Needs your attention" description="Approvals and open items from today’s attendance">
           <ul>
             {attention.map((a) => (
-              <li key={a.title} className="flex items-center gap-3.5 border-b border-line px-5 py-3.5 last:border-b-0">
-                <IconTile icon={a.tone === "bad" ? UserX : a.tone === "warn" ? Clock : CalendarCheck} tone={a.tone} />
+              <li key={a.key} className="flex items-center gap-3.5 border-b border-line px-5 py-3.5 last:border-b-0">
+                <IconTile icon={a.icon} tone={a.tone} />
                 <div className="min-w-0 flex-1">
                   <div className="text-body font-semibold text-ink-1">
-                    {a.n} · {a.title}
+                    {a.n != null ? `${a.n} · ` : ""}
+                    {a.title}
                   </div>
                   <div className="text-small text-ink-3">{a.sub}</div>
                 </div>
