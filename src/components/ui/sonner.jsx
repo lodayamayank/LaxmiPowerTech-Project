@@ -8,13 +8,14 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Toaster as Sonner } from "sonner";
+import { DARK_MODE_ENABLED } from "@/lib/theme";
 
 const Toaster = ({ ...props }) => {
   const { theme = "system" } = useTheme();
 
   return (
     <Sonner
-      theme={theme}
+      theme={DARK_MODE_ENABLED ? theme : "light"}
       position="top-right"
       closeButton
       richColors
