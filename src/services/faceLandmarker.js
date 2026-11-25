@@ -17,7 +17,8 @@ const WASM_BASE_URL =
 const MODEL_ASSET_URL =
   "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
 
-const INIT_TIMEOUT_MS = 20_000;
+// Generous: the WASM runtime and the model are a few MB each and local / mobile networks can be slow.
+const INIT_TIMEOUT_MS = 60_000;
 
 // Minimum time to wait after a failure before allowing another attempt.
 // Prevents retry storms (e.g. a render loop calling this every frame)

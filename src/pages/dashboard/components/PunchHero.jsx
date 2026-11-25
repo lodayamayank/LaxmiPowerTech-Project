@@ -1,6 +1,7 @@
 // src/pages/dashboard/components/PunchHero.jsx
 // The dark "today" card of the mobile home screens (labour, staff, supervisor, subcontractor): the clock and the punch
 // action when off shift, "Time on site" and Punch out when on shift. Shared by the labour and supervisor homes.
+import { useEffect } from "react";
 import { CircleCheck, Fingerprint, LogOut, MapPin, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +10,10 @@ const shortDay = (d) => `${d.toLocaleDateString("en-GB", { weekday: "short" })},
 
 export default function PunchHero({ now, punch, todayIn, elapsedMin, sites, onPunch, noSiteHint }) {
   const onShift = punch.punchedIn && !punch.punchedOut;
+  // Start downloading the face-check model now, so it is ready by the time the selfie screen opens.
+  useEffect(() => {
+    import("@/services/faceLandmarker").then((m) => m.getFaceLandmarker()).catch(() => {});
+  }, []);
   const noSite = !sites.length && noSiteHint;
   return (
       <section className="flex flex-col gap-3.5 rounded-[18px] bg-primary p-[18px] text-primary-foreground">

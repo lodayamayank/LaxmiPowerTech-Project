@@ -73,15 +73,20 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-wrap bg-surface">
-      <main className="flex min-w-0 flex-[1_1_420px] items-center justify-center px-6 py-12">
-        <div className="flex w-full max-w-[380px] flex-col gap-6">
-          <Logo width={300} height={100} priority className="h-auto w-[300px] max-w-full" />
-          <div>
-            <h1 className="text-[28px] font-semibold tracking-tight text-primary">Sign in</h1>
-            <p className="mt-1.5 text-body-lg text-ink-3">Welcome back. Use your username and password.</p>
+    <div className="flex min-h-screen flex-wrap bg-surface max-lg:bg-primary">
+      <main className="flex min-w-0 flex-[1_1_420px] items-center justify-center px-6 py-12 max-lg:items-stretch max-lg:p-0">
+        <div className="flex w-full max-w-[380px] flex-col gap-6 max-lg:max-w-none max-lg:gap-0">
+          <div className="flex flex-col gap-6 max-lg:gap-5 max-lg:px-6 max-lg:pb-14 max-lg:pt-12">
+            <div className="max-lg:self-start max-lg:rounded-xl max-lg:bg-logo-plate max-lg:px-3 max-lg:py-2">
+              <Logo width={300} height={100} priority className="h-auto w-[300px] max-w-full max-lg:w-[150px]" />
+            </div>
+            <div>
+              <h1 className="text-[28px] font-semibold tracking-tight text-primary max-lg:text-primary-foreground">Sign in</h1>
+              <p className="mt-1.5 text-body-lg text-ink-3 max-lg:text-primary-foreground/80">Welcome back. Use your username and password.</p>
+            </div>
           </div>
 
+          <div className="flex flex-col gap-6 max-lg:-mt-6 max-lg:flex-1 max-lg:rounded-t-[24px] max-lg:bg-surface max-lg:px-6 max-lg:pb-10 max-lg:pt-7">
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
             {error ? (
               <Notice tone="bad" icon={TriangleAlert} role="alert">
@@ -117,6 +122,7 @@ const Login = () => {
               Contact support
             </a>
           </p>
+          </div>
         </div>
       </main>
 

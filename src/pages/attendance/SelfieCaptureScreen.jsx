@@ -373,7 +373,7 @@ const SelfieCaptureScreen = () => {
                 onFaceDetected={(detected, ready, status, message) => {
                   setFaceDetected(detected);
                   setFaceStatus(status);
-                  setFaceMessage(message);
+                  setFaceMessage(ready ? message : "Loading face check… this can take a moment on a slow connection");
                 }}
                 className="absolute inset-0 h-full w-full object-cover"
               />

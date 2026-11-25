@@ -12,6 +12,9 @@ import {
 // Limit model inference to about 5 checks per second.
 const DETECTION_INTERVAL_MS = 200;
 
+// How long to wait before trying to load the face model again after a failure.
+const MODEL_RETRY_MS = 6000;
+
 export function useFaceDetection(videoRef, guide = DEFAULT_GUIDE) {
   const [faceDetected, setFaceDetected] = useState(false);
   const [isFaceDetectionReady, setIsFaceDetectionReady] = useState(false);
@@ -31,6 +34,8 @@ export function useFaceDetection(videoRef, guide = DEFAULT_GUIDE) {
     isMountedRef.current = true;
     loopStartedRef.current = false;
 
+    let retryTimer = null;
+
     async function init() {
       const landmarker = await getFaceLandmarker();
 
@@ -39,9 +44,11 @@ export function useFaceDetection(videoRef, guide = DEFAULT_GUIDE) {
         return;
       }
 
-      // Detection is unavailable if the model could not be loaded.
+      // The model could not be loaded (slow or blocked network). Keep trying while the screen is open instead of
+      // staying disabled forever; the supervisor-code fallback remains available meanwhile.
       if (!landmarker) {
         setIsFaceDetectionReady(false);
+        retryTimer = setTimeout(init, MODEL_RETRY_MS);
         return;
       }
 
@@ -110,6 +117,7 @@ export function useFaceDetection(videoRef, guide = DEFAULT_GUIDE) {
 
     return () => {
       isMountedRef.current = false;
+      if (retryTimer) clearTimeout(retryTimer);
 
       // Cancel the detection loop when the component unmounts.
       if (rafIdRef.current !== null) {
