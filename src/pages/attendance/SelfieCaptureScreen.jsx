@@ -8,17 +8,14 @@ import FaceCamera from "@/pages/attendance/components/FaceCamera";
 import { submitOffline } from "@/pwa/offlineSubmit";
 import { markPunchedLocally } from "@/lib/punchStatusCache";
 import { toast } from 'sonner';
-import {
-  FaArrowLeft,
-  FaCamera,
-  FaCheckCircle,
-  FaWifi,
-  FaExclamationTriangle,
-  FaUserCircle,
-} from "react-icons/fa";
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Delete, Fingerprint, MapPin, UserCheck } from 'lucide-react';
+import { IconTile } from '@/components/common/IconTile';
+import { Notice } from '@/components/common/Notice';
+import MobileCard from '@/layouts/mobile/MobileCard';
+import MobilePage from '@/layouts/mobile/MobilePage';
+import { cn } from '@/lib/utils';
 
 const FALLBACK_DELAY_MS = 30000;
 
@@ -57,7 +54,8 @@ const SelfieCaptureScreen = () => {
 
   const navigate = useNavigate();
   const locationState = useLocation().state || {};
-  const { punchType, location, branchId, timestamp } = locationState;
+  const { punchType, location, branchId, branchName, timestamp } = locationState;
+  const [done, setDone] = useState(null); // { offline, viaCode } once the punch is recorded (shows the success screen)
 
   // Missing required navigation state (deep link, refresh, back/forward
   // nav) — tell the user immediately instead of letting them take a
@@ -102,7 +100,7 @@ const SelfieCaptureScreen = () => {
 
     const imageSrc = webcamRef.current?.getScreenshot();
     if (!imageSrc) {
-      toast.error("Couldn't capture photo. Please try again.");
+      toast.error("Couldn\u2019t capture the photo", { description: "Hold still and try again." });
       return;
     }
     clearFallbackTimer();
@@ -178,14 +176,16 @@ const SelfieCaptureScreen = () => {
       markPunchedLocally(punchType);
 
       if (result.offline) {
-        toast.info("📴 You're offline. Punch saved and will sync when internet is back.");
-      } else {
-        toast.success("✅ Punch recorded successfully!");
+        toast.info("Saved on your phone", { description: "Will send when you\u2019re back online" });
       }
-      navigate(ROUTES.dashboard);
+      setShowConfirm(false);
+      setDone({ offline: Boolean(result.offline), viaCode: false });
     } catch (err) {
       console.error('❌ Punch error:', err.response?.status, err.response?.data, err.message);
-      toast.error(`❌ Failed to punch: ${extractErrorMessage(err, "Please try again.")}`);
+      toast.error(`Couldn\u2019t punch ${punchType}`, {
+        description: extractErrorMessage(err, "Please try again."),
+        action: { label: "Retry", onClick: () => handleConfirm() },
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -195,7 +195,7 @@ const SelfieCaptureScreen = () => {
     if (isSubmitting) return;
 
     if (supervisorCode.length !== 6) {
-      toast.error("Please enter a valid 6-digit supervisor code.");
+      toast.error("Enter the 6-digit code", { description: "Ask your supervisor for today\u2019s code." });
       return;
     }
 
@@ -230,14 +230,15 @@ const SelfieCaptureScreen = () => {
       markPunchedLocally(punchType);
 
       if (result.offline) {
-        toast.info("📴 You're offline. Punch saved and will sync when internet is back.");
-      } else {
-        toast.success(result.data?.message || "Attendance recorded successfully!");
+        toast.info("Saved on your phone", { description: "Will send when you\u2019re back online" });
       }
-      navigate(ROUTES.dashboard);
+      setDone({ offline: Boolean(result.offline), viaCode: true });
     } catch (err) {
       console.error("❌ Supervisor code punch error:", err.response?.status, err.response?.data, err.message);
-      toast.error(`❌ ${extractErrorMessage(err, "Failed to record attendance.")}`);
+      toast.error("Couldn\u2019t record attendance", {
+        description: extractErrorMessage(err, "Check the code and try again."),
+        action: { label: "Retry", onClick: () => handleSupervisorCodeSubmit() },
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -249,211 +250,168 @@ const SelfieCaptureScreen = () => {
     return null;
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
-        {/* Header with Gradient */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <Button
-            variant="ghost"
-            className="absolute top-6 left-6 text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full h-auto"
-            onClick={() => navigate(-1)}
-          >
-            <FaArrowLeft size={16} />
-            <span className="text-sm font-medium">Back</span>
-          </Button>
+  const typeWord = punchType === "in" ? "in" : "out";
+  const online = navigator.onLine;
+  const when = new Date(timestamp || Date.now());
+  const siteLabel = branchName || "Your assigned site";
 
-          <div className="text-center pt-8">
-            <FaCamera className="text-white mx-auto mb-3" size={40} />
-            <h1 className="text-white text-2xl font-bold mb-2">Selfie Attendance</h1>
-            <p className="text-white/80 text-sm">
-              {punchType === "in" ? "Punch In" : "Punch Out"} • {user?.name}
-            </p>
-          </div>
-
-          {/* Punch Type Badge */}
-          <div className="mt-4 flex justify-center">
-            <div
-              className={`px-4 py-2 rounded-full font-semibold text-sm ${
-                punchType === "in"
-                  ? "bg-green-500 text-white"
-                  : "bg-red-500 text-white"
-              } shadow-lg`}
-            >
-              {punchType === "in" ? "🟢 Punching In" : "🔴 Punching Out"}
-            </div>
-          </div>
+  if (done) {
+    const rows = [
+      ["Time", `${when.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).toLowerCase()}, ${when.toLocaleDateString("en-GB", { weekday: "short" })}, ${when.getDate()} ${when.toLocaleDateString("en-GB", { month: "short" })}`],
+      ["Site", siteLabel],
+      [done.viaCode ? "Verified by" : "Selfie", done.viaCode ? "Supervisor code" : "Verified"],
+      ["Status", done.offline ? "Saved on your phone" : "Sent to office"],
+    ];
+    return (
+      <MobilePage title="Mark attendance" className="items-center justify-center gap-5 text-center">
+        <span className="flex size-[88px] items-center justify-center rounded-full bg-tone-ok-soft text-tone-ok-fg ring-[10px] ring-tone-ok-soft/50">
+          <UserCheck className="size-10" />
+        </span>
+        <div>
+          <div className="text-[24px] font-semibold text-ink-1">You&apos;re punched {typeWord}</div>
+          <div className="mt-1 text-[15px] text-ink-3">{punchType === "in" ? "Have a safe day at work." : "See you tomorrow."}</div>
         </div>
-
-        {/* Main Content */}
-        <div className="px-6 py-6 -mt-4">
-          {/* Status Card */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 mb-6 border border-blue-100 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <FaUserCircle className="text-blue-600" size={32} />
-                <div>
-                  <p className="text-sm font-semibold text-gray-800">{faceMessage}</p>
-                  <p className="text-xs text-gray-600">
-                    {faceStatus === "holding"
-                      ? "You can capture your photo"
-                      : "Follow the instructions above"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Online/Offline indicator */}
-              <div
-                className={`flex items-center gap-1 px-2 py-1 rounded-full ${
-                  navigator.onLine ? "bg-green-100" : "bg-red-100"
-                }`}
-              >
-                {navigator.onLine ? (
-                  <FaWifi className="text-green-600" size={12} />
-                ) : (
-                  <FaExclamationTriangle className="text-red-600" size={12} />
-                )}
-                <span
-                  className={`text-xs font-medium ${
-                    navigator.onLine ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {navigator.onLine ? "Online" : "Offline"}
-                </span>
-              </div>
+        <MobileCard className="w-full text-left">
+          {rows.map(([label, value]) => (
+            <div key={label} className="flex items-center gap-3 border-b border-line py-3 last:border-b-0">
+              <span className="w-20 text-small text-ink-3">{label}</span>
+              <span className="flex-1 text-[14.5px] font-semibold text-ink-1">{value}</span>
             </div>
-          </div>
+          ))}
+        </MobileCard>
+        <Button size="xl" className="w-full" onClick={() => navigate(ROUTES.dashboard)}>
+          Done
+        </Button>
+      </MobilePage>
+    );
+  }
 
-          {/* Webcam Container */}
-          <div className="relative mb-6">
-            <div className="relative mx-auto" style={{ width: "280px", height: "280px" }}>
-              {/* Outer Ring */}
-              <div className="absolute inset-0 rounded-full border-4 border-dashed border-orange-300 animate-pulse"></div>
+  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"];
 
-              {/* Inner Ring */}
-              <div className="absolute inset-2 rounded-full border-4 border-orange-500 shadow-2xl overflow-hidden">
-                <FaceCamera
-                  webcamRef={webcamRef}
-                  onFaceDetected={(detected, ready, status, message) => {
-                    setFaceDetected(detected);
-                    setFaceStatus(status);
-                    setFaceMessage(message);
-                  }}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              {/* Corner Guides */}
-              <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-orange-500 rounded-tl-3xl"></div>
-              <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-orange-500 rounded-tr-3xl"></div>
-              <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-orange-500 rounded-bl-3xl"></div>
-              <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-orange-500 rounded-br-3xl"></div>
-            </div>
-          </div>
-
-          {/* Instructions */}
-          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-4 mb-6 border border-yellow-200">
-            <div className="flex items-start gap-3">
-              <FaCheckCircle className="text-orange-500 mt-0.5" size={16} />
+  return (
+    <>
+      <MobilePage
+        title="Mark attendance"
+        back
+        onBack={() => navigate(-1)}
+        right={
+          <Badge variant={online ? "ok" : "bad"} className="gap-1.5">
+            <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
+            {online ? "Online" : "Offline"}
+          </Badge>
+        }
+        footer={
+          showSupervisorInput ? (
+            <Button size="xl" className="w-full" disabled={supervisorCode.length !== 6 || isSubmitting} onClick={handleSupervisorCodeSubmit}>
+              {isSubmitting ? "Verifying…" : `Punch ${typeWord} with code`}
+            </Button>
+          ) : (
+            <Button size="xl" className="w-full" onClick={capture} disabled={isSubmitting || !faceDetected}>
+              <Fingerprint /> {isSubmitting ? "Processing…" : `Take selfie & punch ${typeWord}`}
+            </Button>
+          )
+        }
+      >
+        {showSupervisorInput ? (
+          <>
+            <MobileCard className="flex flex-col gap-3.5">
               <div>
-                <p className="text-sm font-semibold text-gray-800 mb-2">Capture Guidelines</p>
-                <ul className="text-xs text-gray-600 space-y-1">
-                  <li>• Ensure your face is clearly visible</li>
-                  <li>• Good lighting is recommended</li>
-                  <li>• Remove glasses if possible</li>
-                  <li>• Look directly at the camera</li>
-                </ul>
+                <h2 className="text-[15px] font-semibold text-ink-1">Enter today&apos;s code</h2>
+                <div className="mt-0.5 text-small text-ink-3">Ask your supervisor for the 6-digit code.</div>
               </div>
-            </div>
-          </div>
-
-          {/* Capture Button */}
-          <button
-            onClick={capture}
-            disabled={isSubmitting || !faceDetected}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all flex items-center justify-center gap-3 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FaCamera size={20} />
-            <span className="text-lg">{isSubmitting ? "Processing..." : "Capture Photo"}</span>
-          </button>
-
-          {/* Help Text */}
-          <div className="mt-4 text-center">
-            <p className="text-xs text-gray-500">
-              Your photo will be used for attendance verification only
-            </p>
-          </div>
-
-          {showFallback && !capturedImage && (
-            <Card className="mt-6 border-orange-200 bg-orange-50/70">
-              <CardContent className="p-4 text-center">
-                <p className="text-sm font-semibold text-gray-800">
-                  Unable to capture selfie?
-                </p>
-                {!showSupervisorInput ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="mt-3 border-orange-300 text-orange-700 hover:bg-orange-100"
-                    onClick={() => setShowSupervisorInput(true)}
+              <div className="flex gap-2" role="group" aria-label="Attendance code" id="supervisor-code">
+                {Array.from({ length: 6 }, (_, idx) => (
+                  <span
+                    key={idx}
+                    className={cn(
+                      "flex h-[52px] flex-1 items-center justify-center rounded-control border bg-surface text-[22px] font-semibold tabular-nums",
+                      idx === supervisorCode.length ? "border-2 border-primary" : "border-line-input",
+                    )}
                   >
-                    Enter Supervisor Code
+                    {supervisorCode[idx] || ""}
+                  </span>
+                ))}
+              </div>
+            </MobileCard>
+            <div className="grid grid-cols-3 gap-2 rounded-[14px] bg-surface-muted p-2">
+              {keys.map((key, idx) =>
+                key === "" ? (
+                  <span key={idx} />
+                ) : key === "del" ? (
+                  <Button key={idx} type="button" variant="ghost" aria-label="Delete digit" className="!h-[54px] rounded-[12px]" onClick={() => setSupervisorCode((c) => c.slice(0, -1))}>
+                    <Delete className="!size-5" />
                   </Button>
                 ) : (
-                  <div className="mt-3 space-y-3 text-left">
-                    <label
-                      htmlFor="supervisor-code"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Supervisor Code
-                    </label>
-                    <Input
-                      id="supervisor-code"
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]{6}"
-                      maxLength={6}
-                      value={supervisorCode}
-                      onChange={(event) =>
-                        setSupervisorCode(
-                          event.target.value.replace(/\D/g, "").slice(0, 6)
-                        )
-                      }
-                      placeholder="Enter 6-digit code"
-                      className="h-auto w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-none outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 focus-visible:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-200"
-                    />
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className={`w-full ${
-                        supervisorCode.length === 6 && !isSubmitting
-                          ? "bg-orange-600 hover:bg-orange-700 text-white"
-                          : ""
-                      }`}
-                      disabled={supervisorCode.length !== 6 || isSubmitting}
-                      onClick={handleSupervisorCodeSubmit}
-                    >
-                      {isSubmitting ? "Verifying..." : "Continue"}
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+                  <Button
+                    key={idx}
+                    type="button"
+                    variant="outline"
+                    className="!h-[54px] rounded-[12px] border-0 bg-surface text-[22px] font-semibold tabular-nums text-ink-1"
+                    onClick={() => setSupervisorCode((c) => (c.length < 6 ? c + key : c))}
+                  >
+                    {key}
+                  </Button>
+                ),
+              )}
+            </div>
+            <Button type="button" variant="link" onClick={() => setShowSupervisorInput(false)}>
+              Back to selfie
+            </Button>
+          </>
+        ) : (
+          <>
+            <div className="text-center">
+              <div className="text-[30px] font-semibold tabular-nums text-primary">
+                {when.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).toLowerCase()}
+              </div>
+              <div className="text-small text-ink-3">{when.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</div>
+            </div>
+
+            <div className="relative flex h-[330px] items-center justify-center overflow-hidden rounded-[18px] bg-ink-1">
+              <FaceCamera
+                webcamRef={webcamRef}
+                onFaceDetected={(detected, ready, status, message) => {
+                  setFaceDetected(detected);
+                  setFaceStatus(status);
+                  setFaceMessage(message);
+                }}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="relative h-[240px] w-[190px] rounded-full border-[3px] border-dashed border-surface/70" aria-hidden="true" />
+              <Badge variant="neutral" className="absolute left-3 top-3">
+                Front camera
+              </Badge>
+              <span className="absolute inset-x-0 bottom-3.5 px-3 text-center text-[13.5px] text-surface" aria-live="polite">
+                {faceStatus === "holding" ? "Hold still, ready to capture" : faceMessage || "Fit your face inside the oval"}
+              </span>
+            </div>
+
+            <MobileCard className="flex items-center gap-3">
+              <IconTile icon={MapPin} tone="ok" className="size-10" />
+              <div className="min-w-0 flex-1">
+                <div className="text-[14.5px] font-semibold text-ink-1">Inside {siteLabel}</div>
+                <div className="text-small text-ink-3">Location checked just now · within geofence</div>
+              </div>
+              <Badge variant="ok">OK</Badge>
+            </MobileCard>
+
+            {showFallback && !capturedImage ? (
+              <Notice tone="warn" title="Unable to capture your selfie?">
+                Use today&apos;s 6-digit code from your supervisor instead.
+              </Notice>
+            ) : null}
+
+            <Button type="button" variant="link" className="text-[14px] font-semibold" onClick={() => setShowSupervisorInput(true)}>
+              Selfie not working? Use today&apos;s code
+            </Button>
+          </>
+        )}
+      </MobilePage>
 
       {showConfirm && (
-        <ConfirmModal
-          image={capturedImage}
-          user={user}
-          punchType={punchType}
-          onCancel={cancelConfirmation}
-          onConfirm={handleConfirm}
-        />
+        <ConfirmModal image={capturedImage} user={user} punchType={punchType} onCancel={cancelConfirmation} onConfirm={handleConfirm} />
       )}
-    </div>
+    </>
   );
 };
 

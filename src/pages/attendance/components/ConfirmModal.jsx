@@ -1,44 +1,31 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+// Selfie confirmation before a punch is sent: preview of the photo, then Confirm / Cancel.
 const ConfirmModal = ({ image, user, punchType, onConfirm, onCancel }) => {
-  const time = new Date().toLocaleTimeString();
+  const time = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).toLowerCase();
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle className="text-center">{user?.name || "User"}</CardTitle>
-        </CardHeader>
-        <CardContent className="text-center space-y-4">
-          <div className="flex justify-center">
-            <Avatar className="w-40 h-40 border-4 border-green-600">
-              <AvatarImage src={image} alt="selfie" className="object-cover" />
-            </Avatar>
-          </div>
-          <p className="text-sm text-muted-foreground">
+    <Dialog open onOpenChange={(open) => !open && onCancel()}>
+      <DialogContent className="max-w-sm gap-4">
+        <DialogHeader className="text-center sm:text-center">
+          <DialogTitle>{user?.name || "User"}</DialogTitle>
+          <DialogDescription>
             Punching {punchType} at {time}
-          </p>
-          <div className="space-y-2">
-            <Button
-              onClick={onConfirm}
-              className="w-full bg-green-600 hover:bg-green-700"
-            >
-              Confirm
-            </Button>
-            <Button
-              onClick={onCancel}
-              variant="secondary"
-              className="w-full"
-            >
-              Cancel
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          </DialogDescription>
+        </DialogHeader>
+        <img src={image} alt="Your selfie" className="mx-auto size-40 rounded-full border-4 border-tone-ok-fg object-cover" />
+        <div className="flex flex-col gap-2">
+          <Button size="xl" className="w-full" onClick={onConfirm}>
+            Confirm
+          </Button>
+          <Button variant="outline" className="w-full" onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

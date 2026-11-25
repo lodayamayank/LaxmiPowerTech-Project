@@ -6,22 +6,14 @@ import axios from "@/api/client";
 import { readPunchStatus, writePunchStatus } from "@/lib/punchStatusCache";
 import useNotifier from "@/pwa/useNotifier";
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Notice } from '@/components/common/Notice';
+import { IconTile } from '@/components/common/IconTile';
+import { PageLoader } from '@/components/common/PageLoader';
+import MobileCard from '@/layouts/mobile/MobileCard';
+import MobilePage from '@/layouts/mobile/MobilePage';
 import { GoogleMap, MarkerF, CircleF, useJsApiLoader } from "@react-google-maps/api";
-import { 
-  FaArrowLeft, 
-  FaClock, 
-  FaMapMarkerAlt, 
-  FaCheckCircle, 
-  FaTimesCircle,
-  FaSyncAlt,
-  FaFingerprint,
-  FaSignOutAlt,
-  FaBuilding,
-  FaWifi,
-  FaExclamationTriangle
-} from "react-icons/fa";
+import { Building2, CircleCheck, Fingerprint, LogOut, MapPin, MapPinOff, RefreshCw, TriangleAlert } from "lucide-react";
 
 // --- utils (unchanged) ---
 const getDistanceMeters = (lat1, lng1, lat2, lng2) => {
@@ -223,6 +215,7 @@ const PunchInScreen = () => {
         punchType: type,
         location: { lat, lng },
         branchId: nearbyBranch._id,
+        branchName: nearbyBranch.name,
         timestamp: new Date().toISOString(),
       },
     });
@@ -242,271 +235,118 @@ const PunchInScreen = () => {
     return () => window.removeEventListener("online", handleOnline);
   }, []);
 
-  const renderPunchButton = () => {
-    const isWithinRange = branchDistance !== null && nearestBranch && branchDistance <= nearestBranch.radius;
-
-    if (!punchStatus.punchedIn) {
-      return (
-        <Button
-          onClick={() => handlePunchClick("in")}
-          disabled={!isWithinRange || !location}
-          className={`w-full py-4 h-auto rounded-2xl font-bold shadow-lg transition-all duration-300 flex items-center justify-center gap-3 ${
-            isWithinRange && location
-              ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 transform hover:scale-[1.02] active:scale-[0.98]"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
-          }`}
-        >
-          <FaFingerprint size={24} />
-          <span className="text-lg">Punch In</span>
-        </Button>
-      );
-    } else if (!punchStatus.punchedOut) {
-      return (
-        <Button
-          onClick={() => handlePunchClick("out")}
-          disabled={!isWithinRange || !location}
-          className={`w-full py-4 h-auto rounded-2xl font-bold shadow-lg transition-all duration-300 flex items-center justify-center gap-3 ${
-            isWithinRange && location
-              ? "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 transform hover:scale-[1.02] active:scale-[0.98]"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
-          }`}
-        >
-          <FaSignOutAlt size={20} />
-          <span className="text-lg">Punch Out</span>
-        </Button>
-      );
-    }
-    return (
-      <Button
-        disabled
-        className="w-full py-4 h-auto rounded-2xl font-bold shadow-lg bg-gradient-to-r from-gray-400 to-gray-500 text-white cursor-not-allowed flex items-center justify-center gap-3"
-      >
-        <FaCheckCircle size={20} />
-        <span className="text-lg">Attendance Complete for Today</span>
-      </Button>
-    );
-  };
+  const isWithinRange = branchDistance !== null && nearestBranch && branchDistance <= nearestBranch.radius;
+  const done = punchStatus.punchedIn && punchStatus.punchedOut;
+  const nextType = !punchStatus.punchedIn ? "in" : "out";
+  const online = navigator.onLine;
+  const [showMap, setShowMap] = useState(false);
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading user...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader label="Loading your profile" />;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
-        {/* Header with Gradient */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <button
-            className="mobile-back-button absolute top-6 left-6"
-            onClick={() => navigate(-1)}
-          >
-            <FaArrowLeft size={16} />
-            <span className="text-sm font-medium">Back</span>
-          </button>
-
-          <div className="text-center pt-8">
-            <h1 className="text-white text-2xl font-bold mb-2">Mark Attendance</h1>
-            <p className="text-white/80 text-sm">{user?.name}</p>
-          </div>
-
-          {/* Time Display */}
-          <div className="mt-4 bg-white/20 backdrop-blur-sm rounded-2xl p-4 flex items-center justify-center gap-3">
-            <FaClock className="text-white" size={24} />
-            <div className="text-center">
-              <div className="text-white text-3xl font-bold">
-                {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
-              </div>
-              <div className="text-white/80 text-sm">
-                {currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-              </div>
-            </div>
-          </div>
+    <MobilePage
+      title="Mark attendance"
+      back
+      onBack={() => navigate(-1)}
+      right={
+        <Badge variant={online ? "ok" : "bad"} className="gap-1.5">
+          <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
+          {online ? "Online" : "Offline"}
+        </Badge>
+      }
+      footer={
+        <Button size="xl" className="w-full" disabled={done || !isWithinRange || !location} onClick={() => handlePunchClick(nextType)}>
+          {done ? <CircleCheck /> : nextType === "in" ? <Fingerprint /> : <LogOut />}
+          {done ? "Attendance complete for today" : nextType === "in" ? "Take selfie & punch in" : "Take selfie & punch out"}
+        </Button>
+      }
+    >
+      <div className="text-center">
+        <div className="text-[30px] font-semibold tabular-nums text-primary">
+          {currentTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).toLowerCase()}
         </div>
-
-        {/* Main Content */}
-        <div className="px-6 py-6 -mt-4">
-          {/* Status Card */}
-          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl mb-4 border-blue-100">
-            <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {punchStatus.punchedIn && !punchStatus.punchedOut ? (
-                  <>
-                    <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
-                      <FaCheckCircle className="text-white" size={20} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800">Status: Punched In</p>
-                      <p className="text-xs text-gray-600">You are currently at work</p>
-                    </div>
-                  </>
-                ) : punchStatus.punchedOut ? (
-                  <>
-                    <div className="w-10 h-10 rounded-full bg-gray-500 flex items-center justify-center">
-                      <FaCheckCircle className="text-white" size={20} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800">Status: Completed</p>
-                      <p className="text-xs text-gray-600">Attendance marked for today</p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
-                      <FaClock className="text-white" size={20} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800">Status: Not Punched In</p>
-                      <p className="text-xs text-gray-600">Mark your attendance now</p>
-                    </div>
-                  </>
-                )}
-              </div>
-              
-              {/* Online/Offline indicator */}
-              <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${navigator.onLine ? 'bg-green-100' : 'bg-red-100'}`}>
-                {navigator.onLine ? (
-                  <FaWifi className="text-green-600" size={12} />
-                ) : (
-                  <FaExclamationTriangle className="text-red-600" size={12} />
-                )}
-                <span className={`text-xs font-medium ${navigator.onLine ? 'text-green-600' : 'text-red-600'}`}>
-                  {navigator.onLine ? 'Online' : 'Offline'}
-                </span>
-              </div>
-            </div>
-            </CardContent>
-          </Card>
-
-          {/* Branch Distance Info */}
-          {nearestBranch && branchDistance !== null && (
-            <div className={`rounded-2xl p-4 mb-4 border shadow-sm ${
-              branchDistance <= nearestBranch.radius
-                ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
-                : 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200'
-            }`}>
-              <div className="flex items-start gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  branchDistance <= nearestBranch.radius ? 'bg-green-500' : 'bg-yellow-500'
-                }`}>
-                  <FaBuilding className="text-white" size={18} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-800 mb-1">
-                    Nearest Branch: {nearestBranch.name}
-                  </p>
-                  <p className="text-xs text-gray-600 mb-2">
-                    Distance: <span className="font-semibold">{branchDistance}m</span> away
-                  </p>
-                  {branchDistance <= nearestBranch.radius ? (
-                    <div className="flex items-center gap-2 text-green-700">
-                      <FaCheckCircle size={14} />
-                      <span className="text-xs font-medium">Within range - You can mark attendance</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 text-orange-700">
-                      <FaExclamationTriangle size={14} />
-                      <span className="text-xs font-medium">
-                        Move {branchDistance - nearestBranch.radius}m closer to mark attendance
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Map Container */}
-          <div className="relative w-full mb-4 rounded-2xl overflow-hidden shadow-lg border-2 border-gray-200">
-            {isLoaded && location ? (
-              <GoogleMap
-                mapContainerStyle={MAP_STYLE}
-                center={{ lat: location.lat, lng: location.lng }}
-                zoom={DEFAULT_ZOOM}
-                options={{
-                  disableDefaultUI: true,
-                  zoomControl: true,
-                  clickableIcons: false,
-                  styles: [
-                    {
-                      featureType: "poi",
-                      elementType: "labels",
-                      stylers: [{ visibility: "off" }],
-                    },
-                  ],
-                }}
-                onLoad={onMapLoad}
-              >
-                <MarkerF position={{ lat: location.lat, lng: location.lng }} />
-                {/* Show branch radius circles */}
-                {user?.assignedBranches?.map((branch) => (
-                  <CircleF
-                    key={branch._id}
-                    center={{ lat: branch.lat, lng: branch.lng }}
-                    radius={branch.radius}
-                    options={{
-                      fillColor: "#22c55e",
-                      fillOpacity: 0.1,
-                      strokeColor: "#22c55e",
-                      strokeOpacity: 0.5,
-                      strokeWeight: 2,
-                    }}
-                  />
-                ))}
-              </GoogleMap>
-            ) : (
-              <div className="h-[350px] bg-gray-100 flex items-center justify-center">
-                {loadingLocation ? (
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                    <p className="text-sm text-gray-600">Fetching location...</p>
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-600">Unable to load map</p>
-                )}
-              </div>
-            )}
-
-            {/* Refresh Location Button */}
-            <Button
-              className="absolute top-3 right-3 bg-white text-gray-800 px-4 py-2 rounded-full shadow-lg border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-2 font-medium text-sm"
-              onClick={() => getLocation(true)}
-              disabled={loadingLocation}
-              variant="outline"
-            >
-              <FaSyncAlt className={loadingLocation ? 'animate-spin' : ''} size={14} />
-              Refresh
-            </Button>
-          </div>
-
-          {/* Punch Button */}
-          {renderPunchButton()}
-
-          {/* Info Section */}
-          <div className="mt-4 bg-gray-50 rounded-2xl p-4 border border-gray-200">
-            <div className="flex items-start gap-3">
-              <FaMapMarkerAlt className="text-orange-500 mt-1" size={16} />
-              <div>
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  {location 
-                    ? "Your location is being tracked. Make sure you are within your assigned branch radius to mark attendance."
-                    : "Please enable location access to mark attendance."
-                  }
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div className="text-small text-ink-3">{currentTime.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</div>
       </div>
-    </div>
+
+      {nearestBranch && branchDistance !== null && !isWithinRange ? (
+        <Notice tone="bad" icon={TriangleAlert} role="alert">
+          <b>You&apos;re outside the site.</b> About {branchDistance} m from {nearestBranch.name}. You need to be within {nearestBranch.radius} m.
+        </Notice>
+      ) : null}
+
+      <MobileCard className="flex items-center gap-3">
+        <IconTile icon={isWithinRange ? MapPin : MapPinOff} tone={isWithinRange ? "ok" : loadingLocation ? "neutral" : "warn"} className="size-10" />
+        <div className="min-w-0 flex-1">
+          <div className="text-[14.5px] font-semibold text-ink-1">
+            {nearestBranch && branchDistance !== null
+              ? `${isWithinRange ? "Inside" : "Outside"} ${nearestBranch.name}`
+              : loadingLocation
+                ? "Finding your location…"
+                : location
+                  ? "No assigned site found"
+                  : "Location unavailable"}
+          </div>
+          <div className="text-small text-ink-3">
+            {nearestBranch && branchDistance !== null
+              ? `${branchDistance} m away · ${isWithinRange ? "within geofence" : `geofence ${nearestBranch.radius} m`}`
+              : location
+                ? "Ask your supervisor to assign you to a site."
+                : "Turn on location to mark attendance."}
+          </div>
+        </div>
+        {nearestBranch && branchDistance !== null ? <Badge variant={isWithinRange ? "ok" : "warn"}>{isWithinRange ? "OK" : "Outside"}</Badge> : null}
+      </MobileCard>
+
+      <Button type="button" variant="outline" className="!h-12" onClick={() => getLocation(true)} disabled={loadingLocation}>
+        <RefreshCw className={loadingLocation ? "animate-spin" : ""} /> {loadingLocation ? "Checking location…" : "Check my location again"}
+      </Button>
+
+      <div className="flex items-center justify-between rounded-[14px] border border-line-card bg-surface p-3 text-small text-ink-3">
+        <span className="inline-flex items-center gap-2">
+          <Building2 className="size-4" />
+          {punchStatus.punchedIn && !punchStatus.punchedOut ? "Punched in · you are at work" : done ? "Completed · attendance marked" : "Not punched in yet"}
+        </span>
+        <Button type="button" variant="link" size="sm" className="h-auto p-0" onClick={() => setShowMap((v) => !v)}>
+          {showMap ? "Hide map" : "Show map"}
+        </Button>
+      </div>
+
+      {showMap ? (
+        <div className="relative w-full overflow-hidden rounded-[14px] border border-line-card">
+          {isLoaded && location ? (
+            <GoogleMap
+              mapContainerStyle={MAP_STYLE}
+              center={{ lat: location.lat, lng: location.lng }}
+              zoom={DEFAULT_ZOOM}
+              options={{
+                disableDefaultUI: true,
+                zoomControl: true,
+                clickableIcons: false,
+                styles: [{ featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] }],
+              }}
+              onLoad={onMapLoad}
+            >
+              <MarkerF position={{ lat: location.lat, lng: location.lng }} />
+              {/* Branch radius circles (map overlay colours are not CSS, so they stay literal) */}
+              {user?.assignedBranches?.map((branch) => (
+                <CircleF
+                  key={branch._id}
+                  center={{ lat: branch.lat, lng: branch.lng }}
+                  radius={branch.radius}
+                  options={{ fillColor: "#22c55e", fillOpacity: 0.1, strokeColor: "#22c55e", strokeOpacity: 0.5, strokeWeight: 2 }}
+                />
+              ))}
+            </GoogleMap>
+          ) : (
+            <div className="flex h-[350px] items-center justify-center bg-surface-muted text-small text-ink-3">{loadingLocation ? "Fetching location…" : "Unable to load map"}</div>
+          )}
+        </div>
+      ) : null}
+
+      <p className="text-center text-small text-ink-3">Selfie not working? You can use today&apos;s code on the next screen.</p>
+    </MobilePage>
   );
 };
 
