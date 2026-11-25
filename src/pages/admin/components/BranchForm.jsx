@@ -30,7 +30,7 @@ export default function BranchForm({ b }) {
   const color = mapPrimaryColor();
 
   return (
-    <SectionCard title={editingId ? "Edit branch" : "Add branch"} description="People can only punch in inside the geofence.">
+    <SectionCard id="branch-form" className="scroll-mt-4" title={editingId ? "Edit branch" : "Add branch"} description="People can only punch in inside the geofence.">
       <form onSubmit={handleSubmit} className="space-y-4">
         <FormField label="Search Location" htmlFor="branch-search" required hint='Tip: try searching "Mahim Mumbai" or a PIN code if the full address fails.'>
           {isLoaded ? (

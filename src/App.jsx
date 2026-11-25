@@ -11,6 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 // Eager load only critical components
 import PrivateRoute from '@/routes/PrivateRoute';
+import { PageLoader } from '@/components/common/PageLoader';
 import InstallPWA from '@/pwa/InstallPWA';
 
 // Lazy load all pages for code-splitting
@@ -95,15 +96,8 @@ const ConnectServer = lazy(() => import('@/pages/auth/ConnectServer'));
 const Styleguide = import.meta.env.DEV ? lazy(() => import('@/pages/dev/Styleguide')) : null;
 const ShellPreview = import.meta.env.DEV ? lazy(() => import('@/pages/dev/ShellPreview')) : null;
 
-// Loading fallback component
-const LoadingFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gray-50">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-      <p className="text-gray-600">Loading...</p>
-    </div>
-  </div>
-);
+// Route-chunk loading state (shared PageLoader, token based)
+const LoadingFallback = () => <PageLoader />;
 
 function App() {
   const user = getUser();

@@ -1,69 +1,70 @@
-import { useState } from "react";
+// src/pages/material/indent/components/IndentTable.jsx
+// Rows of the uploaded indent sheet (the columns come from the Excel header), with search, the same alphabetical sort
+// by the first column as before, and client-side paging.
+import { useEffect, useMemo, useState } from "react";
+import { FileSpreadsheet } from "lucide-react";
+import { DataTable } from "@/components/common/DataTable";
+import { EmptyState } from "@/components/common/EmptyState";
+import { FilterBar, FilterField } from "@/components/common/FilterBar";
+import { PaginationBar } from "@/components/common/PaginationBar";
+import { SearchInput } from "@/components/common/SearchInput";
 
 export default function IndentTable({ data }) {
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
-  // Filter and sort data based on search
-  const filteredData = data
-    .filter((row) =>
-      Object.values(row).some((value) =>
-        String(value).toLowerCase().includes(search.toLowerCase())
-      )
-    )
-    .sort((a, b) => {
-      // Sort alphabetically by first column
-      const firstKey = Object.keys(data[0])[0];
-      const aValue = String(a[firstKey] || '').toLowerCase();
-      const bValue = String(b[firstKey] || '').toLowerCase();
-      return aValue.localeCompare(bValue);
-    });
+  const rows = useMemo(() => {
+    if (!data || data.length === 0) return [];
+    const firstKey = Object.keys(data[0])[0];
+    return data
+      .filter((row) => Object.values(row).some((value) => String(value).toLowerCase().includes(search.toLowerCase())))
+      .sort((a, b) => String(a[firstKey] || "").toLowerCase().localeCompare(String(b[firstKey] || "").toLowerCase()));
+  }, [data, search]);
 
-  if (!data || data.length === 0)
-    return <p className="text-gray-500 text-center mt-10">No data found.</p>;
+  useEffect(() => {
+    setPage(1);
+  }, [data, search, pageSize]);
+
+  const columns = useMemo(
+    () => (data && data.length ? Object.keys(data[0]).map((col) => ({ key: col, header: col, cell: (row) => String(row[col] || "-") })) : []),
+    [data],
+  );
+
+  if (!data || data.length === 0) {
+    return <EmptyState icon={FileSpreadsheet} title="No data found" description="This sheet has no rows." />;
+  }
+
+  const totalPages = Math.max(Math.ceil(rows.length / pageSize), 1);
+  const currentPage = Math.min(page, totalPages);
+  const pageRows = rows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
-    <div className="bg-white shadow rounded-lg p-4 overflow-x-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-700">Indent Table</h2>
-        <input
-          type="text"
-          placeholder="Search..."
-          className="border border-gray-300 rounded p-2 w-64 focus:ring-2 focus:ring-orange-400"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      <table className="min-w-full border text-sm">
-        <thead className="bg-orange-100">
-          <tr>
-            {Object.keys(data[0]).map((col) => (
-              <th key={col} className="border px-4 py-2 text-left font-medium text-gray-700">
-                {col}
-              </th>
-            ))}
-          </tr>
-        </thead>
-
-        <tbody>
-          {filteredData.map((row, idx) => (
-            <tr key={idx} className="hover:bg-gray-50">
-              {Object.keys(row).map((col) => {
-                const value = row[col];
-
-               
-
-                // Normal text cell
-                return (
-                  <td key={col} className="border px-4 py-2 text-black">
-                    {String(value || "-")}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <FilterBar onClear={() => setSearch("")} showClear={Boolean(search)}>
+        <FilterField label="Search rows" htmlFor="indent-search" grow={22} minWidth={220}>
+          <SearchInput id="indent-search" value={search} onChange={(e) => setSearch(e.target.value)} onClear={() => setSearch("")} placeholder="Search..." />
+        </FilterField>
+      </FilterBar>
+      <DataTable
+        columns={columns}
+        rows={pageRows}
+        rowKey={(_, i) => String((currentPage - 1) * pageSize + i)}
+        emptyState={<EmptyState icon={FileSpreadsheet} title="No matching rows" description="Try a different search." />}
+        footer={
+          <PaginationBar
+            variant="compact"
+            itemNoun="rows"
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={rows.length}
+            pageSize={pageSize}
+            pageSizeOptions={[25, 50, 100, 200]}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        }
+      />
+    </>
   );
 }

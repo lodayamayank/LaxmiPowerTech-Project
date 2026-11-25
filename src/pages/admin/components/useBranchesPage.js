@@ -153,7 +153,9 @@ export default function useBranchesPage() {
     });
     setSearchInput(branch.address || "");
     if (branch.lat && branch.lng) panTo(branch.lat, branch.lng, 15);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // The page scrolls inside the desktop layout, not the window: bring the form into view and focus the name.
+    document.getElementById('branch-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('branch-name')?.focus({ preventScroll: true });
   };
 
   const handleCancelEdit = () => {
