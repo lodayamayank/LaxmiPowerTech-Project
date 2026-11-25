@@ -4,7 +4,7 @@
 // attachment delete and the add / edit / delete single material flow. Moved unchanged from AdminIntent.jsx;
 // the only changes are the hook wrapper and the delete confirmations, which go through one ConfirmDialog request.
 import { useState, useEffect } from "react";
-import { toast } from 'sonner';
+import { showToast } from '@/lib/showToast';
 import { EVENTS } from '@/lib/events';
 import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
 import { fetchVendorsCached } from '@/hooks/useVendors';
@@ -949,13 +949,6 @@ export default function useAdminIntent() {
   };
 
   // Toast notification helper
-  const showToast = (message, type = 'success') => {
-    if (type === 'success') {
-      toast.success(message);
-    } else {
-      toast.error(message);
-    }
-  };
 
 
   const latestUploadedIndent = indents.find(indent => indent.type === 'indent' && indent.imageUrl);

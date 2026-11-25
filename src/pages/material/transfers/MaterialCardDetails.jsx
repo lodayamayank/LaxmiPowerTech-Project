@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { showToast } from '@/lib/showToast';
+import { toast } from 'sonner';
+import MobilePage from '@/layouts/mobile/MobilePage';
 import { ROUTES } from '@/lib/routes';
 import { FILE_BASE_URL } from '@/api/client';
 import { EVENTS } from '@/lib/events';
@@ -40,18 +43,6 @@ export default function MaterialCardDetails() {
   const [newAttachments, setNewAttachments] = useState([]);
 
   // Toast notification helper - Same as Intent PO
-  const showToast = useCallback((message, type = 'success') => {
-    const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-primary-foreground z-[9999] ${
-      type === 'success' ? 'bg-tone-ok-fg' : 'bg-tone-bad-solid'
-    }`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-      toast.remove();
-    }, 3000);
-  }, []);
 
   const fetchMaterialsAndSites = useCallback(async () => {
     // Independent requests: start both together, then handle each result in order.
@@ -298,11 +289,11 @@ export default function MaterialCardDetails() {
       
       if (response.success) {
         setTransfer(response.data);
-        alert('Attachment deleted successfully');
+        toast.success('Attachment deleted');
       }
     } catch (err) {
       console.error('Error deleting attachment:', err);
-      alert('Failed to delete attachment. Please try again.');
+      toast.error('Couldn’t delete the attachment', { description: 'Check your connection and try again.' });
     } finally {
       setDeletingAttachment(null);
     }
@@ -434,18 +425,10 @@ export default function MaterialCardDetails() {
   // ✅ LOADING SCREEN - MATCHING INTENT PO STYLE (WHITE/LIGHT BACKGROUND)
   if (loading) {
     return (
-      <div className="min-h-screen bg-tone-highlight-soft">
-        <div className="max-w-md mx-auto bg-surface shadow-xl min-h-screen">
-          {/* Header skeleton */}
-          <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
-            <div className="flex flex-col items-center pt-8 space-y-2">
-              <Skeleton className="h-7 w-44 bg-surface/80" />
-              <Skeleton className="h-4 w-28 bg-surface/80" />
-            </div>
-          </div>
+      <MobilePage title="Details" back onBack={() => navigate(-1)}>
 
           {/* Content skeleton */}
-          <div className="px-6 py-6 -mt-4 space-y-4">
+          <div className="flex flex-col gap-3.5 space-y-4">
             <div className="rounded-lg border p-4 space-y-3">
               <Skeleton className="h-5 w-40" />
               <div className="grid grid-cols-2 gap-3">
@@ -461,8 +444,7 @@ export default function MaterialCardDetails() {
               <Skeleton className="h-24 w-full" />
             </div>
           </div>
-        </div>
-      </div>
+</MobilePage>
     );
   }
 
@@ -490,27 +472,10 @@ export default function MaterialCardDetails() {
   // Edit Mode View
   if (editing) {
     return (
-      <div className="min-h-screen bg-tone-highlight-soft">
-      <div className="max-w-md mx-auto bg-surface shadow-xl">
-        {/* Header - Matching Intent PO */}
-        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <Button
-            variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft size={16} />
-            <span className="text-sm font-medium">Back</span>
-          </Button>
-
-          <div className="text-center pt-8">
-            <h1 className="text-primary-foreground text-2xl font-bold mb-2">Transfer Details</h1>
-            <p className="text-primary-foreground/80 text-sm">{transfer.siteTransferId}</p>
-          </div>
-        </div>
+      <MobilePage title="Transfer Details" back onBack={() => navigate(-1)}>
 
         {/* Main Content */}
-        <div className="px-6 py-6 -mt-4 pb-24">
+        <div className="flex flex-col gap-3.5 pb-24">
           <div className="space-y-4">
 
           {/* Basic Information Section - Matching Intent PO Layout */}
@@ -755,35 +720,16 @@ export default function MaterialCardDetails() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+</MobilePage>
     );
   }
 
   // Read-Only View - Matching Intent PO Mobile Layout
   return (
-    <div className="min-h-screen bg-tone-highlight-soft">
-      {/* Container with consistent mobile width - EXACTLY like Intent Details */}
-      <div className="max-w-md mx-auto bg-surface shadow-xl">
-        {/* Header with Gradient - EXACTLY matching Intent PO */}
-        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <Button
-            variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft size={16} />
-            <span className="text-sm font-medium">Back</span>
-          </Button>
-
-          <div className="text-center pt-8">
-            <h1 className="text-primary-foreground text-2xl font-bold mb-2">Transfer Details</h1>
-            <p className="text-primary-foreground/80 text-sm">{transfer.siteTransferId}</p>
-          </div>
-        </div>
+    <MobilePage title="Transfer Details" back onBack={() => navigate(-1)}>
 
         {/* Main Content - EXACTLY matching Intent PO layout */}
-        <div className="px-6 py-6 -mt-4 pb-24">
+        <div className="flex flex-col gap-3.5 pb-24">
           {/* Basic Information Card - Matching Intent Details */}
           <Card className={`${cardClass} mb-4`}>
             <CardContent className="p-4 space-y-3">
@@ -953,7 +899,6 @@ export default function MaterialCardDetails() {
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+</MobilePage>
   );
 }

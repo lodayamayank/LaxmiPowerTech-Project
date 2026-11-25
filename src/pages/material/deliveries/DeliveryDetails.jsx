@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { toast } from 'sonner';
+import MobilePage from '@/layouts/mobile/MobilePage';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Upload, X } from "lucide-react";
 import { upcomingDeliveryAPI } from "@/api/material";
@@ -312,10 +314,14 @@ export default function DeliveryDetails() {
 
       if (response.success) {
         const updatedStatus = response.data?.status || "Pending";
-        alert(
-          updatedStatus === "Transferred"
-            ? "Delivery completed and moved to GRN."
-            : "Partial delivery saved. Remaining quantity will stay in Upcoming Deliveries."
+        toast.success(
+          updatedStatus === "Transferred" ? "Delivery completed" : "Partial delivery saved",
+          {
+            description:
+              updatedStatus === "Transferred"
+                ? "Moved to GRN."
+                : "The remaining quantity stays in Upcoming deliveries.",
+          }
         );
         navigate(-1);
       } else {
@@ -346,29 +352,9 @@ export default function DeliveryDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-tone-highlight-soft">
-      <div className="max-w-md mx-auto bg-surface shadow-xl">
-        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <Button
-            variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto rounded-full border border-white/70 bg-surface px-3 py-1.5 text-sm font-medium text-tone-highlight-fg shadow-sm hover:bg-tone-highlight-soft hover:text-primary-strong"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft size={16} />
-            <span className="text-sm font-medium">Back</span>
-          </Button>
+    <MobilePage title="Delivery Details" back onBack={() => navigate(-1)}>
 
-          <div className="text-center pt-8">
-            <h1 className="text-primary-foreground text-2xl font-bold mb-2">
-              Delivery Details
-            </h1>
-            <p className="text-primary-foreground/80 text-sm">
-              {deliveryType} - {deliveryId}
-            </p>
-          </div>
-        </div>
-
-        <div className="px-6 py-6 -mt-4 pb-24">
+        <div className="flex flex-col gap-3.5 pb-24">
           <div className="space-y-4">
             {validationError && (
               <div className="bg-tone-bad-soft border-2 border-tone-bad-border rounded-lg p-4 flex items-start gap-3">
@@ -716,7 +702,6 @@ export default function DeliveryDetails() {
             )}
           </div>
         </div>
-      </div>
-    </div>
+</MobilePage>
   );
 }

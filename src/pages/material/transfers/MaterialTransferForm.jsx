@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { showToast } from '@/lib/showToast';
+import MobilePage from '@/layouts/mobile/MobilePage';
 import { ROUTES } from '@/lib/routes';
 import { getUser } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
@@ -425,19 +427,6 @@ export default function MaterialTransferForm() {
   };
 
   // Toast notification helper
-  const showToast = (message, type = 'success') => {
-    // Simple toast implementation - you can replace with a library like react-toastify
-    const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-primary-foreground z-[9999] ${
-      type === 'success' ? 'bg-tone-ok-fg' : 'bg-tone-bad-solid'
-    }`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-      toast.remove();
-    }, 3000);
-  };
 
   // Validate form
   const validateForm = () => {
@@ -554,28 +543,10 @@ export default function MaterialTransferForm() {
   };
 
   return (
-    <div className="min-h-screen bg-tone-highlight-soft">
-      {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
-        {/* Header with Orange Gradient - Same as Intent PO */}
-        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <button
-            className="mobile-back-button absolute top-6 left-6"
-            onClick={() => navigate(ROUTES.material.transfer)}
-            disabled={submitting}
-          >
-            <ArrowLeft size={16} />
-            <span className="text-sm font-medium">Back</span>
-          </button>
-
-          <div className="text-center pt-8">
-            <h1 className="text-primary-foreground text-2xl font-bold mb-2">Create Site Transfer</h1>
-            <p className="text-primary-foreground/80 text-sm">Fill in the details below</p>
-          </div>
-        </div>
+    <MobilePage title="Create Site Transfer" back onBack={() => navigate(ROUTES.material.transfer)}>
 
         {/* Main Content */}
-        <div className="px-6 py-6 -mt-4">
+        <div className="flex flex-col gap-3.5">
           {/* Form Content */}
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Transfer Information Section */}
@@ -984,16 +955,6 @@ export default function MaterialTransferForm() {
             </div>
           </form>
         </div>
-
-        {/* Footer */}
-        <div className="px-6 pb-6 pt-2">
-          <div className="text-center">
-            <p className="text-xs text-ink-4">
-              Powered by Laxmi Power Tech
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+</MobilePage>
   );
 }

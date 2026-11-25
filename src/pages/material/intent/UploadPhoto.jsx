@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import MobilePage from '@/layouts/mobile/MobilePage';
 import { ArrowLeft, Camera, CircleCheck } from 'lucide-react';
 import { ROUTES } from '@/lib/routes';
 import { getUser } from '@/lib/session';
@@ -170,29 +171,10 @@ export default function UploadPhoto() {
   };
 
   return (
-    <div className="min-h-screen bg-tone-highlight-soft">
-      {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
-        {/* Header with Gradient */}
-        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <Button
-            type="button"
-            variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto"
-            onClick={() => navigate(ROUTES.material.intent)}
-          >
-            <ArrowLeft size={16} />
-            <span className="text-sm font-medium">Back</span>
-          </Button>
-
-          <div className="text-center pt-8">
-            <h1 className="text-primary-foreground text-2xl font-bold mb-2">Upload Intent List</h1>
-            <p className="text-primary-foreground/80 text-sm">{user?.name || 'User'}</p>
-          </div>
-        </div>
+    <MobilePage title="Upload Intent List" back onBack={() => navigate(ROUTES.material.intent)}>
 
         {/* Main Content */}
-        <div className="px-6 py-6 -mt-4">
+        <div className="flex flex-col gap-3.5">
           {/* Intent ID Input */}
           <div className="mb-6">
             <Label htmlFor="upload-photo-intent-id" className="block text-base text-ink-2 font-semibold leading-normal mb-2">Intent ID (Auto-generated)</Label>
@@ -314,16 +296,6 @@ export default function UploadPhoto() {
             )}
           </Button>
         </div>
-
-        {/* Footer */}
-        <div className="px-6 pb-6 pt-2">
-          <div className="text-center">
-            <p className="text-xs text-ink-4">
-              Powered by Laxmi Power Tech
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+</MobilePage>
   );
 }

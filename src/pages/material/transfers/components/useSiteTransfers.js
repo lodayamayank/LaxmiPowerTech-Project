@@ -3,6 +3,7 @@
 // approve-then-sync flow), delete transfer / attachment. Moved unchanged from AdminSiteTransfer.jsx; only the DOM
 // toast became a sonner toast and the two window.confirm prompts became a ConfirmDialog request.
 import { useState, useEffect } from "react";
+import { showToast } from '@/lib/showToast';
 import { toast } from "sonner";
 import { EVENTS } from '@/lib/events';
 import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
@@ -386,10 +387,6 @@ export default function useSiteTransfers() {
   };
 
   // ==================== UTILITY FUNCTIONS ====================
-  const showToast = (message, type = 'success') => {
-    if (type === 'error') toast.error(message);
-    else toast.success(message);
-  };
 
   // ==================== CONFIRMATIONS (replace the old window.confirm prompts) ====================
   // confirm: { kind: "transfer", id, label } | { kind: "attachment", index } | null

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { showToast } from '@/lib/showToast';
+import MobilePage from '@/layouts/mobile/MobilePage';
 import { ROUTES } from '@/lib/routes';
 import { EVENTS } from '@/lib/events';
 import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
@@ -280,19 +282,6 @@ export default function IntentCardDetails() {
   };
 
   // Toast notification helper
-  const showToast = (message, type = 'success') => {
-    const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-primary-foreground z-[9999] transition-opacity ${
-      type === 'success' ? 'bg-tone-ok-fg' : 'bg-tone-bad-solid'
-    }`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      setTimeout(() => toast.remove(), 300);
-    }, 3000);
-  };
 
   const handleSaveChanges = async () => {
     try {
@@ -497,18 +486,10 @@ export default function IntentCardDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-tone-highlight-soft">
-        <div className="max-w-md mx-auto bg-surface shadow-xl min-h-screen">
-          {/* Header skeleton */}
-          <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
-            <div className="flex flex-col items-center pt-8 space-y-2">
-              <Skeleton className="h-7 w-40 bg-surface/80" />
-              <Skeleton className="h-4 w-28 bg-surface/80" />
-            </div>
-          </div>
+      <MobilePage title="Details" back onBack={() => navigate(-1)}>
 
           {/* Content skeleton */}
-          <div className="px-6 py-6 -mt-4 space-y-4">
+          <div className="flex flex-col gap-3.5 space-y-4">
             <div className="rounded-lg border p-4 space-y-3">
               <Skeleton className="h-5 w-40" />
               <div className="grid grid-cols-2 gap-3">
@@ -525,8 +506,7 @@ export default function IntentCardDetails() {
               <Skeleton className="h-24 w-full" />
             </div>
           </div>
-        </div>
-      </div>
+</MobilePage>
     );
   }
 
@@ -568,28 +548,10 @@ export default function IntentCardDetails() {
   };
 
   return (
-    <div className="min-h-screen bg-tone-highlight-soft">
-      {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto bg-surface shadow-xl">
-        {/* Header with Gradient */}
-        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <Button
-            variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft size={16} />
-            <span className="text-sm font-medium">Back</span>
-          </Button>
-
-          <div className="text-center pt-8">
-            <h1 className="text-primary-foreground text-2xl font-bold mb-2">Intent Details</h1>
-            <p className="text-primary-foreground/80 text-sm">{itemType === 'indent' ? indent.indentId : purchaseOrder.purchaseOrderId}</p>
-          </div>
-        </div>
+    <MobilePage title="Intent Details" back onBack={() => navigate(-1)}>
 
         {/* Main Content */}
-        <div className="px-6 py-6 -mt-4 pb-24">
+        <div className="flex flex-col gap-3.5 pb-24">
           <div className="space-y-4">
         {/* Basic Info Card */}
         <Card className={cardClass}>
@@ -1111,7 +1073,6 @@ export default function IntentCardDetails() {
           )}
         </div>
       </div>
-      </div>
-    </div>
+</MobilePage>
   );
 }

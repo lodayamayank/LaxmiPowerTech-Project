@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { showToast } from '@/lib/showToast';
+import MobilePage from '@/layouts/mobile/MobilePage';
 import { ArrowLeft } from 'lucide-react';
 import { FILE_BASE_URL } from '@/api/client';
 import { EVENTS } from '@/lib/events';
@@ -166,19 +168,6 @@ export default function DeliveryChecklist() {
     };
 
     // Toast notification helper
-    const showToast = (message, type = 'success') => {
-        const toast = document.createElement('div');
-        toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-primary-foreground z-[9999] transition-opacity ${
-            type === 'success' ? 'bg-tone-ok-fg' : 'bg-tone-bad-solid'
-        }`;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    };
 
     const handleSubmit = async () => {
         const errors = {};
@@ -311,28 +300,10 @@ export default function DeliveryChecklist() {
     }
 
     return (
-        <div className="min-h-screen bg-tone-highlight-soft">
-            {/* Container with consistent mobile width */}
-            <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
-                {/* Header with Gradient */}
-                <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-                    <Button
-                        variant="ghost"
-                        onClick={() => navigate(-1)}
-                        className="mobile-back-button absolute top-6 left-6 text-primary-foreground hover:bg-primary-strong"
-                    >
-                        <ArrowLeft size={16} />
-                        <span className="text-sm font-medium">Back</span>
-                    </Button>
-
-                    <div className="text-center pt-8">
-                        <h1 className="text-primary-foreground text-2xl font-bold mb-2">Delivery Checklist</h1>
-                        <p className="text-primary-foreground/80 text-sm">{delivery.transfer_number}</p>
-                    </div>
-                </div>
+        <MobilePage title="Delivery Checklist" back onBack={() => navigate(-1)}>
 
                 {/* Main Content */}
-                <div className="px-6 py-6 -mt-4 pb-24">
+                <div className="flex flex-col gap-3.5 pb-24">
                     {/* Info Card - Fixed Colors */}
                     <div className="bg-surface rounded-xl shadow-md border-2 border-line-card p-4 space-y-3 mb-4">
                         <div className="grid grid-cols-2 gap-3">
@@ -606,8 +577,6 @@ export default function DeliveryChecklist() {
                     </Button>
                     </div>
                 </div>
-
-            </div>
-        </div>
+</MobilePage>
     );
 }

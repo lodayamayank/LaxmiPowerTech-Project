@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { showToast } from '@/lib/showToast';
+import MobilePage from '@/layouts/mobile/MobilePage';
 import { ArrowLeft } from 'lucide-react';
 import { ROUTES } from '@/lib/routes';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -45,19 +47,6 @@ export default function GRNCardDetails() {
     }
   };
 
-  const showToast = (message, type = 'success') => {
-    const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-primary-foreground z-[9999] transition-opacity ${
-      type === 'success' ? 'bg-tone-ok-fg' : 'bg-tone-bad-solid'
-    }`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      setTimeout(() => toast.remove(), 300);
-    }, 3000);
-  };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -91,19 +80,10 @@ export default function GRNCardDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-tone-highlight-soft">
-        <div className="max-w-md mx-auto bg-surface shadow-xl min-h-screen">
-          {/* Header skeleton */}
-          <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
-            <div className="flex flex-col items-center pt-8 space-y-2">
-              <Skeleton className="h-7 w-40 bg-surface/80" />
-              <Skeleton className="h-4 w-28 bg-surface/80" />
-              <Skeleton className="h-3 w-24 bg-surface/80" />
-            </div>
-          </div>
+      <MobilePage title="Details" back onBack={() => navigate(-1)}>
 
           {/* Content skeleton */}
-          <div className="px-6 py-6 -mt-4 space-y-4">
+          <div className="flex flex-col gap-3.5 space-y-4">
             <div className="rounded-lg border p-4 space-y-3">
               <Skeleton className="h-5 w-32" />
               <div className="grid grid-cols-2 gap-3">
@@ -125,8 +105,7 @@ export default function GRNCardDetails() {
               <Skeleton className="h-20 w-full" />
             </div>
           </div>
-        </div>
-      </div>
+</MobilePage>
     );
   }
 
@@ -151,34 +130,10 @@ export default function GRNCardDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-tone-highlight-soft">
-      {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto bg-surface shadow-xl min-h-screen">
-        {/* Header with Gradient */}
-        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <Button
-            variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft size={16} />
-            <span className="text-sm font-medium">Back</span>
-          </Button>
-
-          <div className="text-center pt-8">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <CheckCircle size={24} className="text-primary-foreground" />
-              <h1 className="text-primary-foreground text-2xl font-bold">GRN Details</h1>
-            </div>
-            <p className="text-primary-foreground/90 text-sm font-medium">{delivery.transfer_number || delivery.st_id}</p>
-            <p className="text-primary-foreground/70 text-xs mt-1">
-              {delivery.type === 'PO' ? '📋 Vendor-wise PO' : '🚚 Site Transfer'}
-            </p>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="px-6 py-6 -mt-4 pb-24">
+    <>
+    <MobilePage title="GRN details" back onBack={() => navigate(-1)}>
+      <p className="-mb-1 text-small text-ink-3">{delivery.transfer_number || delivery.st_id} &middot; {delivery.type === 'PO' ? 'Vendor-wise PO' : 'Site transfer'}</p>
+        <div className="flex flex-col gap-3.5">
           <div className="space-y-4">
             {/* GRN Summary Card */}
             <Card className={cardClass}>
@@ -434,7 +389,7 @@ export default function GRNCardDetails() {
             </Card>
           </div>
         </div>
-      </div>
+    </MobilePage>
 
       {/* Full-Size Image Modal */}
       {showImageModal && selectedImage && (
@@ -476,6 +431,6 @@ export default function GRNCardDetails() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

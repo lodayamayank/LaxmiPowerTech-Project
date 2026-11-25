@@ -4,6 +4,7 @@
 // Moved unchanged from AdminUpcomingDeliveries.jsx; only the DOM toast became a sonner toast, the alert() a toast
 // and the two window.confirm prompts a ConfirmDialog request.
 import { useState, useEffect, useRef } from "react";
+import { showToast } from '@/lib/showToast';
 import { toast } from "sonner";
 import { EVENTS } from '@/lib/events';
 import { fetchBranchesCached } from '@/hooks/useBranches';
@@ -326,10 +327,6 @@ export default function useAdminDeliveries() {
   };
 
   // Toast helper (sonner)
-  const showToast = (message, type = 'success') => {
-    if (type === 'error') toast.error(message);
-    else toast.success(message);
-  };
 
   // ✅ UPLOAD DELIVERY RECEIPT IMAGES
   const handleUploadReceipts = async (files) => {
