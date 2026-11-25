@@ -24,7 +24,7 @@ const FALLBACK_DELAY_MS = 30000;
 
 // Gate debug logs so they don't ship to prod consoles (and don't leak
 // user id / location / timestamps to anyone with devtools open).
-const isDev = process.env.NODE_ENV !== "production";
+const isDev = !import.meta.env.PROD;
 const devLog = (...args) => { if (isDev) console.log(...args); };
 
 // localStorage can contain a corrupted/partial value (old app version,

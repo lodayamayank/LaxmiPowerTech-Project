@@ -7,7 +7,6 @@ import { ArrowLeft, X, Upload, ChevronDown } from 'lucide-react';
 import { purchaseOrderAPI } from '@/api/material';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
-import axios from '@/api/client';
 import { getSelectedBranchName } from '@/lib/branchContext';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -114,13 +113,12 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
 
 export default function IntentForm() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   
   // Get logged-in user from localStorage
   const user = (getUser() || {});
   const userName = user?.name || '';
-  const userId = user?._id || user?.id || '';
   
   // Auto-resolve delivery site from already-selected project/branch
   const selectedBranchName = getSelectedBranchName() || '';

@@ -115,7 +115,12 @@ import MobileBackButton from "@/layouts/mobile/MobileBackButton";
       const formData = new FormData();
       
       // Add items without files
-      const itemsData = items.map(({ receipts, receiptPreviews, ...item }) => item);
+      const itemsData = items.map((item) => {
+        const rest = { ...item };
+        delete rest.receipts;
+        delete rest.receiptPreviews;
+        return rest;
+      });
       formData.append("items", JSON.stringify(itemsData));
       formData.append("note", note);
       

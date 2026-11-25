@@ -136,7 +136,7 @@ export default function useBranchesPage() {
       });
       toast.success("Branch deleted");
       queryClient.invalidateQueries({ queryKey: BRANCHES_KEY });
-    } catch (e) {
+    } catch {
       toast.error("Failed to delete branch");
     }
     setDeleteId(null);

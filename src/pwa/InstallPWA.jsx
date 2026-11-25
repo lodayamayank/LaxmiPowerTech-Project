@@ -40,7 +40,7 @@ const InstallPWA = () => {
     if (!deferredPrompt) return;
 
     deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    await deferredPrompt.userChoice;
     
     setDeferredPrompt(null);
     setShowInstall(false);

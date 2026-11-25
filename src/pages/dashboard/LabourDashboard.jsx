@@ -56,7 +56,7 @@ const LabourDashboard = () => {
         // API returned but no name
         setProjectName('Project');
       }
-    } catch (err) {
+    } catch {
       // API failed - show generic fallback
       console.warn('Could not fetch branch name, using fallback');
       setProjectName('Selected Project');

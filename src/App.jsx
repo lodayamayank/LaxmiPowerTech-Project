@@ -107,7 +107,7 @@ const LoadingFallback = () => (
 
 function App() {
   const user = getUser();
-  const notifier = useNotifier();
+  useNotifier();
 
   useEffect(() => {
     // The sync engine owns the 'online' listener for the whole app – screens

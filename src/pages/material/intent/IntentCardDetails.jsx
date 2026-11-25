@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ROUTES } from '@/lib/routes';
-import { getUser } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
 import { fetchBranchesCached } from '@/hooks/useBranches';
@@ -8,7 +7,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit2, Save, X, Trash2, Upload, ChevronDown } from 'lucide-react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { purchaseOrderAPI, indentAPI } from '@/api/material';
-import axios from '@/api/client';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Accordion,
@@ -214,7 +212,7 @@ export default function IntentCardDetails() {
           setLoading(false);
           return;
         }
-      } catch (poErr) {
+      } catch {
         console.log('Not a PurchaseOrder, trying Indent...');
       }
       
@@ -276,7 +274,7 @@ export default function IntentCardDetails() {
       localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
       
       navigate(ROUTES.material.intent);
-    } catch (err) {
+    } catch {
       // Error deleting purchase order
       showToast('Failed to delete purchase order', 'error');
     }
@@ -497,8 +495,6 @@ export default function IntentCardDetails() {
         .filter(Boolean)
     )].sort((a, b) => a.localeCompare(b));
   };
-
-  const user = (getUser() || {});
 
   if (loading) {
     return (

@@ -61,7 +61,7 @@ const SalaryPolicyPage = () => {
         sunday: res.data.sundayHolidayExcludedRoles || [],
         overtime: res.data.overtimeEligibleRoles || [],
       });
-    } catch (err) {
+    } catch {
       toast.error('Failed to load salary policy');
     } finally {
       setLoading(false);
@@ -88,7 +88,7 @@ const SalaryPolicyPage = () => {
       });
       toast.success('Salary policy saved');
       setSaved({ holiday: holidayRoles, sunday: sundayExcludedRoles, overtime: overtimeRoles });
-    } catch (err) {
+    } catch {
       toast.error('Failed to save salary policy');
     } finally {
       setSaving(false);

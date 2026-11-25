@@ -42,7 +42,7 @@ export default function DeliveryChecklist() {
                 })));
                 setReceiptAttachmentsForSubmission([]);
             }
-        } catch (err) {
+        } catch {
             // Error fetching delivery details
             setError("Failed to load delivery details");
         } finally {

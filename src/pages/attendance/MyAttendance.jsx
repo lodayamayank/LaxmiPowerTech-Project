@@ -543,7 +543,8 @@ const MyAttendance = () => {
 
 // --- Helper Components ---
 
-function StatCard({ icon: Icon, label, count, color }) {
+function StatCard({ icon, label, count, color }) {
+  const Icon = icon;
   const colors = {
     green: "from-green-400 to-green-500",
     yellow: "from-yellow-400 to-yellow-500",

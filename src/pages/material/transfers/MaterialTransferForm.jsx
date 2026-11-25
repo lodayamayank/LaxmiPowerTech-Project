@@ -131,7 +131,7 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
 
 export default function MaterialTransferForm() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   
   // Get logged-in user from localStorage
@@ -163,8 +163,6 @@ export default function MaterialTransferForm() {
   const [toSites, setToSites] = useState([]);
   
   // Search state for filtering materials in dropdowns
-  const [categorySearch, setCategorySearch] = useState('');
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   // ✅ FETCH GRN MATERIALS WHEN FROM SITE CHANGES
   useEffect(() => {

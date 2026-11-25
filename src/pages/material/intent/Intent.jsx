@@ -149,8 +149,8 @@ export default function Intent({ isTabView = false }) {
       // ✅ CRITICAL FIX: Fetch BOTH Indents (photo) AND Purchase Orders (manual form)
       // This matches AdminIntent.jsx logic exactly
       const [indentsResponse, purchaseOrdersResponse] = await Promise.all([
-        indentAPI.getAll(1, 100).catch(err => ({ success: false, data: [] })),
-        purchaseOrderAPI.getAll(1, 100).catch(err => ({ success: false, data: [] }))
+        indentAPI.getAll(1, 100).catch(() => ({ success: false, data: [] })),
+        purchaseOrderAPI.getAll(1, 100).catch(() => ({ success: false, data: [] }))
       ]);
       
       // Combine both types of data

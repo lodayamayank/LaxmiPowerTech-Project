@@ -75,7 +75,7 @@ const HolidayCalendar = () => {
     try {
       const res = await axios.get("/holidays", { params: { year } });
       setHolidays(res.data || []);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load holidays");
     } finally {
       setLoading(false);
@@ -131,7 +131,7 @@ const HolidayCalendar = () => {
      await axios.delete(`/holidays/${id}`);
      toast.success(`"${name}" deactivated`);
      fetchHolidays();
-   } catch (err) {
+   } catch {
      toast.error("Failed to deactivate holiday");
    }
  };
@@ -141,7 +141,7 @@ const HolidayCalendar = () => {
       await axios.patch(`/holidays/${id}/restore`);
       toast.success(`"${name}" restored`);
       fetchHolidays();
-    } catch (err) {
+    } catch {
       toast.error("Failed to restore holiday");
     }
   };

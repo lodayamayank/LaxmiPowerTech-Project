@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
-export default function AddIndentPopup({ onClose, onUploadClick }) {
+export default function AddIndentPopup({ onClose }) {
   // const popupRef = useRef(null);
   const navigate = useNavigate();
 
