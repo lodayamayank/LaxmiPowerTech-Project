@@ -4,7 +4,10 @@ import { Check, ChevronRight, Circle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const DropdownMenu = DropdownMenuPrimitive.Root
+// Non-modal by default. A modal menu that opens a Dialog/AlertDialog from an item's onSelect (row actions such as
+// "Reset password", "Delete") races with the dialog's own body lock: when both close, `body { pointer-events: none }`
+// can be left behind and the whole page stops responding to clicks. Callers may still pass `modal`.
+const DropdownMenu = (props) => <DropdownMenuPrimitive.Root modal={false} {...props} />
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
 
