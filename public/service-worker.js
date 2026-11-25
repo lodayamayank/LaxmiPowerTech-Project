@@ -1,5 +1,7 @@
-const STATIC_CACHE = 'lpt-static-v2';
-const API_CACHE = 'lpt-api-v2';
+// v3: the static cache is only cache-first for content-hashed build files now; bumping the names clears what older
+// versions stored (they cached un-hashed files such as dev-server modules and served them stale forever).
+const STATIC_CACHE = 'lpt-static-v3';
+const API_CACHE = 'lpt-api-v3';
 const CACHE_NAMES = [STATIC_CACHE, API_CACHE];
 
 const urlsToCache = [
@@ -110,19 +112,35 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ─── Static assets: Cache first, network fallback ───
+  // ─── Static assets ───
+  // Build files in /assets/ have a content hash in their name, so a cached copy can never be stale: cache first.
+  // Everything else (icons, un-hashed files, dev-server modules) is network first so an update is never hidden
+  // behind an old cached copy; the cache is only the offline fallback.
+  const url = new URL(request.url);
+  if (url.pathname.startsWith('/assets/')) {
+    event.respondWith(
+      caches.match(request).then(cached => {
+        if (cached) return cached;
+        return fetch(request).then(response => {
+          if (!response || response.status !== 200) return response;
+          const clone = response.clone();
+          caches.open(STATIC_CACHE).then(cache => cache.put(request, clone));
+          return response;
+        }).catch(() => new Response('', { status: 503 }));
+      })
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(request).then(cached => {
-      if (cached) return cached;
-      return fetch(request).then(response => {
-        if (!response || response.status !== 200) return response;
-        const clone = response.clone();
-        caches.open(STATIC_CACHE).then(cache => cache.put(request, clone));
+    fetch(request)
+      .then(response => {
+        if (response && response.status === 200 && !url.pathname.startsWith('/src/') && !url.pathname.startsWith('/node_modules/') && !url.pathname.startsWith('/@')) {
+          const clone = response.clone();
+          caches.open(STATIC_CACHE).then(cache => cache.put(request, clone));
+        }
         return response;
-      }).catch(() => {
-        // Offline with no cache – return nothing
-        return new Response('', { status: 503 });
-      });
-    })
+      })
+      .catch(() => caches.match(request).then(cached => cached || new Response('', { status: 503 })))
   );
 });

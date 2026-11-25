@@ -1,4 +1,15 @@
 export function register() {
+    // In development there is no service worker. If one was installed earlier on this origin by a production build
+    // (same localhost port), remove it and its caches, otherwise it keeps serving stale files to this browser profile.
+    if (import.meta.env.DEV && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        if (!regs.length) return;
+        Promise.all(regs.map((r) => r.unregister()))
+          .then(() => (window.caches ? caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))) : null))
+          .then(() => window.location.reload());
+      }).catch(() => {});
+    }
+
     // Only register in production to avoid dev console warnings
     if (import.meta.env.PROD && 'serviceWorker' in navigator) {
       window.addEventListener('load', () => {
