@@ -1,5 +1,6 @@
 // src/utils/axios.js
 import axios from 'axios';
+import { toast } from 'sonner';
 import { ROUTES } from '@/lib/routes';
 import { clearSession, getToken } from '@/lib/session';
 
@@ -42,13 +43,20 @@ instance.interceptors.request.use(
   }
 );
 
-// Response interceptor
+// Response interceptor: central handling of authentication and authorization failures.
+// The API is the security boundary; the UI only reacts to what the server says.
+//  - 401 = not authenticated (missing, expired or invalid token): clear the session and go back to /login.
+//  - 403 = authenticated but not allowed: keep the session, show one shared notice (de-duplicated by id).
+// In both cases the rejection still reaches the caller, so each page keeps its own error handling.
 instance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    if (status === 401) {
       clearSession({ all: true });
       window.location.href = ROUTES.login;
+    } else if (status === 403) {
+      toast.error("You don't have permission to do this.", { id: 'api-forbidden' });
     }
     return Promise.reject(error);
   }

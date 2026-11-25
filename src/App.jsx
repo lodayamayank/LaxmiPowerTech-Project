@@ -139,242 +139,6 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/my-attendance" element={<MyAttendance />} />
-          <Route path="/admin/my-team" element={<AdminMyTeam />} />
-          <Route path="/admin/my-team/:userId" element={<MemberProfile />} />
-          <Route path="/admin/my-team/:userId/edit" element={<MemberEdit />} />
-          <Route path="/admin/my-team/new" element={<AddEmployee />} />
-          <Route path="/admin/projects" element={<CreateProject />} />
-          <Route
-            path="/admin/attendance/Supervisor"
-            element={<AdminAttendance role="supervisor" />}
-          />
-          <Route
-            path="/admin/attendance/labour"
-            element={<AdminAttendance role="labour" />}
-          />
-          <Route
-            path="/admin/attendance/subcontractor"
-            element={<AdminAttendance role="subcontractor" />}
-          />
-          <Route
-            path="/admin/attendance/delete"
-            element={<AdminDeleteAttendance />}
-          />
-          <Route path="/dashboard/vendors" element={<AdminVendors />} />
-          <Route path="/dashboard/attendance" element={<AttendancePage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <RoleBasedDashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/projects/:projectId/documents"
-            element={
-              <PrivateRoute>
-                <ProjectDocuments />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/documents"
-            element={
-              <PrivateRoute>
-                <DocumentsRedirect />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/punch"
-            element={
-              <PrivateRoute>
-                <PunchInScreen user={user} />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/selfie"
-            element={
-              <PrivateRoute>
-                <SelfieCaptureScreen user={user} />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/dashboard/branches"
-            element={
-              <PrivateRoute>
-                <AdminBranches />
-              </PrivateRoute>
-            }
-          />
-          <Route path="/profile" element={<ProfileScreen />} />
-          <Route
-            path="/dashboard/live-attendance"
-            element={<AdminLiveAttendance />}
-          />
-          <Route
-            path="/attendance/supervisor"
-            element={<SupervisorAttendanceDashboard />}
-          />
-          <Route
-            path="/attendance/subcontractor"
-            element={<SubcontractorAttendanceDashboard />}
-          />
-          <Route
-            path="/attendance/labour"
-            element={<LabourAttendanceDashboard />}
-          />
-          <Route path="/attendance/notes" element={<NotesDashboard />} />
-          <Route path="/leaves" element={<Leaves />} />
-          <Route path="/attendance/leaves" element={<AdminLeaves />} />
-          <Route path="/reimbursements" element={<MyReimbursements />} />
-          <Route path="/reimbursements/new" element={<CreateReimbursement />} />
-          <Route
-            path="/admin/reimbursements"
-            element={<AdminReimbursements />}
-          />
-          {/* Supervisor/Subcontractor Routes */}
-          <Route
-            path="/supervisor/projects"
-            element={<SupervisorProjectList />}
-          />
-          <Route
-            path="/supervisor/project/:projectId/documents"
-            element={
-              <PrivateRoute>
-                <SupervisorProjectDocuments />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/branch/:branchId/labour-dashboard"
-            element={<LabourDashboard />}
-          />
-          <Route path="/branch/:branchId/tasks" element={<TaskSubmission />} />
-          <Route
-            path="/branch/:branchId/labours"
-            element={<SupervisorLabourList />}
-          />
-          <Route
-            path="/branch/:branchId/labours/add"
-            element={<SupervisorAddLabour />}
-          />
-          <Route
-            path="/branch/:branchId/labours/:labourId"
-            element={<SupervisorLabourDetails />}
-          />
-          <Route
-            path="/branch/:branchId/team-attendance"
-            element={<TeamAttendance />}
-          />
-          {/* Admin Dashboard Route */}
-          <Route path="/admindashboard" element={<AdminDashboard />} />
-          {/* Client-Side Material Routes */}
-          <Route
-            path="/material/intent"
-            element={<Material activeTab="intent" />}
-          />
-          <Route path="/material/intent/new" element={<IntentForm />} />
-          <Route path="/material/intent/:id" element={<IntentCardDetails />} />
-          <Route
-            path="/material/intent-details/:id"
-            element={<IntentCardDetails />}
-          />
-          <Route path="/material/upload-photo" element={<UploadPhoto />} />
-          <Route
-            path="/material/transfer"
-            element={<Material activeTab="transfer" />}
-          />
-          <Route
-            path="/material/transfer/new"
-            element={<MaterialTransferForm />}
-          />
-          <Route
-            path="/material/transfer/:id"
-            element={<MaterialCardDetails />}
-          />
-          <Route
-            path="/material/deliveries"
-            element={<Material activeTab="deliveries" />}
-          />
-          <Route path="/material/grn" element={<Material activeTab="grn" />} />
-          <Route path="/material/grn/:id" element={<GRNCardDetails />} />
-          {/* Material Management Routes - Following existing flat route pattern */}
-          <Route
-            path="/dashboard/material/uploadindent"
-            element={<UploadIndent />}
-          />
-          <Route
-            path="/dashboard/material/upload-indent"
-            element={<UploadIndent />}
-          />
-          <Route
-            path="/dashboard/material/site-transfers"
-            element={<AdminSiteTransfer />}
-          />
-          <Route
-            path="/dashboard/material/upcoming-deliveries"
-            element={<AdminUpcomingDeliveries />}
-          />
-          <Route path="/dashboard/material/intent" element={<AdminIntent />} />
-          <Route path="/dashboard/material/grn" element={<AdminGRN />} />
-          <Route
-            path="/dashboard/material/transfer/new"
-            element={<MaterialTransferForm />}
-          />
-          <Route
-            path="/dashboard/material/intent/new"
-            element={<IntentForm />}
-          />
-          <Route
-            path="/dashboard/material/transfer/:id"
-            element={<MaterialCardDetails />}
-          />
-          <Route
-            path="/dashboard/material/intent/:id"
-            element={<IntentCardDetails />}
-          />
-          <Route
-            path="/dashboard/material/deliveries/:id"
-            element={<DeliveryDetails />}
-          />
-          <Route
-            path="/dashboard/material/delivery-checklist/:id"
-            element={<DeliveryChecklist />}
-          />
-          <Route
-            path="/dashboard/material/upload-photo"
-            element={<UploadPhoto />}
-          />
-          {/* Salary Management Routes */}
-          <Route path="/admin/salary" element={<SalaryDashboard />} />
-          <Route path="/admin/salary-history" element={<SalaryHistory />} />
-          <Route path="/admin/holidays" element={<HolidayCalendar />} />
-          <Route path="/admin/salary-policy" element={<SalaryPolicyPage />} />
-          {/* Task Management Routes */}
-          <Route path="/admin/tasks" element={<AdminTasks />} />
-          {/* Work Order Management Routes */}
-          <Route path="/dashboard/work-orders" element={<ManageWorkOrder />} />
-          {/* Reports */}
-          <Route path="/dashboard/report" element={<AdminReports />} />
-          {/* Inventory */}
-          <Route
-            path="/dashboard/inventory/labour/manage"
-            element={<ManageInventoryLabour />}
-          />
-          {/* Transfers */}
-          <Route path="/admin/transfers" element={<AdminTransfers />} />
-          <Route path="/material/my-indents" element={<MobileMyIndents />} />
-          <Route
-            path="/material/transfer-mobile"
-            element={<MaterialTransferMobile />}
-          />
           {/* Dev-only */}
           {import.meta.env.DEV && Styleguide && (
             <Route path="/styleguide" element={<Styleguide />} />
@@ -382,8 +146,233 @@ function App() {
           {import.meta.env.DEV && ShellPreview && (
             <Route path="/styleguide/shell" element={<ShellPreview />} />
           )}
-          {/* Offline Sync */}
-          <Route path="/connect-server" element={<ConnectServer />} />
+          {/* Every route below needs a signed-in session (PrivateRoute redirects to /login at once). No role checks yet. */}
+          <Route element={<PrivateRoute />}>
+            <Route path="/my-attendance" element={<MyAttendance />} />
+            <Route path="/admin/my-team" element={<AdminMyTeam />} />
+            <Route path="/admin/my-team/:userId" element={<MemberProfile />} />
+            <Route path="/admin/my-team/:userId/edit" element={<MemberEdit />} />
+            <Route path="/admin/my-team/new" element={<AddEmployee />} />
+            <Route path="/admin/projects" element={<CreateProject />} />
+            <Route
+              path="/admin/attendance/Supervisor"
+              element={<AdminAttendance role="supervisor" />}
+            />
+            <Route
+              path="/admin/attendance/labour"
+              element={<AdminAttendance role="labour" />}
+            />
+            <Route
+              path="/admin/attendance/subcontractor"
+              element={<AdminAttendance role="subcontractor" />}
+            />
+            <Route
+              path="/admin/attendance/delete"
+              element={<AdminDeleteAttendance />}
+            />
+            <Route path="/dashboard/vendors" element={<AdminVendors />} />
+            <Route path="/dashboard/attendance" element={<AttendancePage />} />
+            <Route
+              path="/dashboard"
+              element={
+                <RoleBasedDashboard />
+              }
+            />
+            <Route
+              path="/projects/:projectId/documents"
+              element={
+                <ProjectDocuments />
+              }
+            />
+            <Route
+              path="/documents"
+              element={
+                <DocumentsRedirect />
+              }
+            />
+
+            <Route
+              path="/punch"
+              element={
+                <PunchInScreen user={user} />
+              }
+            />
+            <Route
+              path="/selfie"
+              element={
+                <SelfieCaptureScreen user={user} />
+              }
+            />
+            <Route
+              path="/dashboard/branches"
+              element={
+                <AdminBranches />
+              }
+            />
+            <Route path="/profile" element={<ProfileScreen />} />
+            <Route
+              path="/dashboard/live-attendance"
+              element={<AdminLiveAttendance />}
+            />
+            <Route
+              path="/attendance/supervisor"
+              element={<SupervisorAttendanceDashboard />}
+            />
+            <Route
+              path="/attendance/subcontractor"
+              element={<SubcontractorAttendanceDashboard />}
+            />
+            <Route
+              path="/attendance/labour"
+              element={<LabourAttendanceDashboard />}
+            />
+            <Route path="/attendance/notes" element={<NotesDashboard />} />
+            <Route path="/leaves" element={<Leaves />} />
+            <Route path="/attendance/leaves" element={<AdminLeaves />} />
+            <Route path="/reimbursements" element={<MyReimbursements />} />
+            <Route path="/reimbursements/new" element={<CreateReimbursement />} />
+            <Route
+              path="/admin/reimbursements"
+              element={<AdminReimbursements />}
+            />
+            {/* Supervisor/Subcontractor Routes */}
+            <Route
+              path="/supervisor/projects"
+              element={<SupervisorProjectList />}
+            />
+            <Route
+              path="/supervisor/project/:projectId/documents"
+              element={
+                <SupervisorProjectDocuments />
+              }
+            />
+
+            <Route
+              path="/branch/:branchId/labour-dashboard"
+              element={<LabourDashboard />}
+            />
+            <Route path="/branch/:branchId/tasks" element={<TaskSubmission />} />
+            <Route
+              path="/branch/:branchId/labours"
+              element={<SupervisorLabourList />}
+            />
+            <Route
+              path="/branch/:branchId/labours/add"
+              element={<SupervisorAddLabour />}
+            />
+            <Route
+              path="/branch/:branchId/labours/:labourId"
+              element={<SupervisorLabourDetails />}
+            />
+            <Route
+              path="/branch/:branchId/team-attendance"
+              element={<TeamAttendance />}
+            />
+            {/* Admin Dashboard Route */}
+            <Route path="/admindashboard" element={<AdminDashboard />} />
+            {/* Client-Side Material Routes */}
+            <Route
+              path="/material/intent"
+              element={<Material activeTab="intent" />}
+            />
+            <Route path="/material/intent/new" element={<IntentForm />} />
+            <Route path="/material/intent/:id" element={<IntentCardDetails />} />
+            <Route
+              path="/material/intent-details/:id"
+              element={<IntentCardDetails />}
+            />
+            <Route path="/material/upload-photo" element={<UploadPhoto />} />
+            <Route
+              path="/material/transfer"
+              element={<Material activeTab="transfer" />}
+            />
+            <Route
+              path="/material/transfer/new"
+              element={<MaterialTransferForm />}
+            />
+            <Route
+              path="/material/transfer/:id"
+              element={<MaterialCardDetails />}
+            />
+            <Route
+              path="/material/deliveries"
+              element={<Material activeTab="deliveries" />}
+            />
+            <Route path="/material/grn" element={<Material activeTab="grn" />} />
+            <Route path="/material/grn/:id" element={<GRNCardDetails />} />
+            {/* Material Management Routes - Following existing flat route pattern */}
+            <Route
+              path="/dashboard/material/uploadindent"
+              element={<UploadIndent />}
+            />
+            <Route
+              path="/dashboard/material/upload-indent"
+              element={<UploadIndent />}
+            />
+            <Route
+              path="/dashboard/material/site-transfers"
+              element={<AdminSiteTransfer />}
+            />
+            <Route
+              path="/dashboard/material/upcoming-deliveries"
+              element={<AdminUpcomingDeliveries />}
+            />
+            <Route path="/dashboard/material/intent" element={<AdminIntent />} />
+            <Route path="/dashboard/material/grn" element={<AdminGRN />} />
+            <Route
+              path="/dashboard/material/transfer/new"
+              element={<MaterialTransferForm />}
+            />
+            <Route
+              path="/dashboard/material/intent/new"
+              element={<IntentForm />}
+            />
+            <Route
+              path="/dashboard/material/transfer/:id"
+              element={<MaterialCardDetails />}
+            />
+            <Route
+              path="/dashboard/material/intent/:id"
+              element={<IntentCardDetails />}
+            />
+            <Route
+              path="/dashboard/material/deliveries/:id"
+              element={<DeliveryDetails />}
+            />
+            <Route
+              path="/dashboard/material/delivery-checklist/:id"
+              element={<DeliveryChecklist />}
+            />
+            <Route
+              path="/dashboard/material/upload-photo"
+              element={<UploadPhoto />}
+            />
+            {/* Salary Management Routes */}
+            <Route path="/admin/salary" element={<SalaryDashboard />} />
+            <Route path="/admin/salary-history" element={<SalaryHistory />} />
+            <Route path="/admin/holidays" element={<HolidayCalendar />} />
+            <Route path="/admin/salary-policy" element={<SalaryPolicyPage />} />
+            {/* Task Management Routes */}
+            <Route path="/admin/tasks" element={<AdminTasks />} />
+            {/* Work Order Management Routes */}
+            <Route path="/dashboard/work-orders" element={<ManageWorkOrder />} />
+            {/* Reports */}
+            <Route path="/dashboard/report" element={<AdminReports />} />
+            {/* Inventory */}
+            <Route
+              path="/dashboard/inventory/labour/manage"
+              element={<ManageInventoryLabour />}
+            />
+            {/* Transfers */}
+            <Route path="/admin/transfers" element={<AdminTransfers />} />
+            <Route path="/material/my-indents" element={<MobileMyIndents />} />
+            <Route
+              path="/material/transfer-mobile"
+              element={<MaterialTransferMobile />}
+            />
+            {/* Offline Sync */}
+            <Route path="/connect-server" element={<ConnectServer />} />
+          </Route>
         </Routes>
       </Suspense>
     </>
