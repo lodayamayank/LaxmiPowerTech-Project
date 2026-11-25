@@ -235,6 +235,7 @@ const PunchInScreen = () => {
     const handleOnline = () => fetchPunchStatus();
     window.addEventListener("online", handleOnline);
     return () => window.removeEventListener("online", handleOnline);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, []);
 
   const isWithinRange = branchDistance !== null && nearestBranch && branchDistance <= nearestBranch.radius;

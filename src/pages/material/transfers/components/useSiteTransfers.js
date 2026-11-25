@@ -44,6 +44,7 @@ export default function useSiteTransfers() {
     fetchTransfers();
     fetchSites();
     fetchMaterialsAndCategories();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [currentPage]);
   
   // ✅ Fetch sites for filter dropdown

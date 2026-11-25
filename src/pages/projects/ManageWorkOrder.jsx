@@ -58,7 +58,9 @@ export default function ManageWorkOrder() {
   }, [workOrders]);
 
   const handlers = { onBills: handleViewBills, onTrigger: openTriggerModal, remainingFor, getRetentionState, formatCurrency, formatDate };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   const columns = useMemo(() => getWorkOrderColumns(handlers), [handleViewBills, openTriggerModal]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   const mobileCard = useMemo(() => getWorkOrderMobileCard(handlers), [handleViewBills, openTriggerModal]);
 
   const retentionBadge = (order, fallback) => {

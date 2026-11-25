@@ -42,6 +42,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
     useEffect(() => {
         fetchDeliveries();
         fetchSites();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
     }, []);
     
     // ✅ Fetch sites for filter dropdown

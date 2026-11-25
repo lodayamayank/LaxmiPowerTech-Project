@@ -30,4 +30,11 @@ export default [
       ],
     },
   },
+  {
+    // These files export a component together with its variants / column definitions / helper maps by design
+    // (shadcn variants, DataTable column factories, status badge maps). Fast refresh just reloads the page for
+    // them, so the "only export components" rule is not useful there.
+    files: ['src/components/ui/**', 'src/components/common/StatusBadge.jsx', 'src/pages/**/*Columns.jsx', 'src/pages/**/*Visuals.jsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
 ]

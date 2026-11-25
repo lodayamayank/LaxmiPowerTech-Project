@@ -41,11 +41,13 @@ export default function MaterialTransfer({ isTabView = false }) {
   // Fetch site transfers from backend
   useEffect(() => {
     fetchTransfers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [currentPage, filterSite, filterStatus, filterDateFrom, filterDateTo]);
   
   // Fetch sites once on mount
   useEffect(() => {
     fetchSites();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, []);
   
   // ✅ Fetch sites for filter dropdown
@@ -85,6 +87,7 @@ export default function MaterialTransfer({ isTabView = false }) {
     
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [currentPage]);
 
   // Periodic polling every 30 seconds (paused while the tab is hidden)
@@ -122,6 +125,7 @@ export default function MaterialTransfer({ isTabView = false }) {
       window.removeEventListener(EVENTS.upcomingDeliveryRefresh, handleUpcomingDeliveryRefresh);
       window.removeEventListener('storage', handleStorageChange);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [currentPage]);
 
   const fetchTransfers = async () => {

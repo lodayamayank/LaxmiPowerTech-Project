@@ -59,6 +59,7 @@ const TeamAttendance = () => {
   // ────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (branchId && activeTab === 'summary') fetchTeamAttendance();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [viewDate, branchId, activeTab]);
 
   const fetchTeamAttendance = async () => {
@@ -142,6 +143,7 @@ const TeamAttendance = () => {
   // ────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (branchId && activeTab === 'mark') fetchMarkData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [branchId, markDate, activeTab]);
 
   const fetchMarkData = async () => {

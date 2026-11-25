@@ -42,6 +42,7 @@ const SupervisorLabourList = () => {
   useEffect(() => {
     fetchLabours();
     fetchProjectName();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [branchId]);
 
   // Fetch existing attendance when date changes or when switching to attendance tab
@@ -49,6 +50,7 @@ const SupervisorLabourList = () => {
     if (activeTab === 'attendance' && branchId && selectedDate) {
       fetchExistingAttendance(selectedDate);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [activeTab, selectedDate, branchId]);
 
   const handleDateChange = (e) => {

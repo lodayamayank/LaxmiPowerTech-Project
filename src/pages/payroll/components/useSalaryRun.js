@@ -109,6 +109,7 @@ export default function useSalaryRun() {
         year: 'numeric'
       })
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [month, year]);
 
   // Fetch salary data
@@ -140,10 +141,12 @@ export default function useSalaryRun() {
   useEffect(() => {
     setPage(1);
     fetchSalaryData(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [month, year, roleFilter]);
 
   useEffect(() => {
     fetchSalaryData(page);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [page]);
 
   // Filter data based on search
@@ -174,6 +177,7 @@ export default function useSalaryRun() {
       totalOvertime: Math.round(totalOvertime),
       employeeCount,
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [filteredData]);
 
   const handleRecalculate = async () => {

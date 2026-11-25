@@ -50,16 +50,19 @@ export default function useAdminGrn() {
   useEffect(() => {
     fetchGRNRecords();
     fetchSites();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [search, filterSite, filterDateFrom, filterDateTo]);
 
   // Apply all filters to deliveries
   useEffect(() => {
     applyFilters();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [deliveries, filterSite, filterDateFrom, filterDateTo, filterInvoiceNumber, filterType, filterStatus, search]);
 
   // Calculate analytics whenever filtered deliveries change
   useEffect(() => {
     calculateAnalytics();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [filteredDeliveries]);
 
   // ❌ DISABLED: Auto-refresh removed per client request

@@ -10,7 +10,7 @@
 import { STORAGE_KEYS } from '@/lib/constants';
 
 // Browser UI colour (address bar / PWA status bar) = the page background of each theme.
-const THEME_COLOR = { light: '#F5F6F8', dark: '#020817' };
+const THEME_COLOR = { light: '#F5F6F8', dark: '#0f1219' };
 
 const listeners = new Set();
 

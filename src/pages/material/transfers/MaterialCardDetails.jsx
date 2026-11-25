@@ -121,6 +121,7 @@ export default function MaterialCardDetails() {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [id, showToast]);
 
   useEffect(() => {

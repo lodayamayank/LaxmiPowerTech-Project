@@ -30,8 +30,8 @@ export default function MobileMyIndents() {
       setLoading(false);
     }
   };
-
-  useEffect(() => { fetchMine(); /* eslint-disable-next-line */ }, [status]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
+  useEffect(() => { fetchMine(); }, [status]);
 
   return (
     <div className="max-w-xl mx-auto p-4">

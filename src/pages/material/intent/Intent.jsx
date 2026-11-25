@@ -54,11 +54,13 @@ export default function Intent({ isTabView = false }) {
   // Fetch indents (uploaded photos with PO IDs) from backend
   useEffect(() => {
     fetchIndents();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [currentPage, filterSite, filterStatus, filterDateFrom, filterDateTo]);
   
   // Fetch sites once on mount
   useEffect(() => {
     fetchSites();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, []);
   
   // ✅ Fetch sites for filter dropdown
@@ -101,6 +103,7 @@ export default function Intent({ isTabView = false }) {
     
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [currentPage]);
 
   // Periodic polling every 30 seconds (paused while the tab is hidden)
@@ -131,6 +134,7 @@ export default function Intent({ isTabView = false }) {
       window.removeEventListener(EVENTS.upcomingDeliveryRefresh, handleDeliveryRefresh);
       window.removeEventListener('storage', handleStorageChange);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [currentPage]);
 
   const fetchIndents = async () => {

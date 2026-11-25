@@ -73,6 +73,7 @@ export default function useAdminIntent() {
   useEffect(() => {
     fetchIndents(); // Changed from fetchPurchaseOrders
     fetchMaterialsAndSites();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [currentPage, search, filterSite, filterStatus, filterDateFrom, filterDateTo]);
 
   // Fetch materials and sites for editing

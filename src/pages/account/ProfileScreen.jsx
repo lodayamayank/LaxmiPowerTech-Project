@@ -55,6 +55,7 @@ const ProfileScreen = () => {
 
   useEffect(() => {
     fetchUser();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, []);
 
   const fetchUser = async () => {

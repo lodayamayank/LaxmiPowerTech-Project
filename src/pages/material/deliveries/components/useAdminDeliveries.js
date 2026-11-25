@@ -42,6 +42,7 @@ export default function useAdminDeliveries() {
   useEffect(() => {
     fetchDeliveries();
     fetchSites();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
   }, [currentPage, search, filterSite, filterStatus, filterDateFrom, filterDateTo]);
   
   // ✅ Fetch sites for filter dropdown
