@@ -123,8 +123,6 @@ export default function IntentForm() {
   
   // Auto-resolve delivery site from already-selected project/branch
   const selectedBranchName = getSelectedBranchName() || '';
-  console.log('👤 IntentForm - User:', userName);
-  console.log('🏢 IntentForm - Auto Delivery Site:', selectedBranchName);
   
   const [formData, setFormData] = useState({
     requestedBy: userName,
@@ -153,7 +151,6 @@ export default function IntentForm() {
         // Fetch materials from database - MATCHES DEMONSTRATED PROJECT
         // Demonstrated project calls /materials/materials, we call /material/catalog/materials
         const materials = await fetchMaterialCatalogCached();
-        console.log('✅ Fetched materials:', materials?.length || 0);
         
         // Debug: Log first material to verify data structure
         if (materials && materials.length > 0) {
@@ -170,7 +167,6 @@ export default function IntentForm() {
         const uniqueCategories = [...new Set(materials.map(item => item.category).filter(Boolean))]
           .sort((a, b) => a.localeCompare(b));
         setCategories(uniqueCategories);
-        console.log('✅ Unique categories:', uniqueCategories.length, uniqueCategories.slice(0, 3));
         
       } catch (err) {
         console.error('❌ Error fetching data:', err);

@@ -1,5 +1,4 @@
 import React from "react";
-import useDarkTheme from "@/hooks/useDarkTheme";
 import {
   Area,
   Bar,
@@ -31,67 +30,61 @@ import { Card, CardContent } from "@/components/ui/card";
 
 // Single source of truth for status -> solid colour (chart fills, legend dots).
 export const STATUS_COLORS = {
-  Present: "#34a583",
-  "Half Day": "#e6b422",
-  Absent: "#ea6f62",
-  "Week Off": "#b4bcb8",
-  Future: "#d9dedc",
-  Pending: "#a3adaa",
-  "In Progress": "#38a9e0",
-  Incomplete: "#f59e0b",
-  "Paid Leave": "#5b9bd5",
-  "Unpaid Leave": "#9a6fd1",
-  "Sick Leave": "#f08a4b",
-  // Matches the pink calendar cells so the legend swatch is accurate.
-  "Casual Leave": "#ec6fa8",
+    Present: "hsl(var(--chart-present))",
+  "Half Day": "hsl(var(--chart-half-day))",
+    Absent: "hsl(var(--chart-absent))",
+  "Week Off": "hsl(var(--chart-week-off))",
+    Future: "hsl(var(--chart-future))",
+    Pending: "hsl(var(--chart-pending))",
+  "In Progress": "hsl(var(--chart-in-progress))",
+    Incomplete: "hsl(var(--chart-incomplete))",
+  "Paid Leave": "hsl(var(--chart-paid-leave))",
+  "Unpaid Leave": "hsl(var(--chart-unpaid-leave))",
+  "Sick Leave": "hsl(var(--chart-sick-leave))",
+  "Casual Leave": "hsl(var(--chart-casual-leave))",
 };
 
 // Soft tinted style per status, used by calendar cells and badges.
 const STATUS_TAILWIND = {
   Present:
-    "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
+    "bg-tone-ok-soft text-tone-ok-fg",
   "Half Day":
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/15 dark:text-yellow-300",
-  Absent: "bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-300",
+    "bg-tone-warn-soft text-tone-warn-fg",
+  Absent: "bg-tone-bad-soft text-tone-bad-fg",
   "Week Off":
-    "bg-gray-100 text-gray-500 dark:bg-gray-700/60 dark:text-gray-400",
+    "bg-surface-muted text-ink-3",
   Future:
-    "bg-white text-gray-300 border border-dashed border-gray-200 dark:bg-transparent dark:text-gray-600 dark:border-gray-700",
+    "bg-surface text-ink-4 border border-dashed border-line-card",
   Pending:
-    "bg-white text-gray-400 border border-dashed border-gray-300 dark:bg-transparent dark:text-gray-500 dark:border-gray-600",
-  "In Progress": "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300",
+    "bg-surface text-ink-4 border border-dashed border-line-input",
+  "In Progress": "bg-tone-info-soft text-tone-info-fg",
   Incomplete:
-    "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
+    "bg-tone-warn-soft text-tone-warn-fg",
   "Paid Leave":
-    "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
+    "bg-tone-info-soft text-tone-info-fg",
   "Unpaid Leave":
-    "bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300",
+    "bg-tone-purple-soft text-tone-purple-fg",
   "Sick Leave":
-    "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300",
+    "bg-tone-highlight-soft text-tone-highlight-fg",
   "Casual Leave":
-    "bg-pink-100 text-pink-700 dark:bg-pink-500/15 dark:text-pink-300",
+    "bg-tone-pink-soft text-tone-pink-fg",
 };
 
 export function statusColor(status) {
   return (
     STATUS_TAILWIND[status] ||
-    "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300"
+    "bg-surface-muted text-ink-3"
   );
 }
 
 // Badges can't use the dashed-border cell style, so Future/Pending get a flat pill.
 function badgeStyle(status) {
   if (status === "Future" || status === "Pending") {
-    return "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300";
+    return "bg-surface-muted text-ink-3";
   }
   return statusColor(status);
 }
 
-// Recharts takes colours as JS values, so Tailwind's dark: classes can't
-// reach the chart. This reports the app theme (single source: lib/theme.js).
-function useIsDark() {
-  return useDarkTheme().dark;
-}
 
 export function StatusBadge({ status }) {
   return (
@@ -107,7 +100,7 @@ export function StatusBadge({ status }) {
 }
 
 const clickableCellClass =
-  "cursor-pointer hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900";
+  "cursor-pointer hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
 const WEEKDAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -151,7 +144,7 @@ export function CalendarGrid({
   return (
     <div>
       {showWeekdays && (
-        <div className="mb-2 grid grid-cols-7 gap-1.5 text-center text-[10px] font-medium text-gray-400 dark:text-gray-500">
+        <div className="mb-2 grid grid-cols-7 gap-1.5 text-center text-[10px] font-medium text-ink-4">
           {WEEKDAYS.map((d) => (
             <span key={d}>{d}</span>
           ))}
@@ -181,7 +174,7 @@ export function WeekStrip({ dailySummary, onDayClick }) {
     <div className="grid grid-cols-7 gap-1.5">
       {dailySummary.map((day) => (
         <div key={day.date} className="flex flex-col items-center gap-1.5">
-          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">
+          <span className="text-[10px] font-medium text-ink-4">
             {new Date(`${day.date}T00:00:00`)
               .toLocaleDateString("en-US", { weekday: "short" })
               .toUpperCase()}
@@ -209,9 +202,9 @@ export function Legend({ items }) {
   const list = items || defaultItems;
 
   return (
-    <Card className="rounded-lg border-gray-200 bg-white shadow-none dark:border-gray-700 dark:bg-gray-800">
+    <Card className="rounded-lg border-line-card bg-surface shadow-none">
       <CardContent className="p-4">
-        <p className="mb-3 text-xs font-semibold text-gray-700 dark:text-gray-100">
+        <p className="mb-3 text-xs font-semibold text-ink-2">
           Legend
         </p>
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px]">
@@ -221,7 +214,7 @@ export function Legend({ items }) {
                 className="h-2 w-2 shrink-0 rounded-full"
                 style={{ backgroundColor: STATUS_COLORS[item.status] }}
               ></span>
-              <span className="text-gray-500 dark:text-gray-300">
+              <span className="text-ink-3">
                 {item.label}
               </span>
             </div>
@@ -236,7 +229,7 @@ export function YearGraphTooltip({ active, payload, label }) {
   if (!active || !payload || !payload.length) return null;
   const data = payload[0].payload;
   const Row = ({ name, value, color }) => (
-    <p className="flex items-center justify-between gap-6 text-gray-500 dark:text-gray-300">
+    <p className="flex items-center justify-between gap-6 text-ink-3">
       <span className="flex items-center gap-1.5">
         <span
           className="h-1.5 w-1.5 rounded-full"
@@ -244,14 +237,14 @@ export function YearGraphTooltip({ active, payload, label }) {
         />
         {name}
       </span>
-      <span className="font-semibold text-gray-800 dark:text-gray-100">
+      <span className="font-semibold text-ink-1">
         {value}
       </span>
     </p>
   );
   return (
-    <div className="space-y-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs shadow-lg dark:border-gray-600 dark:bg-gray-800">
-      <p className="font-semibold text-gray-800 dark:text-gray-100">{label}</p>
+    <div className="space-y-1 rounded-lg border border-line-card bg-surface px-3 py-2 text-xs shadow-lg">
+      <p className="font-semibold text-ink-1">{label}</p>
       <Row
         name="Attendance"
         value={`${data.pct}%`}
@@ -276,11 +269,10 @@ export function YearGraphTooltip({ active, payload, label }) {
 }
 
 export function YearAttendanceChart({ yearlySummary, height = 240 }) {
-  const isDark = useIsDark();
 
-  const primary = isDark ? "#4cc9a4" : "#2a9275";
-  const tickColor = isDark ? "#9ca3af" : "#7a8a85";
-  const gridColor = isDark ? "#374151" : "#e6ebe9";
+  const primary = "hsl(var(--chart-present))";
+  const tickColor = "hsl(var(--ink-3))";
+  const gridColor = "hsl(var(--line-card))";
 
   return (
     <>
@@ -333,7 +325,7 @@ export function YearAttendanceChart({ yearlySummary, height = 240 }) {
           <Tooltip
             content={<YearGraphTooltip />}
             cursor={{
-              fill: isDark ? "rgba(255,255,255,0.05)" : "rgba(42,146,117,0.06)",
+              fill: "hsl(var(--chart-present) / 0.08)",
             }}
           />
           <Bar
@@ -375,7 +367,7 @@ export function YearAttendanceChart({ yearlySummary, height = 240 }) {
             dot={{
               r: 3.5,
               strokeWidth: 2,
-              fill: isDark ? "#111827" : "#fff",
+              fill: "hsl(var(--surface))",
               stroke: primary,
             }}
             activeDot={{ r: 5.5 }}
@@ -383,7 +375,7 @@ export function YearAttendanceChart({ yearlySummary, height = 240 }) {
           />
         </ComposedChart>
       </ResponsiveContainer>
-      <div className="mt-2 flex flex-wrap items-center justify-center gap-4 text-[11px] text-gray-500 dark:text-gray-300">
+      <div className="mt-2 flex flex-wrap items-center justify-center gap-4 text-[11px] text-ink-3">
         {[
           { label: "Present", color: STATUS_COLORS.Present },
           { label: "Half Day", color: STATUS_COLORS["Half Day"] },
@@ -435,10 +427,10 @@ export function StatusDonut({
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <strong className="text-3xl font-extrabold text-gray-900 dark:text-gray-50">
+          <strong className="text-3xl font-extrabold text-ink-1">
             {total}
           </strong>
-          <span className="mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">
+          <span className="mt-0.5 text-[11px] text-ink-3">
             {centerLabel}
           </span>
         </div>
@@ -449,16 +441,16 @@ export function StatusDonut({
             key={d.name}
             className="flex items-center justify-between text-xs"
           >
-            <span className="flex items-center gap-2 text-gray-500 dark:text-gray-300">
+            <span className="flex items-center gap-2 text-ink-3">
               <span
                 className="h-1.5 w-1.5 rounded-full"
                 style={{ backgroundColor: STATUS_COLORS[d.status || d.name] }}
               />
               {d.name}
             </span>
-            <span className="flex items-center gap-4 font-medium text-gray-800 dark:text-gray-100">
+            <span className="flex items-center gap-4 font-medium text-ink-1">
               {d.value}
-              <small className="min-w-[28px] text-right text-[11px] font-normal text-gray-400">
+              <small className="min-w-[28px] text-right text-[11px] font-normal text-ink-4">
                 {total ? Math.round((d.value / total) * 100) : 0}%
               </small>
             </span>
@@ -483,22 +475,22 @@ export function buildBreakdown(yearlySummary) {
 //   <MetricCard label="Attendance rate" value="94.6" unit="%" icon={ChartNoAxesCombined} footer="+4.2% vs last year" />
 export function MetricCard({ label, value, unit, icon: Icon, footer }) {
   return (
-    <Card className="rounded-lg border-gray-200 bg-white shadow-none dark:border-gray-700 dark:bg-gray-800">
+    <Card className="rounded-lg border-line-card bg-surface shadow-none">
       <CardContent className="p-5">
-        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex items-center justify-between text-xs text-ink-3">
           {label}
           {Icon && <Icon className="h-4 w-4" />}
         </div>
-        <div className="mt-3 text-3xl font-extrabold text-gray-900 dark:text-gray-50">
+        <div className="mt-3 text-3xl font-extrabold text-ink-1">
           {value}
           {unit && (
-            <span className="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">
+            <span className="ml-1 text-sm font-normal text-ink-3">
               {unit}
             </span>
           )}
         </div>
         {footer && (
-          <p className="mt-2 text-[11px] text-gray-500 dark:text-gray-400">
+          <p className="mt-2 text-[11px] text-ink-3">
             {footer}
           </p>
         )}

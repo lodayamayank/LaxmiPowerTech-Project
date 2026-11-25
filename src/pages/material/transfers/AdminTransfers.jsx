@@ -189,7 +189,7 @@ function AdminTransfersInner() {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border">
-        <Table className="min-w-full divide-y divide-gray-200">
+        <Table className="min-w-full divide-y divide-line">
           <TableHeader className="bg-surface-subtle">
             <TableRow className="text-left text-xs font-semibold text-ink-3">
               <TableHead className="px-4 py-3">ID</TableHead>
@@ -201,7 +201,7 @@ function AdminTransfersInner() {
               <TableHead className="px-4 py-3">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="divide-y divide-gray-100 bg-white text-sm">
+          <TableBody className="divide-y divide-line bg-surface text-sm">
             {loading ? (
               <TableRow>
                 <TableCell colSpan={7} className="px-4 py-6 text-center text-ink-3">Loading…</TableCell>
@@ -232,12 +232,12 @@ function AdminTransfersInner() {
                       <div className="flex flex-wrap gap-2">
                         {r.status === "pending" && (
                           <>
-                            <Button size="sm" onClick={() => onApprove(r)} className="bg-blue-600 hover:bg-primary-strong text-white">Approve</Button>
+                            <Button size="sm" onClick={() => onApprove(r)} className="bg-primary hover:bg-primary-strong text-primary-foreground">Approve</Button>
                             <Button size="sm" variant="destructive" onClick={() => onReject(r)}>Reject</Button>
                           </>
                         )}
                         {r.status === "approved" && (
-                          <Button size="sm" onClick={() => onComplete(r)} className="bg-tone-ok-fg hover:bg-primary-strong text-white">Mark Completed</Button>
+                          <Button size="sm" onClick={() => onComplete(r)} className="bg-tone-ok-fg hover:bg-primary-strong text-primary-foreground">Mark Completed</Button>
                         )}
                       </div>
                     </TableCell>

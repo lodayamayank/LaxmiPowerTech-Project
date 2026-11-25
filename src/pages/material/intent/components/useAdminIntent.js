@@ -97,13 +97,11 @@ export default function useAdminIntent() {
       const branches = await branchesPromise;
       const sitesList = branches.map(branch => branch.name).sort();
       setSites(sitesList);
-      console.log('✅ Fetched sites from backend:', sitesList);
       
       // Fetch vendors from backend
       try {
         const vendorsList = await vendorsPromise;
         setVendors(vendorsList || []);
-        console.log('✅ Fetched vendors from backend:', vendorsList?.length || 0, 'vendors');
       } catch (vendorError) {
         console.error('❌ Failed to fetch vendors:', vendorError.response?.status, vendorError.message);
         setVendors([]); // Set empty array to prevent undefined errors
@@ -156,7 +154,6 @@ export default function useAdminIntent() {
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
       );
       
-      console.log(`📊 Admin: Fetched ${indentsData.length} indents + ${posData.length} POs = ${combinedData.length} total`);
       
       // ✅ CRITICAL: Filter out completed Intent POs (they move into GRN flow)
       let filteredData = combinedData.filter(item => 
@@ -275,7 +272,6 @@ export default function useAdminIntent() {
         setEditingManualMaterialId(null);
         setMaterialToDelete(null);
         resetManualMaterialForm();
-        console.log('✅ Loaded fresh Intent PO data from backend', normalizedData);
       } else {
         setError('Failed to fetch latest indent details');
       }
@@ -473,22 +469,16 @@ export default function useAdminIntent() {
       // Check if status is being changed to 'approved'
       const isApproving = formData.status === 'approved' && selectedIndent.status !== 'approved';
       
-      console.log('📤 Sending update with data:', updateData);
-      console.log('   Type:', isPurchaseOrder ? 'Purchase Order' : 'Indent');
-      console.log('   Is Approving:', isApproving);
-      console.log('   Materials/Items:', updateData.materials || updateData.items);
       
       let response;
       
       if (isApproving) {
         // ✅ FIX: First save vendor assignments, THEN approve
-        console.log('✅ Status changed to approved - saving vendors first, then approving');
         
         // Step 1: Save vendor assignments (without changing status)
         const saveData = { ...updateData };
         delete saveData.status;  // Remove status from update to keep it 'pending'
         
-        console.log('💾 Step 1: Saving vendor assignments:', saveData);
         const saveResponse = isPurchaseOrder
           ? await purchaseOrderAPI.update(selectedIndent._id, saveData)
           : await indentAPI.update(selectedIndent._id, saveData);
@@ -498,7 +488,6 @@ export default function useAdminIntent() {
         }
         
         // Step 2: Call approval endpoint (which will create deliveries)
-        console.log('✅ Step 2: Calling approval endpoint');
         response = isPurchaseOrder
           ? await purchaseOrderAPI.approve(selectedIndent._id)
           : await indentAPI.approve(selectedIndent._id);
@@ -511,7 +500,6 @@ export default function useAdminIntent() {
           : await indentAPI.update(selectedIndent._id, updateData);
       }
       
-      console.log('📥 Received response:', response);
       
       if (response.success) {
         // Fetch fresh data from server (like demonstrated project)
@@ -543,7 +531,6 @@ export default function useAdminIntent() {
             })
           };
           
-          console.log('✅ Normalized data after save:', normalizedData);
           console.log('   Materials with vendors:', normalizedData.materials?.map(m => ({
             itemName: m.itemName,
             vendor: m.vendor?.companyName || m.vendor || 'NO VENDOR'
@@ -564,7 +551,6 @@ export default function useAdminIntent() {
         window.dispatchEvent(new Event(EVENTS.upcomingDeliveryRefresh));
         localStorage.setItem(EVENTS.intentRefresh, Date.now().toString());
         localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
-        console.log('✅ Intent PO updated - syncing to Upcoming Deliveries');
         
         showToast('Intent updated successfully and synced to Upcoming Deliveries', 'success');
       }

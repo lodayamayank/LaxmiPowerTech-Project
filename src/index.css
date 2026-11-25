@@ -131,6 +131,19 @@
     --ink-3: 215.6 18.4% 34.1%;
     --ink-4: 220.6 13.2% 46.1%;
     --ink-5: 217.8 15.1% 64.9%;
+    /* Attendance status colours for charts and legend dots (AttendanceVisuals) */
+    --chart-present: 162 52% 43%;
+    --chart-half-day: 45 80% 52%;
+    --chart-absent: 6 76% 65%;
+    --chart-week-off: 150 6% 72%;
+    --chart-future: 156 7% 86%;
+    --chart-pending: 162 6% 66%;
+    --chart-in-progress: 200 73% 55%;
+    --chart-incomplete: 38 92% 50%;
+    --chart-paid-leave: 209 59% 60%;
+    --chart-unpaid-leave: 266 52% 63%;
+    --chart-sick-leave: 23 85% 62%;
+    --chart-casual-leave: 333 77% 68%;
     --tone-ok-soft: 144.7 81% 95.9%;
     --tone-ok-fg: 154.8 90.3% 24.3%;
     --tone-ok-border: 143.8 68% 80.4%;

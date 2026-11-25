@@ -91,8 +91,7 @@ export default function ConnectServer() {
   const handleClearSynced = async () => {
     setClearing(true);
     try {
-      const count = await offlineStorage.clearSyncedActions();
-      console.log(`Cleared ${count} synced actions`);
+      await offlineStorage.clearSyncedActions();
       refreshPendingCount();
       loadActions();
     } catch (err) {

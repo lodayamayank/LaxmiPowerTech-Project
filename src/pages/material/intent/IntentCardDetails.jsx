@@ -154,7 +154,6 @@ export default function IntentCardDetails() {
       const branches = await branchesPromise;
       const sitesList = branches.map(branch => branch.name).sort();
       setSites(sitesList);
-      console.log('✅ Fetched sites from backend:', sitesList);
       
       // Fetch materials - MATCHES DEMONSTRATED PROJECT
       const materials = await materialsPromise;
@@ -184,7 +183,6 @@ export default function IntentCardDetails() {
       try {
         const poResponse = await purchaseOrderAPI.getById(id);
         if (poResponse.success && poResponse.data) {
-          console.log('✅ Fetched as PurchaseOrder:', poResponse.data);
           setPurchaseOrder(poResponse.data);
           setItemType('purchaseOrder');
           
@@ -215,15 +213,12 @@ export default function IntentCardDetails() {
           setLoading(false);
           return;
         }
-      } catch {
-        console.log('Not a PurchaseOrder, trying Indent...');
-      }
+      } catch { /* nothing to do */ }
       
       // If not PurchaseOrder, try fetching as Indent
       try {
         const indentResponse = await indentAPI.getById(id);
         if (indentResponse.success && indentResponse.data) {
-          console.log('✅ Fetched as Indent:', indentResponse.data);
           setIndent(indentResponse.data);
           setItemType('indent');
           setFormData({

@@ -42,9 +42,6 @@ export default function Intent({ isTabView = false }) {
   const selectedBranchName = getSelectedBranchName();
   
   // Debug: Log branch context
-  console.log('👤 Intent - User:', user?.name, 'Role:', user?.role);
-  console.log('🏢 Intent - Assigned Branches:', userAssignedBranches);
-  console.log('🎯 Intent - Selected Branch:', selectedBranchId, selectedBranchName);
   
   // ✅ Filter states
   const [showFilters, setShowFilters] = useState(false);
@@ -74,19 +71,14 @@ export default function Intent({ isTabView = false }) {
       if (selectedBranchId && isFieldRole(user.role)) {
         // Single branch isolation - show only selected branch
         filteredBranches = branches.filter(branch => branch._id === selectedBranchId);
-        console.log('🔒 Intent - Single branch mode:', selectedBranchName);
       } else if (userAssignedBranches && userAssignedBranches.length > 0) {
         // Multi-branch mode for other roles with assignments
         const assignedBranchIds = userAssignedBranches.map(b => b._id || b);
         filteredBranches = branches.filter(branch => assignedBranchIds.includes(branch._id));
-        console.log('✅ Intent - Multi-branch mode:', filteredBranches.length, 'branches');
-      } else {
-        console.log('⚠️ Intent - Admin mode - all sites');
       }
       
       const sitesList = filteredBranches.map(branch => branch.name).sort();
       setSites(sitesList);
-      console.log('✅ Intent - Site filter options:', sitesList);
     } catch (err) {
       console.error('Error fetching sites:', err);
       // Fallback: use selected branch name if available
@@ -126,7 +118,6 @@ export default function Intent({ isTabView = false }) {
     
     const handleStorageChange = (e) => {
       if (e.key === EVENTS.intentRefresh || e.key === EVENTS.upcomingDeliveryRefresh) {
-        console.log(`✅ ${e.key} - refreshing Intent list`);
         fetchIndents();
       }
     };
@@ -180,7 +171,6 @@ export default function Intent({ isTabView = false }) {
       
       // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
       if (selectedBranchName && isFieldRole(user.role)) {
-        console.log('🔒 Intent - STRICT ISOLATION: Filtering by selected branch only:', selectedBranchName);
         
         combinedData = combinedData.filter(item => {
           const deliverySite = item.deliverySite;
@@ -188,20 +178,15 @@ export default function Intent({ isTabView = false }) {
           return isMatch;
         });
         
-        console.log('✅ Intent - Isolated to', combinedData.length, 'intents for branch:', selectedBranchName);
       } else if (userAssignedBranches && userAssignedBranches.length > 0) {
         // Multi-branch filtering for other roles
         const assignedSiteNames = userAssignedBranches.map(b => b.name).filter(Boolean);
-        console.log('🔒 Intent - Multi-branch filtering:', assignedSiteNames);
         
         combinedData = combinedData.filter(item => {
           const deliverySite = item.deliverySite;
           return assignedSiteNames.includes(deliverySite);
         });
         
-        console.log('✅ Intent - Filtered to', combinedData.length, 'intents');
-      } else {
-        console.log('⚠️ Intent - Admin mode - no filtering');
       }
       
       // ✅ Apply filters client-side
@@ -236,7 +221,6 @@ export default function Intent({ isTabView = false }) {
         });
       }
       
-      console.log(`✅ Fetched ${indentsData.length} indents + ${purchaseOrdersData.length} purchase orders = ${combinedData.length} total Intent PO records`);
       
       // Calculate pagination based on combined data
       const itemsPerPage = 10;
@@ -616,7 +600,7 @@ export default function Intent({ isTabView = false }) {
         <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground"
+            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-primary-foreground hover:bg-surface-muted hover:text-primary-foreground"
             onClick={() => navigate(-1)}
           >
             <ArrowLeft size={16} />

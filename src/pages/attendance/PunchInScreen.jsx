@@ -16,6 +16,9 @@ import { GoogleMap, MarkerF, CircleF, useJsApiLoader } from "@react-google-maps/
 import { Building2, CircleCheck, Fingerprint, LogOut, MapPin, MapPinOff, RefreshCw, TriangleAlert } from "lucide-react";
 
 // --- utils (unchanged) ---
+// The map circle takes a literal colour, so read the attendance "present" colour token from the theme.
+const GEOFENCE_COLOR = typeof window === "undefined" ? "green" : `hsl(${getComputedStyle(document.documentElement).getPropertyValue("--chart-present").trim() || "162 52% 43%"})`;
+
 const getDistanceMeters = (lat1, lng1, lat2, lng2) => {
   const toRad = (val) => (val * Math.PI) / 180;
   const R = 6371000;
@@ -197,7 +200,6 @@ const PunchInScreen = () => {
 
     const nearbyBranch = user.assignedBranches.find((branch) => {
       const d = getDistanceMeters(lat, lng, branch.lat, branch.lng);
-      console.log(`🏢 Branch: ${branch.name}, Dist: ${d}m, Radius: ${branch.radius}m`);
       return d <= branch.radius;
     });
 
@@ -335,7 +337,7 @@ const PunchInScreen = () => {
                   key={branch._id}
                   center={{ lat: branch.lat, lng: branch.lng }}
                   radius={branch.radius}
-                  options={{ fillColor: "#22c55e", fillOpacity: 0.1, strokeColor: "#22c55e", strokeOpacity: 0.5, strokeWeight: 2 }}
+                  options={{ fillColor: GEOFENCE_COLOR, fillOpacity: 0.1, strokeColor: GEOFENCE_COLOR, strokeOpacity: 0.5, strokeWeight: 2 }}
                 />
               ))}
             </GoogleMap>

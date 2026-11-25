@@ -56,7 +56,6 @@ export default function MaterialCardDetails() {
       const branches = await branchesPromise;
       const sitesList = branches.map(branch => branch.name).sort((a, b) => a.localeCompare(b));
       setSites(sitesList);
-      console.log('✅ MaterialCardDetails: Fetched', sitesList.length, 'sites from backend');
       
       // Fetch materials - MATCHES DEMONSTRATED PROJECT
       const materials = await materialsPromise;
@@ -636,7 +635,7 @@ export default function MaterialCardDetails() {
                           title="Delete attachment"
                         >
                           {deletingAttachment === index ? (
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-foreground"></div>
                           ) : (
                             <Trash2 size={12} className="size-3" />
                           )}

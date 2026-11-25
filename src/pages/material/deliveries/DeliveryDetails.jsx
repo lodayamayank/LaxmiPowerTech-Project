@@ -273,7 +273,6 @@ export default function DeliveryDetails() {
     setValidationError("");
 
     try {
-      console.log("📤 Uploading delivery proof images:", deliveryImages.length);
       const uploadResponse = await upcomingDeliveryAPI.uploadReceipts(
         deliveryId,
         deliveryImages

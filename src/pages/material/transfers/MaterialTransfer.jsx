@@ -37,9 +37,6 @@ export default function MaterialTransfer({ isTabView = false }) {
   const selectedBranchName = getSelectedBranchName();
   
   // Debug: Log branch context
-  console.log('👤 Material Transfer - User:', user?.name, 'Role:', user?.role);
-  console.log('🏢 Material Transfer - Assigned Branches:', userAssignedBranches);
-  console.log('🎯 Material Transfer - Selected Branch:', selectedBranchId, selectedBranchName);
 
   // Fetch site transfers from backend
   useEffect(() => {
@@ -60,18 +57,13 @@ export default function MaterialTransfer({ isTabView = false }) {
       let filteredBranches = branches;
       if (selectedBranchId && isFieldRole(user.role)) {
         filteredBranches = branches.filter(branch => branch._id === selectedBranchId);
-        console.log('🔒 Material Transfer - Single branch mode:', selectedBranchName);
       } else if (userAssignedBranches && userAssignedBranches.length > 0) {
         const assignedBranchIds = userAssignedBranches.map(b => b._id || b);
         filteredBranches = branches.filter(branch => assignedBranchIds.includes(branch._id));
-        console.log('✅ Material Transfer - Multi-branch mode:', filteredBranches.length, 'branches');
-      } else {
-        console.log('⚠️ Material Transfer - Admin mode - all sites');
       }
       
       const sitesList = filteredBranches.map(branch => branch.name).sort();
       setSites(sitesList);
-      console.log('✅ Material Transfer - Site filter options:', sitesList);
     } catch (err) {
       console.error('Error fetching sites:', err);
       if (selectedBranchName) {
@@ -148,7 +140,6 @@ export default function MaterialTransfer({ isTabView = false }) {
         
         // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
         if (selectedBranchName && isFieldRole(user.role)) {
-          console.log('🔒 Material Transfer - STRICT ISOLATION: Filtering by selected branch only:', selectedBranchName);
           
           transfersData = transfersData.filter(transfer => {
             const fromSite = transfer.fromSite;
@@ -158,11 +149,9 @@ export default function MaterialTransfer({ isTabView = false }) {
             return isMatch;
           });
           
-          console.log('✅ Material Transfer - Isolated to', transfersData.length, 'transfers for branch:', selectedBranchName);
         } else if (userAssignedBranches && userAssignedBranches.length > 0) {
           // Multi-branch filtering for other roles
           const assignedSiteNames = userAssignedBranches.map(b => b.name).filter(Boolean);
-          console.log('🔒 Material Transfer - Multi-branch filtering:', assignedSiteNames);
           
           transfersData = transfersData.filter(transfer => {
             const fromSite = transfer.fromSite;
@@ -170,9 +159,6 @@ export default function MaterialTransfer({ isTabView = false }) {
             return assignedSiteNames.includes(fromSite) || assignedSiteNames.includes(toSite);
           });
           
-          console.log('✅ Material Transfer - Filtered to', transfersData.length, 'transfers');
-        } else {
-          console.log('⚠️ Material Transfer - Admin mode - no filtering');
         }
         
         // ✅ Apply filters client-side

@@ -142,8 +142,6 @@ export default function MaterialTransferForm() {
   
   // Auto-resolve From Site from selected project
   const selectedBranchName = getSelectedBranchName() || '';
-  console.log('👤 MaterialTransferForm - User:', userName);
-  console.log('🏢 MaterialTransferForm - Auto From Site:', selectedBranchName);
   
   const [formData, setFormData] = useState({
     fromSite: selectedBranchName, // ✅ Auto-filled from selected project
@@ -176,7 +174,6 @@ export default function MaterialTransferForm() {
       }
 
       try {
-        console.log('🔍 Fetching GRN materials for site:', formData.fromSite);
         
         // Fetch all GRN records (transferred deliveries)
         const response = await upcomingDeliveryAPI.getAll(1, 1000, '');
@@ -190,7 +187,6 @@ export default function MaterialTransferForm() {
             delivery.to === formData.fromSite
           );
           
-          console.log('✅ Found', grnRecords.length, 'GRN records for', formData.fromSite);
           
           // Extract unique materials from GRN records
           const materialsMap = new Map();
@@ -225,8 +221,6 @@ export default function MaterialTransferForm() {
             .sort((a, b) => a.localeCompare(b));
           setCategories(uniqueCategories);
           
-          console.log('✅ Extracted', materials.length, 'unique materials from GRN');
-          console.log('✅ Categories:', uniqueCategories);
         }
       } catch (err) {
         console.error('❌ Error fetching GRN materials:', err);
@@ -254,7 +248,6 @@ export default function MaterialTransferForm() {
           const branches = await branchesPromise;
           const toSitesList = branches.map(branch => branch.name).sort((a, b) => a.localeCompare(b));
           setToSites(toSitesList);
-          console.log('✅ To Site options:', toSitesList.length, 'sites');
         } catch (err) {
           console.error('❌ MaterialTransferForm: Error fetching sites:', err);
           setToSites([]);
@@ -263,7 +256,6 @@ export default function MaterialTransferForm() {
         // ✅ FETCH MATERIAL CATALOG FOR FALLBACK SUBCATEGORIES
         try {
           const materials = await materialsPromise;
-          console.log('✅ MaterialTransferForm: Fetched', materials?.length || 0, 'materials from catalog (fallback)');
           setAllMaterials(materials || []);
         } catch (err) {
           console.error('❌ MaterialTransferForm: Error fetching material catalog:', err);
@@ -291,7 +283,6 @@ export default function MaterialTransferForm() {
     
     // If GRN has data, use it
     if (grnSubcategories.length > 0) {
-      console.log('✅ Using GRN subcategories for', category, ':', grnSubcategories.length);
       return grnSubcategories.sort((a, b) => a.localeCompare(b));
     }
     
@@ -303,7 +294,6 @@ export default function MaterialTransferForm() {
         .filter(Boolean)
     )];
     
-    console.log('⚠️ Fallback to catalog subcategories for', category, ':', catalogSubcategories.length);
     return catalogSubcategories.sort((a, b) => a.localeCompare(b));
   };
 
@@ -318,7 +308,6 @@ export default function MaterialTransferForm() {
     )];
     
     if (grnSubSubcategories.length > 0) {
-      console.log('✅ Using GRN sub-subcategories');
       return grnSubSubcategories.sort((a, b) => a.localeCompare(b));
     }
     
@@ -330,7 +319,6 @@ export default function MaterialTransferForm() {
         .filter(Boolean)
     )];
     
-    console.log('⚠️ Fallback to catalog sub-subcategories');
     return catalogSubSubcategories.sort((a, b) => a.localeCompare(b));
   };
 
@@ -349,7 +337,6 @@ export default function MaterialTransferForm() {
     )];
     
     if (grnSubSubSubcategories.length > 0) {
-      console.log('✅ Using GRN sub-sub-subcategories');
       return grnSubSubSubcategories.sort((a, b) => a.localeCompare(b));
     }
     
@@ -365,7 +352,6 @@ export default function MaterialTransferForm() {
         .filter(Boolean)
     )];
     
-    console.log('⚠️ Fallback to catalog sub-sub-subcategories');
     return catalogSubSubSubcategories.sort((a, b) => a.localeCompare(b));
   };
 
@@ -519,7 +505,6 @@ export default function MaterialTransferForm() {
         localStorage.setItem(EVENTS.siteTransferRefresh, Date.now().toString());
         localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
         
-        console.log('✅ Site Transfer created - syncing to Upcoming Deliveries');
         
         // Navigate back after short delay
         setTimeout(() => {
@@ -938,7 +923,7 @@ export default function MaterialTransferForm() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 bg-primary text-primary-foreground hover:bg-primary-strong font-semibold py-3.5 rounded-xl   transition-all shadow-md hover:shadow-lg disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transform hover:scale-[1.02]"
+                className="flex-1 bg-primary text-primary-foreground hover:bg-primary-strong font-semibold py-3.5 rounded-xl   transition-all shadow-md hover:shadow-lg disabled:cursor-not-allowed transform hover:scale-[1.02]"
               >
                 {submitting ? (
                   <span className="flex items-center justify-center gap-2">

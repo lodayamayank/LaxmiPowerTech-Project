@@ -323,7 +323,7 @@ export default function GRNCardDetails() {
                                 alt={`Challan ${index + 1}`}
                                 className="w-full h-48 object-contain"
                               />
-                              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-20 transition-all">
+                              <div className="absolute inset-0 flex items-center justify-center bg-scrim bg-opacity-0 hover:bg-opacity-20 transition-all">
                                 <div className="bg-surface rounded-full p-2 opacity-0 hover:opacity-100 transition-opacity">
                                   <FileText size={24} className="text-tone-highlight-fg" />
                                 </div>

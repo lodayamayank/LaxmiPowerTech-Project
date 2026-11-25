@@ -509,7 +509,7 @@ const TaskSubmission = () => {
                       if (project) handleProjectChange(project);
                     }}
                   >
-                    <SelectTrigger className="w-full h-12 rounded-lg border-2 border-white/30 bg-surface/80 backdrop-blur-sm text-primary-foreground font-semibold focus:ring-0 focus:border-white/50 focus:bg-white/20 [&_svg]:text-primary-foreground [&_svg]:opacity-80">
+                    <SelectTrigger className="w-full h-12 rounded-lg border-2 border-line-card bg-surface/80 backdrop-blur-sm text-primary-foreground font-semibold focus:ring-0 focus:border-line-card focus:bg-surface/20 [&_svg]:text-primary-foreground [&_svg]:opacity-80">
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
@@ -539,7 +539,7 @@ const TaskSubmission = () => {
                     </p>
                   </div>
                   {availableProjects.length === 1 && (
-                    <Badge className="bg-surface/80 text-primary-foreground text-xs rounded-full hover:bg-white/20">
+                    <Badge className="bg-surface/80 text-primary-foreground text-xs rounded-full hover:bg-surface-muted">
                       1 Project
                     </Badge>
                   )}
@@ -889,7 +889,7 @@ const TaskSubmission = () => {
                                 ? "border-line-card bg-tone-highlight-soft text-tone-highlight-fg hover:bg-tone-highlight-soft hover:text-primary-strong"
                                 : isDisabled
                                 ? "border-line-card bg-surface-muted text-ink-4 cursor-not-allowed"
-                                : "border-line-input text-ink-2 hover:border-primary hover:bg-white"
+                                : "border-line-input text-ink-2 hover:border-primary hover:bg-surface-muted"
                             }`}
                           >
                             {areaType.label}

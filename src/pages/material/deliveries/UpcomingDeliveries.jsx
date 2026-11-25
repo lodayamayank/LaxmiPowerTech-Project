@@ -38,9 +38,6 @@ export default function UpcomingDeliveries({ isTabView = false }) {
     const selectedBranchName = getSelectedBranchName();
     
     // Debug: Log branch context
-    console.log('👤 Upcoming Deliveries - User:', user?.name, 'Role:', user?.role);
-    console.log('🏢 Upcoming Deliveries - Assigned Branches:', userAssignedBranches);
-    console.log('🎯 Upcoming Deliveries - Selected Branch:', selectedBranchId, selectedBranchName);
 
     useEffect(() => {
         fetchDeliveries();
@@ -56,18 +53,13 @@ export default function UpcomingDeliveries({ isTabView = false }) {
             let filteredBranches = branches;
             if (selectedBranchId && isFieldRole(user.role)) {
                 filteredBranches = branches.filter(branch => branch._id === selectedBranchId);
-                console.log('🔒 Upcoming Deliveries - Single branch mode:', selectedBranchName);
             } else if (userAssignedBranches && userAssignedBranches.length > 0) {
                 const assignedBranchIds = userAssignedBranches.map(b => b._id || b);
                 filteredBranches = branches.filter(branch => assignedBranchIds.includes(branch._id));
-                console.log('✅ Upcoming Deliveries - Multi-branch mode:', filteredBranches.length, 'branches');
-            } else {
-                console.log('⚠️ Upcoming Deliveries - Admin mode - all sites');
             }
             
             const sitesList = filteredBranches.map(branch => branch.name).sort();
             setSites(sitesList);
-            console.log('✅ Upcoming Deliveries - Site filter options:', sitesList);
         } catch (err) {
             console.error('Error fetching sites:', err);
             if (selectedBranchName) {
@@ -84,23 +76,19 @@ export default function UpcomingDeliveries({ isTabView = false }) {
     // Listen for Intent, Site Transfer, and Delivery update events
     useEffect(() => {
         const handleIntentChange = () => {
-            console.log('🔄 Client Upcoming Deliveries: Intent update detected');
             fetchDeliveries();
         };
 
         const handleSiteTransferChange = () => {
-            console.log('🔄 Client Upcoming Deliveries: Site Transfer update detected');
             fetchDeliveries();
         };
 
         const handleDeliveryRefresh = () => {
-            console.log('🔄 Client Upcoming Deliveries: Delivery refresh triggered');
             fetchDeliveries();
         };
 
         const handleStorageChange = (e) => {
             if (e.key === EVENTS.intentRefresh || e.key === EVENTS.upcomingDeliveryRefresh || e.key === EVENTS.siteTransferRefresh) {
-                console.log(`✅ Client Upcoming Deliveries: ${e.key} detected`);
                 fetchDeliveries();
                 localStorage.removeItem(e.key);
             }
@@ -460,10 +448,8 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                                 {/* Header */}
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-16 h-16 rounded-lg bg-gradient-to-br border-2 flex items-center justify-center flex-shrink-0 ${
-                                            delivery.type === 'PO' 
-                                                ? '  border-line-card' 
-                                                : '  border-line-card'
+                                        <div className={`w-16 h-16 rounded-lg border flex items-center justify-center flex-shrink-0 ${
+                                            delivery.type === 'PO' ? 'border-line-card bg-tone-info-soft' : 'border-line-card bg-tone-purple-soft'
                                         }`}>
                                             <Package size={28} className={delivery.type === 'PO' ? 'text-tone-info-fg' : 'text-tone-purple-fg'} />
                                         </div>
@@ -539,7 +525,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                     <Button
                         type="button"
                         variant="ghost"
-                        className="absolute top-6 left-6 h-auto text-primary-foreground hover:text-primary-foreground flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
+                        className="absolute top-6 left-6 h-auto text-primary-foreground hover:text-primary-foreground flex items-center gap-2 hover:bg-surface-muted px-3 py-1.5 rounded-full transition-all"
                         onClick={() => navigate(-1)}
                     >
                         <ArrowLeft size={16} />

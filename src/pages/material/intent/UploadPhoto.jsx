@@ -64,7 +64,6 @@ export default function UploadPhoto() {
           canvas.getContext('2d').drawImage(img, 0, 0, width, height);
           canvas.toBlob((blob) => {
             const compressed = new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() });
-            console.log(`📦 Compressed: ${(file.size / 1024).toFixed(0)}KB → ${(compressed.size / 1024).toFixed(0)}KB`);
             resolve(compressed);
           }, 'image/jpeg', quality);
         };
@@ -124,11 +123,6 @@ export default function UploadPhoto() {
       formData.append('image', selectedImage);
       formData.append('uploadedBy', user._id || user.id);
 
-      console.log('📤 Uploading indent photo...');
-      console.log('🆔 Indent ID:', indentId);
-      console.log('👤 User ID:', user._id || user.id);
-      console.log('📸 Image:', selectedImage.name, selectedImage.size, 'bytes');
-      console.log('🌐 Endpoint: /indents/upload-photo');
 
       const result = await submitOffline({
         module: 'material',

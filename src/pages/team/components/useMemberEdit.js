@@ -117,14 +117,11 @@ export default function useMemberEdit(userId, onSave) {
       const updatePayload = { ...form };
       delete updatePayload.password;
 
-      console.log("🔍 [EditUserModal] Form state:", form);
-      console.log("📤 [EditUserModal] Sending payload:", updatePayload);
 
       const res = await axios.put(`/users/${user._id}`, updatePayload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("📥 [EditUserModal] Response data:", res.data);
 
       toast.success("User updated successfully");
 

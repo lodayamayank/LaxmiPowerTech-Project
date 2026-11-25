@@ -482,7 +482,7 @@ export default function MaterialTransferMobile() {
                   <Button
                     type="button"
                     onClick={() => setShowForm(false)}
-                    className="flex-1 h-auto px-6 py-3 bg-surface-muted hover:bg-surface-muted text-black font-semibold rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200"
+                    className="flex-1 h-auto px-6 py-3 bg-surface-muted hover:bg-surface-muted text-ink-1 font-semibold rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200"
                   >
                     Cancel
                   </Button>
@@ -511,7 +511,7 @@ export default function MaterialTransferMobile() {
             type="button"
             onClick={openNewForm}
             aria-label="New site transfer"
-            className="w-14 h-14 p-0 rounded-full bg-surface-muted hover:bg-surface-muted text-black flex items-center justify-center text-3xl pb-1 font-bold leading-none btn-shadow active:scale-95 transition-transform"
+            className="w-14 h-14 p-0 rounded-full bg-surface-muted hover:bg-surface-muted text-ink-1 flex items-center justify-center text-3xl pb-1 font-bold leading-none btn-shadow active:scale-95 transition-transform"
           >
             +
           </Button>
@@ -624,7 +624,7 @@ export default function MaterialTransferMobile() {
                 type="button"
                 variant="outline"
                 onClick={() => setShowFilter(false)}
-                className="flex-1 h-auto px-3 py-2 rounded-xl border bg-surface text-sm font-normal text-ink-2 hover:bg-white hover:text-ink-1"
+                className="flex-1 h-auto px-3 py-2 rounded-xl border bg-surface text-sm font-normal text-ink-2 hover:bg-surface-muted hover:text-ink-1"
               >
                 Close
               </Button>

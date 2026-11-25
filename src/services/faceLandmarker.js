@@ -125,7 +125,6 @@ async function loadFaceLandmarker(numFaces, preferGPU) {
     // Try GPU first.
     if (preferGPU) {
       try {
-        console.log("FaceLandmarker: trying GPU...");
 
         const instance = await withTimeout(
           FaceLandmarker.createFromOptions(filesetResolver, {
@@ -138,7 +137,6 @@ async function loadFaceLandmarker(numFaces, preferGPU) {
         );
 
         faceLandmarkerInstance = instance;
-        console.log("FaceLandmarker: GPU ready.");
         emit("ready", { delegate: "GPU" });
         return instance;
       } catch (gpuError) {
@@ -148,7 +146,6 @@ async function loadFaceLandmarker(numFaces, preferGPU) {
     }
 
     // Fall back to CPU.
-    console.log("FaceLandmarker: trying CPU...");
 
     const instance = await withTimeout(
       FaceLandmarker.createFromOptions(filesetResolver, {
@@ -161,7 +158,6 @@ async function loadFaceLandmarker(numFaces, preferGPU) {
     );
 
     faceLandmarkerInstance = instance;
-    console.log("FaceLandmarker: CPU ready.");
     emit("ready", { delegate: "CPU" });
     return instance;
   } catch (error) {

@@ -1,5 +1,6 @@
 // RoleBasedDashboard.jsx - Add error handling
 import React, { lazy, Suspense } from 'react';
+import { Button } from '@/components/ui/button';
 import { PageLoader } from '@/components/common/PageLoader';
 import { ROLES } from '@/lib/constants';
 import { isFieldRole } from '@/lib/roles';
@@ -11,7 +12,6 @@ import { useNavigate } from 'react-router-dom';
 const Dashboard = lazy(() => import('./AdminDashboard'));
 const LabourDashboard = lazy(() => import('./LabourDashboard'));
 const SupervisorDashboard = lazy(() => import('./SupervisorDashboard'));
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -67,12 +67,11 @@ const RoleBasedDashboard = () => {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-tone-bad-fg mb-4">❌ Unknown Role</h1>
           <p className="text-ink-3 mb-4">Role: {role || 'undefined'}</p>
-          <button 
+          <Button
             onClick={() => navigate(ROUTES.login)}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary-strong"
           >
             Go to Login
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -83,15 +82,14 @@ const RoleBasedDashboard = () => {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-tone-bad-fg mb-4">⚠️ Error Loading Dashboard</h1>
           <p className="text-ink-3 mb-4">{err.message}</p>
-          <button 
+          <Button
             onClick={() => {
               clearSession({ all: true });
               navigate(ROUTES.login);
             }}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary-strong"
           >
             Clear Storage & Login Again
-          </button>
+          </Button>
         </div>
       </div>
     );

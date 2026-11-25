@@ -24,9 +24,6 @@ export default function GRN({ isTabView = false }) {
   const selectedBranchName = getSelectedBranchName();
   
   // Debug: Log branch context
-  console.log('👤 GRN - User:', user?.name, 'Role:', user?.role);
-  console.log('🏢 GRN - Assigned Branches:', userAssignedBranches);
-  console.log('🎯 GRN - Selected Branch:', selectedBranchId, selectedBranchName);
   
   // Filter states
   const [search, setSearch] = useState('');
@@ -49,18 +46,13 @@ export default function GRN({ isTabView = false }) {
       let filteredBranches = branches;
       if (selectedBranchId && isFieldRole(user.role)) {
         filteredBranches = branches.filter(branch => branch._id === selectedBranchId);
-        console.log('🔒 GRN - Single branch mode:', selectedBranchName);
       } else if (userAssignedBranches && userAssignedBranches.length > 0) {
         const assignedBranchIds = userAssignedBranches.map(b => b._id || b);
         filteredBranches = branches.filter(branch => assignedBranchIds.includes(branch._id));
-        console.log('✅ GRN - Multi-branch mode:', filteredBranches.length, 'branches');
-      } else {
-        console.log('⚠️ GRN - Admin mode - all sites');
       }
       
       const sitesList = filteredBranches.map(branch => branch.name).sort();
       setSites(sitesList);
-      console.log('✅ GRN - Site filter options:', sitesList);
     } catch (err) {
       console.error('Error fetching sites:', err);
       if (selectedBranchName) {
@@ -90,7 +82,6 @@ export default function GRN({ isTabView = false }) {
         
         // ✅ CRITICAL: Single-branch isolation for supervisor/subcontractor
         if (selectedBranchName && isFieldRole(user.role)) {
-          console.log('🔒 GRN - STRICT ISOLATION: Filtering by selected branch only:', selectedBranchName);
           
           completed = completed.filter(item => {
             const fromSite = item.from;
@@ -100,11 +91,9 @@ export default function GRN({ isTabView = false }) {
             return isMatch;
           });
           
-          console.log('✅ GRN - Isolated to', completed.length, 'deliveries for branch:', selectedBranchName);
         } else if (userAssignedBranches && userAssignedBranches.length > 0) {
           // Multi-branch filtering for other roles
           const assignedSiteNames = userAssignedBranches.map(b => b.name).filter(Boolean);
-          console.log('🔒 GRN - Multi-branch filtering:', assignedSiteNames);
           
           completed = completed.filter(item => {
             const fromSite = item.from;
@@ -112,9 +101,6 @@ export default function GRN({ isTabView = false }) {
             return assignedSiteNames.includes(fromSite) || assignedSiteNames.includes(toSite);
           });
           
-          console.log('✅ GRN - Filtered to', completed.length, 'deliveries');
-        } else {
-          console.log('⚠️ GRN - Admin mode - no filtering');
         }
         
         // Apply search filter
@@ -159,7 +145,6 @@ export default function GRN({ isTabView = false }) {
         }
         
         setDeliveries(completed);
-        console.log(`📦 GRN: Found ${completed.length} transferred deliveries`);
       }
     } catch (err) {
       console.error("Error fetching GRN:", err);

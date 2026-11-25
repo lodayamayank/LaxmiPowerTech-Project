@@ -360,7 +360,6 @@ export default function useAdminGrn() {
         }
 
         setDeliveries(filteredData);
-        console.log(`📦 Admin GRN: Found ${filteredData.length} transferred deliveries`);
       }
     } catch (err) {
       console.error('Error fetching GRN records:', err);
@@ -608,9 +607,6 @@ export default function useAdminGrn() {
       const currentDate = new Date().toISOString().split('T')[0];
       
       // Log current state for debugging
-      console.log('💾 Saving billing data...');
-      console.log('📝 User-entered invoice number:', billingData.invoiceNumber);
-      console.log('🤖 Auto-generated invoice number:', autoInvoiceNumber);
       
       // Ensure all numeric values are properly formatted
       const recalculatedMaterialBilling = billingData.materialBilling.map(material => {
@@ -641,16 +637,9 @@ export default function useAdminGrn() {
         ...paymentSummary
       };
       
-      console.log('📤 Sending to backend - Invoice Number:', sanitizedBillingData.invoiceNumber);
-      console.log('📤 Full sanitized billing data:', JSON.stringify(sanitizedBillingData, null, 2));
-      console.log('📤 Material billing being sent:', sanitizedBillingData.materialBilling);
       
       const response = await upcomingDeliveryAPI.updateBilling(selectedDelivery._id, sanitizedBillingData);
       
-      console.log('📥 Backend response received');
-      console.log('✅ Saved invoice number:', response.data?.billing?.invoiceNumber);
-      console.log('📊 Backend billing data:', response.data?.billing);
-      console.log('📦 Material billing count:', response.data?.billing?.materialBilling?.length);
       
       if (response.success) {
         // Update local state
@@ -658,7 +647,6 @@ export default function useAdminGrn() {
         
         // Ensure materialBilling is properly formatted from response
         const savedMaterialBilling = response.data.billing?.materialBilling || [];
-        console.log('💾 Saved material billing:', savedMaterialBilling);
         
         // Update billing data with saved values from response
         setBillingData({
