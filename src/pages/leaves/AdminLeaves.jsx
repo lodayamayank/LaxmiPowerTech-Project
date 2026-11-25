@@ -16,6 +16,7 @@ import { SectionCard } from "@/components/common/SectionCard";
 import { DataTable } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { PaginationBar } from "@/components/common/PaginationBar";
+import LeaveDetailsDialog from "./components/LeaveDetailsDialog";
 import LeaveFilters from "./components/LeaveFilters";
 import { getLeaveColumns, getLeaveMobileCard } from "./components/leaveColumns";
 
@@ -38,6 +39,7 @@ export default function AdminLeaves() {
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
+  const [viewing, setViewing] = useState(null); // the request open in the details dialog
 
   const totalPages = useMemo(() => Math.max(Math.ceil(total / limit), 1), [total, limit]);
 
@@ -80,6 +82,7 @@ export default function AdminLeaves() {
       await axios.patch(`/leaves/${id}/status`, { status }); // ✅ correct endpoint
       window.dispatchEvent(new Event(EVENTS.pendingCountsRefresh));
       setRows((prev) => prev.map((r) => (r._id === id ? { ...r, status } : r)));
+      setViewing(null);
       toast.success(`Leave ${status} successfully`);
 
       // 🔹 optional: broadcast event for AdminDashboard & MyAttendance
@@ -90,8 +93,8 @@ export default function AdminLeaves() {
     }
   }, []);
 
-  const columns = useMemo(() => getLeaveColumns(handleAction), [handleAction]);
-  const mobileCard = useMemo(() => getLeaveMobileCard(handleAction), [handleAction]);
+  const columns = useMemo(() => getLeaveColumns(setViewing), []);
+  const mobileCard = useMemo(() => getLeaveMobileCard(setViewing), []);
 
   // Filters other than the status tab (the tab has its own control).
   const hasActiveFilters = Boolean(
@@ -188,6 +191,8 @@ export default function AdminLeaves() {
           }
         />
       </SectionCard>
+
+      <LeaveDetailsDialog leave={viewing} onClose={() => setViewing(null)} onAction={handleAction} />
     </DashboardLayout>
   );
 }
