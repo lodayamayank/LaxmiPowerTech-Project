@@ -14,14 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  FaCalendarCheck,
-  FaCalendarTimes,
-  FaChartLine,
-  FaChevronLeft,
-  FaChevronRight,
-  FaRegLightbulb,
-} from "react-icons/fa";
+import { CalendarCheck, CalendarX, ChevronLeft, ChevronRight, Lightbulb, TrendingUp } from "lucide-react";
 import { computeDailyStatuses } from "@/lib/attendanceCalculations";
 import {
   CalendarGrid,
@@ -289,13 +282,13 @@ const AttendanceGraphModal = ({ user, onClose }) => {
       }}
     >
       {/* sm:max-w-3xl is needed because newer shadcn DialogContent sets sm:max-w-lg */}
-      <DialogContent className="max-h-[90vh] w-full max-w-3xl sm:max-w-3xl gap-0 overflow-y-auto p-0 dark:bg-gray-800">
-        <DialogHeader className="border-b px-5 py-4 text-left dark:border-gray-700">
-          <DialogTitle className="text-lg font-bold text-gray-900 dark:text-white">
+      <DialogContent className="max-h-[90vh] w-full max-w-3xl sm:max-w-3xl gap-0 overflow-y-auto p-0">
+        <DialogHeader className="border-b px-5 py-4 text-left">
+          <DialogTitle className="text-lg font-bold text-ink-1">
             Attendance overview
-            <span className="text-emerald-600 dark:text-emerald-400">.</span>
+            <span className="text-tone-ok-fg">.</span>
           </DialogTitle>
-          <DialogDescription className="text-sm text-gray-500 dark:text-gray-300">
+          <DialogDescription className="text-sm text-ink-3">
             {user?.name || user?.username}
           </DialogDescription>
         </DialogHeader>
@@ -303,12 +296,12 @@ const AttendanceGraphModal = ({ user, onClose }) => {
         <div className="space-y-5 p-5">
           {/* Period tabs */}
           <Tabs value={period} onValueChange={setPeriod}>
-            <TabsList className="h-9 rounded-lg bg-gray-100 p-[3px] dark:bg-gray-700">
+            <TabsList className="h-9 rounded-lg bg-surface-muted p-[3px]">
               {PERIODS.map((option) => (
                 <TabsTrigger
                   key={option}
                   value={option}
-                  className="rounded-md px-4 text-xs font-medium capitalize text-gray-500 data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm dark:text-gray-300 dark:data-[state=active]:bg-gray-900 dark:data-[state=active]:text-emerald-300"
+                  className="rounded-md px-4 text-xs font-medium capitalize text-ink-3 data-[state=active]:bg-surface data-[state=active]:text-tone-ok-fg data-[state=active]:shadow-sm"
                 >
                   {option}
                 </TabsTrigger>
@@ -318,39 +311,39 @@ const AttendanceGraphModal = ({ user, onClose }) => {
 
           {/* Period navigation (custom uses date pickers instead) */}
           {period !== "custom" ? (
-            <div className="flex items-center justify-between rounded-lg border border-gray-200 px-2 py-1.5 dark:border-gray-700">
+            <div className="flex items-center justify-between rounded-lg border border-line-card px-2 py-1.5">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-gray-500"
+                className="h-8 w-8 text-ink-3"
                 onClick={() =>
                   setSelectedDate(movePeriod(selectedDate, period, -1))
                 }
                 aria-label="Previous period"
               >
-                <FaChevronLeft />
+                <ChevronLeft />
               </Button>
-              <span className="text-sm font-semibold text-gray-700 dark:text-gray-100">
+              <span className="text-sm font-semibold text-ink-2">
                 {formatRange(period, selectedDate)}
               </span>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-gray-500"
+                className="h-8 w-8 text-ink-3"
                 onClick={() =>
                   setSelectedDate(movePeriod(selectedDate, period, 1))
                 }
                 aria-label="Next period"
               >
-                <FaChevronRight />
+                <ChevronRight />
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-3 rounded-lg border border-gray-200 px-3 py-3 sm:grid-cols-2 dark:border-gray-700">
+            <div className="grid grid-cols-1 gap-3 rounded-lg border border-line-card px-3 py-3 sm:grid-cols-2">
               <div className="space-y-1">
                 <Label
                   htmlFor="attendance-custom-start"
-                  className="text-xs font-semibold text-gray-600 dark:text-gray-300"
+                  className="text-xs font-semibold text-ink-2"
                 >
                   From
                 </Label>
@@ -367,7 +360,7 @@ const AttendanceGraphModal = ({ user, onClose }) => {
               <div className="space-y-1">
                 <Label
                   htmlFor="attendance-custom-end"
-                  className="text-xs font-semibold text-gray-600 dark:text-gray-300"
+                  className="text-xs font-semibold text-ink-2"
                 >
                   To
                 </Label>
@@ -411,7 +404,7 @@ const AttendanceGraphModal = ({ user, onClose }) => {
 
               {period === "custom" && (
                 <div className="space-y-3">
-                  <div className="text-sm font-semibold text-gray-700 dark:text-gray-100">
+                  <div className="text-sm font-semibold text-ink-2">
                     Attendance:{" "}
                     {range.start.toLocaleDateString("en-US", {
                       month: "short",
@@ -437,36 +430,36 @@ const AttendanceGraphModal = ({ user, onClose }) => {
                       label="Attendance rate"
                       value={overallYearPct}
                       unit="%"
-                      icon={FaChartLine}
+                      icon={TrendingUp}
                       footer="Average across months with data"
                     />
                     <MetricCard
                       label="Days present"
                       value={presentTotal}
                       unit={`/ ${breakdownTotal} days`}
-                      icon={FaCalendarCheck}
+                      icon={CalendarCheck}
                     />
                     <MetricCard
                       label="Days absent"
                       value={absentTotal}
                       unit="days"
-                      icon={FaCalendarTimes}
+                      icon={CalendarX}
                     />
                   </div>
 
                   <div>
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                    <h3 className="text-sm font-bold text-ink-1">
                       Showing up, over time
                     </h3>
-                    <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                    <p className="mb-2 text-xs text-ink-3">
                       Attendance rhythm through {selectedDate.getFullYear()}
                     </p>
                     <YearAttendanceChart yearlySummary={yearlySummary} />
                   </div>
 
                   {bestMonth && (
-                    <div className="flex items-center gap-2.5 rounded-md bg-emerald-50 px-3.5 py-2.5 text-xs text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-                      <FaRegLightbulb className="h-3.5 w-3.5 shrink-0" />
+                    <div className="flex items-center gap-2.5 rounded-md bg-tone-ok-soft px-3.5 py-2.5 text-xs text-tone-ok-fg">
+                      <Lightbulb className="h-3.5 w-3.5 shrink-0" />
                       <span>
                         Strongest month was{" "}
                         <strong>
@@ -495,10 +488,10 @@ const AttendanceGraphModal = ({ user, onClose }) => {
 
                   {breakdownTotal > 0 && (
                     <div>
-                      <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                      <h3 className="text-sm font-bold text-ink-1">
                         The full picture
                       </h3>
-                      <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
+                      <p className="mb-3 text-xs text-ink-3">
                         Where the working days went
                       </p>
                       <div className="mx-auto max-w-sm">
@@ -515,14 +508,14 @@ const AttendanceGraphModal = ({ user, onClose }) => {
                     {Object.entries(counts).map(([status, count]) => (
                       <span
                         key={status}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-line-card bg-surface px-3 py-1 text-xs text-ink-2"
                       >
                         <span
                           className="h-1.5 w-1.5 rounded-full"
                           style={{ backgroundColor: STATUS_COLORS[status] }}
                         />
                         {status}
-                        <strong className="font-semibold text-gray-900 dark:text-white">
+                        <strong className="font-semibold text-ink-1">
                           {count}
                         </strong>
                       </span>
