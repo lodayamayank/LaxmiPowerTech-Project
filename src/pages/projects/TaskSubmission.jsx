@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { ArrowLeft, CircleCheck, History, Image, LoaderCircle, Plus } from 'lucide-react';
 import { ROLES } from '@/lib/constants';
 import { getSelectedBranchName } from '@/lib/branchContext';
 import { getUser } from '@/lib/session';
@@ -7,14 +8,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "@/api/client";
 import { submitOffline } from "@/pwa/offlineSubmit";
 import Logo from "@/components/common/Logo";
-import {
-  FaArrowLeft,
-  FaPlus,
-  FaCheckCircle,
-  FaHistory,
-  FaImage,
-  FaSpinner,
-} from "react-icons/fa";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -87,7 +80,7 @@ const FieldSelect = ({
 }) => (
   <Select value={value || ""} onValueChange={onValueChange}>
     <SelectTrigger
-      className={`w-full h-12 rounded-xl border-gray-300 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${triggerClassName} ${className}`}
+      className={`w-full h-12 rounded-xl border-line-input text-sm focus:ring-2 focus-visible:ring-ring focus-visible:border-primary ${triggerClassName} ${className}`}
     >
       <SelectValue placeholder={placeholder} />
     </SelectTrigger>
@@ -492,13 +485,13 @@ const TaskSubmission = () => {
     (selectedAreaType === "common_area" && !selectedCommonArea) ||
     (selectedAreaType === "staircase" && !selectedStaircase);
 
-  const labelClass = "block text-sm font-semibold text-gray-700 mb-2";
+  const labelClass = "block text-sm font-semibold text-ink-2 mb-2";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
+    <div className="min-h-screen bg-tone-highlight-soft">
+      <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
+        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <Logo width={179} height={64} priority plate={false} className="h-16 w-50 bg-logo-plate box-shadow rounded-2xl" />
             <Button
@@ -506,7 +499,7 @@ const TaskSubmission = () => {
               onClick={() => navigate(-1)}
               className="mobile-back-button px-4 py-2"
             >
-              <FaArrowLeft size={14} />
+              <ArrowLeft size={14} />
               <span className="text-sm font-medium">Back</span>
             </Button>
           </div>
@@ -526,7 +519,7 @@ const TaskSubmission = () => {
             <div className="mb-4 space-y-3">
               {/* Project Selector Dropdown */}
               {availableProjects.length > 1 && (
-                <div className="p-4 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl shadow-lg">
+                <div className="p-4 bg-primary text-primary-foreground hover:bg-primary-strong rounded-xl shadow-lg">
                   <Label className="text-white text-xs font-semibold mb-2 block">
                     🏗️ SELECT PROJECT
                   </Label>
@@ -539,7 +532,7 @@ const TaskSubmission = () => {
                       if (project) handleProjectChange(project);
                     }}
                   >
-                    <SelectTrigger className="w-full h-12 rounded-lg border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white font-semibold focus:ring-0 focus:border-white/50 focus:bg-white/20 [&_svg]:text-white [&_svg]:opacity-80">
+                    <SelectTrigger className="w-full h-12 rounded-lg border-2 border-white/30 bg-surface/80 backdrop-blur-sm text-white font-semibold focus:ring-0 focus:border-white/50 focus:bg-white/20 [&_svg]:text-white [&_svg]:opacity-80">
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
@@ -558,7 +551,7 @@ const TaskSubmission = () => {
               )}
 
               {/* Current Project Info Badge */}
-              <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-md">
+              <div className="p-3 bg-primary text-primary-foreground hover:bg-primary-strong rounded-xl shadow-md">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-white text-sm font-semibold">
@@ -569,7 +562,7 @@ const TaskSubmission = () => {
                     </p>
                   </div>
                   {availableProjects.length === 1 && (
-                    <Badge className="bg-white/20 text-white text-xs rounded-full hover:bg-white/20">
+                    <Badge className="bg-surface/80 text-white text-xs rounded-full hover:bg-white/20">
                       1 Project
                     </Badge>
                   )}
@@ -578,9 +571,9 @@ const TaskSubmission = () => {
 
               {/* Multi-select Buildings Filter */}
               {!loading && hierarchy.buildings.length > 0 && (
-                <Card className="gap-0 py-0 rounded-xl border-2 border-indigo-200 shadow-sm">
+                <Card className="gap-0 py-0 rounded-xl border-2 border-line-card shadow-sm">
                   <CardContent className="p-4">
-                    <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                    <Label className="text-sm font-semibold text-ink-2 mb-2 block">
                       🏢 Select Buildings to View:
                     </Label>
                     <ScrollArea
@@ -591,7 +584,7 @@ const TaskSubmission = () => {
                       <div className="space-y-2">
                         <Label
                           htmlFor="building-all"
-                          className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
+                          className="flex items-center gap-2 p-2 rounded-lg hover:bg-surface-muted cursor-pointer"
                         >
                           <Checkbox
                             id="building-all"
@@ -606,7 +599,7 @@ const TaskSubmission = () => {
                             }}
                             className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 data-[state=checked]:text-white"
                           />
-                          <span className="text-sm font-semibold text-gray-700">
+                          <span className="text-sm font-semibold text-ink-2">
                             All Buildings
                           </span>
                         </Label>
@@ -618,7 +611,7 @@ const TaskSubmission = () => {
                             <Label
                               key={building._id || building.name}
                               htmlFor={id}
-                              className="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-50 cursor-pointer"
+                              className="flex items-center gap-2 p-2 rounded-lg hover:bg-tone-info-soft cursor-pointer"
                             >
                               <Checkbox
                                 id={id}
@@ -636,7 +629,7 @@ const TaskSubmission = () => {
                                 }}
                                 className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 data-[state=checked]:text-white"
                               />
-                              <span className="text-sm font-normal text-gray-700">
+                              <span className="text-sm font-normal text-ink-2">
                                 {building.name}
                               </span>
                             </Label>
@@ -647,7 +640,7 @@ const TaskSubmission = () => {
                     {selectedBuildings.length > 0 && (
                       <>
                         <Separator className="mt-2" />
-                        <p className="text-xs text-gray-500 pt-2">
+                        <p className="text-xs text-ink-3 pt-2">
                           Selected:{" "}
                           {selectedBuildings.map((b) => b.name).join(", ")}
                         </p>
@@ -662,26 +655,26 @@ const TaskSubmission = () => {
           {/* Task Summary Statistics */}
           {!loading && tasks.length > 0 && (
             <div className="mb-6 grid grid-cols-2 gap-3">
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-xl border border-orange-200">
-                <p className="text-2xl font-bold text-orange-600">
+              <div className="bg-tone-highlight-soft p-4 rounded-xl border border-line-card">
+                <p className="text-2xl font-bold text-tone-highlight-fg">
                   {taskStats.total}
                 </p>
-                <p className="text-xs text-gray-600 mt-1">Total Tasks</p>
+                <p className="text-xs text-ink-3 mt-1">Total Tasks</p>
               </div>
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
-                <p className="text-2xl font-bold text-blue-600">
+              <div className="bg-tone-info-soft p-4 rounded-xl border border-line-card">
+                <p className="text-2xl font-bold text-tone-info-fg">
                   {taskStats.buildings.size}
                 </p>
-                <p className="text-xs text-gray-600 mt-1">Buildings</p>
+                <p className="text-xs text-ink-3 mt-1">Buildings</p>
               </div>
-              <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
-                <p className="text-2xl font-bold text-green-600">
+              <div className="bg-tone-ok-soft p-4 rounded-xl border border-tone-ok-border">
+                <p className="text-2xl font-bold text-tone-ok-fg">
                   {taskStats.floors.size}
                 </p>
-                <p className="text-xs text-gray-600 mt-1">Floors Covered</p>
+                <p className="text-xs text-ink-3 mt-1">Floors Covered</p>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
-                <p className="text-xs font-bold text-purple-600">
+              <div className="bg-tone-purple-soft p-4 rounded-xl border border-line-card">
+                <p className="text-xs font-bold text-tone-purple-fg">
                   {taskStats.latest
                     ? new Date(taskStats.latest.createdAt).toLocaleDateString(
                         "en-US",
@@ -689,7 +682,7 @@ const TaskSubmission = () => {
                       )
                     : "-"}
                 </p>
-                <p className="text-xs text-gray-600 mt-1">Latest Update</p>
+                <p className="text-xs text-ink-3 mt-1">Latest Update</p>
               </div>
             </div>
           )}
@@ -719,9 +712,9 @@ const TaskSubmission = () => {
                     }
                     setShowAddTaskModal(true);
                   }}
-                  className="w-full h-auto flex items-center justify-center gap-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-base px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+                  className="w-full h-auto flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:bg-primary-strong text-white text-base px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
                 >
-                  <FaPlus size={20} />
+                  <Plus size={20} />
                   <span>Add New Task</span>
                 </Button>
               </div>
@@ -729,13 +722,13 @@ const TaskSubmission = () => {
               {/* Task History Section */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-gray-800">
+                  <h3 className="text-lg font-bold text-ink-1">
                     Recent Tasks
                   </h3>
                   <Button
                     type="button"
                     onClick={() => setShowHistory(!showHistory)}
-                    className="h-auto px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-medium rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all shadow-sm"
+                    className="h-auto px-4 py-2 bg-primary text-primary-foreground hover:bg-primary-strong text-white text-sm font-medium rounded-lg   transition-all shadow-sm"
                   >
                     {showHistory ? "Show Less" : "Show All"}
                   </Button>
@@ -748,12 +741,12 @@ const TaskSubmission = () => {
                     <Skeleton className="h-28 w-full rounded-xl" />
                   </div>
                 ) : tasks.length === 0 ? (
-                  <div className="text-center py-12 bg-gray-50 rounded-xl">
-                    <FaHistory className="text-gray-300 text-4xl mx-auto mb-3" />
-                    <p className="text-gray-500 text-sm">
+                  <div className="text-center py-12 bg-surface-subtle rounded-xl">
+                    <History className="text-ink-4 text-4xl mx-auto mb-3" />
+                    <p className="text-ink-3 text-sm">
                       No tasks submitted yet
                     </p>
-                    <p className="text-gray-400 text-xs mt-1">
+                    <p className="text-ink-4 text-xs mt-1">
                       Click "Add New Task" to get started
                     </p>
                   </div>
@@ -766,42 +759,42 @@ const TaskSubmission = () => {
                           setSelectedTask(task);
                           setShowTaskDetail(true);
                         }}
-                        className="gap-0 py-0 rounded-xl border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer hover:border-orange-300"
+                        className="gap-0 py-0 rounded-xl border-line-card shadow-sm hover:shadow-md transition-all cursor-pointer hover:border-primary"
                       >
                         <CardContent className="p-4">
                           <div className="flex gap-3">
                             <img loading="lazy" decoding="async"
                               src={task.photoUrl}
                               alt="Task"
-                              className="w-20 h-20 rounded-lg object-cover border-2 border-gray-200"
+                              className="w-20 h-20 rounded-lg object-cover border-2 border-line-card"
                             />
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <Badge
                                   variant="secondary"
-                                  className="bg-indigo-100 text-indigo-700 text-xs font-semibold rounded hover:bg-indigo-100"
+                                  className="bg-tone-info-soft text-tone-info-fg text-xs font-semibold rounded hover:bg-tone-info-soft"
                                 >
                                   {task.building.name}
                                 </Badge>
-                                <span className="text-gray-400">→</span>
+                                <span className="text-ink-4">→</span>
                                 <Badge
                                   variant="secondary"
-                                  className="bg-purple-100 text-purple-700 text-xs font-semibold rounded hover:bg-purple-100"
+                                  className="bg-tone-purple-soft text-tone-purple-fg text-xs font-semibold rounded hover:bg-tone-purple-soft"
                                 >
                                   {task.wing.name}
                                 </Badge>
                               </div>
-                              <div className="text-xs text-gray-600 mt-1.5 flex items-center gap-1">
+                              <div className="text-xs text-ink-3 mt-1.5 flex items-center gap-1">
                                 <span className="font-medium">📍</span>
                                 <span>{task.floor.name}</span>
-                                <span className="text-gray-300">•</span>
+                                <span className="text-ink-4">•</span>
                                 <span>{task.flat.name}</span>
-                                <span className="text-gray-300">•</span>
-                                <span className="text-orange-600 font-medium">
+                                <span className="text-ink-4">•</span>
+                                <span className="text-tone-highlight-fg font-medium">
                                   {task.room.name}
                                 </span>
                               </div>
-                              <div className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                              <div className="text-xs text-ink-4 mt-2 flex items-center gap-1">
                                 <span>🕐</span>
                                 <span>
                                   {new Date(task.createdAt).toLocaleDateString(
@@ -820,7 +813,7 @@ const TaskSubmission = () => {
                           {task.notes && (
                             <>
                               <Separator className="mt-3" />
-                              <p className="text-xs text-gray-600 line-clamp-2 pt-3">
+                              <p className="text-xs text-ink-3 line-clamp-2 pt-3">
                                 {task.notes}
                               </p>
                             </>
@@ -844,7 +837,7 @@ const TaskSubmission = () => {
           }}
         >
           <DialogContent className="w-[calc(100%-2rem)] max-w-md sm:max-w-md p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col rounded-2xl [&>button]:text-white [&>button]:opacity-100 [&>button]:top-4 [&>button]:right-4 [&>button:hover]:bg-white/20">
-            <DialogHeader className="shrink-0 bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 text-left space-y-0">
+            <DialogHeader className="shrink-0 bg-primary text-primary-foreground hover:bg-primary-strong px-6 py-4 text-left space-y-0">
               <DialogTitle className="text-white text-xl font-bold">
                 Add New Task
               </DialogTitle>
@@ -916,10 +909,10 @@ const TaskSubmission = () => {
                             }}
                             className={`h-auto px-4 py-3 rounded-lg border-2 text-sm font-semibold transition-all ${
                               isActive
-                                ? "border-orange-500 bg-orange-50 text-orange-700 hover:bg-orange-50 hover:text-orange-700"
+                                ? "border-line-card bg-tone-highlight-soft text-tone-highlight-fg hover:bg-tone-highlight-soft hover:text-primary-strong"
                                 : isDisabled
-                                ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
-                                : "border-gray-300 text-gray-700 hover:border-orange-300 hover:bg-white"
+                                ? "border-line-card bg-surface-muted text-ink-4 cursor-not-allowed"
+                                : "border-line-input text-ink-2 hover:border-primary hover:bg-white"
                             }`}
                           >
                             {areaType.label}
@@ -927,7 +920,7 @@ const TaskSubmission = () => {
                         );
                       })}
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-ink-3 mt-2">
                       Select the area where work was performed
                     </p>
                   </div>
@@ -940,7 +933,7 @@ const TaskSubmission = () => {
                     <FieldSelect
                       value={selectedPodium?._id}
                       placeholder="Select Podium"
-                      triggerClassName="bg-yellow-50"
+                      triggerClassName="bg-tone-warn-soft"
                       items={getPodiums().map((p) => ({
                         value: p._id,
                         label: `${p.name}${
@@ -963,7 +956,7 @@ const TaskSubmission = () => {
                     <FieldSelect
                       value={selectedCommonArea?._id}
                       placeholder="Select Common Area"
-                      triggerClassName="bg-cyan-50"
+                      triggerClassName="bg-tone-info-soft"
                       items={getCommonAreas().map((a) => ({
                         value: a._id,
                         label: `${a.name}${
@@ -986,7 +979,7 @@ const TaskSubmission = () => {
                     <FieldSelect
                       value={selectedStaircase?._id}
                       placeholder="Select Staircase"
-                      triggerClassName="bg-purple-50"
+                      triggerClassName="bg-tone-purple-soft"
                       items={getStaircases().map((s) => ({
                         value: s._id,
                         label: `${s.name}${s.type ? ` - ${s.type}` : ""}`,
@@ -1005,14 +998,14 @@ const TaskSubmission = () => {
                   <div>
                     <Label className={labelClass}>
                       Level 3 - Activity{" "}
-                      <span className="text-gray-400 text-xs font-normal">
+                      <span className="text-ink-4 text-xs font-normal">
                         (Optional)
                       </span>
                     </Label>
                     <FieldSelect
                       value={selectedLevel3Activity || NO_ACTIVITY}
                       placeholder="Skip / No Activity"
-                      triggerClassName="bg-blue-50"
+                      triggerClassName="bg-tone-info-soft"
                       items={[
                         { value: NO_ACTIVITY, label: "Skip / No Activity" },
                         ...LEVEL_3_ACTIVITIES.map((a) => ({
@@ -1026,7 +1019,7 @@ const TaskSubmission = () => {
                         )
                       }
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-ink-3 mt-1">
                       Select if task is related to: Slab Conduiting, Box Fixing,
                       Wiring, Switch Plate, or Testing
                     </p>
@@ -1095,7 +1088,7 @@ const TaskSubmission = () => {
                         )
                       }
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-ink-3 mt-1">
                       Auto-generated based on flat configuration
                     </p>
                   </div>
@@ -1104,7 +1097,7 @@ const TaskSubmission = () => {
                 {/* Photo Upload */}
                 <div>
                   <Label className={labelClass}>
-                    Upload Photo <span className="text-red-500">*</span>
+                    Upload Photo <span className="text-tone-bad-fg">*</span>
                   </Label>
                   <Input
                     key={fileInputKey}
@@ -1116,10 +1109,10 @@ const TaskSubmission = () => {
                   />
                   <Label
                     htmlFor="photo-upload"
-                    className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-orange-500 transition-colors"
+                    className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-line-input rounded-xl cursor-pointer hover:border-primary transition-colors"
                   >
-                    <FaImage className="text-gray-400" />
-                    <span className="text-sm font-normal text-gray-600 truncate">
+                    <Image className="text-ink-4" />
+                    <span className="text-sm font-normal text-ink-3 truncate">
                       {photo ? photo.name : "Choose photo"}
                     </span>
                   </Label>
@@ -1144,7 +1137,7 @@ const TaskSubmission = () => {
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Add any additional notes..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-orange-500 outline-none resize-none"
+                    className="w-full px-4 py-3 border border-line-input rounded-xl text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-primary outline-none resize-none"
                     rows={3}
                   />
                 </div>
@@ -1153,16 +1146,16 @@ const TaskSubmission = () => {
                 <Button
                   type="submit"
                   disabled={isSubmitDisabled}
-                  className="w-full h-auto bg-gradient-to-r from-green-500 to-green-600 text-white text-base py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-white text-base py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
-                      <FaSpinner className="animate-spin" size={18} />
+                      <LoaderCircle className="animate-spin" size={18} />
                       <span>Submitting...</span>
                     </>
                   ) : (
                     <>
-                      <FaCheckCircle size={18} />
+                      <CircleCheck size={18} />
                       <span>Submit Task</span>
                     </>
                   )}
@@ -1184,7 +1177,7 @@ const TaskSubmission = () => {
             }}
           >
             <DialogContent className="w-[calc(100%-2rem)] max-w-2xl sm:max-w-2xl p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col rounded-2xl [&>button]:text-white [&>button]:opacity-100 [&>button]:top-4 [&>button]:right-4 [&>button:hover]:bg-white/20">
-              <DialogHeader className="shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 text-left space-y-0">
+              <DialogHeader className="shrink-0 bg-primary text-primary-foreground hover:bg-primary-strong px-6 py-4 text-left space-y-0">
                 <DialogTitle className="text-white text-xl font-bold">
                   Task Details
                 </DialogTitle>
@@ -1204,18 +1197,18 @@ const TaskSubmission = () => {
                 </div>
 
                 {/* Project Info */}
-                <Card className="gap-0 py-0 mb-6 border-0 shadow-none rounded-xl bg-gradient-to-br from-orange-50 to-orange-100">
+                <Card className="gap-0 py-0 mb-6 border-0 shadow-none rounded-xl bg-tone-highlight-soft">
                   <CardContent className="p-4">
-                    <h4 className="text-sm font-bold text-gray-700 mb-2">
+                    <h4 className="text-sm font-bold text-ink-2 mb-2">
                       Project Information
                     </h4>
                     <div className="space-y-1">
-                      <p className="text-sm text-gray-800">
+                      <p className="text-sm text-ink-1">
                         <span className="font-semibold">Project:</span>{" "}
                         {selectedTask.project?.name || "N/A"}
                       </p>
                       {selectedTask.project?.address && (
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-ink-3">
                           <span className="font-semibold">Address:</span>{" "}
                           {selectedTask.project.address}
                         </p>
@@ -1225,43 +1218,43 @@ const TaskSubmission = () => {
                 </Card>
 
                 {/* Hierarchy Details */}
-                <Card className="gap-0 py-0 mb-6 border-0 shadow-none rounded-xl bg-gradient-to-br from-blue-50 to-indigo-100">
+                <Card className="gap-0 py-0 mb-6 border-0 shadow-none rounded-xl bg-tone-info-soft">
                   <CardContent className="p-4">
-                    <h4 className="text-sm font-bold text-gray-700 mb-3">
+                    <h4 className="text-sm font-bold text-ink-2 mb-3">
                       Location Hierarchy
                     </h4>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                        <p className="text-sm text-gray-800">
+                        <div className="w-2 h-2 rounded-full bg-primary"></div>
+                        <p className="text-sm text-ink-1">
                           <span className="font-semibold">Building:</span>{" "}
                           {selectedTask.building.name}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 ml-4">
-                        <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                        <p className="text-sm text-gray-800">
+                        <div className="w-2 h-2 rounded-full bg-primary"></div>
+                        <p className="text-sm text-ink-1">
                           <span className="font-semibold">Wing:</span>{" "}
                           {selectedTask.wing.name}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 ml-8">
-                        <div className="w-2 h-2 rounded-full bg-blue-300"></div>
-                        <p className="text-sm text-gray-800">
+                        <div className="w-2 h-2 rounded-full bg-primary"></div>
+                        <p className="text-sm text-ink-1">
                           <span className="font-semibold">Floor:</span>{" "}
                           {selectedTask.floor.name}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 ml-12">
-                        <div className="w-2 h-2 rounded-full bg-blue-200"></div>
-                        <p className="text-sm text-gray-800">
+                        <div className="w-2 h-2 rounded-full bg-tone-info-soft"></div>
+                        <p className="text-sm text-ink-1">
                           <span className="font-semibold">Flat:</span>{" "}
                           {selectedTask.flat.name}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 ml-16">
-                        <div className="w-2 h-2 rounded-full bg-blue-100"></div>
-                        <p className="text-sm text-gray-800">
+                        <div className="w-2 h-2 rounded-full bg-tone-info-soft"></div>
+                        <p className="text-sm text-ink-1">
                           <span className="font-semibold">Room:</span>{" "}
                           {selectedTask.room.name}
                         </p>
@@ -1271,26 +1264,26 @@ const TaskSubmission = () => {
                 </Card>
 
                 {/* Supervisor & Timestamp */}
-                <Card className="gap-0 py-0 mb-6 border-0 shadow-none rounded-xl bg-gradient-to-br from-green-50 to-green-100">
+                <Card className="gap-0 py-0 mb-6 border-0 shadow-none rounded-xl bg-tone-ok-soft">
                   <CardContent className="p-4">
-                    <h4 className="text-sm font-bold text-gray-700 mb-2">
+                    <h4 className="text-sm font-bold text-ink-2 mb-2">
                       Submission Details
                     </h4>
                     <div className="space-y-1">
-                      <p className="text-sm text-gray-800">
+                      <p className="text-sm text-ink-1">
                         <span className="font-semibold">Supervisor:</span>{" "}
                         {selectedTask.supervisor?.name || "N/A"}
                       </p>
-                      <p className="text-sm text-gray-800">
+                      <p className="text-sm text-ink-1">
                         <span className="font-semibold">Status:</span>
                         <Badge
                           variant="secondary"
-                          className="ml-2 bg-green-200 text-green-800 rounded-full text-xs font-medium hover:bg-green-200"
+                          className="ml-2 bg-tone-ok-soft text-tone-ok-fg rounded-full text-xs font-medium hover:bg-tone-ok-soft"
                         >
                           {selectedTask.status}
                         </Badge>
                       </p>
-                      <p className="text-sm text-gray-800">
+                      <p className="text-sm text-ink-1">
                         <span className="font-semibold">Submitted:</span>{" "}
                         {new Date(selectedTask.createdAt).toLocaleDateString(
                           "en-US",
@@ -1310,12 +1303,12 @@ const TaskSubmission = () => {
 
                 {/* Notes */}
                 {selectedTask.notes && (
-                  <Card className="gap-0 py-0 border-0 shadow-none rounded-xl bg-gray-50">
+                  <Card className="gap-0 py-0 border-0 shadow-none rounded-xl bg-surface-subtle">
                     <CardContent className="p-4">
-                      <h4 className="text-sm font-bold text-gray-700 mb-2">
+                      <h4 className="text-sm font-bold text-ink-2 mb-2">
                         Notes
                       </h4>
-                      <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                      <p className="text-sm text-ink-3 whitespace-pre-wrap">
                         {selectedTask.notes}
                       </p>
                     </CardContent>
@@ -1334,7 +1327,7 @@ const TaskSubmission = () => {
                           })
                         }
                         disabled={updatingStatus}
-                        className="flex-1 py-3 h-auto bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold hover:from-green-600 hover:to-green-700 shadow-md"
+                        className="flex-1 py-3 h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-white rounded-xl font-semibold   shadow-md"
                       >
                         ✓ Accept Task
                       </Button>
@@ -1346,7 +1339,7 @@ const TaskSubmission = () => {
                           })
                         }
                         disabled={updatingStatus}
-                        className="flex-1 py-3 h-auto bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-semibold hover:from-red-600 hover:to-red-700 shadow-md"
+                        className="flex-1 py-3 h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-white rounded-xl font-semibold   shadow-md"
                       >
                         ✗ Reject Task
                       </Button>
@@ -1355,14 +1348,14 @@ const TaskSubmission = () => {
 
                 {/* Status Badge for completed/rejected tasks */}
                 {selectedTask.status !== "pending" && (
-                  <div className="mt-6 p-4 bg-gray-100 rounded-xl text-center">
-                    <p className="text-sm text-gray-600">
+                  <div className="mt-6 p-4 bg-surface-muted rounded-xl text-center">
+                    <p className="text-sm text-ink-3">
                       This task has been{" "}
                       <span
                         className={`font-bold ${
                           selectedTask.status === "approved"
-                            ? "text-green-600"
-                            : "text-red-600"
+                            ? "text-tone-ok-fg"
+                            : "text-tone-bad-fg"
                         }`}
                       >
                         {selectedTask.status}
@@ -1412,8 +1405,8 @@ const TaskSubmission = () => {
                 }}
                 className={
                   confirmAction?.status === "approved"
-                    ? "bg-green-600 hover:bg-green-700 text-white"
-                    : "bg-red-600 hover:bg-red-700 text-white"
+                    ? "bg-tone-ok-fg hover:bg-primary-strong text-white"
+                    : "bg-tone-bad-solid hover:bg-primary-strong text-white"
                 }
               >
                 {updatingStatus

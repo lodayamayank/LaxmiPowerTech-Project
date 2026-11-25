@@ -11,14 +11,14 @@ import { cn } from "@/lib/utils";
 const MobileShell = ({ children, centered = false, className, frameClassName }) => (
   <div
     className={cn(
-      "min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50",
+      "min-h-screen bg-tone-highlight-soft",
       centered && "flex items-center justify-center",
       className
     )}
   >
     <div
       className={cn(
-        "max-w-md mx-auto min-h-screen bg-white shadow-xl",
+        "max-w-md mx-auto min-h-screen bg-surface shadow-xl",
         frameClassName
       )}
     >
