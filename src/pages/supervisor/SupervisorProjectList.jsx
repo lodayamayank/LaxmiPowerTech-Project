@@ -1,17 +1,22 @@
+// src/pages/supervisor/SupervisorProjectList.jsx  (mobile: the Projects tab)
+// The supervisor's assigned projects (branches) with search. Tapping a project opens its hub; "Documents" resolves the
+// project on tap. The branch list and requests are unchanged.
 import React, { useState, useEffect } from 'react';
-import { ROUTES } from '@/lib/routes';
-import { clearSession, getUser, setSelectedBranch, setSelectedBranchName } from '@/lib/session';
+import { setSelectedBranch, getUser, setSelectedBranchName } from '@/lib/session';
 import { fetchBranchesCached } from '@/hooks/useBranches';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import axios from '@/api/client';
-import Logo from "@/components/common/Logo";
-import { FaSignOutAlt, FaSearch, FaChevronRight, FaArrowLeft, FaFileAlt } from 'react-icons/fa';
-import { MdFolder } from 'react-icons/md';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { ChevronRight, FileText, FolderKanban, MapPinned } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/common/EmptyState';
+import { IconTile } from '@/components/common/IconTile';
+import { PageLoader } from '@/components/common/PageLoader';
+import { SearchInput } from '@/components/common/SearchInput';
+import MobileCard from '@/layouts/mobile/MobileCard';
+import MobilePage from '@/layouts/mobile/MobilePage';
+import { ROUTES } from '@/lib/routes';
 
 const SupervisorProjectList = () => {
   const user = getUser();
@@ -57,11 +62,6 @@ const SupervisorProjectList = () => {
     }
   };
 
-  const handleLogout = () => {
-    clearSession();
-    navigate(ROUTES.login, { replace: true });
-  };
-
   const handleProjectClick = (branchId, branchName) => {
     // Store selected branch context in localStorage for material data isolation
     setSelectedBranch({ id: branchId, name: branchName });
@@ -79,10 +79,10 @@ const SupervisorProjectList = () => {
       setSelectedBranchName(branchName || "Selected Branch");
       navigate(`/supervisor/project/${res.data.projectId}/documents`);
     } catch (err) {
-      toast.error(
-        err?.response?.data?.message ||
-          "Could not open documents. Please try again.",
-      );
+      toast.error("Couldn’t open documents", {
+        description: err?.response?.data?.message || "Check your connection and try again.",
+        action: { label: "Retry", onClick: () => handleOpenDocuments(branchId, branchName) },
+      });
     } finally {
       setOpeningDocsFor(null);
     }
@@ -92,159 +92,42 @@ const SupervisorProjectList = () => {
     project.name?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
+  if (loading) return <PageLoader label="Loading projects" />;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
-        {/* Header with Gradient */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
-          <div className="flex items-center justify-between mb-4">
-            <Logo width={179} height={64} priority plate={false} className="h-16 w-50 bg-logo-plate box-shadow rounded-2xl" />
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                onClick={() => navigate(ROUTES.dashboard)}
-                className="mobile-back-button px-4 py-2"
-              >
-                <FaArrowLeft size={14} />
-                <span className="text-sm font-medium">Back</span>
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleLogout}
-                className="mobile-back-button px-3 py-2"
-                title="Logout"
-              >
-                <FaSignOutAlt size={14} />
-                <span className="hidden sm:inline text-sm font-medium">
-                  Logout
-                </span>
-              </Button>
-            </div>
-          </div>
+    <MobilePage title="Projects" back onBack={() => navigate(ROUTES.dashboard)} tabs="manager">
+      <SearchInput value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onClear={() => setSearchTerm("")} placeholder="Search projects..." label="Search projects" />
 
-          {/* Title Section */}
-          <div className="mt-6">
-            <h2 className="text-white text-2xl font-bold">My Projects</h2>
-            <p className="text-white/80 text-sm mt-1">
-              Select a project to view details
-            </p>
-          </div>
-        </div>
-
-        {/* Search Section */}
-        <div className="px-6 py-6 -mt-4">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-4">
-            <div className="relative">
-              <FaSearch
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={16}
-              />
-              <Input
-                type="text"
-                placeholder="Search projects..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-auto w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl text-sm shadow-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-orange-500 transition-all"
-              />
-            </div>
-          </div>
-
-          {/* Projects List */}
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-              <p className="text-gray-500 text-sm">Loading projects...</p>
-            </div>
-          ) : filteredProjects.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                <MdFolder className="text-gray-400" size={40} />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                No Projects Found
-              </h3>
-              <p className="text-sm text-gray-500">
-                {searchTerm
-                  ? "Try a different search term"
-                  : "No branches assigned to you yet"}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredProjects.map((project, index) => (
-                <div
-                  key={project._id || index}
-                  className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
-                >
-                  {/* Main tap area -> labour dashboard */}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleProjectClick(project._id, project.name)
-                    }
-                    className="block w-full text-left p-4 active:bg-gray-50 transition-colors group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center shadow-md">
-                          <MdFolder className="text-white" size={24} />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-800 text-sm mb-0.5">
-                            {project.name || "Unnamed Project"}
-                          </h3>
-                          <p className="text-xs text-gray-500">
-                            {project.location || "No location specified"}
-                          </p>
-                          {project.status && (
-                            <Badge
-                              className={`inline-block mt-1 px-2 py-0.5 rounded-full border-0 text-xs font-medium ${
-                                project.status === "active"
-                                  ? "bg-green-100 text-green-700 hover:bg-green-100"
-                                  : "bg-gray-100 text-gray-700 hover:bg-gray-100"
-                              }`}
-                            >
-                              {project.status}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      <FaChevronRight
-                        className="text-gray-400 group-hover:text-orange-500 transition-colors"
-                        size={16}
-                      />
-                    </div>
-                  </button>
-
-                  {/* Documents shortcut: looks up the project on tap */}
-                  <button
-                    type="button"
-                    disabled={openingDocsFor === project._id}
-                    onClick={() =>
-                      handleOpenDocuments(project._id, project.name)
-                    }
-                    className="flex w-full items-center justify-center gap-2 border-t border-gray-100 bg-orange-50/60 py-2.5 text-xs font-semibold text-orange-600 active:bg-orange-100 transition-colors disabled:opacity-50"
-                  >
-                    <FaFileAlt size={12} />
-                    {openingDocsFor === project._id
-                      ? "Opening..."
-                      : "Documents"}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 pb-6 pt-2">
-          <div className="text-center">
-            <p className="text-xs text-gray-400">Powered by Laxmi Power Tech</p>
-          </div>
-        </div>
-      </div>
-    </div>
+      {filteredProjects.length === 0 ? (
+        <MobileCard>
+          <EmptyState icon={FolderKanban} title="No projects found" description={searchTerm ? "Try a different search term." : "No sites are assigned to you yet."} />
+        </MobileCard>
+      ) : (
+        filteredProjects.map((project, index) => (
+          <MobileCard key={project._id || index} className="!p-0 overflow-hidden">
+            <Button type="button" variant="ghost" className="!h-auto w-full justify-start gap-3 rounded-none p-4 font-normal" onClick={() => handleProjectClick(project._id, project.name)}>
+              <IconTile icon={MapPinned} tone="highlight" className="size-10" />
+              <span className="flex-1 text-left">
+                <span className="block text-[14.5px] font-semibold text-ink-1">{project.name || "Unnamed project"}</span>
+                <span className="text-small text-ink-3">{project.location || "No location specified"}</span>
+                {project.status ? (
+                  <span className="mt-1 block">
+                    <Badge variant={project.status === "active" ? "ok" : "neutral"} className="capitalize">
+                      {project.status}
+                    </Badge>
+                  </span>
+                ) : null}
+              </span>
+              <ChevronRight className="text-ink-4" />
+            </Button>
+            {/* Documents shortcut: looks up the project on tap */}
+            <Button type="button" variant="ghost" className="w-full rounded-none border-t border-line text-small text-primary" disabled={openingDocsFor === project._id} onClick={() => handleOpenDocuments(project._id, project.name)}>
+              <FileText /> {openingDocsFor === project._id ? "Opening…" : "Documents"}
+            </Button>
+          </MobileCard>
+        ))
+      )}
+    </MobilePage>
   );
 };
 

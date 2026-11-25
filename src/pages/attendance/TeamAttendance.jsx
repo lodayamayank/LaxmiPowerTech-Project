@@ -1,3 +1,8 @@
+// src/pages/attendance/TeamAttendance.jsx  (route: /branch/:branchId/team-attendance, mobile)
+// Laid out like the Team attendance design: date + "Mark all in", counts, one row per labour with In / Out / Absent
+// chips and a sticky "Save attendance" bar. Changes are staged and saved together with the same POST /attendance/bulk
+// records the per-person buttons sent before (same record shape and the same checks). The Summary tab keeps the
+// per-day overview.
 import React, { useState, useEffect } from 'react';
 import { ROUTES } from '@/lib/routes';
 import { getSelectedBranchName } from '@/lib/branchContext';
@@ -5,19 +10,18 @@ import { getToken } from '@/lib/session';
 import { fetchUsersCached } from '@/hooks/useUsers';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from '@/api/client';
-import Logo from "@/components/common/Logo";
-import { FaArrowLeft, FaCalendarAlt, FaCheckCircle, FaTimesCircle, FaClock, FaUsers, FaEdit } from 'react-icons/fa';
 import { toast } from 'sonner';
+import { Users } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
-const statusBadgeClass = {
-  in:         'bg-green-100 text-green-800',
-  out:        'bg-blue-100 text-blue-800',
-  absent:     'bg-red-100 text-red-800',
-  'half-day': 'bg-yellow-100 text-yellow-800',
-  present:    'bg-green-100 text-green-800',
-};
+import { ChoiceChips } from '@/components/common/ChoiceChips';
+import { EmptyState } from '@/components/common/EmptyState';
+import { PageLoader } from '@/components/common/PageLoader';
+import { SegmentedControl } from '@/components/common/SegmentedControl';
+import { UserAvatar } from '@/components/common/UserAvatar';
+import MobileCard from '@/layouts/mobile/MobileCard';
+import MobilePage from '@/layouts/mobile/MobilePage';
 
 // Build an ISO datetime string for a given date (YYYY-MM-DD) and time (HH:MM)
 // Uses explicit year/month/day construction to avoid UTC-midnight parsing issues
@@ -34,7 +38,7 @@ const TeamAttendance = () => {
   const projectName = getSelectedBranchName() || 'Project';
 
   // ── Tab: 'summary' | 'mark' ──────────────────────────────────────────────
-  const [activeTab, setActiveTab] = useState('summary');
+  const [activeTab, setActiveTab] = useState('mark');
 
   // ── Summary tab state ────────────────────────────────────────────────────
   const [labours, setLabours] = useState([]);
@@ -126,7 +130,7 @@ const TeamAttendance = () => {
       setLabours(laboursWithStats);
       setSummary({ totalLabours: branchLabours.length, totalPresent, totalPunchedIn, totalAbsent, totalHalf, totalOvertimeHours });
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to load team attendance data');
+      toast.error('Couldn\u2019t load the summary', { description: err.response?.data?.message || 'Check your connection and try again.', action: { label: 'Retry', onClick: () => fetchTeamAttendance() } });
       setLabours([]);
     } finally {
       setLoading(false);
@@ -182,7 +186,7 @@ const TeamAttendance = () => {
         };
       }));
     } catch {
-      toast.error('Failed to load team data');
+      toast.error('Couldn\u2019t load the team', { description: 'Check your connection and try again.', action: { label: 'Retry', onClick: () => fetchMarkData() } });
     } finally {
       setMarkLoading(false);
     }
@@ -191,389 +195,224 @@ const TeamAttendance = () => {
   const updateMember = (userId, patch) =>
     setMarkMembers(prev => prev.map(m => m._id === userId ? { ...m, ...patch } : m));
 
-  const [savingMap, setSavingMap] = useState({}); // { userId_in: true, userId_out: true, userId_absent: true }
+  // ── Staged marks (design: In / Out / Absent chips, then one Save) ───────────────
+  const [staged, setStaged] = useState({}); // { userId: 'in' | 'out' | 'absent' }
+  const [saving, setSaving] = useState(false);
 
-  const punchMember = async (member, direction) => {
-    if (direction === 'out' && !member.savedIn) {
-      toast.error(`${member.name} has no Punch In — record punch in first`);
-      return;
-    }
-    if (direction === 'out') {
-      const inDt  = buildDateTime(markDate, member.inTime);
-      const outDt = buildDateTime(markDate, member.outTime);
-      if (new Date(outDt) <= new Date(inDt)) {
-        toast.error(`Punch Out time must be after Punch In time (${member.inTime})`);
+  useEffect(() => {
+    setStaged({});
+  }, [markDate, branchId]);
+
+  const stageMark = (member, mark) => setStaged((prev) => ({ ...prev, [member._id]: prev[member._id] === mark ? undefined : mark }));
+  const markAllIn = () => setStaged(Object.fromEntries(markMembers.filter((m) => !m.savedIn && !m.isAbsent).map((m) => [m._id, 'in'])));
+  const changes = Object.entries(staged).filter(([, v]) => v);
+
+  const saveAttendance = async () => {
+    // Same checks as before, per person.
+    for (const [userId, mark] of changes) {
+      const member = markMembers.find((m) => m._id === userId);
+      if (!member) continue;
+      if (mark === 'out' && !member.savedIn && staged[userId] !== 'in') {
+        toast.error(`${member.name} has no punch in`, { description: 'Mark them In first, then Out.' });
         return;
       }
+      if (mark === 'out') {
+        const inDt = buildDateTime(markDate, member.inTime);
+        const outDt = buildDateTime(markDate, member.outTime);
+        if (new Date(outDt) <= new Date(inDt)) {
+          toast.error('Check the times', { description: `${member.name}\u2019s punch out must be after punch in (${member.inTime}).` });
+          return;
+        }
+      }
     }
-    const key = `${member._id}_${direction}`;
-    setSavingMap(prev => ({ ...prev, [key]: true }));
+    const records = changes.map(([userId, mark]) => {
+      const member = markMembers.find((m) => m._id === userId);
+      return mark === 'absent'
+        ? { user: userId, branch: branchId, status: 'absent', date: markDate }
+        : { user: userId, branch: branchId, status: mark, date: markDate, punchTime: buildDateTime(markDate, mark === 'in' ? member.inTime : member.outTime) };
+    });
+    setSaving(true);
     try {
-      const record = direction === 'absent'
-        ? { user: member._id, branch: branchId, status: 'absent', date: markDate }
-        : { user: member._id, branch: branchId, status: direction, date: markDate, punchTime: buildDateTime(markDate, direction === 'in' ? member.inTime : member.outTime) };
-
-      await axios.post('/attendance/bulk', { records: [record] }, { headers: { Authorization: `Bearer ${token}` } });
-      toast.success(`${member.name} — ${direction === 'in' ? 'Punch In' : direction === 'out' ? 'Punch Out' : 'Absent'} saved`);
-      // Update local state immediately without full refetch
-      setMarkMembers(prev => prev.map(m => {
-        if (m._id !== member._id) return m;
-        if (direction === 'in')      return { ...m, savedIn: true, isAbsent: false };
-        if (direction === 'out')     return { ...m, savedOut: true, isAbsent: false };
-        if (direction === 'absent')  return { ...m, isAbsent: true, savedIn: false, savedOut: false };
-        return m;
-      }));
+      await axios.post('/attendance/bulk', { records }, { headers: { Authorization: `Bearer ${token}` } });
+      toast.success('Attendance saved', { description: `${records.length} ${records.length === 1 ? 'person' : 'people'} at ${projectName}` });
+      setMarkMembers((prev) =>
+        prev.map((m) => {
+          const mark = staged[m._id];
+          if (mark === 'in') return { ...m, savedIn: true, isAbsent: false };
+          if (mark === 'out') return { ...m, savedOut: true, isAbsent: false };
+          if (mark === 'absent') return { ...m, isAbsent: true, savedIn: false, savedOut: false };
+          return m;
+        }),
+      );
+      setStaged({});
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save');
+      toast.error('Couldn\u2019t save attendance', { description: err.response?.data?.message || 'Check your connection and try again.', action: { label: 'Retry', onClick: () => saveAttendance() } });
     } finally {
-      setSavingMap(prev => ({ ...prev, [key]: false }));
+      setSaving(false);
     }
   };
 
-  // Compute mark-tab counts based on saved punch times
   const markStats = {
-    total:    markMembers.length,
-    present:  markMembers.filter(m => m.savedIn && m.savedOut).length,
-    absent:   markMembers.filter(m => m.isAbsent).length,
-    punchedIn:  markMembers.filter(m => m.savedIn).length,
-    punchedOut: markMembers.filter(m => m.savedOut).length,
+    total: markMembers.length,
+    present: markMembers.filter((m) => m.savedIn && m.savedOut).length,
+    absent: markMembers.filter((m) => m.isAbsent).length,
+    punchedIn: markMembers.filter((m) => m.savedIn).length,
   };
+  const today = new Date().toISOString().split('T')[0];
+  const dateLabel = (d) => (d === today ? 'Today, ' : '') + new Date(`${d}T00:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const labelMap = { in: 'Punched in', out: 'Punched out', present: 'Present', absent: 'Absent', 'half-day': 'Half day', half: 'Half day', paidleave: 'Paid leave', unpaidleave: 'Unpaid leave' };
+  const toneOf = { in: 'ok', out: 'info', present: 'ok', absent: 'bad', 'half-day': 'warn', half: 'warn' };
+  const Count = ({ value, label, tone = 'text-ink-1' }) => (
+    <div className="flex-1 text-center">
+      <div className={`text-[20px] font-semibold tabular-nums ${tone}`}>{value}</div>
+      <div className="text-caption text-ink-3">{label}</div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      <div className="max-w-4xl mx-auto min-h-screen bg-white shadow-xl">
+    <MobilePage
+      title="Team attendance"
+      back
+      onBack={() => navigate(ROUTES.branch.labourDashboard(branchId))}
+      footer={
+        activeTab === 'mark' && changes.length > 0 ? (
+          <Button size="xl" className="w-full" onClick={saveAttendance} disabled={saving}>
+            {saving ? 'Saving…' : `Save attendance \u00b7 ${changes.length} ${changes.length === 1 ? 'change' : 'changes'}`}
+          </Button>
+        ) : null
+      }
+    >
+      <SegmentedControl
+        aria-label="View"
+        className="w-full [&>*]:flex-1"
+        options={[
+          { value: 'mark', label: 'Mark' },
+          { value: 'summary', label: 'Summary' },
+        ]}
+        value={activeTab}
+        onChange={setActiveTab}
+      />
 
-        {/* ── Header (unchanged design) ── */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
-          <div className="flex items-center justify-between mb-4">
-            <Logo width={179} height={64} priority plate={false} className="h-16 w-50 bg-logo-plate box-shadow rounded-2xl" />
-            <Button
-              variant="ghost"
-              onClick={() => navigate(ROUTES.branch.labourDashboard(branchId))}
-              className="mobile-back-button px-4 py-2"
-            >
-              <FaArrowLeft size={14} />
-              <span className="text-sm font-medium">Back</span>
+      {activeTab === 'mark' && (
+        <>
+          <div className="flex items-center gap-2">
+            <Input type="date" aria-label="Attendance date" value={markDate} max={today} onChange={(e) => setMarkDate(e.target.value)} className="flex-1" />
+            <Button variant="outline" onClick={markAllIn} disabled={markLoading || markMembers.length === 0}>
+              Mark all in
             </Button>
           </div>
-          <div className="mt-6">
-            <h2 className="text-white text-2xl font-bold">Team Attendance</h2>
-            <p className="text-white/80 text-sm mt-1">Project: {projectName}</p>
-          </div>
+          <p className="-mt-2 text-small text-ink-3">{projectName} · {dateLabel(markDate)}</p>
 
-          {/* ── Tab switcher inside header ── */}
-          <div className="flex gap-2 mt-5">
-            <button
-              onClick={() => setActiveTab('summary')}
-              className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${
-                activeTab === 'summary'
-                  ? 'bg-white text-orange-600 shadow'
-                  : 'bg-white/20 text-white hover:bg-white/30'
-              }`}
-            >
-              Summary
-            </button>
-            <button
-              onClick={() => setActiveTab('mark')}
-              className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
-                activeTab === 'mark'
-                  ? 'bg-white text-orange-600 shadow'
-                  : 'bg-white/20 text-white hover:bg-white/30'
-              }`}
-            >
-              <FaEdit size={13} />
-              Mark Attendance
-            </button>
-          </div>
-        </div>
+          {markLoading ? (
+            <PageLoader label="Loading team" className="min-h-[40vh]" />
+          ) : markMembers.length === 0 ? (
+            <MobileCard>
+              <EmptyState icon={Users} title="No team members" description="No labours are assigned to this site." />
+            </MobileCard>
+          ) : (
+            <>
+              <MobileCard className="flex gap-2.5">
+                <Count value={markStats.total} label="Total" />
+                <Count value={markStats.punchedIn} label="In" tone="text-tone-ok-fg" />
+                <Count value={markStats.absent} label="Absent" tone="text-tone-bad-fg" />
+                <Count value={markStats.present} label="Done" tone="text-tone-info-fg" />
+              </MobileCard>
 
-        {/* ════════════════════════════════════════════════════════════════
-            TAB: SUMMARY (existing UI, unchanged)
-        ════════════════════════════════════════════════════════════════ */}
-        {activeTab === 'summary' && (
-          <>
-            {/* Single Date Filter */}
-            <div className="px-6 py-4 bg-white border-b">
-              <label className="text-xs font-medium text-gray-600 mb-1 block">View Date</label>
-              <Input
-                type="date"
-                value={viewDate}
-                max={new Date().toISOString().split('T')[0]}
-                onChange={e => setViewDate(e.target.value)}
-                className="h-auto w-full px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-orange-500 text-sm"
-              />
-            </div>
-
-            {/* Summary Cards */}
-            {!loading && labours.length > 0 && (
-              <div className="px-6 py-6 bg-gradient-to-r from-gray-50 to-white border-b">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Overview Summary</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
-                  <div className="bg-white rounded-lg border border-gray-200 p-4 text-center shadow-sm">
-                    <FaUsers className="text-blue-500 mx-auto mb-2" size={24} />
-                    <p className="text-2xl font-bold text-blue-600">{summary.totalLabours}</p>
-                    <p className="text-xs text-gray-600">Total</p>
-                  </div>
-                  <div className="bg-white rounded-lg border border-gray-200 p-4 text-center shadow-sm">
-                    <FaCheckCircle className="text-green-500 mx-auto mb-2" size={24} />
-                    <p className="text-2xl font-bold text-green-600">{summary.totalPresent}</p>
-                    <p className="text-xs text-gray-600">Present</p>
-                  </div>
-                  <div className="bg-white rounded-lg border border-gray-200 p-4 text-center shadow-sm">
-                    <FaClock className="text-orange-500 mx-auto mb-2" size={24} />
-                    <p className="text-2xl font-bold text-orange-500">{summary.totalPunchedIn || 0}</p>
-                    <p className="text-xs text-gray-600">Punched In</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  <div className="bg-white rounded-lg border border-gray-200 p-4 text-center shadow-sm">
-                    <FaTimesCircle className="text-red-500 mx-auto mb-2" size={24} />
-                    <p className="text-2xl font-bold text-red-600">{summary.totalAbsent}</p>
-                    <p className="text-xs text-gray-600">Absent</p>
-                  </div>
-                  <div className="bg-white rounded-lg border border-gray-200 p-4 text-center shadow-sm">
-                    <FaClock className="text-yellow-500 mx-auto mb-2" size={24} />
-                    <p className="text-2xl font-bold text-yellow-600">{summary.totalHalf || 0}</p>
-                    <p className="text-xs text-gray-600">Half Day</p>
-                  </div>
-                  <div className="bg-white rounded-lg border border-gray-200 p-4 text-center shadow-sm">
-                    <FaClock className="text-purple-500 mx-auto mb-2" size={24} />
-                    <p className="text-2xl font-bold text-purple-600">{(summary.totalOvertimeHours || 0).toFixed(1)}</p>
-                    <p className="text-xs text-gray-600">OT Hours</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Labour Cards */}
-            <div className="px-6 py-6">
-              {loading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4" />
-                  <p className="text-gray-500">Loading attendance data...</p>
-                </div>
-              ) : labours.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                    <FaUsers className="text-gray-400" size={40} />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">No Attendance Data Found</h3>
-                  <p className="text-sm text-gray-500">No labours or attendance records found for the selected date range</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {labours.map(labour => {
-                    const labelMap = { in: 'Punched In', out: 'Punched Out', present: 'Present', absent: 'Absent', 'half-day': 'Half Day', half: 'Half Day', paidleave: 'Paid Leave', unpaidleave: 'Unpaid Leave' };
-                    const statusLabel = labour.status ? (labelMap[labour.status] || labour.status) : 'Not Marked';
-                    const statusClass = labour.status
-                      ? statusBadgeClass[labour.status] || 'bg-gray-100 text-gray-600'
-                      : 'bg-gray-100 text-gray-400';
-                    return (
-                      <div key={labour._id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg">
-                              {labour.name?.charAt(0)?.toUpperCase() || 'L'}
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-800">{labour.name}</h3>
-                              <p className="text-sm text-gray-500">{labour.jobTitle || 'Labour'} · {labour.employeeId || labour.username}</p>
-                            </div>
-                          </div>
-                          <span className={`text-sm font-semibold px-3 py-1 rounded-full ${statusClass}`}>
-                            {statusLabel}
-                          </span>
+              <MobileCard className="!py-1">
+                {markMembers.map((member) => {
+                  const mark = staged[member._id];
+                  const state = member.isAbsent ? 'absent' : member.savedIn && member.savedOut ? 'present' : member.savedIn ? 'in' : null;
+                  const value = mark || (member.isAbsent ? 'absent' : member.savedOut ? 'out' : member.savedIn ? 'in' : '');
+                  return (
+                    <div key={member._id} className="flex flex-col gap-2.5 border-b border-line py-3 last:border-b-0">
+                      <div className="flex items-center gap-2.5">
+                        <UserAvatar name={member.name} />
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-[14.5px] font-semibold text-ink-1">{member.name}</div>
+                          <div className="text-small text-ink-3">{member.jobTitle || 'Labour'} · {member.employeeId || member.username}</div>
                         </div>
-                        <div className="mt-4 pt-3 border-t border-gray-100 grid grid-cols-3 gap-3 text-sm">
-                          {labour.standardDailyHours && (
-                            <div><span className="text-gray-400">Std Hours:</span> <span className="font-medium">{labour.standardDailyHours} hrs</span></div>
-                          )}
-                          {labour.ctcAmount > 0 && (
-                            <div><span className="text-gray-400">Daily Wage:</span> <span className="font-medium">₹{labour.ctcAmount}</span></div>
-                          )}
-                          <div>
-                            <span className="text-gray-400">OT Hours:</span>{' '}
-                            <span className={`font-semibold ${labour.overtimeHours > 0 ? 'text-purple-600' : 'text-gray-400'}`}>
-                              {labour.overtimeHours > 0 ? `${labour.overtimeHours.toFixed(1)} hrs` : '—'}
-                            </span>
-                          </div>
+                        <Badge variant={state ? toneOf[state] : 'neutral'}>{mark ? 'Unsaved' : state ? labelMap[state] : 'Not marked'}</Badge>
+                      </div>
+                      <ChoiceChips
+                        aria-label={`Mark ${member.name}`}
+                        className="flex-nowrap [&>*]:flex-1 [&>*]:justify-center"
+                        options={[
+                          { value: 'in', label: 'In' },
+                          { value: 'out', label: 'Out' },
+                          { value: 'absent', label: 'Absent' },
+                        ]}
+                        value={value}
+                        onChange={(v) => stageMark(member, v)}
+                      />
+                      {(value === 'in' || value === 'out') && (
+                        <div className="flex items-center gap-2">
+                          <span className="w-20 text-small text-ink-3">{value === 'in' ? 'Punch in' : 'Punch out'}</span>
+                          <Input
+                            type="time"
+                            aria-label={value === 'in' ? 'Punch in time' : 'Punch out time'}
+                            value={value === 'in' ? member.inTime : member.outTime}
+                            onChange={(e) => updateMember(member._id, value === 'in' ? { inTime: e.target.value } : { outTime: e.target.value })}
+                            className="flex-1"
+                          />
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* ════════════════════════════════════════════════════════════════
-            TAB: MARK ATTENDANCE
-        ════════════════════════════════════════════════════════════════ */}
-        {activeTab === 'mark' && (
-          <>
-            {/* Date picker */}
-            <div className="px-6 py-4 bg-white border-b">
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Attendance Date</label>
-              <Input
-                type="date"
-                value={markDate}
-                max={new Date().toISOString().split('T')[0]}
-                onChange={e => setMarkDate(e.target.value)}
-                className="h-auto w-full px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-orange-500 text-sm"
-              />
-            </div>
-
-            {/* Mini summary strip */}
-            {!markLoading && markMembers.length > 0 && (
-              <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b">
-                <div className="grid grid-cols-5 gap-2 mb-4">
-                  <div className="bg-white rounded-lg border border-gray-200 p-3 text-center shadow-sm">
-                    <p className="text-xl font-bold text-blue-600">{markStats.total}</p>
-                    <p className="text-xs text-gray-600">Total</p>
-                  </div>
-                  <div className="bg-white rounded-lg border border-gray-200 p-3 text-center shadow-sm">
-                    <p className="text-xl font-bold text-green-600">{markStats.present}</p>
-                    <p className="text-xs text-gray-600">Present</p>
-                  </div>
-                  <div className="bg-white rounded-lg border border-gray-200 p-3 text-center shadow-sm">
-                    <p className="text-xl font-bold text-red-600">{markStats.absent}</p>
-                    <p className="text-xs text-gray-600">Absent</p>
-                  </div>
-                  <div className="bg-white rounded-lg border border-gray-200 p-3 text-center shadow-sm">
-                    <p className="text-xl font-bold text-orange-500">{markStats.punchedIn}</p>
-                    <p className="text-xs text-gray-600">Punch In</p>
-                  </div>
-                  <div className="bg-white rounded-lg border border-gray-200 p-3 text-center shadow-sm">
-                    <p className="text-xl font-bold text-blue-400">{markStats.punchedOut}</p>
-                    <p className="text-xs text-gray-600">Punch Out</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Member list */}
-            <div className="px-6 py-6">
-              {markLoading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4" />
-                  <p className="text-gray-500">Loading team...</p>
-                </div>
-              ) : markMembers.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                    <FaUsers className="text-gray-400" size={40} />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">No Team Members</h3>
-                  <p className="text-sm text-gray-500">No labours are assigned to this branch</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {markMembers.map((member, idx) => (
-                    <div
-                      key={member._id}
-                      className={`rounded-xl border p-4 transition-shadow hover:shadow-sm ${
-                        member.isAbsent ? 'border-red-200 bg-red-50/40' :
-                        member.savedIn && member.savedOut ? 'border-green-200 bg-green-50/40' :
-                        member.savedIn ? 'border-orange-200 bg-orange-50/40' :
-                        'border-gray-200 bg-white'
-                      }`}
-                    >
-                      {/* Member info row */}
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="relative shrink-0">
-                          <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-bold">
-                            {member.name?.charAt(0)?.toUpperCase() || 'L'}
-                          </div>
-                          <span className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-gray-200 text-gray-600 text-[10px] font-bold flex items-center justify-center">
-                            {idx + 1}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-800 truncate">{member.name}</p>
-                          <p className="text-xs text-gray-500">{member.jobTitle || 'Labour'} · {member.employeeId || member.username}</p>
-                        </div>
-                        {/* Status badge */}
-                        {member.isAbsent && (
-                          <span className="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-700">Absent</span>
-                        )}
-                        {!member.isAbsent && member.savedIn && member.savedOut && (
-                          <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700">Present</span>
-                        )}
-                        {!member.isAbsent && member.savedIn && !member.savedOut && (
-                          <span className="text-xs font-semibold px-2 py-1 rounded-full bg-orange-100 text-orange-700">Punched In</span>
-                        )}
-                      </div>
-
-                      {/* Punch In row */}
-                      <div className="flex items-center gap-2 mb-2">
-                        <Input
-                          type="time"
-                          value={member.inTime}
-                          onChange={e => updateMember(member._id, { inTime: e.target.value })}
-                          className="h-auto flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-none text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:border-green-500"
-                        />
-                        <button
-                          onClick={() => punchMember(member, 'in')}
-                          disabled={!!savingMap[`${member._id}_in`]}
-                          className={`px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all min-w-[100px] ${
-                            member.savedIn
-                              ? 'bg-green-500 text-white border-green-500'
-                              : 'bg-white text-green-600 border-green-400 hover:bg-green-50'
-                          } disabled:opacity-50`}
-                        >
-                          {savingMap[`${member._id}_in`] ? '...' : member.savedIn ? '✓ In' : 'Punch In'}
-                        </button>
-                      </div>
-
-                      {/* Punch Out row */}
-                      <div className="flex items-center gap-2 mb-2">
-                        <Input
-                          type="time"
-                          value={member.outTime}
-                          onChange={e => updateMember(member._id, { outTime: e.target.value })}
-                          className="h-auto flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-none text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
-                        />
-                        <button
-                          onClick={() => punchMember(member, 'out')}
-                          disabled={!!savingMap[`${member._id}_out`]}
-                          className={`px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all min-w-[100px] ${
-                            member.savedOut
-                              ? 'bg-blue-500 text-white border-blue-500'
-                              : 'bg-white text-blue-600 border-blue-400 hover:bg-blue-50'
-                          } disabled:opacity-50`}
-                        >
-                          {savingMap[`${member._id}_out`] ? '...' : member.savedOut ? '✓ Out' : 'Punch Out'}
-                        </button>
-                      </div>
-
-                      {/* Absent button */}
-                      <button
-                        onClick={() => punchMember(member, 'absent')}
-                        disabled={!!savingMap[`${member._id}_absent`]}
-                        className={`w-full py-2 rounded-lg text-sm font-semibold border-2 transition-all disabled:opacity-50 ${
-                          member.isAbsent
-                            ? 'bg-red-500 text-white border-red-500'
-                            : 'bg-white text-gray-400 border-gray-200 hover:border-red-300 hover:text-red-500'
-                        }`}
-                      >
-                        {savingMap[`${member._id}_absent`] ? 'Saving...' : member.isAbsent ? '✓ Absent' : 'Mark Absent'}
-                      </button>
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  );
+                })}
+              </MobileCard>
+            </>
+          )}
+        </>
+      )}
 
-          </>
-        )}
+      {activeTab === 'summary' && (
+        <>
+          <Input type="date" aria-label="View date" value={viewDate} max={today} onChange={(e) => setViewDate(e.target.value)} />
 
-        {/* Footer */}
-        <div className="px-6 pb-6 pt-2">
-          <p className="text-xs text-gray-400 text-center">Powered by Laxmi Power Tech</p>
-        </div>
-      </div>
-    </div>
+          {loading ? (
+            <PageLoader label="Loading attendance" className="min-h-[40vh]" />
+          ) : labours.length === 0 ? (
+            <MobileCard>
+              <EmptyState icon={Users} title="No attendance data found" description="No labours or attendance records for this date." />
+            </MobileCard>
+          ) : (
+            <>
+              <MobileCard title="Overview" className="flex flex-wrap gap-y-3">
+                <Count value={summary.totalLabours} label="Total" />
+                <Count value={summary.totalPresent} label="Present" tone="text-tone-ok-fg" />
+                <Count value={summary.totalPunchedIn || 0} label="Punched in" tone="text-tone-warn-fg" />
+                <Count value={summary.totalAbsent} label="Absent" tone="text-tone-bad-fg" />
+                <Count value={summary.totalHalf || 0} label="Half day" tone="text-tone-warn-fg" />
+                <Count value={(summary.totalOvertimeHours || 0).toFixed(1)} label="OT hrs" />
+              </MobileCard>
+
+              <MobileCard className="!py-1">
+                {labours.map((labour) => (
+                  <div key={labour._id} className="border-b border-line py-3 last:border-b-0">
+                    <div className="flex items-center gap-2.5">
+                      <UserAvatar name={labour.name} />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[14.5px] font-semibold text-ink-1">{labour.name}</div>
+                        <div className="text-small text-ink-3">{labour.jobTitle || 'Labour'} · {labour.employeeId || labour.username}</div>
+                      </div>
+                      <Badge variant={labour.status ? toneOf[labour.status] || 'neutral' : 'neutral'}>{labour.status ? labelMap[labour.status] || labour.status : 'Not marked'}</Badge>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-small text-ink-3">
+                      {labour.standardDailyHours ? <span>Std hours: <b className="font-medium text-ink-2">{labour.standardDailyHours} hrs</b></span> : null}
+                      {labour.ctcAmount > 0 ? <span>Daily wage: <b className="font-medium text-ink-2">{'\u20b9'}{labour.ctcAmount}</b></span> : null}
+                      <span>
+                        OT hours:{' '}
+                        <b className={labour.overtimeHours > 0 ? 'font-semibold text-tone-purple-fg' : 'font-medium text-ink-4'}>{labour.overtimeHours > 0 ? `${labour.overtimeHours.toFixed(1)} hrs` : '\u2014'}</b>
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </MobileCard>
+            </>
+          )}
+        </>
+      )}
+    </MobilePage>
   );
 };
 

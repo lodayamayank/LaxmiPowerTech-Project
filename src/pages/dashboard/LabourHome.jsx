@@ -4,9 +4,8 @@
 // uses) and the locally cached punch status.
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { CalendarDays, CircleCheck, FileText, Fingerprint, LogOut, MapPin, Receipt, RefreshCw, UserCheck } from "lucide-react";
+import { CalendarDays, FileText, Receipt, RefreshCw } from "lucide-react";
 import axios from "@/api/client";
-import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import MobileCard from "@/layouts/mobile/MobileCard";
 import MobilePage from "@/layouts/mobile/MobilePage";
@@ -17,10 +16,9 @@ import { readPunchStatus } from "@/lib/punchStatusCache";
 import { ROUTES } from "@/lib/routes";
 import { getToken, getUser } from "@/lib/session";
 import useNetworkStatus from "@/pwa/useNetworkStatus";
+import PunchHero from "./components/PunchHero";
 
 const greeting = (d) => (d.getHours() < 12 ? "Good morning" : d.getHours() < 17 ? "Good afternoon" : "Good evening");
-const clock = (d) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).toLowerCase();
-const shortDay = (d) => `${d.toLocaleDateString("en-GB", { weekday: "short" })}, ${d.getDate()} ${d.toLocaleDateString("en-GB", { month: "short" })}`;
 const sameDay = (a, b) => a.toDateString() === b.toDateString();
 
 const Stat = ({ value, label, tone }) => (
@@ -82,7 +80,6 @@ export default function LabourHome() {
         .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0],
     [records, now],
   );
-  const onShift = punch.punchedIn && !punch.punchedOut;
   const elapsedMin = todayIn ? Math.max(0, Math.floor((now - new Date(todayIn.createdAt)) / 60000)) : null;
   const sites = (user?.assignedBranches || []).map((b) => b?.name).filter(Boolean);
   const queued = (pendingCount || 0) + (failedCount || 0);
@@ -103,65 +100,7 @@ export default function LabourHome() {
         <div className="text-[22px] font-semibold text-primary">{user?.name || "there"}</div>
       </div>
 
-      <section className="flex flex-col gap-3.5 rounded-[18px] bg-primary p-[18px] text-primary-foreground">
-        {onShift ? (
-          <>
-            <div className="flex items-center justify-between">
-              <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-tone-ok-fg/25 px-2.5 text-caption font-semibold">
-                <span className="size-1.5 rounded-full bg-tone-ok-fg" /> On shift
-              </span>
-              <span className="text-[13px] opacity-75">{shortDay(now)}</span>
-            </div>
-            {elapsedMin !== null ? (
-              <div>
-                <div className="text-[13px] opacity-75">Time on site</div>
-                <div className="text-[40px] font-semibold leading-[1.1] tracking-tight tabular-nums">
-                  {Math.floor(elapsedMin / 60)}h {String(elapsedMin % 60).padStart(2, "0")}m
-                </div>
-              </div>
-            ) : null}
-            <div className="flex items-center gap-2.5 rounded-xl bg-primary-foreground/10 p-2.5">
-              <span className="flex size-10 items-center justify-center rounded-full bg-primary-foreground/20">
-                <UserCheck className="size-5" />
-              </span>
-              <div className="flex-1 text-[13.5px]">
-                <div className="font-semibold">{todayIn ? `Punched in ${clock(new Date(todayIn.createdAt))}` : "You are punched in"}</div>
-                <div className="opacity-75">{sites[0] || "Your site"} · selfie verified</div>
-              </div>
-            </div>
-            <Button size="xl" className="w-full bg-surface text-primary hover:bg-surface/90" onClick={() => navigate(ROUTES.punch)}>
-              <LogOut /> Punch out
-            </Button>
-          </>
-        ) : (
-          <>
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="text-[13px] opacity-75">{shortDay(now)}</div>
-                <div className="text-[34px] font-semibold leading-[1.1] tracking-tight tabular-nums">{clock(now)}</div>
-              </div>
-              <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-primary-foreground/15 px-2.5 text-caption font-semibold">
-                <span className="size-1.5 rounded-full bg-highlight" /> {punch.punchedOut ? "Shift complete" : "Not punched in"}
-              </span>
-            </div>
-            {sites.length ? (
-              <div className="flex items-center gap-2 text-[13.5px] opacity-90">
-                <MapPin className="size-4 shrink-0" /> <span className="truncate">{sites.join(" · ")}</span>
-              </div>
-            ) : null}
-            <Button
-              size="xl"
-              className="w-full bg-highlight text-ink-1 hover:bg-highlight/90"
-              disabled={punch.punchedOut}
-              onClick={() => navigate(ROUTES.punch)}
-            >
-              {punch.punchedOut ? <CircleCheck /> : <Fingerprint />}
-              {punch.punchedOut ? "Attendance complete for today" : "Punch in with selfie"}
-            </Button>
-            <div className="text-center text-[12.5px] opacity-75">{punch.punchedOut ? "See you tomorrow" : "Shift starts when you punch in"}</div>
-          </>
-        )}
-      </section>
+      <PunchHero now={now} punch={punch} todayIn={todayIn} elapsedMin={elapsedMin} sites={sites} onPunch={() => navigate(ROUTES.punch)} />
 
       <MobileCard
         title={`${month} so far`}
