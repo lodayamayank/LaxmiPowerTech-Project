@@ -6,7 +6,8 @@
 //   <MobilePage title="My attendance" tabs="worker">...</MobilePage>          inner screen with the tab bar
 //   <MobilePage title="New claim" back>...</MobilePage>                       sub-flow (back button, no tab bar)
 //   <MobilePage home right={<UserAvatar .../>} tabs="worker">...</MobilePage> home screen (logo in the top bar)
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Moon, Sun } from "lucide-react";
+import useDarkTheme from "@/hooks/useDarkTheme";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import MobileTabBar from "./MobileTabBar";
 
 export function MobileTopBar({ title, home = false, back = false, onBack, right }) {
   const navigate = useNavigate();
+  const { dark, toggle } = useDarkTheme();
   return (
     <header className="sticky top-0 z-20 flex min-h-[60px] items-center gap-3 border-b border-line bg-surface px-4 py-3.5">
       {back ? (
@@ -25,6 +27,12 @@ export function MobileTopBar({ title, home = false, back = false, onBack, right 
       ) : null}
       {home ? <Logo width={74} height={26} priority className="h-[26px] w-auto" /> : <h1 className="min-w-0 flex-1 truncate text-[18px] font-semibold text-primary">{title}</h1>}
       {home ? <span className="flex-1" /> : null}
+      {/* Light / dark switch, on the home screens (it is also a row on the Profile screen). */}
+      {home ? (
+        <Button variant="ghost" size="icon" aria-label={dark ? "Switch to light mode" : "Switch to dark mode"} className="!size-11 text-ink-2" onClick={toggle}>
+          {dark ? <Sun className="!size-5" /> : <Moon className="!size-5" />}
+        </Button>
+      ) : null}
       {right}
     </header>
   );

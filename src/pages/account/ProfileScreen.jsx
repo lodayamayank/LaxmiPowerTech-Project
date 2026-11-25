@@ -12,7 +12,7 @@ import { useBranches } from '@/hooks/useBranches';
 import axios from '@/api/client';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Eye, EyeOff, KeyRound, LogOut, MapPin, RefreshCw, ChevronRight } from 'lucide-react';
+import { Eye, EyeOff, KeyRound, LogOut, MapPin, Moon, RefreshCw, Sun, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -21,11 +21,14 @@ import { FormField } from '@/components/common/FormField';
 import { PageLoader } from '@/components/common/PageLoader';
 import { UserAvatar } from '@/components/common/UserAvatar';
 import MobileCard from '@/layouts/mobile/MobileCard';
+import { Switch } from '@/components/ui/switch';
+import useDarkTheme from '@/hooks/useDarkTheme';
 import MobilePage from '@/layouts/mobile/MobilePage';
 import { getRoleTone } from '@/lib/status';
 
 const ProfileScreen = () => {
   const navigate = useNavigate();
+  const { dark, toggle: toggleTheme } = useDarkTheme();
   const { data: branches } = useBranches();
   const [formData, setFormData] = useState({
     name: '',
@@ -249,6 +252,11 @@ const ProfileScreen = () => {
             <ChevronRight className="text-ink-4" />
           </Button>
         ) : null}
+        <div className="flex items-center gap-3 border-b border-line py-3.5 text-ink-1">
+          {dark ? <Moon className="size-4 text-ink-3" /> : <Sun className="size-4 text-ink-3" />}
+          <span id="dark-mode-label" className="flex-1 text-[14.5px] font-medium">Dark mode</span>
+          <Switch checked={dark} onCheckedChange={() => toggleTheme()} aria-labelledby="dark-mode-label" />
+        </div>
         <Link to={ROUTES.connectServer} className="flex items-center gap-3 py-3.5 text-ink-1">
           <RefreshCw className="size-4 text-ink-3" />
           <span className="flex-1 text-[14.5px] font-medium">Offline &amp; sync</span>
