@@ -1,29 +1,67 @@
 // src/lib/theme.js
-// Theme switch for the whole app.
+// The one place that owns the light/dark theme. Everything else reads it from here:
+//  - the desktop toggle (layouts/desktop/useDarkMode.js), the attendance chart and the toaster, through the
+//    hooks/useDarkTheme.js hook;
+//  - the inline script in index.html, which runs the same few lines before the first paint so a saved dark
+//    choice never flashes light (keep the two in sync: same storage key, same theme-color values).
 //
-// DARK_MODE_ENABLED is false on purpose: dark mode was never designed (its token values are "provisional" in
-// index.css) and the mobile/role pages are not migrated, so it looks inconsistent. While it is false the dark
-// toggle is hidden, a saved "dark" preference is ignored, and every page (login, desktop, mobile) renders the
-// light theme from the first paint. Set it to true only after the dark palette is designed and the legacy pages
-// no longer depend on the `.dark .bg-white/...` compatibility rules in index.css.
+// The source of truth at runtime is the `dark` class on <html>; the choice is persisted in localStorage under
+// STORAGE_KEYS.darkMode ("true" / "false", unchanged, so earlier saved choices keep working). Light is the default.
 import { STORAGE_KEYS } from '@/lib/constants';
 
-export const DARK_MODE_ENABLED = false;
+// Browser UI colour (address bar / PWA status bar) = the page background of each theme.
+const THEME_COLOR = { light: '#F5F6F8', dark: '#020817' };
 
-/** True when the user saved a dark preference AND dark mode is enabled. Never throws (localStorage may be blocked). */
-export function readDarkPreference() {
-  if (!DARK_MODE_ENABLED) return false;
+const listeners = new Set();
+
+function readSaved() {
   try {
     return localStorage.getItem(STORAGE_KEYS.darkMode) === 'true';
   } catch {
-    return false;
+    return false; // localStorage can be blocked (private mode, policies)
   }
 }
 
+function apply(dark) {
+  document.documentElement.classList.toggle('dark', dark);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? THEME_COLOR.dark : THEME_COLOR.light);
+}
+
+const emit = () => listeners.forEach((fn) => fn());
+
+/** True when the app is currently in dark mode. */
+export const isDarkMode = () => document.documentElement.classList.contains('dark');
+
+/** Switch theme: applies it, saves it, and notifies subscribers (toaster, charts, toggle). */
+export function setDarkMode(dark) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.darkMode, String(dark));
+  } catch {
+    /* not persisted; the theme still changes for this session */
+  }
+  apply(dark);
+  emit();
+}
+
+export const toggleDarkMode = () => setDarkMode(!isDarkMode());
+
+/** For useSyncExternalStore. Returns the unsubscribe function. */
+export function subscribeTheme(listener) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
 /**
- * Put the theme class on <html> synchronously, before React renders, so every route (login, desktop, mobile)
- * starts in the right theme and nothing flashes. Called once from main.jsx.
+ * Apply the saved theme synchronously before React renders (called once from main.jsx), and follow changes made
+ * in another tab. The inline script in index.html already did the same before first paint; this keeps the
+ * runtime state and theme-color in sync with it.
  */
 export function applyInitialTheme() {
-  document.documentElement.classList.toggle('dark', readDarkPreference());
+  apply(readSaved());
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEYS.darkMode) {
+      apply(readSaved());
+      emit();
+    }
+  });
 }

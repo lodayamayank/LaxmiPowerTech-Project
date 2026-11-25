@@ -6,16 +6,16 @@ import {
   OctagonX,
   TriangleAlert,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 import { Toaster as Sonner } from "sonner";
-import { DARK_MODE_ENABLED } from "@/lib/theme";
+import useDarkTheme from "@/hooks/useDarkTheme";
 
 const Toaster = ({ ...props }) => {
-  const { theme = "system" } = useTheme();
+  // Follows the app theme (lib/theme.js), not the OS setting.
+  const { dark } = useDarkTheme();
 
   return (
     <Sonner
-      theme={DARK_MODE_ENABLED ? theme : "light"}
+      theme={dark ? "dark" : "light"}
       position="top-right"
       closeButton
       richColors

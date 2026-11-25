@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#f97316">
+    <meta name="theme-color" content="#F5F6F8">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="LPT Attendance">
@@ -24,6 +24,19 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/icon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/icon-16x16.png">
     
+    <!-- Apply the saved theme before the first paint so a dark choice never flashes light.
+         Same key and colours as applyInitialTheme() in src/lib/theme.js: keep the two in sync. -->
+    <script>
+      (function () {
+        try {
+          var dark = localStorage.getItem('darkMode') === 'true';
+          document.documentElement.classList.toggle('dark', dark);
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', dark ? '#020817' : '#F5F6F8');
+        } catch (e) {}
+      })();
+    </script>
+
     <title>Laxmi Powertech - Attendance System</title>
   </head>
   <body>

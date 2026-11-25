@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import useDarkTheme from "@/hooks/useDarkTheme";
 import {
   Area,
   Bar,
@@ -87,24 +88,9 @@ function badgeStyle(status) {
 }
 
 // Recharts takes colours as JS values, so Tailwind's dark: classes can't
-// reach the chart. This reports whether <html> has the `dark` class.
+// reach the chart. This reports the app theme (single source: lib/theme.js).
 function useIsDark() {
-  const [isDark, setIsDark] = useState(
-    () =>
-      typeof document !== "undefined" &&
-      document.documentElement.classList.contains("dark")
-  );
-
-  useEffect(() => {
-    const el = document.documentElement;
-    const observer = new MutationObserver(() =>
-      setIsDark(el.classList.contains("dark"))
-    );
-    observer.observe(el, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
-
-  return isDark;
+  return useDarkTheme().dark;
 }
 
 export function StatusBadge({ status }) {

@@ -6,7 +6,6 @@ import { Calendar, Menu, Moon, PanelLeft, Sun } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
-import { DARK_MODE_ENABLED } from '@/lib/theme';
 import NotificationsPopover from './NotificationsPopover';
 import AccountMenu from './AccountMenu';
 
@@ -36,18 +35,16 @@ function Topbar({ title, today, darkMode, onToggleDarkMode, userName, userRole, 
         <Badge variant="neutral" className="hidden h-8 gap-1.5 px-3 sm:inline-flex">
           <Calendar size={15} /> {today}
         </Badge>
-        {DARK_MODE_ENABLED ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-ink-3"
-            onClick={onToggleDarkMode}
-            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            title={darkMode ? 'Light mode' : 'Dark mode'}
-          >
-            {darkMode ? <Sun size={18} strokeWidth={1.8} /> : <Moon size={18} strokeWidth={1.8} />}
-          </Button>
-        ) : null}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-ink-3"
+          onClick={onToggleDarkMode}
+          aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={darkMode ? 'Light mode' : 'Dark mode'}
+        >
+          {darkMode ? <Sun size={18} strokeWidth={1.8} /> : <Moon size={18} strokeWidth={1.8} />}
+        </Button>
         <NotificationsPopover />
         <span className="mx-1 hidden h-7 w-px bg-line-card sm:block" aria-hidden="true" />
         <AccountMenu name={userName} role={userRole} onLogout={onLogout} />
