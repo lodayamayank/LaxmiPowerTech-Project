@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { ROUTES } from '@/lib/routes';
 import { getToken, getUser, storeUser } from '@/lib/session';
 import { useNavigate } from "react-router-dom";
@@ -317,6 +318,17 @@ const PunchInScreen = () => {
       </div>
 
       {showMap ? (
+        <ErrorBoundary
+          scope="map"
+          fallback={({ reset }) => (
+            <div className="flex h-[200px] flex-col items-center justify-center gap-2 rounded-[14px] border border-line-card bg-surface-muted px-4 text-center text-small text-ink-3">
+              The map couldn&apos;t be shown. Punching still works.
+              <Button type="button" variant="outline" size="sm" onClick={reset}>
+                Try again
+              </Button>
+            </div>
+          )}
+        >
         <div className="relative w-full overflow-hidden rounded-[14px] border border-line-card">
           {isLoaded && location ? (
             <GoogleMap
@@ -346,6 +358,7 @@ const PunchInScreen = () => {
             <div className="flex h-[350px] items-center justify-center bg-surface-muted text-small text-ink-3">{loadingLocation ? "Fetching location…" : "Unable to load map"}</div>
           )}
         </div>
+        </ErrorBoundary>
       ) : null}
 
       <p className="text-center text-small text-ink-3">Selfie not working? You can use today&apos;s code on the next screen.</p>

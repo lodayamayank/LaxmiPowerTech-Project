@@ -7,7 +7,8 @@
 //   <MobilePage title="New claim" back>...</MobilePage>                       sub-flow (back button, no tab bar)
 //   <MobilePage home right={<UserAvatar .../>} tabs="worker">...</MobilePage> home screen (logo in the top bar)
 import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/common/Logo";
 import { cn } from "@/lib/utils";
@@ -40,11 +41,17 @@ export function MobileTopBar({ title, home = false, back = false, onBack, right 
  * - className {string}: body classes
  */
 export default function MobilePage({ title, home = false, back = false, onBack, right, tabs = null, footer, className, children }) {
+  const { pathname } = useLocation();
   return (
     <div className="min-h-[100dvh] bg-page">
       <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col bg-page md:border-x md:border-line">
         <MobileTopBar title={title} home={home} back={back} onBack={onBack} right={right} />
-        <main className={cn("flex flex-1 flex-col gap-3.5 p-4", className)}>{children}</main>
+        <main className={cn("flex flex-1 flex-col gap-3.5 p-4", className)}>
+          {/* A failing screen body keeps the top bar and tab bar; leaving the screen clears the error. */}
+          <ErrorBoundary scope="mobile-content" resetKeys={[pathname]}>
+            {children}
+          </ErrorBoundary>
+        </main>
         {footer || tabs ? (
           <div className="sticky bottom-0 z-20">
             {footer ? <div className="border-t border-line bg-surface p-3">{footer}</div> : null}

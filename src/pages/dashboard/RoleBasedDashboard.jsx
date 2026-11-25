@@ -1,5 +1,6 @@
 // RoleBasedDashboard.jsx - Add error handling
-import React, { lazy, Suspense } from 'react';
+import React, { Suspense } from 'react';
+import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import { Button } from '@/components/ui/button';
 import { PageLoader } from '@/components/common/PageLoader';
 import { ROLES } from '@/lib/constants';
@@ -9,9 +10,9 @@ import { clearSession, getToken, getUserRaw } from '@/lib/session';
 import { useNavigate } from 'react-router-dom';
 
 // Each role only loads its own dashboard chunk.
-const Dashboard = lazy(() => import('./AdminDashboard'));
-const LabourDashboard = lazy(() => import('./LabourDashboard'));
-const SupervisorDashboard = lazy(() => import('./SupervisorDashboard'));
+const Dashboard = lazyWithRetry(() => import('./AdminDashboard'));
+const LabourDashboard = lazyWithRetry(() => import('./LabourDashboard'));
+const SupervisorDashboard = lazyWithRetry(() => import('./SupervisorDashboard'));
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 

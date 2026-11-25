@@ -1,6 +1,7 @@
 // src/pages/admin/AdminVendors.jsx  (route: Vendors)
 // Data, validation and handlers live in components/useVendorsPage.js (moved unchanged); this file lays out the page.
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import { Building2, Plus } from "lucide-react";
 import useDebounce from "@/hooks/useDebounce";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
@@ -19,7 +20,7 @@ import useVendorsPage from "./components/useVendorsPage";
 import { getVendorColumns, getVendorMobileCard } from "./components/vendorColumns";
 
 // The form panel is only needed once someone opens it.
-const VendorSheet = lazy(() => import("./components/VendorSheet"));
+const VendorSheet = lazyWithRetry(() => import("./components/VendorSheet"));
 
 const ANY = "any"; // shadcn SelectItem can't use value=""
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];

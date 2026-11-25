@@ -2,7 +2,8 @@
 // Desktop shell: sidebar + top bar + (material quick nav) + page content.
 // Props: title (shown in the top bar), children. Content is full width (no max-width).
 import { useCallback, useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { ROUTES } from '@/lib/routes';
 import { clearSession, getUser } from '@/lib/session';
@@ -15,6 +16,7 @@ import usePendingCounts from './usePendingCounts';
 import useSidebarMenus from './useSidebarMenus';
 
 const DashboardLayout = ({ children, title }) => {
+  const { pathname } = useLocation();
   const navigate = useNavigate();
   // Read once per layout mount; the stored user does not change while a page is open.
   const [user] = useState(getUser);
@@ -51,7 +53,10 @@ const DashboardLayout = ({ children, title }) => {
           <MaterialQuickNav />
           <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-page">
             <div className="flex w-full min-w-0 flex-col gap-4 px-4 pb-12 pt-6 sm:px-6 lg:px-8">
-              {children || <Outlet />}
+              {/* A failing page body keeps the sidebar and top bar usable; leaving the page clears the error. */}
+              <ErrorBoundary scope="page-content" resetKeys={[pathname]}>
+                {children || <Outlet />}
+              </ErrorBoundary>
             </div>
           </main>
         </div>

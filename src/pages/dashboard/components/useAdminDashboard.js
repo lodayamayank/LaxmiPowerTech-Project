@@ -19,6 +19,8 @@ const punchTypeOrder = { in: 0, out: 1, half: 2, absent: 3, weekoff: 4, paidleav
 export default function useAdminDashboard() {
   const [attendances, setAttendances] = useState([]);
   const [summary, setSummary] = useState(null);
+  const [summaryError, setSummaryError] = useState(false);
+  const [summaryTick, setSummaryTick] = useState(0); // bumping it reloads the summary (the Retry button)
   const [searchStaff, setSearchStaff] = useState("");
   const [role, setRole] = useState("");
   const [month, setMonth] = useState(new Date().getMonth() + 1);
@@ -62,6 +64,7 @@ export default function useAdminDashboard() {
   useEffect(() => {
     if (!token) return undefined;
     let ignore = false;
+    setSummaryError(false);
     const days = Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
@@ -78,6 +81,7 @@ export default function useAdminDashboard() {
       if (!live) {
         console.error("Failed to fetch live attendance for the dashboard", liveRes.reason);
         setSummary(null);
+        setSummaryError(true);
         return;
       }
       const records = weekRes.status === "fulfilled" ? (Array.isArray(weekRes.value.data) ? weekRes.value.data : weekRes.value.data?.rows || []) : [];
@@ -149,7 +153,7 @@ export default function useAdminDashboard() {
     return () => {
       ignore = true;
     };
-  }, [token, auth]);
+  }, [token, auth, summaryTick]);
 
   useEffect(() => {
     fetchData(); /* eslint-disable-next-line */
@@ -313,7 +317,7 @@ export default function useAdminDashboard() {
   };
 
   return {
-    summary, stats, loading, filtered, currentItems, totalItems, totalPages, startIndex, endIndex, currentPage, goToPage, itemsPerPage, setItemsPerPage,
+    summary, summaryError, reloadSummary: () => setSummaryTick((t) => t + 1), stats, loading, filtered, currentItems, totalItems, totalPages, startIndex, endIndex, currentPage, goToPage, itemsPerPage, setItemsPerPage,
     searchStaff, setSearchStaff, role, setRole, month, setMonth, year, setYear, startDate, endDate, hasCustomRange, today,
     downloadCSV, onSearch, resetFilters, handleStartDateChange, handleEndDateChange, fetchData,
   };

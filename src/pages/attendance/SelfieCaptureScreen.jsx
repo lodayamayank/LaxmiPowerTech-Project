@@ -1,5 +1,6 @@
 // src/screens/SelfieCaptureScreen.jsx
 import React, { useEffect, useRef, useState } from "react";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { ROUTES } from '@/lib/routes';
 import { getUserRaw } from '@/lib/session';
 import { useNavigate, useLocation } from "react-router-dom";
@@ -10,7 +11,7 @@ import { markPunchedLocally } from "@/lib/punchStatusCache";
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Delete, Fingerprint, MapPin, UserCheck } from 'lucide-react';
+import { Delete, Fingerprint, MapPin, UserCheck, RotateCcw, TriangleAlert } from "lucide-react";
 import { IconTile } from '@/components/common/IconTile';
 import { Notice } from '@/components/common/Notice';
 import MobileCard from '@/layouts/mobile/MobileCard';
@@ -368,15 +369,30 @@ const SelfieCaptureScreen = () => {
             </div>
 
             <div className="relative flex h-[330px] items-center justify-center overflow-hidden rounded-[18px] bg-ink-1">
-              <FaceCamera
-                webcamRef={webcamRef}
-                onFaceDetected={(detected, ready, status, message) => {
-                  setFaceDetected(detected);
-                  setFaceStatus(status);
-                  setFaceMessage(ready ? message : "Loading face check… this can take a moment on a slow connection");
-                }}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
+              {/* If the camera or face detection crashes, only this area is replaced and can be retried; the supervisor
+                  code option below stays available. Retrying remounts the camera (the old stream is stopped on unmount). */}
+              <ErrorBoundary
+                scope="camera"
+                fallback={({ reset }) => (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-ink-1 px-6 text-center text-surface">
+                    <TriangleAlert className="size-6" aria-hidden="true" />
+                    <p className="text-body">The camera couldn&apos;t start. Try again, or use the supervisor code if it keeps failing.</p>
+                    <Button type="button" variant="secondary" onClick={reset}>
+                      <RotateCcw /> Try again
+                    </Button>
+                  </div>
+                )}
+              >
+                <FaceCamera
+                  webcamRef={webcamRef}
+                  onFaceDetected={(detected, ready, status, message) => {
+                    setFaceDetected(detected);
+                    setFaceStatus(status);
+                    setFaceMessage(ready ? message : "Loading face check… this can take a moment on a slow connection");
+                  }}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              </ErrorBoundary>
               <div className="relative h-[240px] w-[190px] rounded-full border-[3px] border-dashed border-surface/70" aria-hidden="true" />
               <Badge variant="neutral" className="absolute left-3 top-3">
                 Front camera

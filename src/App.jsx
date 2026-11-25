@@ -1,6 +1,8 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import { getUser } from '@/lib/session';
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect, Suspense } from 'react';
 import { migrateLegacyOfflinePunches } from '@/pwa/syncAttendance';
 import { toast } from 'sonner';
 import useNotifier from '@/pwa/useNotifier';
@@ -15,89 +17,101 @@ import { PageLoader } from '@/components/common/PageLoader';
 import InstallPWA from '@/pwa/InstallPWA';
 
 // Lazy load all pages for code-splitting
-const Login = lazy(() => import('@/pages/auth/Login'));
-const RoleBasedDashboard = lazy(() => import('@/pages/dashboard/RoleBasedDashboard'));
-const AdminDashboard = lazy(() => import('@/pages/dashboard/AdminDashboard'));
-const MyAttendance = lazy(() => import('@/pages/attendance/MyAttendance'));
-const AdminMyTeam = lazy(() => import('@/pages/team/AdminMyTeam'));
-const CreateProject = lazy(() => import('@/pages/projects/CreateProject'));
-const AdminAttendance = lazy(() => import('@/pages/attendance/AdminAttendance'));
-const AttendancePage = lazy(() => import('@/pages/attendance/AttendancePage'));
-const AdminVendors = lazy(() => import('@/pages/admin/AdminVendors'));
-const PunchInScreen = lazy(() => import('@/pages/attendance/PunchInScreen'));
-const SelfieCaptureScreen = lazy(() => import('@/pages/attendance/SelfieCaptureScreen'));
-const AdminBranches = lazy(() => import('@/pages/admin/AdminBranches'));
-const ProfileScreen = lazy(() => import('@/pages/account/ProfileScreen'));
-const AdminLiveAttendance = lazy(() => import('@/pages/attendance/AdminLiveAttendance'));
-const SupervisorAttendanceDashboard = lazy(() => import('@/pages/attendance/SupervisorAttendanceDashboard'));
-const SubcontractorAttendanceDashboard = lazy(() => import('@/pages/attendance/SubcontractorAttendanceDashboard'));
-const LabourAttendanceDashboard = lazy(() => import('@/pages/attendance/LabourAttendanceDashboard'));
-const NotesDashboard = lazy(() => import('@/pages/attendance/NotesDashboard'));
-const Leaves = lazy(() => import('@/pages/leaves/Leaves'));
-const AdminLeaves = lazy(() => import('@/pages/leaves/AdminLeaves'));
-const MyReimbursements = lazy(() => import('@/pages/reimbursements/MyReimbursements'));
-const CreateReimbursement = lazy(() => import('@/pages/reimbursements/CreateReimbursement'));
-const AdminReimbursements = lazy(() => import('@/pages/reimbursements/AdminReimbursements'));
-const SupervisorDashboard = lazy(() => import('@/pages/dashboard/SupervisorDashboard'));
-const SupervisorProjectList = lazy(() => import('@/pages/supervisor/SupervisorProjectList'));
-const SupervisorLabourList = lazy(() => import('@/pages/supervisor/SupervisorLabourList'));
-const SupervisorAddLabour = lazy(() => import('@/pages/supervisor/SupervisorAddLabour'));
-const SupervisorLabourDetails = lazy(() => import('@/pages/supervisor/SupervisorLabourDetails'));
-const LabourDashboard = lazy(() => import('@/pages/dashboard/LabourDashboard'));
-const TaskSubmission = lazy(() => import('@/pages/projects/TaskSubmission'));
-const TeamAttendance = lazy(() => import('@/pages/attendance/TeamAttendance'));
-const AdminDeleteAttendance = lazy(() => import('@/pages/attendance/AdminDeleteAttendance'));
-const AddEmployee = lazy(() => import('@/pages/team/AddEmployee'));
-const MemberProfile = lazy(() => import('@/pages/team/MemberProfile'));
-const MemberEdit = lazy(() => import('@/pages/team/MemberEdit'));   
+const Login = lazyWithRetry(() => import('@/pages/auth/Login'));
+const RoleBasedDashboard = lazyWithRetry(() => import('@/pages/dashboard/RoleBasedDashboard'));
+const AdminDashboard = lazyWithRetry(() => import('@/pages/dashboard/AdminDashboard'));
+const MyAttendance = lazyWithRetry(() => import('@/pages/attendance/MyAttendance'));
+const AdminMyTeam = lazyWithRetry(() => import('@/pages/team/AdminMyTeam'));
+const CreateProject = lazyWithRetry(() => import('@/pages/projects/CreateProject'));
+const AdminAttendance = lazyWithRetry(() => import('@/pages/attendance/AdminAttendance'));
+const AttendancePage = lazyWithRetry(() => import('@/pages/attendance/AttendancePage'));
+const AdminVendors = lazyWithRetry(() => import('@/pages/admin/AdminVendors'));
+const PunchInScreen = lazyWithRetry(() => import('@/pages/attendance/PunchInScreen'));
+const SelfieCaptureScreen = lazyWithRetry(() => import('@/pages/attendance/SelfieCaptureScreen'));
+const AdminBranches = lazyWithRetry(() => import('@/pages/admin/AdminBranches'));
+const ProfileScreen = lazyWithRetry(() => import('@/pages/account/ProfileScreen'));
+const AdminLiveAttendance = lazyWithRetry(() => import('@/pages/attendance/AdminLiveAttendance'));
+const SupervisorAttendanceDashboard = lazyWithRetry(() => import('@/pages/attendance/SupervisorAttendanceDashboard'));
+const SubcontractorAttendanceDashboard = lazyWithRetry(() => import('@/pages/attendance/SubcontractorAttendanceDashboard'));
+const LabourAttendanceDashboard = lazyWithRetry(() => import('@/pages/attendance/LabourAttendanceDashboard'));
+const NotesDashboard = lazyWithRetry(() => import('@/pages/attendance/NotesDashboard'));
+const Leaves = lazyWithRetry(() => import('@/pages/leaves/Leaves'));
+const AdminLeaves = lazyWithRetry(() => import('@/pages/leaves/AdminLeaves'));
+const MyReimbursements = lazyWithRetry(() => import('@/pages/reimbursements/MyReimbursements'));
+const CreateReimbursement = lazyWithRetry(() => import('@/pages/reimbursements/CreateReimbursement'));
+const AdminReimbursements = lazyWithRetry(() => import('@/pages/reimbursements/AdminReimbursements'));
+const SupervisorDashboard = lazyWithRetry(() => import('@/pages/dashboard/SupervisorDashboard'));
+const SupervisorProjectList = lazyWithRetry(() => import('@/pages/supervisor/SupervisorProjectList'));
+const SupervisorLabourList = lazyWithRetry(() => import('@/pages/supervisor/SupervisorLabourList'));
+const SupervisorAddLabour = lazyWithRetry(() => import('@/pages/supervisor/SupervisorAddLabour'));
+const SupervisorLabourDetails = lazyWithRetry(() => import('@/pages/supervisor/SupervisorLabourDetails'));
+const LabourDashboard = lazyWithRetry(() => import('@/pages/dashboard/LabourDashboard'));
+const TaskSubmission = lazyWithRetry(() => import('@/pages/projects/TaskSubmission'));
+const TeamAttendance = lazyWithRetry(() => import('@/pages/attendance/TeamAttendance'));
+const AdminDeleteAttendance = lazyWithRetry(() => import('@/pages/attendance/AdminDeleteAttendance'));
+const AddEmployee = lazyWithRetry(() => import('@/pages/team/AddEmployee'));
+const MemberProfile = lazyWithRetry(() => import('@/pages/team/MemberProfile'));
+const MemberEdit = lazyWithRetry(() => import('@/pages/team/MemberEdit'));   
 
 // Material Management Pages - Lazy loaded  
-const Material = lazy(() => import('@/pages/material/Material'));
-const MaterialTransferForm = lazy(() => import('@/pages/material/transfers/MaterialTransferForm'));
-const IntentForm = lazy(() => import('@/pages/material/intent/IntentForm'));
-const MaterialCardDetails = lazy(() => import('@/pages/material/transfers/MaterialCardDetails'));
-const IntentCardDetails = lazy(() => import('@/pages/material/intent/IntentCardDetails'));
-const GRNCardDetails = lazy(() => import('@/pages/material/grn/GRNCardDetails'));
-const UpcomingDeliveries = lazy(() => import('@/pages/material/deliveries/UpcomingDeliveries'));
-const DeliveryDetails = lazy(() => import('@/pages/material/deliveries/DeliveryDetails'));
-const DeliveryChecklist = lazy(() => import('@/pages/material/deliveries/DeliveryChecklist'));
-const UploadIndent = lazy(() => import('@/pages/material/indent/UploadIndent'));
-const AdminSiteTransfer = lazy(() => import('@/pages/material/transfers/AdminSiteTransfer'));
-const AdminUpcomingDeliveries = lazy(() => import('@/pages/material/deliveries/AdminUpcomingDeliveries'));
-const AdminIntent = lazy(() => import('@/pages/material/intent/AdminIntent'));
-const AdminGRN = lazy(() => import('@/pages/material/grn/AdminGRN'));
-const UploadPhoto = lazy(() => import('@/pages/material/intent/UploadPhoto'));
-const Intent = lazy(() => import('@/pages/material/intent/Intent'));
-const ProjectDocuments = lazy(() => import('@/pages/documents/ProjectDocuments'));
-const DocumentsRedirect = lazy(() => import('@/pages/documents/DocumentsRedirect'));
-const SupervisorProjectDocuments = lazy(() => import('@/pages/documents/SupervisorProjectDocuments'));
+const Material = lazyWithRetry(() => import('@/pages/material/Material'));
+const MaterialTransferForm = lazyWithRetry(() => import('@/pages/material/transfers/MaterialTransferForm'));
+const IntentForm = lazyWithRetry(() => import('@/pages/material/intent/IntentForm'));
+const MaterialCardDetails = lazyWithRetry(() => import('@/pages/material/transfers/MaterialCardDetails'));
+const IntentCardDetails = lazyWithRetry(() => import('@/pages/material/intent/IntentCardDetails'));
+const GRNCardDetails = lazyWithRetry(() => import('@/pages/material/grn/GRNCardDetails'));
+const UpcomingDeliveries = lazyWithRetry(() => import('@/pages/material/deliveries/UpcomingDeliveries'));
+const DeliveryDetails = lazyWithRetry(() => import('@/pages/material/deliveries/DeliveryDetails'));
+const DeliveryChecklist = lazyWithRetry(() => import('@/pages/material/deliveries/DeliveryChecklist'));
+const UploadIndent = lazyWithRetry(() => import('@/pages/material/indent/UploadIndent'));
+const AdminSiteTransfer = lazyWithRetry(() => import('@/pages/material/transfers/AdminSiteTransfer'));
+const AdminUpcomingDeliveries = lazyWithRetry(() => import('@/pages/material/deliveries/AdminUpcomingDeliveries'));
+const AdminIntent = lazyWithRetry(() => import('@/pages/material/intent/AdminIntent'));
+const AdminGRN = lazyWithRetry(() => import('@/pages/material/grn/AdminGRN'));
+const UploadPhoto = lazyWithRetry(() => import('@/pages/material/intent/UploadPhoto'));
+const Intent = lazyWithRetry(() => import('@/pages/material/intent/Intent'));
+const ProjectDocuments = lazyWithRetry(() => import('@/pages/documents/ProjectDocuments'));
+const DocumentsRedirect = lazyWithRetry(() => import('@/pages/documents/DocumentsRedirect'));
+const SupervisorProjectDocuments = lazyWithRetry(() => import('@/pages/documents/SupervisorProjectDocuments'));
 
 // Salary Management Pages - Lazy loaded
-const SalaryDashboard = lazy(() => import('@/pages/payroll/SalaryDashboard'));
-const SalaryHistory = lazy(() => import('@/pages/payroll/SalaryHistory'));
-const HolidayCalendar = lazy(() => import('@/pages/payroll/HolidayCalendar'));
-const SalaryPolicyPage = lazy(() => import('@/pages/payroll/SalaryPolicyPage'));
+const SalaryDashboard = lazyWithRetry(() => import('@/pages/payroll/SalaryDashboard'));
+const SalaryHistory = lazyWithRetry(() => import('@/pages/payroll/SalaryHistory'));
+const HolidayCalendar = lazyWithRetry(() => import('@/pages/payroll/HolidayCalendar'));
+const SalaryPolicyPage = lazyWithRetry(() => import('@/pages/payroll/SalaryPolicyPage'));
 
 // Task Management Pages - Lazy loaded
-const AdminTasks = lazy(() => import('@/pages/projects/AdminTasks'));
+const AdminTasks = lazyWithRetry(() => import('@/pages/projects/AdminTasks'));
 
 // Work Order Management Pages - Lazy loaded
-const ManageWorkOrder = lazy(() => import('@/pages/projects/ManageWorkOrder'));
-const ManageInventoryLabour = lazy(() => import('@/pages/inventory/ManageInventoryLabour'));
+const ManageWorkOrder = lazyWithRetry(() => import('@/pages/projects/ManageWorkOrder'));
+const ManageInventoryLabour = lazyWithRetry(() => import('@/pages/inventory/ManageInventoryLabour'));
 
 // Reports Page
-const AdminReports = lazy(() => import('@/pages/reports/AdminReports'));
-const AdminTransfers = lazy(() => import('@/pages/material/transfers/AdminTransfers'));
-const MobileMyIndents = lazy(() => import('@/pages/material/indent/MobileMyIndents'));
-const MaterialTransferMobile = lazy(() => import('@/pages/material/transfers/MaterialTransferMobile'));
-const ConnectServer = lazy(() => import('@/pages/auth/ConnectServer'));
+const AdminReports = lazyWithRetry(() => import('@/pages/reports/AdminReports'));
+const AdminTransfers = lazyWithRetry(() => import('@/pages/material/transfers/AdminTransfers'));
+const MobileMyIndents = lazyWithRetry(() => import('@/pages/material/indent/MobileMyIndents'));
+const MaterialTransferMobile = lazyWithRetry(() => import('@/pages/material/transfers/MaterialTransferMobile'));
+const ConnectServer = lazyWithRetry(() => import('@/pages/auth/ConnectServer'));
 
 // Dev-only design system page (not part of the production bundle)
-const Styleguide = import.meta.env.DEV ? lazy(() => import('@/pages/dev/Styleguide')) : null;
-const ShellPreview = import.meta.env.DEV ? lazy(() => import('@/pages/dev/ShellPreview')) : null;
+const Styleguide = import.meta.env.DEV ? lazyWithRetry(() => import('@/pages/dev/Styleguide')) : null;
+const ShellPreview = import.meta.env.DEV ? lazyWithRetry(() => import('@/pages/dev/ShellPreview')) : null;
+const ErrorTest = import.meta.env.DEV ? lazyWithRetry(() => import('@/pages/dev/ErrorTest')) : null;
 
 // Route-chunk loading state (shared PageLoader, token based)
 const LoadingFallback = () => <PageLoader />;
+
+// Page-level boundary: a crash or failed download of one screen shows the recovery screen, while the toaster, the
+// offline banner and the app itself keep running. Navigating to another route clears the error.
+function RouteBoundary({ children }) {
+  const { pathname } = useLocation();
+  return (
+    <ErrorBoundary variant="page" scope="route" resetKeys={[pathname]} autoReloadChunks>
+      {children}
+    </ErrorBoundary>
+  );
+}
 
 function App() {
   const user = getUser();
@@ -129,6 +143,7 @@ function App() {
       <Toaster />
       <InstallPWA />
       <OfflineBanner />
+      <RouteBoundary>
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           <Route path="/" element={<Navigate to="/login" />} />
@@ -136,6 +151,9 @@ function App() {
           {/* Dev-only */}
           {import.meta.env.DEV && Styleguide && (
             <Route path="/styleguide" element={<Styleguide />} />
+          )}
+          {import.meta.env.DEV && ErrorTest && (
+            <Route path="/styleguide/errors" element={<ErrorTest />} />
           )}
           {import.meta.env.DEV && ShellPreview && (
             <Route path="/styleguide/shell" element={<ShellPreview />} />
@@ -369,6 +387,7 @@ function App() {
           </Route>
         </Routes>
       </Suspense>
+      </RouteBoundary>
     </>
   );
 }

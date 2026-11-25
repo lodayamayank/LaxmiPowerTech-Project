@@ -1,6 +1,7 @@
 // src/pages/projects/CreateProject.jsx  (route: Projects)
 // Data, validation and save/delete handlers live in components/useProjectsPage.jsx (moved unchanged); this file lays out the page.
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import { useNavigate } from "react-router-dom";
 import { Building2, FolderKanban, Plus } from "lucide-react";
 import useDebounce from "@/hooks/useDebounce";
@@ -21,7 +22,7 @@ import useProjectsPage from "./components/useProjectsPage";
 import { getProjectColumns, getProjectMobileCard } from "./components/projectColumns";
 
 // The side panel (form + tower builders) is only needed once someone opens it.
-const ProjectSheet = lazy(() => import("./components/ProjectSheet"));
+const ProjectSheet = lazyWithRetry(() => import("./components/ProjectSheet"));
 
 // shadcn SelectItem can't use value="", so "All" uses a sentinel
 const ALL = "all";

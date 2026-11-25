@@ -9,7 +9,12 @@ export const queryClient = new QueryClient({
     queries: {
       staleTime: 5 * 60 * 1000,
       gcTime: 30 * 60 * 1000,
-      retry: 1,
+      // One retry for network problems and 5xx; a 4xx answer (bad request, not found, forbidden) will not change.
+      retry: (failureCount, error) => {
+        const status = error?.response?.status;
+        if (status && status >= 400 && status < 500) return false;
+        return failureCount < 1;
+      },
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
     },

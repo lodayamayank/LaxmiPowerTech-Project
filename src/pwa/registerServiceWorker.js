@@ -1,3 +1,5 @@
+import { toast } from 'sonner';
+
 export function register() {
     // In development there is no service worker. If one was installed earlier on this origin by a production build
     // (same localhost port), remove it and its caches, otherwise it keeps serving stale files to this browser profile.
@@ -30,9 +32,12 @@ export function register() {
                     if (navigator.serviceWorker.controller) {
                       console.log('New content available, please refresh!');
                       // Show update notification
-                      if (window.confirm('New version available! Reload to update?')) {
-                        window.location.reload();
-                      }
+                      toast.info('A new version is available', {
+                        id: 'sw-update',
+                        description: 'Reload to use the latest version.',
+                        duration: Infinity,
+                        action: { label: 'Reload', onClick: () => window.location.reload() },
+                      });
                     } else {
                       console.log('Content cached for offline use.');
                     }

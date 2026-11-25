@@ -2,6 +2,7 @@
 // Laid out like the dashboard design. All data, filters and the CSV export live in components/useAdminDashboard.js
 // (moved unchanged); this file is the layout.
 import { useState } from "react";
+import { Notice } from "@/components/common/Notice";
 import { Link } from "react-router-dom";
 import { CalendarCheck, Clock, FileText, MapPin, Package, Plus, Receipt, TriangleAlert, UserCheck, UserX, Users } from "lucide-react";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
@@ -197,6 +198,21 @@ const AdminDashboard = () => {
           </>
         }
       />
+
+      {d.summaryError ? (
+        <Notice
+          tone="warn"
+          icon={TriangleAlert}
+          title="Today’s numbers couldn’t be loaded"
+          action={
+            <Button type="button" variant="outline" size="sm" onClick={d.reloadSummary}>
+              Try again
+            </Button>
+          }
+        >
+          Check your connection. The attendance records below may still be available.
+        </Notice>
+      ) : null}
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
         <StatCard icon={Users} tone="neutral" label="Total workforce" value={stats.known} sub={`Across ${stats.branches.length} branches`} />
