@@ -30,7 +30,7 @@ const TONES = {
 };
 
 const iconCircle = (size) =>
-  `!m-0 flex ${size} shrink-0 items-center justify-center rounded-full bg-surface-muted text-ink-3 ${Object.values(TONES).join(" ")}`;
+  `!m-0 !flex ${size} !min-w-0 shrink-0 !items-center !justify-center rounded-full bg-surface-muted text-ink-3 ${Object.values(TONES).join(" ")}`;
 
 const Toaster = ({ ...props }) => {
   // Follows the app theme (lib/theme.js), not the OS setting.
