@@ -6,9 +6,9 @@ import { ROUTES } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 const LINKS = [
-  { label: 'Upload', to: ROUTES.adminMaterial.uploadIndent },
-  { label: 'Intent PO', to: ROUTES.adminMaterial.intent },
-  { label: 'Transfers', to: ROUTES.adminMaterial.siteTransfers },
+  { label: 'Indent lists', to: ROUTES.adminMaterial.uploadIndent },
+  { label: 'Purchase orders', to: ROUTES.adminMaterial.intent },
+  { label: 'Site transfers', to: ROUTES.adminMaterial.siteTransfers },
   { label: 'Deliveries', to: ROUTES.adminMaterial.upcomingDeliveries },
   { label: 'GRN', to: ROUTES.adminMaterial.grn },
 ];
