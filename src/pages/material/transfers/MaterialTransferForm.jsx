@@ -84,7 +84,7 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
           onClick={handleInputClick}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full bg-surface border border-line-input rounded-md px-3 py-2.5 pr-8 text-sm text-ink-1 placeholder-gray-400 focus:outline-none focus:border-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className="w-full bg-surface border border-line-input rounded-md px-3 py-2.5 pr-8 text-sm text-ink-1 placeholder-gray-400 focus:outline-none focus-visible:border-primary disabled:bg-surface-muted disabled:cursor-not-allowed"
           autoComplete="off"
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -829,7 +829,7 @@ export default function MaterialTransferForm() {
                               type="number"
                               value={material.quantity}
                               onChange={(e) => updateMaterialRow(material.id, 'quantity', e.target.value)}
-                              className="w-full bg-surface border border-line-input rounded-md px-3 py-2.5 text-sm text-ink-2 focus:outline-none focus:border-gray-400"
+                              className="w-full bg-surface border border-line-input rounded-md px-3 py-2.5 text-sm text-ink-2 focus:outline-none focus-visible:border-primary"
                               placeholder="Enter qty"
                               min="1"
                               required
@@ -845,7 +845,7 @@ export default function MaterialTransferForm() {
                               type="text"
                               value={material.remarks}
                               onChange={(e) => updateMaterialRow(material.id, 'remarks', e.target.value)}
-                              className="w-full bg-surface border border-line-input rounded-md px-3 py-2.5 text-sm text-ink-2 focus:outline-none focus:border-gray-400"
+                              className="w-full bg-surface border border-line-input rounded-md px-3 py-2.5 text-sm text-ink-2 focus:outline-none focus-visible:border-primary"
                               placeholder="Optional notes"
                               disabled={submitting}
                             />
@@ -930,7 +930,7 @@ export default function MaterialTransferForm() {
               <button
                 type="button"
                 onClick={() => navigate(ROUTES.material.transfer)}
-                className="flex-1 bg-surface border-2 border-line-card text-ink-2 font-semibold py-3.5 rounded-xl hover:bg-surface-muted hover:border-gray-300 transition-all shadow-sm"
+                className="flex-1 bg-surface border-2 border-line-card text-ink-2 font-semibold py-3.5 rounded-xl hover:bg-surface-muted hover:border-line-input transition-all shadow-sm"
                 disabled={submitting}
               >
                 Cancel

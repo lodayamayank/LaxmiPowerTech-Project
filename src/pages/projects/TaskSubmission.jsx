@@ -574,7 +574,7 @@ const TaskSubmission = () => {
                                 checked === true ? hierarchy.buildings : []
                               );
                             }}
-                            className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 data-[state=checked]:text-primary-foreground"
+                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground"
                           />
                           <span className="text-sm font-semibold text-ink-2">
                             All Buildings
@@ -604,7 +604,7 @@ const TaskSubmission = () => {
                                         )
                                   );
                                 }}
-                                className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 data-[state=checked]:text-primary-foreground"
+                                className="data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground"
                               />
                               <span className="text-sm font-normal text-ink-2">
                                 {building.name}

@@ -706,7 +706,7 @@ export default function MaterialCardDetails() {
               <Button
                 type="button"
                 onClick={handleSaveChanges}
-                className="flex-1 h-auto py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary-strong transition-colors text-sm font-medium disabled:opacity-100 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="flex-1 h-auto py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary-strong transition-colors text-sm font-medium disabled:opacity-100 disabled:bg-surface-muted disabled:cursor-not-allowed"
                 disabled={submitting}
               >
                 {submitting ? (

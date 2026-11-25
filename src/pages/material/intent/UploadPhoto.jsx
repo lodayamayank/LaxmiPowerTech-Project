@@ -5,7 +5,7 @@ import { ROUTES } from '@/lib/routes';
 import { getUser } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import { useNavigate } from "react-router-dom";
-import { FaImages } from 'react-icons/fa';
+import { Images } from 'lucide-react';
 import { Upload, X } from "lucide-react";
 import { submitOffline } from "@/pwa/offlineSubmit";
 import { toast } from 'sonner';
@@ -244,7 +244,7 @@ export default function UploadPhoto() {
                   onClick={() => fileInputRef.current?.click()}
                   className="w-full h-auto flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:bg-primary-strong py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] [&_svg]:size-6"
                 >
-                  <FaImages size={24} />
+                  <Images size={24} />
                   <span className="text-lg font-bold">Choose from Gallery</span>
                 </Button>
 

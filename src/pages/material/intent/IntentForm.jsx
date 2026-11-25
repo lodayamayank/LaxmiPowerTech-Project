@@ -77,7 +77,7 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
           onClick={handleInputClick}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full bg-surface border border-line-input rounded-md px-3 py-2.5 pr-8 text-sm text-ink-1 placeholder-gray-400 focus:outline-none focus:border-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className="w-full bg-surface border border-line-input rounded-md px-3 py-2.5 pr-8 text-sm text-ink-1 placeholder-gray-400 focus:outline-none focus-visible:border-primary disabled:bg-surface-muted disabled:cursor-not-allowed"
           autoComplete="off"
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -617,7 +617,7 @@ export default function IntentForm() {
                               type="number"
                               value={material.quantity}
                               onChange={(e) => updateMaterial(material.id, 'quantity', e.target.value)}
-                              className="h-auto w-full bg-surface border border-line-input rounded-md px-3 py-2.5 text-sm text-ink-2 shadow-none focus-visible:ring-0 focus-visible:border-gray-400"
+                              className="h-auto w-full bg-surface border border-line-input rounded-md px-3 py-2.5 text-sm text-ink-2 shadow-none focus-visible:ring-0 focus-visible:border-primary"
                               placeholder="Enter qty"
                               min="1"
                               required
@@ -633,7 +633,7 @@ export default function IntentForm() {
                               type="text"
                               value={material.remarks}
                               onChange={(e) => updateMaterial(material.id, 'remarks', e.target.value)}
-                              className="h-auto w-full bg-surface border border-line-input rounded-md px-3 py-2.5 text-sm text-ink-2 shadow-none focus-visible:ring-0 focus-visible:border-gray-400"
+                              className="h-auto w-full bg-surface border border-line-input rounded-md px-3 py-2.5 text-sm text-ink-2 shadow-none focus-visible:ring-0 focus-visible:border-primary"
                               placeholder="Optional notes"
                               disabled={submitting}
                             />

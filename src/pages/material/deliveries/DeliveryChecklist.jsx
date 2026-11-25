@@ -497,7 +497,7 @@ export default function DeliveryChecklist() {
                                   ? "Already fully received"
                                   : "Fill remaining quantity"
                               }
-                              className="w-6 h-6 mt-1 border-line-input data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-primary-foreground"
+                              className="w-6 h-6 mt-1 border-line-input data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground"
                             />
                           </div>
 
@@ -540,7 +540,7 @@ export default function DeliveryChecklist() {
                                 className={`w-full px-3 py-2.5 border-2 rounded-lg text-sm font-bold bg-surface ${
                                   validationErrors[index]
                                     ? "border-tone-bad-border focus-visible:ring-ring text-tone-bad-fg"
-                                    : "border-line-input focus-visible:ring-ring text-ink-1 disabled:bg-gray-100 disabled:text-gray-500"
+                                    : "border-line-input focus-visible:ring-ring text-ink-1 disabled:bg-surface-muted disabled:text-ink-3"
                                 } focus:ring-2 focus:outline-none`}
                                 style={{ colorScheme: "light" }}
                               />
@@ -574,7 +574,7 @@ export default function DeliveryChecklist() {
                     <Button
                         onClick={handleSubmit}
                         disabled={submitting || Object.keys(validationErrors).length > 0}
-                        className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary-strong disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors shadow-md"
+                        className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary-strong disabled:bg-surface-muted disabled:cursor-not-allowed transition-colors shadow-md"
                     >
                         {submitting ? "Submitting..." : "Submit Changes"}
                     </Button>

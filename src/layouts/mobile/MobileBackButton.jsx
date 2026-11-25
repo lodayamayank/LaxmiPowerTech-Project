@@ -1,5 +1,5 @@
-import { FaArrowLeft } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 /**
@@ -24,7 +24,7 @@ const MobileBackButton = ({
       className,
     )}
   >
-    <FaArrowLeft size={16} />
+    <ArrowLeft size={16} />
     <span className="text-sm font-medium">{label}</span>
   </Button>
 );

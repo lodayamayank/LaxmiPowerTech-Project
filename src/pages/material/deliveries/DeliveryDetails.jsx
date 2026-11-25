@@ -511,7 +511,7 @@ export default function DeliveryDetails() {
                               handleCheckbox(itemId, checked === true)
                             }
                             aria-label="Receive full remaining quantity"
-                            className="w-7 h-7 rounded-lg border-2 border-line-input data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-primary-foreground [&_svg]:h-5 [&_svg]:w-5"
+                            className="w-7 h-7 rounded-lg border-2 border-line-input data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground [&_svg]:h-5 [&_svg]:w-5"
                           />
                         )}
                       </div>
@@ -579,7 +579,7 @@ export default function DeliveryDetails() {
                               handleReceiveNowChange(itemId, event.target.value)
                             }
                             placeholder={`Max ${remainingQty} ${unit}`}
-                            className="h-auto w-full border border-line-input rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus-visible:ring-ring disabled:bg-gray-100 disabled:text-gray-600"
+                            className="h-auto w-full border border-line-input rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus-visible:ring-ring disabled:bg-surface-muted disabled:text-ink-3"
                           />
                           <p className="text-xs text-ink-3 mt-1">
                             Pending after this delivery:{" "}
@@ -673,7 +673,7 @@ export default function DeliveryDetails() {
                   variant="ghost"
                   onClick={() => setIsEditMode(true)}
                   disabled={delivery.status === "Transferred"}
-                  className="h-auto flex-1 bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="h-auto flex-1 bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:bg-surface-muted disabled:cursor-not-allowed"
                 >
                   Edit
                 </Button>
@@ -698,7 +698,7 @@ export default function DeliveryDetails() {
                   variant="ghost"
                   onClick={handleSubmit}
                   disabled={submitting}
-                  className="h-auto flex-1 bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:bg-orange-300 disabled:cursor-wait"
+                  className="h-auto flex-1 bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:bg-surface-muted disabled:cursor-wait"
                 >
                   {submitting ? "Submitting..." : "Submit"}
                 </Button>

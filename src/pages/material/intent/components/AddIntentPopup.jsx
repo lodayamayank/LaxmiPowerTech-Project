@@ -43,7 +43,7 @@ export default function AddIndentPopup({ onClose }) {
       className="w-full max-w-md mx-auto rounded-t-3xl px-6 pb-6"
     >
       <SheetHeader className="mb-6">
-        <SheetTitle className="text-left text-lg font-bold text-gray-900">
+        <SheetTitle className="text-left text-lg font-bold text-ink-1">
           Create New Intent
         </SheetTitle>
       </SheetHeader>
@@ -53,18 +53,18 @@ export default function AddIndentPopup({ onClose }) {
           type="button"
           variant="ghost"
           onClick={handleCreateIntent}
-          className="h-auto justify-start gap-4 rounded-xl bg-gradient-to-r from-orange-50 to-orange-100 p-4 text-left hover:from-orange-100 hover:to-orange-200"
+          className="h-auto justify-start gap-4 rounded-xl bg-tone-highlight-soft p-4 text-left  "
         >
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 shadow-md">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground hover:bg-primary-strong shadow-md">
             <ShoppingCart size={22} className="text-primary-foreground" />
           </div>
 
           <div className="flex-1">
-            <p className="font-bold text-gray-900">
+            <p className="font-bold text-ink-1">
               Create Intent (PO)
             </p>
 
-            <p className="mt-0.5 text-xs text-gray-600">
+            <p className="mt-0.5 text-xs text-ink-3">
               Fill form to create new intent
             </p>
           </div>
@@ -74,18 +74,18 @@ export default function AddIndentPopup({ onClose }) {
           type="button"
           variant="ghost"
           onClick={handleUploadIntentList}
-          className="h-auto justify-start gap-4 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 p-4 text-left hover:from-blue-100 hover:to-blue-200"
+          className="h-auto justify-start gap-4 rounded-xl bg-tone-info-soft p-4 text-left  "
         >
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground hover:bg-primary-strong shadow-md">
             <Upload size={22} className="text-primary-foreground" />
           </div>
 
           <div className="flex-1">
-            <p className="font-bold text-gray-900">
+            <p className="font-bold text-ink-1">
               Upload Intent List
             </p>
 
-            <p className="mt-0.5 text-xs text-gray-600">
+            <p className="mt-0.5 text-xs text-ink-3">
               Upload photo of material list
             </p>
           </div>
