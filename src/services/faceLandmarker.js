@@ -1,3 +1,4 @@
+/* global __MEDIAPIPE_VERSION__ */
 // src/services/faceLandmarker.js
 // Loads one shared MediaPipe instance.
 // Tries GPU first, then CPU.
@@ -9,7 +10,8 @@
 //     return;
 //   }
 
-const WASM_VERSION = "0.10.14";
+// Same version as the installed JS package (injected by vite.config.js). A JS/WASM version mismatch can misbehave.
+const WASM_VERSION = typeof __MEDIAPIPE_VERSION__ === "string" ? __MEDIAPIPE_VERSION__ : "1.0.1";
 
 const WASM_BASE_URL =
   `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${WASM_VERSION}/wasm`;
@@ -168,6 +170,47 @@ async function loadFaceLandmarker(numFaces, preferGPU) {
     lastFailureAt = Date.now();
     emit("failed", error);
     return null; // caller (getFaceLandmarker) just returns this up
+  }
+}
+
+/**
+ * Downloads the model files into the browser cache without creating a detector (no WebGL context, no WASM heap),
+ * so the selfie screen starts quickly later. Safe to call repeatedly; failures are ignored.
+ */
+let warmed = false;
+export function warmFaceModelAssets() {
+  if (warmed) return;
+  warmed = true;
+  const urls = [`${WASM_BASE_URL}/vision_wasm_internal.js`, `${WASM_BASE_URL}/vision_wasm_internal.wasm`, MODEL_ASSET_URL];
+  urls.forEach((url) => {
+    fetch(url, { mode: "cors", credentials: "omit" }).catch(() => {
+      warmed = false; // allow another try later
+    });
+  });
+}
+
+// The detector holds a WebGL context and tens of MB of WASM memory. Screens that use it call retain/release; when the
+// last one lets go, the detector is closed after a short idle time (so going back to the selfie screen right away,
+// or React StrictMode's mount/unmount/mount in development, does not reload the model).
+const IDLE_CLOSE_MS = 60_000;
+let retainCount = 0;
+let idleCloseTimer = null;
+
+export function retainFaceLandmarker() {
+  retainCount += 1;
+  if (idleCloseTimer) {
+    clearTimeout(idleCloseTimer);
+    idleCloseTimer = null;
+  }
+}
+
+export function releaseFaceLandmarker() {
+  retainCount = Math.max(0, retainCount - 1);
+  if (retainCount === 0 && !idleCloseTimer) {
+    idleCloseTimer = setTimeout(() => {
+      idleCloseTimer = null;
+      if (retainCount === 0) closeFaceLandmarker();
+    }, IDLE_CLOSE_MS);
   }
 }
 

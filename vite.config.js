@@ -1,8 +1,14 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { readFileSync } from 'node:fs';
+
+// The MediaPipe WASM runtime must be the same version as the installed @mediapipe/tasks-vision JS package, so the
+// version is read from node_modules instead of being typed in twice.
+const mediapipeVersion = JSON.parse(readFileSync('./node_modules/@mediapipe/tasks-vision/package.json', 'utf8')).version;
 
 export default defineConfig({
   plugins: [react()],
+  define: { __MEDIAPIPE_VERSION__: JSON.stringify(mediapipeVersion) },
   server: {
     proxy: {
       '/api': 'https://laxmipowertech-backend-1.onrender.com',

@@ -10,9 +10,9 @@ const shortDay = (d) => `${d.toLocaleDateString("en-GB", { weekday: "short" })},
 
 export default function PunchHero({ now, punch, todayIn, elapsedMin, sites, onPunch, noSiteHint }) {
   const onShift = punch.punchedIn && !punch.punchedOut;
-  // Start downloading the face-check model now, so it is ready by the time the selfie screen opens.
+  // Download the face-check files into the browser cache now (no detector is created), so the selfie screen starts fast.
   useEffect(() => {
-    import("@/services/faceLandmarker").then((m) => m.getFaceLandmarker()).catch(() => {});
+    import("@/services/faceLandmarker").then((m) => m.warmFaceModelAssets()).catch(() => {});
   }, []);
   const noSite = !sites.length && noSiteHint;
   return (
