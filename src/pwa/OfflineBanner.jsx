@@ -40,7 +40,7 @@ export default function OfflineBanner() {
       return (
         <div className="fixed top-0 left-0 right-0 z-[9999] flex justify-center pointer-events-none">
           <div className="max-w-md w-full mx-auto px-4 pt-2 pointer-events-auto">
-            <div className="bg-green-500 text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium animate-pulse">
+            <div className="bg-tone-ok-fg text-primary-foreground px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium animate-pulse">
               <CircleCheck size={14} />
               <span>{lastSyncResult.synced} action(s) synced successfully!</span>
             </div>
@@ -52,7 +52,7 @@ export default function OfflineBanner() {
       return (
         <div className="fixed top-0 left-0 right-0 z-[9999] flex justify-center pointer-events-none">
           <div className="max-w-md w-full mx-auto px-4 pt-2 pointer-events-auto">
-            <div className="bg-orange-500 text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium">
+            <div className="bg-primary text-primary-foreground px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium">
               <TriangleAlert size={14} />
               <span>{lastSyncResult.failed} action(s) failed to sync. Will retry.</span>
             </div>
@@ -72,25 +72,25 @@ export default function OfflineBanner() {
       <div className="max-w-md w-full mx-auto px-4 pt-2 pointer-events-auto space-y-2">
         {/* Offline Banner */}
         {showOffline && (
-          <div className="bg-red-500 text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium">
+          <div className="bg-tone-bad-solid text-primary-foreground px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium">
             <Wifi size={14} className="opacity-70" />
             <span className="flex-1">You are offline</span>
-            <span className="text-white/70 text-xs">Actions saved locally</span>
+            <span className="text-primary-foreground/70 text-xs">Actions saved locally</span>
           </div>
         )}
 
         {/* Pending Actions Indicator */}
         {showPending && (
-          <div className="bg-yellow-500 text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium">
+          <div className="bg-tone-warn-fg text-primary-foreground px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium">
             <CloudUpload size={14} />
             <span className="flex-1">{pendingCount} pending action(s)</span>
-            <span className="text-white/80 text-xs">{isOnline ? 'Syncing soon...' : 'Will sync when online'}</span>
+            <span className="text-primary-foreground/80 text-xs">{isOnline ? 'Syncing soon...' : 'Will sync when online'}</span>
           </div>
         )}
 
         {/* Syncing Animation */}
         {syncing && (
-          <div className="bg-blue-500 text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium">
+          <div className="bg-primary text-primary-foreground px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium">
             <RefreshCw size={14} className="animate-spin" />
             <span>Syncing data to server...</span>
           </div>
@@ -101,17 +101,17 @@ export default function OfflineBanner() {
         {showFailedAttention && (
           <Link
             to="/connect-server"
-            className="bg-red-600 text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium hover:bg-red-700 transition-colors"
+            className="bg-tone-bad-solid text-primary-foreground px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium hover:bg-primary-strong transition-colors"
           >
             <TriangleAlert size={14} />
             <span className="flex-1">{failedCount} action(s) need attention</span>
-            <span className="text-white/80 text-xs underline">Review</span>
+            <span className="text-primary-foreground/80 text-xs underline">Review</span>
           </Link>
         )}
 
         {/* Transient warning for failures that will be retried automatically */}
         {showRetryWarning && (
-          <div className="bg-orange-500 text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium">
+          <div className="bg-primary text-primary-foreground px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium">
             <TriangleAlert size={14} />
             <span>{lastSyncResult.failed} action(s) failed to sync. Will retry.</span>
           </div>

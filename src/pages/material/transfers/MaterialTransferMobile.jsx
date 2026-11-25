@@ -215,7 +215,7 @@ export default function MaterialTransferMobile() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search ST ID or site"
-                  className="w-full h-auto px-4 py-2 rounded-full border shadow-none text-sm md:text-sm placeholder-gray-400 focus:ring-2 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-ring"
+                  className="w-full h-auto px-4 py-2 rounded-full border shadow-none text-sm md:text-sm placeholder:text-ink-4 focus:ring-2 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-ring"
                 />
                 <div className="absolute right-3 top-2.5 text-ink-4">
                   {/* search icon */}
@@ -575,7 +575,7 @@ export default function MaterialTransferMobile() {
                   >
                     <Checkbox
                       id="cat-all"
-                      className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-primary-foreground"
+                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground"
                     />
                     <span>All</span>
                   </label>
@@ -585,7 +585,7 @@ export default function MaterialTransferMobile() {
                   >
                     <Checkbox
                       id="cat-electrical"
-                      className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-primary-foreground"
+                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground"
                     />
                     <span>Electrical</span>
                   </label>
@@ -601,7 +601,7 @@ export default function MaterialTransferMobile() {
                   >
                     <Checkbox
                       id="status-pending"
-                      className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-primary-foreground"
+                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground"
                     />
                     <span>Pending</span>
                   </label>
@@ -611,7 +611,7 @@ export default function MaterialTransferMobile() {
                   >
                     <Checkbox
                       id="status-transferred"
-                      className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-primary-foreground"
+                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground"
                     />
                     <span>Transferred</span>
                   </label>
