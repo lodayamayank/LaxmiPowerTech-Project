@@ -1,3 +1,6 @@
+// src/pages/supervisor/SupervisorAddLabour.jsx  (route: /branch/:branchId/labours/add, mobile)
+// Add a labour to the project with the mobile shell. POST /users/register, the auto username and the overtime
+// calculation are unchanged.
 import React, { useState } from 'react';
 import { ROUTES } from '@/lib/routes';
 import { getSelectedBranchName } from '@/lib/branchContext';
@@ -6,12 +9,10 @@ import { queryClient } from '@/lib/queryClient';
 import { USERS_KEY } from '@/hooks/useUsers';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from '@/api/client';
-import { FaArrowLeft } from 'react-icons/fa';
 import { toast } from 'sonner';
-import Logo from "@/components/common/Logo";
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-
+import MobilePage from '@/layouts/mobile/MobilePage';
+import LabourFormFields from './components/LabourFormFields';
 
 const SupervisorAddLabour = () => {
   const navigate = useNavigate();
@@ -71,7 +72,7 @@ const SupervisorAddLabour = () => {
     
     // Validation
     if (!formData.name || !formData.labourType) {
-      toast.error('Please fill in name and labour type');
+      toast.error('1 field needs fixing', { description: 'Add the name and the labour type.' });
       return;
     }
 
@@ -103,238 +104,32 @@ const SupervisorAddLabour = () => {
       });
       queryClient.invalidateQueries({ queryKey: USERS_KEY });
 
-      toast.success('Labour added successfully!');
+      toast.success('Labour added', { description: `${formData.name} \u00b7 ${projectName || 'this project'}` });
       navigate(ROUTES.branch.labours(branchId));
     } catch (err) {
       console.error('Failed to add labour:', err);
-      toast.error(err.response?.data?.message || 'Failed to add labour');
+      toast.error('Couldn\u2019t add the labour', { description: err.response?.data?.message || 'Check your connection and try again.' });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
-        {/* Header with Gradient - Matching Material Form */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg sticky top-0 z-10">
-          <div className="flex items-center justify-between mb-4">
-            <Logo width={179} height={64} priority plate={false} className="h-16 w-50 bg-logo-plate box-shadow rounded-2xl" />
-            <Button
-              variant="ghost"
-              onClick={() => navigate(ROUTES.branch.labours(branchId))}
-              className="mobile-back-button px-4 py-2"
-            >
-              <FaArrowLeft size={14} />
-              <span className="text-sm font-medium">Back</span>
-            </Button>
-          </div>
-
-          <div className="mt-6">
-            <h2 className="text-white text-2xl font-bold">Add New Labour</h2>
-            <p className="text-white/80 text-sm mt-1">Project: {projectName || 'Loading...'}</p>
-          </div>
-        </div>
-
-        {/* Form - Matching Material Form Style */}
-        <form onSubmit={handleSubmit} className="px-6 py-6 space-y-6">
-          {/* Personal Details Section - Matching Material Form */}
-          <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-            <h3 className="text-orange-600 font-bold text-sm mb-4">Personal Details</h3>
-            
-            <div className="space-y-4">
-              {/* Name */}
-              <div>
-                <label className="text-gray-700 text-sm font-medium mb-2 block">
-                  Name <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Enter full name"
-                  className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
-                  required
-                  disabled={loading}
-                />
-              </div>
-
-              {/* Labour Type */}
-              <div>
-                <label className="text-gray-700 text-sm font-medium mb-2 block">
-                  Labour Type <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="labourType"
-                  value={formData.labourType}
-                  onChange={handleChange}
-                  className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 appearance-none"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                    backgroundPosition: 'right 0.5rem center',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundSize: '1.25em 1.25em'
-                  }}
-                  required
-                  disabled={loading}
-                >
-                  <option value="">Select labour type</option>
-                  <option value="Mason">Mason</option>
-                  <option value="M/F helper">M/F helper</option>
-                  <option value="Carpenter">Carpenter</option>
-                  <option value="Electrician">Electrician</option>
-                  <option value="Plumber">Plumber</option>
-                  <option value="Painter">Painter</option>
-                  <option value="Helper">Helper</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              {/* Mobile Number */}
-              <div>
-                <label className="text-gray-700 text-sm font-medium mb-2 block">
-                  Mobile Number (Optional)
-                </label>
-                <Input
-                  type="tel"
-                  name="mobileNumber"
-                  value={formData.mobileNumber}
-                  onChange={handleChange}
-                  placeholder="Enter mobile number"
-                  className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
-                  disabled={loading}
-                />
-              </div>
-
-              {/* Emergency Contact */}
-              <div>
-                <label className="text-gray-700 text-sm font-medium mb-2 block">
-                  Emergency Contact (Optional)
-                </label>
-                <Input
-                  type="tel"
-                  name="emergencyContact"
-                  value={formData.emergencyContact}
-                  onChange={handleChange}
-                  placeholder="Enter emergency contact"
-                  className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
-                  disabled={loading}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Wage Details Section - Matching Material Form */}
-          <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-            <h3 className="text-orange-600 font-bold text-sm mb-4">Wage Details (Optional)</h3>
-
-            <div className="space-y-4">
-              {/* Wage Type and Working Hours in Grid */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-gray-700 text-sm font-medium mb-2 block">
-                    Wage Type
-                  </label>
-                  <select
-                    name="wageType"
-                    value={formData.wageType}
-                    onChange={handleChange}
-                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 appearance-none"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                      backgroundPosition: 'right 0.5rem center',
-                      backgroundRepeat: 'no-repeat',
-                      backgroundSize: '1.25em 1.25em'
-                    }}
-                    disabled={loading}
-                  >
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-gray-700 text-sm font-medium mb-2 block">
-                    Working Hours
-                  </label>
-                  <select
-                    name="workingHours"
-                    value={formData.workingHours}
-                    onChange={handleChange}
-                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 appearance-none"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                      backgroundPosition: 'right 0.5rem center',
-                      backgroundRepeat: 'no-repeat',
-                      backgroundSize: '1.25em 1.25em'
-                    }}
-                    disabled={loading}
-                  >
-                    <option value="4">4 Hrs</option>
-                    <option value="6">6 Hrs</option>
-                    <option value="8">8 Hrs</option>
-                    <option value="10">10 Hrs</option>
-                    <option value="12">12 Hrs</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Wage Amounts in Grid */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-gray-700 text-sm font-medium mb-2 block">
-                    Daily Wage (₹)
-                  </label>
-                  <Input
-                    type="number"
-                    name="dailyWage"
-                    value={formData.dailyWage}
-                    onChange={handleChange}
-                    placeholder="Enter amount"
-                    className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <label className="text-gray-700 text-sm font-medium mb-2 block">
-                    Overtime Rate (₹/hr)
-                  </label>
-                  <Input
-                    type="number"
-                    name="overtimeWage"
-                    value={formData.overtimeWage}
-                    onChange={handleChange}
-                    placeholder="Enter rate"
-                    className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Submit Button - Matching Material Form */}
-          <div className="sticky bottom-0 bg-white pt-4 pb-6 -mx-6 px-6 border-t border-gray-100">
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 h-auto bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-sm hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Creating Labour...
-                </span>
-              ) : (
-                'Create Labour'
-              )}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <form onSubmit={handleSubmit}>
+      <MobilePage
+        title="Add labour"
+        back
+        onBack={() => navigate(ROUTES.branch.labours(branchId))}
+        footer={
+          <Button type="submit" size="xl" className="w-full" disabled={loading}>
+            {loading ? 'Adding…' : 'Add labour'}
+          </Button>
+        }
+      >
+        <p className="-mb-1 text-small text-ink-3">Project: {projectName || '...'}</p>
+        <LabourFormFields formData={formData} onChange={handleChange} disabled={loading} />
+      </MobilePage>
+    </form>
   );
 };
 

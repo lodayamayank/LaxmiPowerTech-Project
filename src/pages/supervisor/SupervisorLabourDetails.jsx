@@ -1,3 +1,6 @@
+// src/pages/supervisor/SupervisorLabourDetails.jsx  (route: /branch/:branchId/labours/:labourId, mobile)
+// Edit one labour with the mobile shell. GET/PUT/DELETE /users/:id and the validation are unchanged; the delete
+// confirmation is a ConfirmDialog instead of window.confirm.
 import React, { useState, useEffect } from "react";
 import { ROUTES } from '@/lib/routes';
 import { getSelectedBranchName } from '@/lib/branchContext';
@@ -6,17 +9,20 @@ import { queryClient } from '@/lib/queryClient';
 import { USERS_KEY } from '@/hooks/useUsers';
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "@/api/client";
-import { FaArrowLeft, FaSave, FaTrash } from "react-icons/fa";
+import { Trash2 } from "lucide-react";
 import { toast } from 'sonner';
-import Logo from "@/components/common/Logo";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { PageLoader } from "@/components/common/PageLoader";
+import MobilePage from "@/layouts/mobile/MobilePage";
+import LabourFormFields from "./components/LabourFormFields";
 
 const SupervisorLabourDetails = () => {
   const navigate = useNavigate();
   const { branchId, labourId } = useParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [projectName, setProjectName] = useState("");
   const token = getToken();
 
@@ -61,7 +67,7 @@ const SupervisorLabourDetails = () => {
       });
     } catch (err) {
       console.error("Failed to fetch labour details:", err);
-      toast.error("Failed to load labour details");
+      toast.error("Couldn\u2019t load the labour", { description: "Check your connection and try again." });
       navigate(ROUTES.branch.labours(branchId));
     } finally {
       setLoading(false);
@@ -80,7 +86,7 @@ const SupervisorLabourDetails = () => {
     e.preventDefault();
 
     if (!formData.name || !formData.labourType) {
-      toast.error("Please fill in name and labour type");
+      toast.error("1 field needs fixing", { description: "Add the name and the labour type." });
       return;
     }
 
@@ -108,347 +114,65 @@ const SupervisorLabourDetails = () => {
       });
       queryClient.invalidateQueries({ queryKey: USERS_KEY });
 
-      toast.success("Labour updated successfully!");
+      toast.success("Labour updated");
       navigate(ROUTES.branch.labours(branchId));
     } catch (err) {
       console.error("Failed to update labour:", err);
-      toast.error(err.response?.data?.message || "Failed to update labour");
+      toast.error("Couldn\u2019t update the labour", { description: err.response?.data?.message || "Check your connection and try again." });
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (
-      !window.confirm(
-        `Are you sure you want to delete ${formData.name}? This action cannot be undone.`
-      )
-    ) {
-      return;
-    }
-
+    setConfirmDelete(false);
     try {
       await axios.delete(`/users/${labourId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       queryClient.invalidateQueries({ queryKey: USERS_KEY });
-      toast.success("Labour deleted successfully");
+      toast.success("Labour deleted");
       navigate(ROUTES.branch.labours(branchId));
     } catch (err) {
       console.error("Failed to delete labour:", err);
-      toast.error("Failed to delete labour");
+      toast.error("Couldn\u2019t delete the labour", { description: "Check your connection and try again.", action: { label: "Retry", onClick: () => handleDelete() } });
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-500 text-sm">Loading labour details...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <PageLoader label="Loading labour" />;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg sticky top-0 z-10">
-          <div className="flex items-center justify-between mb-4">
-            <Logo width={179} height={64} priority plate={false} className="h-16 w-50 bg-logo-plate box-shadow rounded-2xl" />
-            <Button
-              variant="ghost"
-              onClick={() => navigate(ROUTES.branch.labours(branchId))}
-              className="mobile-back-button px-4 py-2"
-            >
-              <FaArrowLeft size={14} />
-              <span className="text-sm font-medium">Back</span>
+    <>
+      <form onSubmit={handleSubmit}>
+        <MobilePage
+          title={formData.name || "Labour"}
+          back
+          onBack={() => navigate(ROUTES.branch.labours(branchId))}
+          right={
+            <Button type="button" variant="ghost" size="icon" aria-label="Delete labour" className="text-tone-bad-fg" onClick={() => setConfirmDelete(true)} disabled={saving}>
+              <Trash2 />
             </Button>
-          </div>
-
-          <div className="mt-6">
-            <h2 className="text-white text-2xl font-bold">Labour Details</h2>
-            <p className="text-white/80 text-sm mt-1">
-              Project: {projectName || "Loading..."}
-            </p>
-          </div>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="px-6 py-6 space-y-6">
-          {/* Personal Details Section */}
-          <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-            <h3 className="text-orange-600 font-bold text-sm mb-4">
-              Personal Details
-            </h3>
-
-            <div className="space-y-4">
-              {/* Name */}
-              <div>
-                <label
-                  htmlFor="labour-name"
-                  className="text-gray-700 text-sm font-medium mb-2 block"
-                >
-                  Name <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  id="labour-name"
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Enter full name"
-                  className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
-                  required
-                  disabled={saving}
-                />
-              </div>
-
-              {/* Labour Type */}
-              <div>
-                <label
-                  htmlFor="labour-type"
-                  className="text-gray-700 text-sm font-medium mb-2 block"
-                >
-                  Labour Type <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="labour-type"
-                  name="labourType"
-                  value={formData.labourType}
-                  onChange={handleChange}
-                  className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 appearance-none"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                    backgroundPosition: "right 0.5rem center",
-                    backgroundRepeat: "no-repeat",
-                    backgroundSize: "1.25em 1.25em",
-                  }}
-                  required
-                  disabled={saving}
-                >
-                  <option value="">Select labour type</option>
-                  <option value="Mason">Mason</option>
-                  <option value="M/F helper">M/F helper</option>
-                  <option value="Carpenter">Carpenter</option>
-                  <option value="Electrician">Electrician</option>
-                  <option value="Plumber">Plumber</option>
-                  <option value="Painter">Painter</option>
-                  <option value="Helper">Helper</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              {/* Username */}
-              <div>
-                <label
-                  htmlFor="labour-username"
-                  className="text-gray-700 text-sm font-medium mb-2 block"
-                >
-                  Username
-                </label>
-                <Input
-                  id="labour-username"
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  placeholder="Username"
-                  className="h-auto w-full bg-gray-100 border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-600 cursor-not-allowed shadow-none disabled:opacity-100"
-                  disabled
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Username cannot be changed
-                </p>
-              </div>
-
-              {/* Mobile Number */}
-              <div>
-                <label
-                  htmlFor="labour-mobile"
-                  className="text-gray-700 text-sm font-medium mb-2 block"
-                >
-                  Mobile Number (Optional)
-                </label>
-                <Input
-                  id="labour-mobile"
-                  type="tel"
-                  name="mobileNumber"
-                  value={formData.mobileNumber}
-                  onChange={handleChange}
-                  placeholder="Enter mobile number"
-                  className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
-                  disabled={saving}
-                />
-              </div>
-
-              {/* Emergency Contact */}
-              <div>
-                <label
-                  htmlFor="labour-emergency"
-                  className="text-gray-700 text-sm font-medium mb-2 block"
-                >
-                  Emergency Contact (Optional)
-                </label>
-                <Input
-                  id="labour-emergency"
-                  type="tel"
-                  name="emergencyContact"
-                  value={formData.emergencyContact}
-                  onChange={handleChange}
-                  placeholder="Enter emergency contact"
-                  className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
-                  disabled={saving}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Wage Details Section */}
-          <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-            <h3 className="text-orange-600 font-bold text-sm mb-4">
-              Wage Details (Optional)
-            </h3>
-
-            <div className="space-y-4">
-              {/* Wage Type and Working Hours */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label
-                    htmlFor="labour-wage-type"
-                    className="text-gray-700 text-sm font-medium mb-2 block"
-                  >
-                    Wage Type
-                  </label>
-                  <select
-                    id="labour-wage-type"
-                    name="wageType"
-                    value={formData.wageType}
-                    onChange={handleChange}
-                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 appearance-none"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                      backgroundPosition: "right 0.5rem center",
-                      backgroundRepeat: "no-repeat",
-                      backgroundSize: "1.25em 1.25em",
-                    }}
-                    disabled={saving}
-                  >
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="labour-working-hours"
-                    className="text-gray-700 text-sm font-medium mb-2 block"
-                  >
-                    Working Hours
-                  </label>
-                  <select
-                    id="labour-working-hours"
-                    name="workingHours"
-                    value={formData.workingHours}
-                    onChange={handleChange}
-                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 appearance-none"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                      backgroundPosition: "right 0.5rem center",
-                      backgroundRepeat: "no-repeat",
-                      backgroundSize: "1.25em 1.25em",
-                    }}
-                    disabled={saving}
-                  >
-                    <option value="4">4 Hrs</option>
-                    <option value="6">6 Hrs</option>
-                    <option value="8">8 Hrs</option>
-                    <option value="10">10 Hrs</option>
-                    <option value="12">12 Hrs</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Wage Amounts */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label
-                    htmlFor="labour-daily-wage"
-                    className="text-gray-700 text-sm font-medium mb-2 block"
-                  >
-                    Daily Wage (₹)
-                  </label>
-                  <Input
-                    id="labour-daily-wage"
-                    type="number"
-                    name="dailyWage"
-                    value={formData.dailyWage}
-                    onChange={handleChange}
-                    placeholder="Enter amount"
-                    className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
-                    disabled={saving}
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="labour-overtime-rate"
-                    className="text-gray-700 text-sm font-medium mb-2 block"
-                  >
-                    Overtime Rate (₹/hr)
-                  </label>
-                  <Input
-                    id="labour-overtime-rate"
-                    type="number"
-                    name="overtimeWage"
-                    value={formData.overtimeWage}
-                    onChange={handleChange}
-                    placeholder="Enter rate"
-                    className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 shadow-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus-visible:outline-none focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-100"
-                    disabled={saving}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            <Button
-              type="submit"
-              disabled={saving}
-              className="flex-1 py-3 h-auto bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-sm hover:from-orange-600 hover:to-orange-700 shadow-md"
-            >
-              {saving ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <FaSave size={14} />
-                  Save Changes
-                </>
-              )}
+          }
+          footer={
+            <Button type="submit" size="xl" className="w-full" disabled={saving}>
+              {saving ? "Saving…" : "Save changes"}
             </Button>
-
-            <Button
-              type="button"
-              onClick={handleDelete}
-              disabled={saving}
-              aria-label="Delete labour"
-              title="Delete labour"
-              className="px-6 py-3 h-auto bg-red-500 text-white rounded-xl font-semibold text-sm hover:bg-red-600 shadow-md"
-            >
-              <FaTrash size={14} />
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+          }
+        >
+          <p className="-mb-1 text-small text-ink-3">Project: {projectName || "..."}</p>
+          <LabourFormFields formData={formData} onChange={handleChange} disabled={saving} />
+        </MobilePage>
+      </form>
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title="Delete this labour?"
+        description={`Are you sure you want to delete ${formData.name}? This action cannot be undone.`}
+        confirmLabel="Delete"
+        tone="destructive"
+        onConfirm={handleDelete}
+      />
+    </>
   );
 };
-
 export default SupervisorLabourDetails;

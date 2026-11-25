@@ -45,8 +45,12 @@ export default function MobilePage({ title, home = false, back = false, onBack, 
       <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col bg-page md:border-x md:border-line">
         <MobileTopBar title={title} home={home} back={back} onBack={onBack} right={right} />
         <main className={cn("flex flex-1 flex-col gap-3.5 p-4", className)}>{children}</main>
-        {footer ? <div className="sticky bottom-0 z-10 border-t border-line bg-surface p-3">{footer}</div> : null}
-        {tabs ? <MobileTabBar variant={tabs} /> : null}
+        {footer || tabs ? (
+          <div className="sticky bottom-0 z-20">
+            {footer ? <div className="border-t border-line bg-surface p-3">{footer}</div> : null}
+            {tabs ? <MobileTabBar variant={tabs} /> : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );

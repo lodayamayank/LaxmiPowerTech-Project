@@ -22,7 +22,7 @@ const TABS = {
 
 export default function MobileTabBar({ variant = "worker" }) {
   return (
-    <nav aria-label="App" className="sticky bottom-0 z-20 flex border-t border-line-card bg-surface px-1 pb-[max(10px,env(safe-area-inset-bottom))] pt-1.5">
+    <nav aria-label="App" className="flex border-t border-line-card bg-surface px-1 pb-[max(10px,env(safe-area-inset-bottom))] pt-1.5">
       {TABS[variant].map(({ label, to, icon, end }) => (
         <NavLink
           key={label}
