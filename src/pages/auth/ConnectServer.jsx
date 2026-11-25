@@ -1,14 +1,22 @@
-// Connect to Server page – manual sync trigger + sync status overview
+// Connect to Server page: manual sync trigger + sync status overview (mobile: "Offline & sync")
+// Laid out like the Offline queue design. The queue, retry, discard, clear and sync calls are unchanged; the discard
+// confirmation is a ConfirmDialog instead of window.confirm.
 import React, { useState, useEffect } from 'react';
 import { ROLES } from '@/lib/constants';
 import { isFieldRole } from '@/lib/roles';
 import { getUser } from '@/lib/session';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaSync, FaWifi, FaCloudUploadAlt, FaCheckCircle, FaExclamationTriangle, FaTrash, FaDatabase } from 'react-icons/fa';
+import { toast } from 'sonner';
+import { CloudUpload, FileCheck, RefreshCw, Trash2, TriangleAlert, WifiOff } from 'lucide-react';
 import useNetworkStatus from '@/pwa/useNetworkStatus';
 import offlineStorage from '@/pwa/offlineStorage';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { IconTile } from '@/components/common/IconTile';
+import { Notice } from '@/components/common/Notice';
+import MobileCard from '@/layouts/mobile/MobileCard';
+import MobilePage from '@/layouts/mobile/MobilePage';
 
 export default function ConnectServer() {
   const navigate = useNavigate();
@@ -17,10 +25,10 @@ export default function ConnectServer() {
   } = useNetworkStatus();
   const [pendingActions, setPendingActions] = useState([]);
   const [failedActions, setFailedActions] = useState([]);
-  const [showDetails, setShowDetails] = useState(false);
   const [manualSyncResult, setManualSyncResult] = useState(null);
   const [clearing, setClearing] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
 
   const user = (getUser() || {});
 
@@ -46,6 +54,11 @@ export default function ConnectServer() {
     setManualSyncResult(null);
     const result = await triggerSync();
     setManualSyncResult(result);
+    if (result?.failed > 0) {
+      toast.error(`${result.failed} ${result.failed === 1 ? 'item' : 'items'} couldn\u2019t send`, { description: 'See Needs attention below' });
+    } else if (result?.synced > 0) {
+      toast.success(`${result.synced} ${result.synced === 1 ? 'item' : 'items'} sent`);
+    }
     loadActions();
   };
 
@@ -56,6 +69,7 @@ export default function ConnectServer() {
       await loadActions();
     } catch (err) {
       console.error('Failed to retry actions:', err);
+      toast.error('1 item couldn\u2019t send', { description: 'Tap Try again to fix', action: { label: 'Retry', onClick: () => handleRetryFailed() } });
     } finally {
       setRetrying(false);
     }
@@ -64,10 +78,7 @@ export default function ConnectServer() {
   // Deliberately destructive and behind a confirm: these entries hold the only
   // copy of work the user did offline, so discarding them loses that data.
   const handleDiscardFailed = async () => {
-    const confirmed = window.confirm(
-      `Permanently delete ${failedCount} action(s) that could not be synced? This data cannot be recovered.`
-    );
-    if (!confirmed) return;
+    setConfirmDiscard(false);
     try {
       await offlineStorage.clearFailedActions();
       refreshPendingCount();
@@ -97,236 +108,117 @@ export default function ConnectServer() {
     return '/dashboard';
   };
 
+  const timeOf = (t) => new Date(t).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <Button
-            variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto p-0 hover:bg-transparent"
-            onClick={() => navigate(getBackRoute())}
-          >
-            <FaArrowLeft size={16} className="size-4" />
-            <span className="text-sm font-medium">Back</span>
-          </Button>
+    <MobilePage title="Offline & sync" back onBack={() => navigate(getBackRoute())}>
+      {!isOnline ? (
+        <Notice tone="warn" icon={WifiOff}>
+          <b>You&apos;re offline.</b> Keep working, everything is saved on this phone and sends when you&apos;re back online.
+        </Notice>
+      ) : (
+        <Notice tone="ok" icon={CloudUpload}>
+          <b>Connected.</b> Anything waiting below sends automatically.
+        </Notice>
+      )}
 
-          <div className="text-center pt-8">
-            <h1 className="text-white text-2xl font-bold mb-2">Connect to Server</h1>
-            <p className="text-white/80 text-sm">Manage offline data & sync</p>
+      <MobileCard title={`Waiting to send \u00b7 ${pendingCount}`}>
+        {pendingActions.length === 0 ? (
+          <p className="text-small text-ink-3">{pendingCount > 0 ? `${pendingCount} action(s) waiting to sync.` : 'All synced. Nothing is waiting.'}</p>
+        ) : (
+          <ul>
+            {pendingActions.map((action) => (
+              <li key={action.id} className="flex items-center gap-3 border-b border-line py-3 last:border-b-0">
+                <IconTile icon={FileCheck} tone="neutral" />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[14.5px] font-semibold capitalize text-ink-1">{action.label || `${action.actionType} ${action.module}`}</div>
+                  <div className="text-small text-ink-3">
+                    Saved {timeOf(action.timestamp)}
+                    {action.retries > 0 ? ` \u00b7 attempt ${action.retries}: ${action.lastError}` : ''}
+                  </div>
+                </div>
+                <Badge variant="neutral">Queued</Badge>
+              </li>
+            ))}
+          </ul>
+        )}
+      </MobileCard>
+
+      {/* Actions that gave up: shown so offline work is never lost silently */}
+      {failedCount > 0 && (
+        <MobileCard title="Needs attention" className="border-tone-bad-border">
+          <p className="mb-2 text-small text-ink-3">{failedCount} action(s) could not be synced automatically</p>
+          <ul className="mb-3">
+            {failedActions.map((action) => (
+              <li key={action.id} className="border-b border-line py-2.5 last:border-b-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate text-[14px] font-semibold capitalize text-ink-1">{action.label || `${action.actionType} ${action.module}`}</span>
+                  <span className="shrink-0 text-caption text-ink-3">{new Date(action.timestamp).toLocaleString()}</span>
+                </div>
+                <p className="mt-0.5 flex items-start gap-1.5 text-small text-tone-bad-fg">
+                  <TriangleAlert className="mt-0.5 size-3.5 shrink-0" /> Gave up after {action.retries} attempt(s): {action.lastError}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <div className="flex gap-2">
+            <Button onClick={handleRetryFailed} disabled={!isOnline || retrying} className="flex-1">
+              <RefreshCw className={retrying ? 'animate-spin' : ''} /> {retrying ? 'Retrying…' : 'Try again'}
+            </Button>
+            <Button variant="outline" className="text-tone-bad-fg" onClick={() => setConfirmDiscard(true)}>
+              <Trash2 /> Discard
+            </Button>
           </div>
-        </div>
+        </MobileCard>
+      )}
 
-        <div className="px-6 py-6 -mt-4 space-y-5">
-          {/* Connection Status Card */}
-          <Card className={`rounded-2xl border shadow-sm gap-0 py-0 ${isOnline ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}>
-                  <FaWifi size={20} className="text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className={`font-bold text-sm ${isOnline ? 'text-green-800' : 'text-red-800'}`}>
-                    {isOnline ? 'Connected to Internet' : 'No Internet Connection'}
-                  </h3>
-                  <p className={`text-xs ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
-                    {isOnline ? 'Ready to sync data' : 'Working in offline mode'}
-                  </p>
-                </div>
-                <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Pending Actions Card */}
-          <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl border border-yellow-200 shadow-sm gap-0 py-0">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-yellow-500 flex items-center justify-center">
-                  <FaDatabase size={16} className="text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-sm text-gray-800">Offline Queue</h3>
-                  <p className="text-xs text-gray-600">{pendingCount} action(s) waiting to sync</p>
-                </div>
-                {pendingCount > 0 && (
-                  <Button
-                    variant="ghost"
-                    onClick={() => setShowDetails(!showDetails)}
-                    className="h-auto p-0 text-xs text-orange-600 font-semibold hover:underline hover:bg-transparent hover:text-orange-600"
-                  >
-                    {showDetails ? 'Hide' : 'Details'}
-                  </Button>
-                )}
-              </div>
-
-              {/* Pending Actions Details */}
-              {showDetails && pendingActions.length > 0 && (
-                <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
-                  {pendingActions.map((action) => (
-                    <div key={action.id} className="bg-white rounded-lg p-3 border border-gray-200 text-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-gray-800 capitalize">
-                          {action.label || `${action.actionType} ${action.module}`}
-                        </span>
-                        <span className="text-gray-400">
-                          {new Date(action.timestamp).toLocaleTimeString()}
-                        </span>
-                      </div>
-                      <p className="text-gray-500 mt-1 truncate">{action.endpoint}</p>
-                      {action.retries > 0 && (
-                        <p className="text-orange-500 mt-1">
-                          Attempt {action.retries} · {action.lastError}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Actions that gave up – shown so offline work is never lost silently */}
-          {failedCount > 0 && (
-            <Card className="bg-red-50 rounded-2xl border border-red-200 shadow-sm gap-0 py-0">
-              <CardContent className="p-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center">
-                    <FaExclamationTriangle size={16} className="text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-sm text-red-800">Needs Attention</h3>
-                    <p className="text-xs text-red-600">
-                      {failedCount} action(s) could not be synced automatically
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2 max-h-48 overflow-y-auto mb-3">
-                  {failedActions.map((action) => (
-                    <div key={action.id} className="bg-white rounded-lg p-3 border border-red-200 text-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-gray-800 capitalize">
-                          {action.label || `${action.actionType} ${action.module}`}
-                        </span>
-                        <span className="text-gray-400">
-                          {new Date(action.timestamp).toLocaleString()}
-                        </span>
-                      </div>
-                      <p className="text-red-500 mt-1">
-                        Gave up after {action.retries} attempt(s): {action.lastError}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    onClick={handleRetryFailed}
-                    disabled={!isOnline || retrying}
-                    className="flex-1 h-auto bg-red-500 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-red-600 transition-all disabled:bg-gray-400 disabled:opacity-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    <FaSync size={12} className={`size-3 ${retrying ? 'animate-spin' : ''}`} />
-                    <span>{retrying ? 'Retrying...' : 'Try Again'}</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleDiscardFailed}
-                    className="h-auto px-4 bg-white border-2 border-red-200 text-red-600 py-2.5 rounded-xl font-semibold text-sm hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center gap-2"
-                  >
-                    <FaTrash size={12} className="size-3" />
-                    <span>Discard</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Sync Button */}
-          <Button
-            onClick={handleManualSync}
-            disabled={!isOnline || syncing || pendingCount === 0}
-            className="w-full h-auto bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition-all duration-300 disabled:from-gray-400 disabled:to-gray-400 disabled:opacity-100 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-          >
-            {syncing ? (
-              <>
-                <FaSync size={18} className="size-[18px] animate-spin" />
-                <span>Syncing...</span>
-              </>
-            ) : (
-              <>
-                <FaCloudUploadAlt size={18} className="size-[18px]" />
-                <span>
-                  {!isOnline ? 'No Internet – Cannot Sync' : pendingCount === 0 ? 'Nothing to Sync' : `Sync ${pendingCount} Action(s) Now`}
-                </span>
-              </>
-            )}
-          </Button>
-
-          {/* Sync Result */}
-          {manualSyncResult && (
-            <Card className={`rounded-2xl border shadow-sm gap-0 py-0 ${manualSyncResult.failed > 0 ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'}`}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  {manualSyncResult.failed > 0 ? (
-                    <FaExclamationTriangle className="text-orange-500" size={16} />
-                  ) : (
-                    <FaCheckCircle className="text-green-500" size={16} />
-                  )}
-                  <h4 className="font-bold text-sm text-gray-800">Sync Complete</h4>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="bg-white rounded-lg p-2">
-                    <p className="text-lg font-bold text-gray-800">{manualSyncResult.total}</p>
-                    <p className="text-xs text-gray-500">Total</p>
-                  </div>
-                  <div className="bg-white rounded-lg p-2">
-                    <p className="text-lg font-bold text-green-600">{manualSyncResult.synced}</p>
-                    <p className="text-xs text-gray-500">Synced</p>
-                  </div>
-                  <div className="bg-white rounded-lg p-2">
-                    <p className="text-lg font-bold text-red-600">{manualSyncResult.failed}</p>
-                    <p className="text-xs text-gray-500">Failed</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Clear Storage */}
-          <Button
-            variant="outline"
-            onClick={handleClearSynced}
-            disabled={clearing}
-            className="w-full h-auto bg-white border-2 border-gray-200 text-gray-700 py-3 rounded-xl font-semibold text-sm hover:bg-gray-50 hover:text-gray-700 transition-all disabled:opacity-100 flex items-center justify-center gap-2"
-          >
-            <FaTrash size={14} className="size-3.5" />
-            <span>{clearing ? 'Clearing...' : 'Clear Synced Data'}</span>
-          </Button>
-
-          {/* Info */}
-          <Card className="bg-blue-50 rounded-2xl border border-blue-100 shadow-none gap-0 py-0">
-            <CardContent className="p-4">
-              <h4 className="text-sm font-semibold text-gray-800 mb-2">How it works</h4>
-              <ul className="text-xs text-gray-600 space-y-1.5">
-                <li>• Attendance, tasks, leaves, reimbursements and indent photos are saved on your device when offline</li>
-                <li>• They sync automatically when internet returns, in the order you made them</li>
-                <li>• Each is recorded at the time you made it, not the time it synced</li>
-                <li>• A failed sync retries automatically; anything that still fails moves to "Needs Attention"</li>
-                <li>• Synced data is cleaned up automatically</li>
-                <li>• Login requires an internet connection</li>
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 pb-6 pt-2">
-          <div className="text-center">
-            <p className="text-xs text-gray-400">Powered by Laxmi Power Tech</p>
+      {manualSyncResult && (
+        <MobileCard title="Sync complete">
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-control bg-surface-subtle p-2">
+              <p className="text-[18px] font-semibold tabular-nums text-ink-1">{manualSyncResult.total}</p>
+              <p className="text-caption text-ink-3">Total</p>
+            </div>
+            <div className="rounded-control bg-surface-subtle p-2">
+              <p className="text-[18px] font-semibold tabular-nums text-tone-ok-fg">{manualSyncResult.synced}</p>
+              <p className="text-caption text-ink-3">Synced</p>
+            </div>
+            <div className="rounded-control bg-surface-subtle p-2">
+              <p className="text-[18px] font-semibold tabular-nums text-tone-bad-fg">{manualSyncResult.failed}</p>
+              <p className="text-caption text-ink-3">Failed</p>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </MobileCard>
+      )}
+
+      <MobileCard title="How it works">
+        <ul className="flex list-disc flex-col gap-1.5 pl-[18px] text-[14px] text-ink-2">
+          <li>Attendance, tasks, leave, claims and indent photos save on the phone.</li>
+          <li>They send automatically, in order, when internet returns.</li>
+          <li>Each keeps the time you made it.</li>
+          <li>A failed sync retries automatically; anything that still fails moves to &quot;Needs attention&quot;.</li>
+          <li>Signing in still needs internet.</li>
+        </ul>
+      </MobileCard>
+
+      <Button size="xl" variant="outline" className="w-full text-ink-2" onClick={handleManualSync} disabled={!isOnline || syncing || pendingCount === 0}>
+        <RefreshCw className={syncing ? 'animate-spin' : ''} />
+        {syncing ? 'Sending…' : !isOnline ? 'No internet, can\u2019t send' : pendingCount === 0 ? 'Nothing to send' : 'Try sending now'}
+      </Button>
+
+      <Button variant="ghost" className="text-ink-3" onClick={handleClearSynced} disabled={clearing}>
+        <Trash2 /> {clearing ? 'Clearing…' : 'Clear synced data'}
+      </Button>
+
+      <ConfirmDialog
+        open={confirmDiscard}
+        onOpenChange={setConfirmDiscard}
+        title="Discard unsent items?"
+        description={`Permanently delete ${failedCount} action(s) that could not be synced? This data cannot be recovered.`}
+        confirmLabel="Discard"
+        tone="destructive"
+        onConfirm={handleDiscardFailed}
+      />
+    </MobilePage>
   );
 }

@@ -1,65 +1,34 @@
-// src/pages/Leaves.jsx
+// src/pages/leaves/Leaves.jsx  (mobile: the "Requests" tab)
+// Laid out like the Leave design: a request card (type chips, dates, reason, proof for sick leave) and "My requests".
+// The requests (GET /leaves/my, POST /leaves through the offline queue) are unchanged.
 import { useEffect, useRef, useState } from "react";
-import { ROUTES } from '@/lib/routes';
 import axios from "@/api/client";
 import { submitOffline } from "@/pwa/offlineSubmit";
 import Webcam from "react-webcam";
 import dayjs from "dayjs";
-import { useNavigate } from "react-router-dom";
 import { toast } from 'sonner';
-import { Textarea } from "@/components/ui/textarea";
-import {
-  FaArrowLeft,
-  FaCalendarAlt,
-  FaClipboardList,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaClock,
-  FaEdit,
-  FaPaperPlane,
-} from 'react-icons/fa';
-import MobileShell from "@/layouts/mobile/MobileShell";
-import MobileHeader from "@/layouts/mobile/MobileHeader";
-import MobileBackButton from "@/layouts/mobile/MobileBackButton";
+import { Camera, CalendarOff, Send, Upload } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from "@/components/ui/textarea";
+import { ChoiceChips } from "@/components/common/ChoiceChips";
+import { EmptyState } from "@/components/common/EmptyState";
+import { FormField } from "@/components/common/FormField";
+import { PageLoader } from "@/components/common/PageLoader";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import MobileCard from "@/layouts/mobile/MobileCard";
+import MobilePage from "@/layouts/mobile/MobilePage";
+import { getLeaveTypeTone } from "@/lib/status";
 
-
-
-const StatusBadge = ({ status }) => {
-  const config = {
-    approved: {
-      bg: "bg-green-100",
-      text: "text-green-700",
-      icon: <FaCheckCircle className="inline mr-1" size={12} />,
-      border: "border-green-200"
-    },
-    rejected: {
-      bg: "bg-red-100",
-      text: "text-red-700",
-      icon: <FaTimesCircle className="inline mr-1" size={12} />,
-      border: "border-red-200"
-    },
-    pending: {
-      bg: "bg-yellow-100",
-      text: "text-yellow-700",
-      icon: <FaClock className="inline mr-1" size={12} />,
-      border: "border-yellow-200"
-    }
-  };
-  
-  const { bg, text, icon, border } = config[status] || config.pending;
-  
-  return (
-    <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${bg} ${text} ${border} border inline-flex items-center`}>
-      {icon}
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-    </span>
-  );
-};
+const TYPES = [
+  { value: "paid", label: "Paid" },
+  { value: "sick", label: "Sick" },
+  { value: "casual", label: "Casual" },
+  { value: "unpaid", label: "Unpaid" },
+];
 
 export default function Leaves() {
-    const navigate = useNavigate();
   const webcamRef = useRef(null);
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -76,7 +45,7 @@ export default function Leaves() {
   const setProofFile = (file) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (file && (!allowedTypes.includes(file.type) || file.size > 10 * 1024 * 1024)) {
-      toast.error("Please select an image file smaller than 10 MB");
+      toast.error("Photo not accepted", { description: "Choose an image smaller than 10 MB." });
       setSickProof(null);
       return;
     }
@@ -91,7 +60,7 @@ export default function Leaves() {
   const captureProof = () => {
     const imageData = webcamRef.current?.getScreenshot();
     if (!imageData) {
-      toast.error("The camera is not ready yet. Please try again.");
+      toast.error("Camera isn\u2019t ready", { description: "Wait a moment and try again." });
       return;
     }
 
@@ -101,7 +70,7 @@ export default function Leaves() {
         setProofFile(new File([blob], `sick-proof-${Date.now()}.jpg`, { type: "image/jpeg" }));
         setCameraOpen(false);
       })
-      .catch(() => toast.error("Could not capture the image. Please try again."));
+      .catch(() => toast.error("Couldn\u2019t capture the photo", { description: "Hold still and try again." }));
   };
 
   const loadLeaves = async () => {
@@ -111,7 +80,7 @@ export default function Leaves() {
       setLeaves(res.data || []);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to load leaves");
+      toast.error("Couldn\u2019t load your requests", { description: "Check your connection and try again.", action: { label: "Retry", onClick: () => loadLeaves() } });
     } finally {
       setLoading(false);
     }
@@ -120,7 +89,7 @@ export default function Leaves() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.type === "sick" && !sickProof) {
-      toast.error("Please upload or capture a medical proof image for sick leave");
+      toast.error("Add a medical proof", { description: "Sick leave needs a photo of the certificate." });
       return;
     }
 
@@ -137,18 +106,18 @@ export default function Leaves() {
       });
 
       if (result.offline) {
-        toast.info("📴 Offline – leave request saved and will submit when you reconnect.");
+        toast.info("Saved on your phone", { description: "Will send when you\u2019re back online" });
       } else {
-        toast.success("Leave request submitted successfully!");
+        toast.success("Leave request sent", { description: "Your supervisor will review it" });
       }
 
       setForm({ type: "paid", startDate: "", endDate: "", reason: "" });
-    setSickProof(null);
+      setSickProof(null);
       // Nothing new to list until the queued request actually reaches the server.
       if (!result.offline) loadLeaves();
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Failed to submit leave request");
+      toast.error("Couldn\u2019t send the request", { description: err.response?.data?.message || "Check your connection and try again." });
     }
   };
 
@@ -156,326 +125,125 @@ export default function Leaves() {
     loadLeaves();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading leaves...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <PageLoader label="Loading your requests" />;
 
-   return (
-     <>
-       <MobileShell>
-         <MobileHeader>
-           <MobileBackButton onClick={() => navigate(ROUTES.dashboard)} />
+  return (
+    <MobilePage title="Leave" back tabs="worker">
+      <form onSubmit={handleSubmit}>
+        <MobileCard title="Request leave" className="flex flex-col gap-3.5">
+          <FormField label="Type">
+            <ChoiceChips
+              aria-label="Leave type"
+              options={TYPES}
+              value={form.type}
+              // Update leave type and clear sick proof when not using sick leave.
+              onChange={(type) => {
+                setForm((f) => ({ ...f, type }));
+                if (type !== "sick") setSickProof(null);
+              }}
+            />
+          </FormField>
 
-           <div className="text-center pt-8">
-             <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-lg border-4 border-white/30 mx-auto mb-3">
-               <FaCalendarAlt size={40} />
-             </div>
-             <h1 className="text-white text-2xl font-bold mb-1">
-               Leave Management
-             </h1>
-             <p className="text-white/80 text-sm">
-               Request and track your leaves
-             </p>
-           </div>
-         </MobileHeader>
+          {form.type === "sick" && (
+            <FormField label="Medical proof" required htmlFor="leave-proof" hint={sickProof ? sickProof.name : "Upload or capture an image to continue"}>
+              <div className="grid grid-cols-2 gap-2">
+                <Button type="button" variant="outline" onClick={() => document.getElementById("leave-proof")?.click()}>
+                  <Upload /> Upload image
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setCameraError("");
+                    setCameraOpen(true);
+                  }}
+                >
+                  <Camera /> Capture image
+                </Button>
+                <Input
+                  id="leave-proof"
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp"
+                  onChange={handleProofChange}
+                  className="hidden"
+                />
+              </div>
+              {cameraOpen && (
+                <div className="mt-3 rounded-card border border-line-card bg-surface-subtle p-3">
+                  {cameraError ? (
+                    <p className="text-small text-tone-bad-fg">{cameraError}</p>
+                  ) : (
+                    <Webcam
+                      ref={webcamRef}
+                      audio={false}
+                      screenshotFormat="image/jpeg"
+                      screenshotQuality={0.8}
+                      onUserMediaError={() => setCameraError("Camera access was denied or is unavailable. Please allow camera access and try again.")}
+                      videoConstraints={{ facingMode: { ideal: "environment" } }}
+                      className="w-full rounded-control object-cover"
+                    />
+                  )}
+                  <div className="mt-2 flex gap-2">
+                    <Button type="button" onClick={captureProof} disabled={Boolean(cameraError)} className="flex-1">
+                      Take photo
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => setCameraOpen(false)} className="flex-1">
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </FormField>
+          )}
 
-         {/* Main Content */}
-         <div className="px-6 py-6 -mt-4">
-           {/* Request Leave Form */}
-           <div className="mb-6">
-             <h3 className="text-md font-semibold text-gray-800 mb-3 flex items-center gap-2">
-               <FaEdit className="text-orange-500" />
-               Request New Leave
-             </h3>
-             <form
-               onSubmit={handleSubmit}
-               className="bg-gradient-to-br from-orange-50 to-blue-50 rounded-2xl p-5 space-y-4 shadow-md border border-orange-100"
-             >
-               <div>
-                 <label
-                   htmlFor="leave-type"
-                   className="block text-sm font-semibold text-gray-700 mb-1.5"
-                 >
-                   <div className="flex items-center gap-2">
-                     <FaClipboardList className="text-gray-400" size={14} />
-                     <span>Leave Type</span>
-                   </div>
-                 </label>
-                 <select
-                   id="leave-type"
-                   value={form.type}
-                   // Update leave type and clear sick proof when not using sick leave.
-                   onChange={(e) => {
-                     const type = e.target.value;
-                     setForm((f) => ({ ...f, type }));
-                     if (type !== "sick") setSickProof(null);
-                   }}
-                   className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                   required
-                 >
-                   <option value="paid">Paid Leave</option>
-                   <option value="unpaid">Unpaid Leave</option>
-                   <option value="sick">Sick Leave</option>
-                   <option value="casual">Casual Leave</option>
-                 </select>
-               </div>
+          <div className="grid grid-cols-2 gap-2.5">
+            <FormField label="From" htmlFor="leave-start-date">
+              <Input id="leave-start-date" type="date" value={form.startDate} onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))} required />
+            </FormField>
+            <FormField label="To" htmlFor="leave-end-date">
+              <Input id="leave-end-date" type="date" value={form.endDate} onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))} required />
+            </FormField>
+          </div>
 
-               {form.type === "sick" && (
-                 <div>
-                   <label
-                     htmlFor="leave-proof"
-                     className="block text-sm font-semibold text-gray-700 mb-1.5"
-                   >
-                     <div className="flex items-center gap-2">
-                       <FaClipboardList className="text-gray-400" size={14} />
-                       <span>Medical Proof Image *</span>
-                     </div>
-                   </label>
-                   <div className="grid grid-cols-2 gap-2">
-                     <label className="cursor-pointer rounded-lg border border-orange-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-orange-600 hover:bg-orange-50">
-                       Upload Image
-                       <input
-                         id="leave-proof"
-                         type="file"
-                         accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp"
-                         onChange={handleProofChange}
-                         className="hidden"
-                       />
-                     </label>
-                     <button
-                       type="button"
-                       onClick={() => {
-                         setCameraError("");
-                         setCameraOpen(true);
-                       }}
-                       className="rounded-lg border border-orange-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-orange-600 hover:bg-orange-50"
-                     >
-                       Capture Image
-                     </button>
-                   </div>
-                   {cameraOpen && (
-                     <div className="mt-3 rounded-xl border border-orange-200 bg-white p-3">
-                       {cameraError ? (
-                         <p className="text-sm text-red-600">{cameraError}</p>
-                       ) : (
-                         <Webcam
-                           ref={webcamRef}
-                           audio={false}
-                           screenshotFormat="image/jpeg"
-                           screenshotQuality={0.8}
-                           onUserMediaError={() =>
-                             setCameraError(
-                               "Camera access was denied or is unavailable. Please allow camera access and try again.",
-                             )
-                           }
-                           videoConstraints={{
-                             facingMode: { ideal: "environment" },
-                           }}
-                           className="w-full rounded-lg object-cover"
-                         />
-                       )}
-                       <div className="mt-2 flex gap-2">
-                         <Button
-                           type="button"
-                           onClick={captureProof}
-                           disabled={Boolean(cameraError)}
-                           className="flex-1 bg-orange-500 text-white"
-                         >
-                           Take Photo
-                         </Button>
-                         <Button
-                           type="button"
-                           variant="outline"
-                           onClick={() => setCameraOpen(false)}
-                           className="flex-1"
-                         >
-                           Cancel
-                         </Button>
-                       </div>
-                     </div>
-                   )}
-                   <p className="mt-1.5 text-xs text-gray-500">
-                     {sickProof
-                       ? sickProof.name
-                       : "Upload or capture an image to continue"}
-                   </p>
-                 </div>
-               )}
+          <FormField label="Reason (optional)" htmlFor="leave-reason">
+            <Textarea id="leave-reason" value={form.reason} onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))} rows={3} placeholder="Add a short note for your manager" />
+          </FormField>
 
-               <div>
-                 <label
-                   htmlFor="leave-start-date"
-                   className="block text-sm font-semibold text-gray-700 mb-1.5"
-                 >
-                   <div className="flex items-center gap-2">
-                     <FaCalendarAlt className="text-gray-400" size={14} />
-                     <span>Start Date</span>
-                   </div>
-                 </label>
-                 <Input
-                   id="leave-start-date"
-                   type="date"
-                   value={form.startDate}
-                   onChange={(e) =>
-                     setForm((f) => ({ ...f, startDate: e.target.value }))
-                   }
-                   className="w-full h-auto shadow-none border border-gray-300 rounded-lg px-3 py-2.5 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-transparent transition-all"
-                   required
-                 />
-               </div>
+          <Button type="submit" size="xl" className="w-full">
+            <Send /> Send request
+          </Button>
+        </MobileCard>
+      </form>
 
-               <div>
-                 <label
-                   htmlFor="leave-end-date"
-                   className="block text-sm font-semibold text-gray-700 mb-1.5"
-                 >
-                   <div className="flex items-center gap-2">
-                     <FaCalendarAlt className="text-gray-400" size={14} />
-                     <span>End Date</span>
-                   </div>
-                 </label>
-                 <Input
-                   id="leave-end-date"
-                   type="date"
-                   value={form.endDate}
-                   onChange={(e) =>
-                     setForm((f) => ({ ...f, endDate: e.target.value }))
-                   }
-                   className="w-full h-auto shadow-none border border-gray-300 rounded-lg px-3 py-2.5 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-transparent transition-all"
-                   required
-                 />
-               </div>
-
-               <div>
-                 <label
-                   htmlFor="leave-reason"
-                   className="block text-sm font-semibold text-gray-700 mb-1.5"
-                 >
-                   <div className="flex items-center gap-2">
-                     <FaClipboardList className="text-gray-400" size={14} />
-                     <span>Reason (Optional)</span>
-                   </div>
-                 </label>
-                 <Textarea
-                   id="leave-reason"
-                   value={form.reason}
-                   onChange={(e) =>
-                     setForm((f) => ({ ...f, reason: e.target.value }))
-                   }
-                   className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all resize-none"
-                   rows={3}
-                   placeholder="Enter reason for leave..."
-                 />
-               </div>
-
-               <Button
-                 type="submit"
-                 className="w-full py-3.5 h-auto rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all flex items-center justify-center gap-3 transform hover:scale-[1.02] active:scale-[0.98]"
-               >
-                 <FaPaperPlane size={16} />
-                 <span>Submit Leave Request</span>
-               </Button>
-             </form>
-           </div>
-
-           {/* Leave History */}
-           <div className="mb-6">
-             <h3 className="text-md font-semibold text-gray-800 mb-3 flex items-center gap-2">
-               <FaClipboardList className="text-orange-500" />
-               My Leave History
-             </h3>
-             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 shadow-md border border-blue-100">
-               {leaves.length === 0 ? (
-                 <div className="text-center py-8">
-                   <FaCalendarAlt
-                     className="text-gray-400 mx-auto mb-3"
-                     size={40}
-                   />
-                   <p className="text-sm text-gray-500 font-medium">
-                     No leave requests yet
-                   </p>
-                   <p className="text-xs text-gray-400 mt-1">
-                     Your leave history will appear here
-                   </p>
-                 </div>
-               ) : (
-                 <ul className="space-y-3">
-                   {leaves.map((l) => {
-                     const days = Math.max(
-                       1,
-                       Math.round(
-                         (new Date(l.endDate) - new Date(l.startDate)) /
-                           (1000 * 60 * 60 * 24),
-                       ) + 1,
-                     );
-                     return (
-                       <li
-                         key={l._id}
-                         className="bg-white rounded-xl p-4 shadow-sm border border-blue-200"
-                       >
-                         <div className="flex justify-between items-start mb-2">
-                           <div className="flex-1">
-                             <p className="font-semibold text-gray-800 capitalize flex items-center gap-2">
-                               <FaClipboardList
-                                 className="text-orange-500"
-                                 size={14}
-                               />
-                               {l.type} Leave
-                             </p>
-                           </div>
-                           <StatusBadge status={l.status} />
-                         </div>
-                         <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
-                           <FaCalendarAlt className="text-gray-400" size={12} />
-                           <span>
-                             {dayjs(l.startDate).format("DD MMM YYYY")} →{" "}
-                             {dayjs(l.endDate).format("DD MMM YYYY")}
-                           </span>
-                         </div>
-                         <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                           <FaClock className="text-gray-400" size={12} />
-                           <span className="font-medium">
-                             {days} {days === 1 ? "day" : "days"}
-                           </span>
-                         </div>
-                         {l.reason && (
-                           <div className="mt-2 pt-2 border-t border-gray-200">
-                             <p className="text-xs text-gray-500 italic">
-                               "{l.reason}"
-                             </p>
-                           </div>
-                         )}
-                       </li>
-                     );
-                   })}
-                 </ul>
-               )}
-             </div>
-           </div>
-
-           {/* Info Box */}
-           <div className="bg-green-50 rounded-2xl p-4 border border-green-200 flex items-start gap-3">
-             <FaCheckCircle className="text-green-600 mt-0.5" size={16} />
-             <div>
-               <p className="text-sm font-semibold text-gray-800 mb-1">
-                 Leave Request Tips
-               </p>
-               <p className="text-xs text-gray-600">
-                 Plan your leaves in advance and ensure all dates are correct.
-                 Your manager will review and approve your request.
-               </p>
-             </div>
-           </div>
-         </div>
-       </MobileShell>
-
-     </>
-   );
+      <MobileCard title="My requests">
+        {leaves.length === 0 ? (
+          <EmptyState icon={CalendarOff} title="No leave requests yet" description="Requests you send show here with their status." />
+        ) : (
+          <ul>
+            {leaves.map((l) => {
+              const days = Math.max(1, Math.round((new Date(l.endDate) - new Date(l.startDate)) / (1000 * 60 * 60 * 24)) + 1);
+              return (
+                <li key={l._id} className="flex flex-col gap-1.5 border-b border-line py-3 first:pt-0 last:border-b-0 last:pb-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <Badge variant={getLeaveTypeTone(l.type)} className="capitalize">
+                      {l.type} leave
+                    </Badge>
+                    <StatusBadge status={l.status} />
+                  </div>
+                  <div className="text-small tabular-nums text-ink-2">
+                    {dayjs(l.startDate).format("DD MMM YYYY")} → {dayjs(l.endDate).format("DD MMM YYYY")}
+                    <span className="text-ink-3">
+                      {" "}
+                      · {days} {days === 1 ? "day" : "days"}
+                    </span>
+                  </div>
+                  {l.reason ? <p className="text-small italic text-ink-3">&ldquo;{l.reason}&rdquo;</p> : null}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </MobileCard>
+    </MobilePage>
+  );
 }

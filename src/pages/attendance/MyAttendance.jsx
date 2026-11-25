@@ -2,25 +2,18 @@ import React, { useEffect, useMemo, useState } from "react";
 import { getToken, getUser } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import axios from "@/api/client";
-import { useNavigate } from "react-router-dom";
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { computeDailyStatuses } from "@/lib/attendanceCalculations";
-import {
-  FaArrowLeft,
-  FaCalendarAlt,
-  FaList,
-  FaChartBar,
-  FaChevronLeft,
-  FaChevronRight,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaClock,
-  FaUmbrellaBeach,
-  FaEdit,
-} from "react-icons/fa";
+import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { EmptyState } from "@/components/common/EmptyState";
+import { PageLoader } from "@/components/common/PageLoader";
+import { SegmentedControl } from "@/components/common/SegmentedControl";
+import MobileCard from "@/layouts/mobile/MobileCard";
+import MobilePage from "@/layouts/mobile/MobilePage";
 import {
   CalendarGrid,
   Legend,
@@ -38,7 +31,6 @@ const MyAttendance = () => {
   const [savingNote, setSavingNote] = useState(false);
   const [month, setMonth] = useState(new Date().getMonth());
   const [year, setYear] = useState(new Date().getFullYear());
-  const navigate = useNavigate();
   const token = getToken();
 
   // localStorage can legitimately be empty (logged-out state, cleared
@@ -155,414 +147,262 @@ const MyAttendance = () => {
       setSelectedDay(null);
     } catch (err) {
       console.error("Failed to save note", err);
-      toast.error("Failed to save note");
+      toast.error("Couldn\u2019t save the note", { description: "Check your connection and try again.", action: { label: "Retry", onClick: () => saveNote() } });
     } finally {
       setSavingNote(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading attendance...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <PageLoader label="Loading attendance" />;
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <FaTimesCircle className="text-red-500 mx-auto mb-4" size={48} />
-          <p className="text-red-600">{error}</p>
-        </div>
-      </div>
+      <MobilePage title="My attendance" back tabs="worker">
+        <MobileCard>
+          <EmptyState title={error} description="Check your connection and open this page again." />
+        </MobileCard>
+      </MobilePage>
     );
   }
 
+  const prevMonth = () => {
+    if (month === 0) {
+      setMonth(11);
+      setYear(year - 1);
+    } else setMonth(month - 1);
+  };
+  const nextMonth = () => {
+    if (month === 11) {
+      setMonth(0);
+      setYear(year + 1);
+    } else setMonth(month + 1);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
-        {/* Header with Gradient */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <Button
-            className="mobile-back-button absolute top-6 left-6"
-            variant="ghost"
-            onClick={() => navigate(-1)}
-          >
-            <FaArrowLeft className="text-orange-600" size={16} />
-            <span className="text-sm font-medium text-orange-600">Back</span>
-          </Button>
+    <MobilePage title="My attendance" back tabs="worker">
+      <SegmentedControl
+        aria-label="View"
+        className="w-full [&>*]:flex-1"
+        options={[
+          { value: "calendar", label: "Calendar" },
+          { value: "summary", label: "Summary" },
+          { value: "list", label: "List" },
+        ]}
+        value={view}
+        onChange={setView}
+      />
 
-          <div className="text-center pt-8">
-            <h1 className="text-white text-2xl font-bold mb-2">My Attendance</h1>
-            <p className="text-white/80 text-sm">{user?.name}</p>
-          </div>
-
-          {/* View Toggle */}
-          <div className="mt-6 bg-white/20 backdrop-blur-sm rounded-2xl p-1.5 flex gap-1">
-            <button
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all ${
-                view === "calendar"
-                  ? "bg-white text-orange-600 shadow-lg"
-                  : "text-gray-300 hover:bg-white/10"
-              }`}
-              onClick={() => setView("calendar")}
-            >
-              <FaCalendarAlt size={14} />
-              <span>Calendar</span>
-            </button>
-            <button
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all ${
-                view === "summary"
-                  ? "bg-white text-orange-600 shadow-lg"
-                  : "text-gray-300 hover:bg-white/10"
-              }`}
-              onClick={() => setView("summary")}
-            >
-              <FaChartBar size={14} />
-              <span>Summary</span>
-            </button>
-            <button
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all ${
-                view === "list"
-                  ? "bg-white text-orange-600 shadow-lg"
-                  : "text-gray-300 hover:bg-white/10"
-              }`}
-              onClick={() => setView("list")}
-            >
-              <FaList size={14} />
-              <span>List</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="px-6 py-6 -mt-4">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <StatCard icon={FaCheckCircle} label="Present" count={counts.present} color="green" />
-            <StatCard icon={FaClock} label="Half Day" count={counts.half} color="yellow" />
-            <StatCard icon={FaTimesCircle} label="Absent" count={counts.absent} color="red" />
-            <StatCard icon={FaUmbrellaBeach} label="Leaves" count={counts.leave} color="blue" />
-          </div>
-
-          {/* Calendar view */}
-          {view === "calendar" && (
-            <div>
-              {/* Month Navigation */}
-              <div className="flex items-center justify-between mb-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-4 shadow-sm">
-                <Button
-                  className="w-10 h-10 rounded-full bg-white shadow hover:shadow-md transition-all flex items-center justify-center text-orange-600"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    if (month === 0) { setMonth(11); setYear(year - 1); }
-                    else setMonth(month - 1);
-                  }}
-                >
-                  <FaChevronLeft className="text-orange-600" size={16} />
-                </Button>
-                <div className="text-center">
-                  <div className="font-bold text-gray-800 text-lg">{months[month]}</div>
-                  <div className="text-sm text-gray-600">{year}</div>
-                </div>
-                <Button
-                  className="w-10 h-10 rounded-full bg-white shadow hover:shadow-md transition-all flex items-center justify-center text-orange-600"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    if (month === 11) { setMonth(0); setYear(year + 1); }
-                    else setMonth(month + 1);
-                  }}
-                >
-                  <FaChevronRight className="text-orange-600" size={16} />
-                </Button>
-              </div>
-
-              {/* Weekday Headers */}
-              <div className="grid grid-cols-7 gap-2 mb-2">
-                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                  <div key={day} className="text-center text-xs font-semibold text-gray-600">
-                    {day}
-                  </div>
-                ))}
-              </div>
-
-              {/* Calendar Grid (shared with the admin attendance modal) */}
-              <div className="mb-6">
-                <CalendarGrid dailySummary={dailySummary} onDayClick={openDayDetail} month={month} year={year} />
-              </div>
-
-              <Legend />
-            </div>
-          )}
-
-          {/* Summary view */}
-          {view === "summary" && (
-            <div className="space-y-6">
-              {/* Year Graph: bar + trend line, per month attendance % */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold text-gray-700">Year Graph</p>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setYear(year - 1)}
-                    >
-                      <FaChevronLeft className="text-gray-600" size={12} />
-                    </Button>
-                    <span className="text-sm font-medium text-gray-700 w-12 text-center">{year}</span>
-                    <Button
-                      className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setYear(year + 1)}
-                    >
-                      <FaChevronRight className="text-gray-600" size={12} />
-                    </Button>
-                  </div>
-                </div>
-                <YearAttendanceChart yearlySummary={yearlySummary} />
-                <p className="text-center text-sm text-gray-600 mt-2">
-                  Over all percentage{" "}
-                  <span className="font-bold text-gray-800">{overallYearPct}%</span>
-                </p>
-              </div>
-
-              {/* Month Graph: donut for a chosen month, with its own month nav */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold text-gray-700">Month Graph</p>
-                  <div className="flex items-center gap-1.5">
-                    <Button
-                      className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        if (month === 0) { setMonth(11); setYear(year - 1); }
-                        else setMonth(month - 1);
-                      }}
-                    >
-                      <FaChevronLeft className="text-gray-600" size={12} />
-                    </Button>
-                    <span className="text-sm font-medium text-gray-700 w-24 text-center">
-                      {months[month]} {year}
-                    </span>
-                    <Button
-                      className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        if (month === 11) { setMonth(0); setYear(year + 1); }
-                        else setMonth(month + 1);
-                      }}
-                    >
-                      <FaChevronRight className="text-gray-600" size={12} />
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <ResponsiveContainer width={140} height={140}>
-                    <PieChart>
-                      <Pie
-                        data={monthDonutData}
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius={45}
-                        outerRadius={65}
-                        startAngle={90}
-                        endAngle={-270}
-                        stroke="none"
-                      >
-                        <Cell fill="#f97316" />
-                        <Cell fill="#1e293b" />
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="text-sm text-gray-700 space-y-1.5 flex-1">
-                    <p className="flex justify-between">
-                      <span className="text-gray-500">Total Days</span>
-                      <span className="font-semibold">{totalTrackedDays}</span>
-                    </p>
-                    <p className="flex justify-between">
-                      <span className="text-gray-500">Present days</span>
-                      <span className="font-semibold text-green-600">{counts.present}</span>
-                    </p>
-                    <p className="flex justify-between">
-                      <span className="text-gray-500">Absent days</span>
-                      <span className="font-semibold text-red-600">{counts.absent}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* List view */}
-          {view === "list" && (
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-                    <th className="p-3 text-left text-sm font-semibold">Date</th>
-                    <th className="p-3 text-left text-sm font-semibold">Day</th>
-                    <th className="p-3 text-left text-sm font-semibold">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dailySummary.map((d, idx) => (
-                    <tr
-                      key={d.date}
-                      role="button"
-                      tabIndex={0}
-                      className={`border-t border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer ${
-                        idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                      }`}
-                      onClick={() => openDayDetail(d)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          openDayDetail(d);
-                        }
-                      }}
-                    >
-                      <td className="p-3 text-sm text-gray-800 font-medium">
-                        {new Date(`${d.date}T00:00:00`).getDate()} {new Date(`${d.date}T00:00:00`).toLocaleDateString('en-US', { month: 'short' })}
-                      </td>
-                      <td className="p-3 text-sm text-gray-600">
-                        {new Date(`${d.date}T00:00:00`).toLocaleDateString('en-US', { weekday: 'short' })}
-                      </td>
-                      <td className="p-3">
-                        <StatusBadge status={d.status} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-        </div>
+      <div className="flex gap-2">
+        <Stat value={counts.present} label="Present" tone="text-tone-ok-fg" />
+        <Stat value={counts.half} label="Half day" tone="text-tone-warn-fg" />
+        <Stat value={counts.absent} label="Absent" tone="text-tone-bad-fg" />
+        <Stat value={counts.leave} label="Leave" tone="text-tone-info-fg" />
       </div>
 
-      {/* Day detail modal */}
-      {selectedDay && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all animate-slideUp">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 rounded-t-3xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-white">
-                    {new Date(`${selectedDay.date}T00:00:00`).toLocaleDateString('en-US', { weekday: 'long' })}
-                  </h2>
-                  <p className="text-white/80 text-sm">{selectedDay.date}</p>
+      {view === "calendar" && (
+        <>
+          <MobileCard>
+            <div className="mb-3 flex items-center justify-between">
+              <Button variant="outline" size="icon" aria-label="Previous month" onClick={prevMonth}>
+                <ChevronLeft />
+              </Button>
+              <h2 className="text-[15px] font-semibold text-ink-1">
+                {months[month]} {year}
+              </h2>
+              <Button variant="outline" size="icon" aria-label="Next month" onClick={nextMonth}>
+                <ChevronRight />
+              </Button>
+            </div>
+            <div className="mb-2 grid grid-cols-7 gap-1.5">
+              {["M", "T", "W", "T", "F", "S", "S"].map((day, idx) => (
+                <div key={idx} className="text-center text-[11.5px] font-semibold text-ink-3">
+                  {day}
                 </div>
-                <StatusBadge status={selectedDay.status} />
+              ))}
+            </div>
+            {/* Calendar grid (shared with the admin attendance modal) */}
+            <CalendarGrid dailySummary={dailySummary} onDayClick={openDayDetail} month={month} year={year} showWeekdays={false} />
+            <div className="mt-3.5">
+              <Legend />
+            </div>
+          </MobileCard>
+          <MobileCard>
+            <div className="text-small text-ink-3">Tap a day to see punch times, selfie and notes.</div>
+          </MobileCard>
+        </>
+      )}
+
+      {view === "summary" && (
+        <>
+          {/* Year Graph: bar + trend line, per month attendance % */}
+          <MobileCard
+            title="Year graph"
+            action={
+              <div className="flex items-center gap-1.5">
+                <Button variant="outline" size="icon" className="!size-8" aria-label="Previous year" onClick={() => setYear(year - 1)}>
+                  <ChevronLeft />
+                </Button>
+                <span className="w-12 text-center text-small font-medium text-ink-2">{year}</span>
+                <Button variant="outline" size="icon" className="!size-8" aria-label="Next year" onClick={() => setYear(year + 1)}>
+                  <ChevronRight />
+                </Button>
+              </div>
+            }
+          >
+            <YearAttendanceChart yearlySummary={yearlySummary} />
+            <p className="mt-2 text-center text-small text-ink-3">
+              Overall percentage <span className="font-bold text-ink-1">{overallYearPct}%</span>
+            </p>
+          </MobileCard>
+
+          {/* Month Graph: donut for a chosen month, with its own month nav */}
+          <MobileCard
+            title="Month graph"
+            action={
+              <div className="flex items-center gap-1.5">
+                <Button variant="outline" size="icon" className="!size-8" aria-label="Previous month" onClick={prevMonth}>
+                  <ChevronLeft />
+                </Button>
+                <span className="w-24 text-center text-small font-medium text-ink-2">
+                  {months[month]} {year}
+                </span>
+                <Button variant="outline" size="icon" className="!size-8" aria-label="Next month" onClick={nextMonth}>
+                  <ChevronRight />
+                </Button>
+              </div>
+            }
+          >
+            <div className="flex items-center gap-4">
+              <ResponsiveContainer width={140} height={140}>
+                <PieChart>
+                  <Pie data={monthDonutData} dataKey="value" nameKey="name" innerRadius={45} outerRadius={65} startAngle={90} endAngle={-270} stroke="none">
+                    <Cell fill="hsl(var(--highlight))" />
+                    <Cell fill="hsl(var(--primary))" />
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex-1 space-y-1.5 text-small text-ink-2">
+                <p className="flex justify-between">
+                  <span className="text-ink-3">Total days</span>
+                  <span className="font-semibold">{totalTrackedDays}</span>
+                </p>
+                <p className="flex justify-between">
+                  <span className="text-ink-3">Present days</span>
+                  <span className="font-semibold text-tone-ok-fg">{counts.present}</span>
+                </p>
+                <p className="flex justify-between">
+                  <span className="text-ink-3">Absent days</span>
+                  <span className="font-semibold text-tone-bad-fg">{counts.absent}</span>
+                </p>
               </div>
             </div>
+          </MobileCard>
+        </>
+      )}
 
-            {/* Modal Body */}
-            <div className="p-6 space-y-4">
-              {/* Time Info */}
+      {view === "list" && (
+        <MobileCard>
+          <div className="mb-1 flex items-center justify-between">
+            <Button variant="outline" size="icon" aria-label="Previous month" onClick={prevMonth}>
+              <ChevronLeft />
+            </Button>
+            <h2 className="text-[15px] font-semibold text-ink-1">
+              {months[month]} {year}
+            </h2>
+            <Button variant="outline" size="icon" aria-label="Next month" onClick={nextMonth}>
+              <ChevronRight />
+            </Button>
+          </div>
+          <ul>
+            {dailySummary.map((d) => {
+              const dt = new Date(`${d.date}T00:00:00`);
+              return (
+                <li key={d.date} className="border-b border-line last:border-b-0">
+                  <Button type="button" variant="ghost" className="!h-auto w-full justify-start gap-3 rounded-none px-0 py-3 font-normal hover:bg-transparent" onClick={() => openDayDetail(d)}>
+                    <span className="w-14 text-[14px] font-semibold tabular-nums text-ink-1">
+                      {dt.getDate()} {dt.toLocaleDateString("en-US", { month: "short" })}
+                    </span>
+                    <span className="flex-1 text-small text-ink-3">{dt.toLocaleDateString("en-US", { weekday: "short" })}</span>
+                    <StatusBadge status={d.status} />
+                  </Button>
+                </li>
+              );
+            })}
+          </ul>
+        </MobileCard>
+      )}
+
+      {/* Day detail */}
+      <Dialog open={Boolean(selectedDay)} onOpenChange={(open) => !open && setSelectedDay(null)}>
+        <DialogContent className="max-w-sm">
+          {selectedDay ? (
+            <>
+              <DialogHeader className="text-left">
+                <DialogTitle className="flex items-center justify-between gap-3">
+                  {new Date(`${selectedDay.date}T00:00:00`).toLocaleDateString("en-US", { weekday: "long" })}
+                  <StatusBadge status={selectedDay.status} />
+                </DialogTitle>
+                <DialogDescription>{selectedDay.date}</DialogDescription>
+              </DialogHeader>
+
               {selectedDay.firstIn && selectedDay.lastOut && (
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 border border-blue-100">
-                  <div className="flex items-center gap-3 mb-2">
-                    <FaClock className="text-blue-600" size={18} />
-                    <span className="font-semibold text-gray-800">Working Hours</span>
+                <div className="rounded-card bg-surface-subtle p-4">
+                  <div className="mb-2 flex items-center gap-2.5 font-semibold text-ink-1">
+                    <Clock className="size-4 text-primary" /> Working hours
                   </div>
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-small">
                     <div>
-                      <p className="text-gray-600">Check In</p>
-                      <p className="font-semibold text-gray-800">{fmt(selectedDay.firstIn)}</p>
+                      <p className="text-ink-3">Check in</p>
+                      <p className="font-semibold text-ink-1">{fmt(selectedDay.firstIn)}</p>
                     </div>
-                    <div className="text-gray-400">→</div>
+                    <div className="text-ink-4">→</div>
                     <div>
-                      <p className="text-gray-600">Check Out</p>
-                      <p className="font-semibold text-gray-800">{fmt(selectedDay.lastOut)}</p>
+                      <p className="text-ink-3">Check out</p>
+                      <p className="font-semibold text-ink-1">{fmt(selectedDay.lastOut)}</p>
                     </div>
                   </div>
                   {selectedDay.minutes > 0 && (
-                    <div className="mt-3 pt-3 border-t border-blue-200">
-                      <p className="text-sm text-gray-600">
-                        Total: <span className="font-semibold text-blue-600">
-                          {Math.floor(selectedDay.minutes / 60)}h {selectedDay.minutes % 60}m
-                        </span>
-                      </p>
-                    </div>
+                    <p className="mt-3 border-t border-line pt-3 text-small text-ink-3">
+                      Total:{" "}
+                      <span className="font-semibold text-primary">
+                        {Math.floor(selectedDay.minutes / 60)}h {selectedDay.minutes % 60}m
+                      </span>
+                    </p>
                   )}
                 </div>
               )}
 
-              {/* Notes Section */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                  <FaEdit className="text-orange-500" />
-                  Add Note
+                <label htmlFor="day-note" className="mb-1.5 block text-small font-medium text-ink-2">
+                  Add note
                 </label>
-                <Textarea
-                  className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all resize-none"
-                  rows={4}
-                  value={selectedDay.note || ""}
-                  placeholder="Add a note about this day..."
-                  onChange={(e) => setSelectedDay({ ...selectedDay, note: e.target.value })}
-                />
+                <Textarea id="day-note" rows={4} value={selectedDay.note || ""} placeholder="Add a note about this day..." onChange={(e) => setSelectedDay({ ...selectedDay, note: e.target.value })} />
               </div>
-            </div>
 
-            {/* Modal Footer */}
-            <div className="flex items-center gap-3 px-6 pb-6">
-              <Button
-                onClick={() => setSelectedDay(null)}
-                variant="outline"
-                className="flex-1 px-4 py-3 h-auto rounded-xl border-2 border-gray-300 text-gray-700 font-semibold"
-              >
-                Close
-              </Button>
-              <Button
-                onClick={saveNote}
-                disabled={savingNote}
-                className="flex-1 px-4 py-3 h-auto rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold hover:from-orange-600 hover:to-orange-700 shadow-lg disabled:opacity-60"
-              >
-                {savingNote ? "Saving..." : "Save Note"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+              <DialogFooter className="flex-row gap-2">
+                <Button variant="outline" className="flex-1" onClick={() => setSelectedDay(null)}>
+                  Close
+                </Button>
+                <Button className="flex-1" onClick={saveNote} disabled={savingNote}>
+                  {savingNote ? "Saving..." : "Save note"}
+                </Button>
+              </DialogFooter>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </MobilePage>
   );
 };
 
 // --- Helper Components ---
 
-function StatCard({ icon, label, count, color }) {
-  const Icon = icon;
-  const colors = {
-    green: "from-green-400 to-green-500",
-    yellow: "from-yellow-400 to-yellow-500",
-    red: "from-red-400 to-red-500",
-    blue: "from-blue-400 to-blue-500",
-  };
-
+function Stat({ value, label, tone }) {
   return (
-    <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-4 shadow-sm border border-gray-100">
-      <div className="flex items-center gap-3">
-        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors[color]} flex items-center justify-center shadow-lg`}>
-          <Icon className="text-white" size={20} />
-        </div>
-        <div>
-          <p className="text-2xl font-bold text-gray-800">{count}</p>
-          <p className="text-xs text-gray-600">{label}</p>
-        </div>
-      </div>
+    <div className="flex-1 rounded-[10px] bg-surface px-1 py-2.5 text-center">
+      <div className={`text-[20px] font-semibold tabular-nums ${tone}`}>{value}</div>
+      <div className="text-[11.5px] text-ink-3">{label}</div>
     </div>
   );
 }

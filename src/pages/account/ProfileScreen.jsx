@@ -1,32 +1,28 @@
+// src/pages/account/ProfileScreen.jsx  (mobile: the Profile tab)
+// Laid out like the Profile design: identity card, my sites, details (editable), settings rows and Log out.
+// The profile (GET/PUT /users/me) and password (PATCH /users/me/password) requests are unchanged.
 import React, { useEffect, useState } from 'react';
 import { ROLES } from '@/lib/constants';
-import { getToken } from '@/lib/session';
+import { clearSession, getToken, getUser } from '@/lib/session';
+import { isFieldRole } from '@/lib/roles';
+import { ROUTES } from '@/lib/routes';
 import { queryClient } from '@/lib/queryClient';
 import { USERS_KEY } from '@/hooks/useUsers';
 import { useBranches } from '@/hooks/useBranches';
 import axios from '@/api/client';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import {
-  FaArrowLeft,
-  FaUser,
-  FaEnvelope,
-  FaPhone,
-  FaBriefcase,
-  FaUserTag,
-  FaBuilding,
-  FaSave,
-  FaCheckCircle,
-  FaEye,
-  FaEyeSlash,
-  FaKey,
-  FaLock,
-} from 'react-icons/fa';
-import MobileShell from "@/layouts/mobile/MobileShell";
-import MobileHeader from "@/layouts/mobile/MobileHeader";
-import MobileBackButton from "@/layouts/mobile/MobileBackButton";
+import { Eye, EyeOff, KeyRound, LogOut, MapPin, RefreshCw, ChevronRight } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { FormField } from '@/components/common/FormField';
+import { PageLoader } from '@/components/common/PageLoader';
+import { UserAvatar } from '@/components/common/UserAvatar';
+import MobileCard from '@/layouts/mobile/MobileCard';
+import MobilePage from '@/layouts/mobile/MobilePage';
+import { getRoleTone } from '@/lib/status';
 
 const ProfileScreen = () => {
   const navigate = useNavigate();
@@ -53,6 +49,7 @@ const ProfileScreen = () => {
     confirmPassword: false,
   });
   const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
 
   const canChangePassword = [ROLES.supervisor, ROLES.labour].includes(formData.role);
 
@@ -89,7 +86,7 @@ const ProfileScreen = () => {
       setLoading(false);
     } catch (err) {
       console.error('Failed to load user', err);
-      toast.error('Failed to load profile');
+      toast.error('Couldn\u2019t load your profile', { description: 'Check your connection and try again.', action: { label: 'Retry', onClick: () => fetchUser() } });
     }
   };
 
@@ -106,27 +103,27 @@ const ProfileScreen = () => {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
       queryClient.invalidateQueries({ queryKey: USERS_KEY });
-      toast.success('Profile updated successfully');
+      toast.success('Profile updated');
       setTimeout(() => navigate(-1), 1500);
     } catch (err) {
-      toast.error('Failed to update profile');
+      toast.error('Couldn\u2019t update your profile', { description: 'Check your connection and try again.', action: { label: 'Retry', onClick: () => handleSubmit() } });
       console.error(err);
     }
   };
 
   const handlePasswordSubmit = async () => {
     if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
-      toast.error('Please fill all password fields');
+      toast.error('Fill in all password fields');
       return;
     }
 
     if (passwordData.newPassword.length < 6) {
-      toast.error('New password must be at least 6 characters');
+      toast.error('Password too short', { description: 'Use at least 6 characters.' });
       return;
     }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error('New password and confirm password do not match');
+      toast.error('Passwords don\u2019t match', { description: 'Type the new password again to confirm.' });
       return;
     }
 
@@ -139,7 +136,8 @@ const ProfileScreen = () => {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
 
-      toast.success('Password updated successfully');
+      toast.success('Password updated');
+      setPasswordOpen(false);
       setPasswordData({
         currentPassword: '',
         newPassword: '',
@@ -151,321 +149,137 @@ const ProfileScreen = () => {
         confirmPassword: false,
       });
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update password');
+      toast.error('Couldn\u2019t update the password', { description: err.response?.data?.message || 'Check your current password and try again.' });
       console.error(err);
     } finally {
       setPasswordSaving(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <PageLoader label="Loading your profile" />;
 
-    return (
-      <>
-        <MobileShell>
-          <MobileHeader>
-            <MobileBackButton onClick={() => navigate(-1)} />
-
-            <div className="text-center pt-8">
-              <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-5xl font-bold text-white shadow-lg border-4 border-white/30 mx-auto mb-3">
-                {formData.name?.charAt(0)?.toUpperCase() || "U"}
-              </div>
-              <h1 className="text-white text-2xl font-bold mb-1">My Profile</h1>
-              <p className="text-white/80 text-sm">{formData.name}</p>
-            </div>
-          </MobileHeader>
-
-          {/* Main Content */}
-          <div className="px-6 py-6 -mt-4">
-            {/* Personal Information Section */}
-            <div className="mb-6">
-              <h3 className="text-md font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <FaUser className="text-orange-500" />
-                Personal Information
-              </h3>
-              <div className="space-y-4">
-                <InputField
-                  icon={FaUser}
-                  label="Full Name"
-                  placeholder="Enter your name"
-                  value={formData.name || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                />
-                <InputField
-                  icon={FaEnvelope}
-                  label="Email Address"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={formData.email || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                />
-                <InputField
-                  icon={FaPhone}
-                  label="Mobile Number"
-                  type="tel"
-                  placeholder="+91 XXXXX XXXXX"
-                  value={formData.mobileNumber || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, mobileNumber: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            {/* Professional Information Section */}
-            <div className="mb-6">
-              <h3 className="text-md font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <FaBriefcase className="text-orange-500" />
-                Professional Information
-              </h3>
-              <div className="space-y-4">
-                <InputField
-                  icon={FaBriefcase}
-                  label="Job Title"
-                  placeholder="e.g., Electrician"
-                  value={formData.jobTitle || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, jobTitle: e.target.value })
-                  }
-                />
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <FaUserTag className="text-gray-400" size={14} />
-                      <span>Role</span>
-                    </div>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-400">
-                      <FaUserTag size={14} />
-                    </div>
-                    <Input
-                      className="w-full h-auto pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 text-sm cursor-not-allowed disabled:opacity-100"
-                      value={formData.role || ""}
-                      disabled
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Role cannot be changed
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Assigned Branches Section */}
-            <div className="mb-6">
-              <h3 className="text-md font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <FaBuilding className="text-orange-500" />
-                Assigned Branches
-              </h3>
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 border border-blue-100">
-                {(formData.assignedBranches || []).length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {formData.assignedBranches.map((b) => {
-                      const branch =
-                        typeof b === "string"
-                          ? branches.find((br) => String(br._id) === b)
-                          : b;
-
-                      return branch ? (
-                        <div
-                          key={branch._id}
-                          className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl shadow-sm border border-blue-200"
-                        >
-                          <FaBuilding className="text-blue-600" size={12} />
-                          <span className="text-sm font-medium text-gray-800">
-                            {branch.name}
-                          </span>
-                        </div>
-                      ) : null;
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-6">
-                    <FaBuilding
-                      className="text-gray-400 mx-auto mb-2"
-                      size={32}
-                    />
-                    <p className="text-sm text-gray-500">
-                      No branches assigned
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {canChangePassword && (
-              <div className="mb-6">
-                <h3 className="text-md font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                  <FaKey className="text-orange-500" />
-                  Password Settings
-                </h3>
-                <div className="bg-gradient-to-br from-orange-50 to-blue-50 rounded-2xl p-5 space-y-4 shadow-md border border-orange-100">
-                  <PasswordField
-                    label="Current Password"
-                    value={passwordData.currentPassword}
-                    visible={showPasswords.currentPassword}
-                    onToggle={() =>
-                      setShowPasswords((prev) => ({
-                        ...prev,
-                        currentPassword: !prev.currentPassword,
-                      }))
-                    }
-                    onChange={(e) =>
-                      setPasswordData((prev) => ({
-                        ...prev,
-                        currentPassword: e.target.value,
-                      }))
-                    }
-                  />
-                  <PasswordField
-                    label="New Password"
-                    value={passwordData.newPassword}
-                    visible={showPasswords.newPassword}
-                    onToggle={() =>
-                      setShowPasswords((prev) => ({
-                        ...prev,
-                        newPassword: !prev.newPassword,
-                      }))
-                    }
-                    onChange={(e) =>
-                      setPasswordData((prev) => ({
-                        ...prev,
-                        newPassword: e.target.value,
-                      }))
-                    }
-                  />
-                  <PasswordField
-                    label="Confirm New Password"
-                    value={passwordData.confirmPassword}
-                    visible={showPasswords.confirmPassword}
-                    onToggle={() =>
-                      setShowPasswords((prev) => ({
-                        ...prev,
-                        confirmPassword: !prev.confirmPassword,
-                      }))
-                    }
-                    onChange={(e) =>
-                      setPasswordData((prev) => ({
-                        ...prev,
-                        confirmPassword: e.target.value,
-                      }))
-                    }
-                  />
-                  <Button
-                    onClick={handlePasswordSubmit}
-                    disabled={passwordSaving}
-                    className="w-full py-3 h-auto rounded-xl bg-gray-900 text-white font-bold shadow-md hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
-                  >
-                    <FaLock size={14} />
-                    <span>
-                      {passwordSaving ? "Updating..." : "Update Password"}
-                    </span>
-                  </Button>
-                  <p className="text-xs text-gray-500">
-                    Your password is stored securely. Admin can reset or set a
-                    new password, but cannot view your current password.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Save Button */}
-            <Button
-              onClick={handleSubmit}
-              className="w-full py-4 h-auto rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all flex items-center justify-center gap-3 transform hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <FaSave size={18} />
-              <span className="text-lg">Save Profile</span>
-            </Button>
-
-            {/* Success Indicator */}
-            <div className="mt-4 bg-green-50 rounded-2xl p-4 border border-green-200 flex items-start gap-3">
-              <FaCheckCircle className="text-green-600 mt-0.5" size={16} />
-              <div>
-                <p className="text-sm font-semibold text-gray-800 mb-1">
-                  Keep Your Profile Updated
-                </p>
-                <p className="text-xs text-gray-600">
-                  Your profile information helps us serve you better. Make sure
-                  all details are accurate.
-                </p>
-              </div>
-            </div>
-          </div>
-        </MobileShell>
-
-      </>
-    );
-};
-
-// Input Field Component
-const InputField = ({ icon, label, ...props }) => {
-  return (
-    <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-        <div className="flex items-center gap-2">
-          {React.createElement(icon, { className: 'text-gray-400', size: 14 })}
-          <span>{label}</span>
-        </div>
-      </label>
+  const handleLogout = () => {
+    clearSession();
+    navigate(ROUTES.login, { replace: true });
+  };
+  const username = getUser()?.username;
+  const sites = (formData.assignedBranches || [])
+    .map((b) => (typeof b === 'string' ? branches.find((br) => String(br._id) === b) : b))
+    .filter(Boolean);
+  const set = (field) => (e) => setFormData({ ...formData, [field]: e.target.value });
+  const passwordField = (field, label) => (
+    <FormField label={label} htmlFor={`pw-${field}`}>
       <div className="relative">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-400">
-          {React.createElement(icon, { size: 14 })}
-        </div>
         <Input
-          className="w-full h-auto pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-0 focus-visible:border-transparent transition-all"
-          {...props}
-        />
-      </div>
-    </div>
-  );
-};
-
-const PasswordField = ({ label, value, visible, onToggle, onChange }) => {
-  return (
-    <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-        <div className="flex items-center gap-2">
-          <FaLock className="text-gray-400" size={14} />
-          <span>{label}</span>
-        </div>
-      </label>
-      <div className="relative">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-400">
-          <FaLock size={14} />
-        </div>
-        <Input
-          type={visible ? 'text' : 'password'}
-          className="w-full h-auto pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-0 focus-visible:border-transparent transition-all"
-          value={value}
-          onChange={onChange}
+          id={`pw-${field}`}
+          type={showPasswords[field] ? 'text' : 'password'}
+          className="pr-11"
+          value={passwordData[field]}
+          onChange={(e) => setPasswordData((prev) => ({ ...prev, [field]: e.target.value }))}
           autoComplete="new-password"
         />
-        <button
+        <Button
           type="button"
-          onClick={onToggle}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-          aria-label={visible ? `Hide ${label}` : `Show ${label}`}
+          variant="ghost"
+          size="icon"
+          className="absolute right-1 top-1/2 h-control-sm w-control-sm -translate-y-1/2 text-ink-3"
+          aria-label={showPasswords[field] ? `Hide ${label}` : `Show ${label}`}
+          onClick={() => setShowPasswords((prev) => ({ ...prev, [field]: !prev[field] }))}
         >
-          {visible ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
-        </button>
+          {showPasswords[field] ? <EyeOff /> : <Eye />}
+        </Button>
       </div>
-    </div>
+    </FormField>
+  );
+
+  return (
+    <MobilePage title="Profile" back onBack={() => navigate(-1)} tabs={isFieldRole(formData.role) ? 'manager' : 'worker'}>
+      <MobileCard className="flex items-center gap-3.5">
+        <UserAvatar name={formData.name || 'U'} tone="purple" className="size-14 text-[20px]" />
+        <div className="flex-1">
+          <div className="text-[18px] font-semibold text-ink-1">{formData.name || 'Your name'}</div>
+          {username ? <div className="text-small text-ink-3">@{username}</div> : null}
+          <div className="mt-1.5">
+            <Badge variant={getRoleTone(formData.role)} className="capitalize">
+              {formData.role || 'member'}
+            </Badge>
+          </div>
+        </div>
+      </MobileCard>
+
+      <MobileCard title="My sites">
+        {sites.length > 0 ? (
+          <ul>
+            {sites.map((branch) => (
+              <li key={branch._id} className="flex items-center gap-3 border-b border-line py-3 first:pt-0 last:border-b-0 last:pb-0">
+                <MapPin className="size-[18px] text-highlight" />
+                <span className="text-[14.5px] text-ink-1">{branch.name}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-small text-ink-3">No sites assigned yet.</p>
+        )}
+      </MobileCard>
+
+      <MobileCard title="Details" className="flex flex-col gap-3.5">
+        <FormField label="Full name" htmlFor="profile-name">
+          <Input id="profile-name" placeholder="Enter your name" value={formData.name || ''} onChange={set('name')} />
+        </FormField>
+        <FormField label="Mobile" htmlFor="profile-mobile">
+          <Input id="profile-mobile" type="tel" placeholder="+91 XXXXX XXXXX" value={formData.mobileNumber || ''} onChange={set('mobileNumber')} />
+        </FormField>
+        <FormField label="Email" htmlFor="profile-email">
+          <Input id="profile-email" type="email" placeholder="your@email.com" value={formData.email || ''} onChange={set('email')} />
+        </FormField>
+        <FormField label="Job title" htmlFor="profile-job" hint="Your role cannot be changed here.">
+          <Input id="profile-job" placeholder="e.g., Electrician" value={formData.jobTitle || ''} onChange={set('jobTitle')} />
+        </FormField>
+        <Button size="xl" onClick={handleSubmit}>
+          Save profile
+        </Button>
+      </MobileCard>
+
+      <MobileCard className="!py-1">
+        {canChangePassword ? (
+          <Button type="button" variant="ghost" className="!h-auto w-full justify-start gap-3 rounded-none border-b border-line px-0 py-3.5 font-medium" onClick={() => setPasswordOpen(true)}>
+            <KeyRound className="text-ink-3" />
+            <span className="flex-1 text-left text-[14.5px] text-ink-1">Change password</span>
+            <ChevronRight className="text-ink-4" />
+          </Button>
+        ) : null}
+        <Link to={ROUTES.connectServer} className="flex items-center gap-3 py-3.5 text-ink-1">
+          <RefreshCw className="size-4 text-ink-3" />
+          <span className="flex-1 text-[14.5px] font-medium">Offline &amp; sync</span>
+          <ChevronRight className="size-4 text-ink-4" />
+        </Link>
+      </MobileCard>
+
+      <Button size="xl" variant="outline" className="w-full border-tone-bad-border text-tone-bad-fg" onClick={handleLogout}>
+        <LogOut /> Log out
+      </Button>
+
+      <Dialog open={passwordOpen} onOpenChange={setPasswordOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader className="text-left">
+            <DialogTitle>Change password</DialogTitle>
+            <DialogDescription>Your password is stored securely. Admin can set a new one but cannot view your current password.</DialogDescription>
+          </DialogHeader>
+          {passwordField('currentPassword', 'Current password')}
+          {passwordField('newPassword', 'New password')}
+          {passwordField('confirmPassword', 'Confirm new password')}
+          <DialogFooter className="flex-row gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setPasswordOpen(false)}>
+              Cancel
+            </Button>
+            <Button className="flex-1" onClick={handlePasswordSubmit} disabled={passwordSaving}>
+              {passwordSaving ? 'Updating…' : 'Update password'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </MobilePage>
   );
 };
 
-export default ProfileScreen; 
+export default ProfileScreen;
