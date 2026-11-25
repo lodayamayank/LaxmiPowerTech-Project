@@ -112,7 +112,7 @@ export default function Intent({ isTabView = false }) {
   }, [currentPage]);
 
   // Periodic polling every 30 seconds (paused while the tab is hidden)
-  usePolling(fetchIndents, 30000);
+  usePolling(() => fetchIndents(), 30000);
 
   // Listen for intent creation and status update events
   useEffect(() => {
@@ -303,7 +303,7 @@ export default function Intent({ isTabView = false }) {
         <Button
           type="button"
           onClick={() => setShowFilters(!showFilters)}
-          className="w-full h-auto flex items-center justify-between px-3 py-2.5 bg-primary text-primary-foreground hover:bg-primary-strong text-white hover:text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+          className="w-full h-auto flex items-center justify-between px-3 py-2.5 border border-line-card bg-surface text-ink-1 hover:bg-surface-muted hover:text-ink-1 rounded-[10px] shadow-none"
         >
           <span className="font-semibold flex items-center gap-2 text-sm">
             <Filter size={16} />
@@ -588,7 +588,7 @@ export default function Intent({ isTabView = false }) {
         <Button
           type="button"
           onClick={() => setShowPopup(true)}
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 w-16 h-16 p-0 bg-primary text-primary-foreground hover:bg-primary-strong text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 flex items-center justify-center z-50 transition-all duration-300"
+          className="fixed bottom-24 left-1/2 -translate-x-1/2 size-14 p-0 rounded-full shadow-lg z-50"
         >
           <Plus size={28} strokeWidth={2.5} className="size-7" />
         </Button>
@@ -616,7 +616,7 @@ export default function Intent({ isTabView = false }) {
         <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
+            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground"
             onClick={() => navigate(-1)}
           >
             <ArrowLeft size={16} />
@@ -624,8 +624,8 @@ export default function Intent({ isTabView = false }) {
           </Button>
 
           <div className="text-center pt-8">
-            <h1 className="text-white text-2xl font-bold mb-2">Material Intent</h1>
-            <p className="text-white/80 text-sm">{user?.name || 'User'}</p>
+            <h1 className="text-primary-foreground text-2xl font-bold mb-2">Material Intent</h1>
+            <p className="text-primary-foreground/80 text-sm">{user?.name || 'User'}</p>
           </div>
         </div>
 
@@ -648,7 +648,7 @@ export default function Intent({ isTabView = false }) {
       <Button
         type="button"
         onClick={() => setShowPopup(true)}
-        className="fixed bottom-8 left-1/2 -translate-x-1/2 w-16 h-16 p-0 bg-primary text-primary-foreground hover:bg-primary-strong text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 flex items-center justify-center z-50 transition-all duration-300"
+        className="fixed bottom-24 left-1/2 -translate-x-1/2 size-14 p-0 rounded-full shadow-lg z-50"
       >
         <Plus size={28} strokeWidth={2.5} className="size-7" />
       </Button>

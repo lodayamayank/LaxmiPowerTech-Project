@@ -203,7 +203,7 @@ export default function GRN({ isTabView = false }) {
           <Button
             type="button"
             onClick={() => setShowFilters(!showFilters)}
-            className="w-full h-auto flex items-center justify-between px-3 py-2.5 bg-primary text-primary-foreground hover:bg-primary-strong text-white hover:text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+            className="w-full h-auto flex items-center justify-between px-3 py-2.5 border border-line-card bg-surface text-ink-1 hover:bg-surface-muted hover:text-ink-1 rounded-[10px] shadow-none"
           >
             <span className="font-semibold flex items-center gap-2 text-sm">
               <Filter size={16} />
@@ -394,8 +394,8 @@ export default function GRN({ isTabView = false }) {
           </button>
 
           <div className="text-center pt-8">
-            <h1 className="text-white text-2xl font-bold mb-2">GRN Records</h1>
-            <p className="text-white/80 text-sm">{user?.name || 'User'}</p>
+            <h1 className="text-primary-foreground text-2xl font-bold mb-2">GRN Records</h1>
+            <p className="text-primary-foreground/80 text-sm">{user?.name || 'User'}</p>
           </div>
         </div>
 

@@ -130,7 +130,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
     }, []);
 
     // Periodic polling every 30 seconds (paused while the tab is hidden)
-    usePolling(fetchDeliveries, 30000);
+    usePolling(() => fetchDeliveries(), 30000);
 
     const fetchDeliveries = async () => {
         try {
@@ -296,7 +296,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                     <Button
                         type="button"
                         onClick={() => setShowFilters(!showFilters)}
-                        className="w-full h-auto flex items-center justify-between px-3 py-2.5 bg-primary text-primary-foreground hover:bg-primary-strong text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+                        className="w-full h-auto flex items-center justify-between px-3 py-2.5 border border-line-card bg-surface text-ink-1 hover:bg-surface-muted rounded-[10px] shadow-none"
                     >
                         <span className="font-semibold flex items-center gap-2 text-sm">
                             <Filter size={16} />
@@ -539,7 +539,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                     <Button
                         type="button"
                         variant="ghost"
-                        className="absolute top-6 left-6 h-auto text-white hover:text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
+                        className="absolute top-6 left-6 h-auto text-primary-foreground hover:text-primary-foreground flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
                         onClick={() => navigate(-1)}
                     >
                         <ArrowLeft size={16} />
@@ -547,8 +547,8 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                     </Button>
 
                     <div className="text-center pt-8">
-                        <h1 className="text-white text-2xl font-bold mb-2">Upcoming Deliveries</h1>
-                        <p className="text-white/80 text-sm">{user?.name || 'User'}</p>
+                        <h1 className="text-primary-foreground text-2xl font-bold mb-2">Upcoming Deliveries</h1>
+                        <p className="text-primary-foreground/80 text-sm">{user?.name || 'User'}</p>
                     </div>
                 </div>
 

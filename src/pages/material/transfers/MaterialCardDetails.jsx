@@ -42,7 +42,7 @@ export default function MaterialCardDetails() {
   // Toast notification helper - Same as Intent PO
   const showToast = useCallback((message, type = 'success') => {
     const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-[9999] ${
+    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-primary-foreground z-[9999] ${
       type === 'success' ? 'bg-tone-ok-fg' : 'bg-tone-bad-solid'
     }`;
     toast.textContent = message;
@@ -478,7 +478,7 @@ export default function MaterialCardDetails() {
           <p className="text-ink-3 mb-6 text-sm">The material transfer you're looking for doesn't exist or has been deleted.</p>
           <Button
             onClick={() => navigate(-1)}
-            className="h-auto px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-strong transition-colors font-medium"
+            className="h-auto px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary-strong transition-colors font-medium"
           >
             Go Back
           </Button>
@@ -496,7 +496,7 @@ export default function MaterialCardDetails() {
         <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
+            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground"
             onClick={() => navigate(-1)}
           >
             <ArrowLeft size={16} />
@@ -504,8 +504,8 @@ export default function MaterialCardDetails() {
           </Button>
 
           <div className="text-center pt-8">
-            <h1 className="text-white text-2xl font-bold mb-2">Transfer Details</h1>
-            <p className="text-white/80 text-sm">{transfer.siteTransferId}</p>
+            <h1 className="text-primary-foreground text-2xl font-bold mb-2">Transfer Details</h1>
+            <p className="text-primary-foreground/80 text-sm">{transfer.siteTransferId}</p>
           </div>
         </div>
 
@@ -544,7 +544,7 @@ export default function MaterialCardDetails() {
                 <select
                   value={formData.fromSite}
                   onChange={(e) => setFormData({ ...formData, fromSite: e.target.value })}
-                  className="w-full px-3 py-2 bg-ink-3 text-white border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus-visible:ring-ring"
+                  className="w-full px-3 py-2 bg-ink-3 text-primary-foreground border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus-visible:ring-ring"
                   disabled={submitting}
                 >
                   <option value="">Select Site</option>
@@ -563,7 +563,7 @@ export default function MaterialCardDetails() {
                   type="text"
                   value={formData.requestedBy}
                   disabled
-                  className="h-auto w-full px-3 py-2 bg-ink-3 text-white border-0 rounded-lg text-sm cursor-not-allowed shadow-none disabled:opacity-75"
+                  className="h-auto w-full px-3 py-2 bg-ink-3 text-primary-foreground border-0 rounded-lg text-sm cursor-not-allowed shadow-none disabled:opacity-75"
                 />
               </div>
 
@@ -582,7 +582,7 @@ export default function MaterialCardDetails() {
                 onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
                 placeholder="Add remarks..."
                 rows={2}
-                className="w-full px-3 py-2 bg-ink-3 text-white border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus-visible:ring-ring placeholder-gray-400"
+                className="w-full px-3 py-2 bg-ink-3 text-primary-foreground border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus-visible:ring-ring placeholder-gray-400"
                 disabled={submitting}
               />
             </div>
@@ -663,7 +663,7 @@ export default function MaterialCardDetails() {
                           type="button"
                           onClick={() => handleDeleteAttachment(index)}
                           disabled={deletingAttachment === index}
-                          className="absolute top-2 right-2 h-auto w-auto p-1.5 bg-tone-bad-solid text-white rounded-full hover:bg-primary-strong transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                          className="absolute top-2 right-2 h-auto w-auto p-1.5 bg-tone-bad-solid text-primary-foreground rounded-full hover:bg-primary-strong transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                           title="Delete attachment"
                         >
                           {deletingAttachment === index ? (
@@ -737,7 +737,7 @@ export default function MaterialCardDetails() {
               <Button
                 type="button"
                 onClick={handleSaveChanges}
-                className="flex-1 h-auto py-3 bg-primary text-white rounded-lg hover:bg-primary-strong transition-colors text-sm font-medium disabled:opacity-100 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="flex-1 h-auto py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary-strong transition-colors text-sm font-medium disabled:opacity-100 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 disabled={submitting}
               >
                 {submitting ? (
@@ -769,7 +769,7 @@ export default function MaterialCardDetails() {
         <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
+            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground"
             onClick={() => navigate(-1)}
           >
             <ArrowLeft size={16} />
@@ -777,8 +777,8 @@ export default function MaterialCardDetails() {
           </Button>
 
           <div className="text-center pt-8">
-            <h1 className="text-white text-2xl font-bold mb-2">Transfer Details</h1>
-            <p className="text-white/80 text-sm">{transfer.siteTransferId}</p>
+            <h1 className="text-primary-foreground text-2xl font-bold mb-2">Transfer Details</h1>
+            <p className="text-primary-foreground/80 text-sm">{transfer.siteTransferId}</p>
           </div>
         </div>
 
@@ -940,14 +940,14 @@ export default function MaterialCardDetails() {
             <Button
               type="button"
               onClick={handleEdit}
-              className="flex-1 h-auto py-3 bg-primary text-white rounded-lg hover:bg-primary-strong transition-colors text-sm font-medium"
+              className="flex-1 h-auto py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary-strong transition-colors text-sm font-medium"
             >
               Edit
             </Button>
             <Button
               type="button"
               onClick={handleDelete}
-              className="flex-1 h-auto py-3 bg-tone-bad-solid text-white rounded-lg hover:bg-primary-strong transition-colors text-sm font-medium"
+              className="flex-1 h-auto py-3 bg-tone-bad-solid text-primary-foreground rounded-lg hover:bg-primary-strong transition-colors text-sm font-medium"
             >
               Delete
             </Button>

@@ -125,7 +125,7 @@ export default function MaterialTransferMobile() {
             <Button
               type="button"
               onClick={() => setShowFilter(true)}
-              className="h-auto px-3 py-1 bg-primary hover:bg-primary-strong text-white rounded-full text-xs sm:text-sm btn-shadow active:scale-95 transition-transform"
+              className="h-auto px-3 py-1 bg-primary hover:bg-primary-strong text-primary-foreground rounded-full text-xs sm:text-sm btn-shadow active:scale-95 transition-transform"
             >
               Filter
             </Button>
@@ -491,7 +491,7 @@ export default function MaterialTransferMobile() {
                   <Button
                     type="button"
                     onClick={saveForm}
-                    className="flex-1 h-auto px-6 py-3 bg-primary hover:bg-primary-strong text-white font-semibold rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200"
+                    className="flex-1 h-auto px-6 py-3 bg-primary hover:bg-primary-strong text-primary-foreground font-semibold rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200"
                   >
                     Done
                   </Button>
@@ -575,7 +575,7 @@ export default function MaterialTransferMobile() {
                   >
                     <Checkbox
                       id="cat-all"
-                      className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-white"
+                      className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-primary-foreground"
                     />
                     <span>All</span>
                   </label>
@@ -585,7 +585,7 @@ export default function MaterialTransferMobile() {
                   >
                     <Checkbox
                       id="cat-electrical"
-                      className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-white"
+                      className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-primary-foreground"
                     />
                     <span>Electrical</span>
                   </label>
@@ -601,7 +601,7 @@ export default function MaterialTransferMobile() {
                   >
                     <Checkbox
                       id="status-pending"
-                      className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-white"
+                      className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-primary-foreground"
                     />
                     <span>Pending</span>
                   </label>
@@ -611,7 +611,7 @@ export default function MaterialTransferMobile() {
                   >
                     <Checkbox
                       id="status-transferred"
-                      className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-white"
+                      className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-primary-foreground"
                     />
                     <span>Transferred</span>
                   </label>
@@ -631,7 +631,7 @@ export default function MaterialTransferMobile() {
               <Button
                 type="button"
                 onClick={() => setShowFilter(false)}
-                className="flex-1 h-auto px-3 py-2 rounded-xl bg-primary hover:bg-primary-strong text-white text-sm font-normal"
+                className="flex-1 h-auto px-3 py-2 rounded-xl bg-primary hover:bg-primary-strong text-primary-foreground text-sm font-normal"
               >
                 Apply
               </Button>

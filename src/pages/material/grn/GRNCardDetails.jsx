@@ -47,7 +47,7 @@ export default function GRNCardDetails() {
 
   const showToast = (message, type = 'success') => {
     const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-[9999] transition-opacity ${
+    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-primary-foreground z-[9999] transition-opacity ${
       type === 'success' ? 'bg-tone-ok-fg' : 'bg-tone-bad-solid'
     }`;
     toast.textContent = message;
@@ -141,7 +141,7 @@ export default function GRNCardDetails() {
           <p className="text-ink-3 text-sm mb-6">The requested GRN record could not be found</p>
           <Button
             onClick={() => navigate(-1)} 
-            className="h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-white px-6 py-3 rounded-xl font-semibold   transition-all shadow-md"
+            className="h-auto bg-primary text-primary-foreground hover:bg-primary-strong px-6 py-3 rounded-xl font-semibold   transition-all shadow-md"
           >
             Go Back
           </Button>
@@ -158,7 +158,7 @@ export default function GRNCardDetails() {
         <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
+            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground"
             onClick={() => navigate(-1)}
           >
             <ArrowLeft size={16} />
@@ -167,11 +167,11 @@ export default function GRNCardDetails() {
 
           <div className="text-center pt-8">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <CheckCircle size={24} className="text-white" />
-              <h1 className="text-white text-2xl font-bold">GRN Details</h1>
+              <CheckCircle size={24} className="text-primary-foreground" />
+              <h1 className="text-primary-foreground text-2xl font-bold">GRN Details</h1>
             </div>
-            <p className="text-white/90 text-sm font-medium">{delivery.transfer_number || delivery.st_id}</p>
-            <p className="text-white/70 text-xs mt-1">
+            <p className="text-primary-foreground/90 text-sm font-medium">{delivery.transfer_number || delivery.st_id}</p>
+            <p className="text-primary-foreground/70 text-xs mt-1">
               {delivery.type === 'PO' ? '📋 Vendor-wise PO' : '🚚 Site Transfer'}
             </p>
           </div>
@@ -391,7 +391,7 @@ export default function GRNCardDetails() {
                                 setSelectedImage(attachmentUrl);
                                 setShowImageModal(true);
                               }}
-                              className="w-full h-auto px-3 py-2 bg-primary text-white text-xs font-medium rounded hover:bg-primary-strong transition-colors flex items-center justify-center gap-1"
+                              className="w-full h-auto px-3 py-2 bg-primary text-primary-foreground text-xs font-medium rounded hover:bg-primary-strong transition-colors flex items-center justify-center gap-1"
                             >
                               <FileText size={14} />
                               View Full Size
@@ -446,7 +446,7 @@ export default function GRNCardDetails() {
             {/* Close Button */}
             <button
               onClick={() => setShowImageModal(false)}
-              className="absolute -top-12 right-0 text-white hover:text-ink-1 transition-colors"
+              className="absolute -top-12 right-0 text-primary-foreground hover:text-ink-1 transition-colors"
             >
               <X size={32} />
             </button>
@@ -464,7 +464,7 @@ export default function GRNCardDetails() {
               <a
                 href={selectedImage}
                 download
-                className="px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-strong transition-colors flex items-center gap-2"
+                className="px-6 py-3 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary-strong transition-colors flex items-center gap-2"
                 onClick={(e) => e.stopPropagation()}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

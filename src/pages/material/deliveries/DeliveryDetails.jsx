@@ -359,10 +359,10 @@ export default function DeliveryDetails() {
           </Button>
 
           <div className="text-center pt-8">
-            <h1 className="text-white text-2xl font-bold mb-2">
+            <h1 className="text-primary-foreground text-2xl font-bold mb-2">
               Delivery Details
             </h1>
-            <p className="text-white/80 text-sm">
+            <p className="text-primary-foreground/80 text-sm">
               {deliveryType} - {deliveryId}
             </p>
           </div>
@@ -373,7 +373,7 @@ export default function DeliveryDetails() {
             {validationError && (
               <div className="bg-tone-bad-soft border-2 border-tone-bad-border rounded-lg p-4 flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-tone-bad-solid flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-white font-bold text-sm">!</span>
+                  <span className="text-primary-foreground font-bold text-sm">!</span>
                 </div>
                 <div className="flex-1">
                   <p className="text-tone-bad-fg text-sm font-medium">
@@ -521,7 +521,7 @@ export default function DeliveryDetails() {
                               handleCheckbox(itemId, checked === true)
                             }
                             aria-label="Receive full remaining quantity"
-                            className="w-7 h-7 rounded-lg border-2 border-line-input data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-white [&_svg]:h-5 [&_svg]:w-5"
+                            className="w-7 h-7 rounded-lg border-2 border-line-input data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-primary-foreground [&_svg]:h-5 [&_svg]:w-5"
                           />
                         )}
                       </div>
@@ -633,7 +633,7 @@ export default function DeliveryDetails() {
                           size="icon"
                           aria-label="Remove delivery proof image"
                           onClick={() => removeImage(index)}
-                          className="absolute top-2 right-2 h-8 w-8 p-1 bg-tone-bad-solid text-white rounded-full hover:bg-primary-strong transition-colors"
+                          className="absolute top-2 right-2 h-8 w-8 p-1 bg-tone-bad-solid text-primary-foreground rounded-full hover:bg-primary-strong transition-colors"
                         >
                           <X size={14} />
                         </Button>
@@ -683,7 +683,7 @@ export default function DeliveryDetails() {
                   variant="ghost"
                   onClick={() => setIsEditMode(true)}
                   disabled={delivery.status === "Transferred"}
-                  className="h-auto flex-1 bg-primary text-white font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="h-auto flex-1 bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   Edit
                 </Button>
@@ -708,7 +708,7 @@ export default function DeliveryDetails() {
                   variant="ghost"
                   onClick={handleSubmit}
                   disabled={submitting}
-                  className="h-auto flex-1 bg-primary text-white font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:bg-orange-300 disabled:cursor-wait"
+                  className="h-auto flex-1 bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:bg-orange-300 disabled:cursor-wait"
                 >
                   {submitting ? "Submitting..." : "Submit"}
                 </Button>

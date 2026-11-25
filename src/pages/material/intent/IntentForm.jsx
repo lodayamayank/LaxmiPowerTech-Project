@@ -375,7 +375,7 @@ export default function IntentForm() {
         <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
+            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground"
             onClick={() => navigate(ROUTES.material.intent)}
             disabled={submitting}
           >
@@ -384,8 +384,8 @@ export default function IntentForm() {
           </Button>
 
           <div className="text-center pt-8">
-            <h1 className="text-white text-2xl font-bold mb-2">Create Intent (PO)</h1>
-            <p className="text-white/80 text-sm">Fill in the details below</p>
+            <h1 className="text-primary-foreground text-2xl font-bold mb-2">Create Intent (PO)</h1>
+            <p className="text-primary-foreground/80 text-sm">Fill in the details below</p>
           </div>
         </div>
 
@@ -450,7 +450,7 @@ export default function IntentForm() {
               <Button
                 type="button"
                 onClick={addMaterialRow}
-                className="w-full h-auto mb-4 py-3 bg-primary text-primary-foreground hover:bg-primary-strong text-white rounded-xl font-semibold text-sm   transition-all shadow-md hover:shadow-lg transform hover:scale-[1.02]"
+                className="w-full h-auto mb-4 py-3 bg-primary text-primary-foreground hover:bg-primary-strong rounded-xl font-semibold text-sm   transition-all shadow-md hover:shadow-lg transform hover:scale-[1.02]"
                 disabled={submitting}
               >
                 + Add Material
@@ -707,7 +707,7 @@ export default function IntentForm() {
                       <Button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute -top-2 -right-2 h-auto w-auto p-1.5 bg-tone-bad-solid text-white rounded-full hover:bg-primary-strong shadow-lg transition-all transform hover:scale-110"
+                        className="absolute -top-2 -right-2 h-auto w-auto p-1.5 bg-tone-bad-solid text-primary-foreground rounded-full hover:bg-primary-strong shadow-lg transition-all transform hover:scale-110"
                         disabled={submitting}
                       >
                         <X size={14} className="size-3.5" />
@@ -733,7 +733,7 @@ export default function IntentForm() {
                 type="submit"
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="flex-1 h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-white font-semibold py-3.5 rounded-xl   transition-all shadow-md hover:shadow-lg disabled:opacity-100 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transform hover:scale-[1.02]"
+                className="flex-1 h-auto bg-primary text-primary-foreground hover:bg-primary-strong font-semibold py-3.5 rounded-xl   transition-all shadow-md hover:shadow-lg disabled:opacity-100 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transform hover:scale-[1.02]"
               >
                 {submitting ? (
                   <span className="flex items-center justify-center gap-2">

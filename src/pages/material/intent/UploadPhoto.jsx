@@ -186,8 +186,8 @@ export default function UploadPhoto() {
           </Button>
 
           <div className="text-center pt-8">
-            <h1 className="text-white text-2xl font-bold mb-2">Upload Intent List</h1>
-            <p className="text-white/80 text-sm">{user?.name || 'User'}</p>
+            <h1 className="text-primary-foreground text-2xl font-bold mb-2">Upload Intent List</h1>
+            <p className="text-primary-foreground/80 text-sm">{user?.name || 'User'}</p>
           </div>
         </div>
 
@@ -250,7 +250,7 @@ export default function UploadPhoto() {
                 <Button
                   type="button"
                   onClick={() => cameraInputRef.current?.click()}
-                  className="w-full h-auto flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:bg-primary-strong text-white py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] [&_svg]:size-6"
+                  className="w-full h-auto flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:bg-primary-strong py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] [&_svg]:size-6"
                 >
                   <Camera size={24} />
                   <span className="text-lg font-bold">Take Photo</span>
@@ -260,7 +260,7 @@ export default function UploadPhoto() {
                 <Button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-auto flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:bg-primary-strong text-white py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] [&_svg]:size-6"
+                  className="w-full h-auto flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:bg-primary-strong py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] [&_svg]:size-6"
                 >
                   <FaImages size={24} />
                   <span className="text-lg font-bold">Choose from Gallery</span>
@@ -280,12 +280,12 @@ export default function UploadPhoto() {
                   size="icon"
                   aria-label="Remove image"
                   onClick={handleRemoveImage}
-                  className="absolute top-3 right-3 h-auto w-auto bg-tone-bad-solid text-white p-2 rounded-full hover:bg-primary-strong transition-all shadow-lg [&_svg]:size-5"
+                  className="absolute top-3 right-3 h-auto w-auto bg-tone-bad-solid text-primary-foreground p-2 rounded-full hover:bg-primary-strong transition-all shadow-lg [&_svg]:size-5"
                 >
                   <X size={20} />
                 </Button>
                 <div className="absolute bottom-0 left-0 right-0 bg-surface-subtle p-4">
-                  <p className="text-white text-sm font-medium">{selectedImage?.name}</p>
+                  <p className="text-primary-foreground text-sm font-medium">{selectedImage?.name}</p>
                 </div>
               </div>
             )}
@@ -296,7 +296,7 @@ export default function UploadPhoto() {
             type="button"
             onClick={handleSubmit}
             disabled={uploading || !indentId || !project || !selectedImage}
-            className="w-full h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-white text-base font-semibold py-4 rounded-xl   transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:pointer-events-auto disabled:cursor-not-allowed flex items-center justify-center gap-2 [&_svg]:size-5"
+            className="w-full h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-base font-semibold py-4 rounded-xl   transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:pointer-events-auto disabled:cursor-not-allowed flex items-center justify-center gap-2 [&_svg]:size-5"
           >
             {uploading ? (
               <>

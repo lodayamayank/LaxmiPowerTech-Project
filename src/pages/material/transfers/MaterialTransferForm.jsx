@@ -428,7 +428,7 @@ export default function MaterialTransferForm() {
   const showToast = (message, type = 'success') => {
     // Simple toast implementation - you can replace with a library like react-toastify
     const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-[9999] ${
+    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-primary-foreground z-[9999] ${
       type === 'success' ? 'bg-tone-ok-fg' : 'bg-tone-bad-solid'
     }`;
     toast.textContent = message;
@@ -569,8 +569,8 @@ export default function MaterialTransferForm() {
           </button>
 
           <div className="text-center pt-8">
-            <h1 className="text-white text-2xl font-bold mb-2">Create Site Transfer</h1>
-            <p className="text-white/80 text-sm">Fill in the details below</p>
+            <h1 className="text-primary-foreground text-2xl font-bold mb-2">Create Site Transfer</h1>
+            <p className="text-primary-foreground/80 text-sm">Fill in the details below</p>
           </div>
         </div>
 
@@ -682,7 +682,7 @@ export default function MaterialTransferForm() {
                 className={`w-full mb-4 py-3 rounded-xl font-semibold text-sm transition-all shadow-md ${
                   !formData.fromSite || grnMaterials.length === 0
                     ? 'bg-surface-muted text-ink-3 cursor-not-allowed'
-                    : 'bg-primary text-primary-foreground hover:bg-primary-strong text-white   hover:shadow-lg transform hover:scale-[1.02]'
+                    : 'bg-primary text-primary-foreground hover:bg-primary-strong   hover:shadow-lg transform hover:scale-[1.02]'
                 }`}
                 disabled={submitting || !formData.fromSite || grnMaterials.length === 0}
                 title={!formData.fromSite ? 'Please select From Site first' : grnMaterials.length === 0 ? 'No materials available in GRN' : 'Add material'}
@@ -942,7 +942,7 @@ export default function MaterialTransferForm() {
                             const updatedAttachments = attachments.filter((_, i) => i !== index);
                             setAttachments(updatedAttachments);
                           }}
-                          className="absolute -top-2 -right-2 p-1.5 bg-tone-bad-solid text-white rounded-full hover:bg-primary-strong shadow-lg transition-all transform hover:scale-110"
+                          className="absolute -top-2 -right-2 p-1.5 bg-tone-bad-solid text-primary-foreground rounded-full hover:bg-primary-strong shadow-lg transition-all transform hover:scale-110"
                           disabled={submitting}
                         >
                           <X size={14} />
@@ -967,7 +967,7 @@ export default function MaterialTransferForm() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 bg-primary text-primary-foreground hover:bg-primary-strong text-white font-semibold py-3.5 rounded-xl   transition-all shadow-md hover:shadow-lg disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transform hover:scale-[1.02]"
+                className="flex-1 bg-primary text-primary-foreground hover:bg-primary-strong font-semibold py-3.5 rounded-xl   transition-all shadow-md hover:shadow-lg disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transform hover:scale-[1.02]"
               >
                 {submitting ? (
                   <span className="flex items-center justify-center gap-2">

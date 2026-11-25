@@ -56,7 +56,7 @@ export default function AddIndentPopup({ onClose }) {
           className="h-auto justify-start gap-4 rounded-xl bg-gradient-to-r from-orange-50 to-orange-100 p-4 text-left hover:from-orange-100 hover:to-orange-200"
         >
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 shadow-md">
-            <ShoppingCart size={22} className="text-white" />
+            <ShoppingCart size={22} className="text-primary-foreground" />
           </div>
 
           <div className="flex-1">
@@ -77,7 +77,7 @@ export default function AddIndentPopup({ onClose }) {
           className="h-auto justify-start gap-4 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 p-4 text-left hover:from-blue-100 hover:to-blue-200"
         >
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
-            <Upload size={22} className="text-white" />
+            <Upload size={22} className="text-primary-foreground" />
           </div>
 
           <div className="flex-1">

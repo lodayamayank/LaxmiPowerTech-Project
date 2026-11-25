@@ -282,7 +282,7 @@ export default function IntentCardDetails() {
   // Toast notification helper
   const showToast = (message, type = 'success') => {
     const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-[9999] transition-opacity ${
+    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-primary-foreground z-[9999] transition-opacity ${
       type === 'success' ? 'bg-tone-ok-fg' : 'bg-tone-bad-solid'
     }`;
     toast.textContent = message;
@@ -541,7 +541,7 @@ export default function IntentCardDetails() {
           <p className="text-ink-3 text-sm mb-6">The requested intent could not be found</p>
           <Button
             onClick={() => navigate(-1)} 
-            className="h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-white px-6 py-3 rounded-xl font-semibold   transition-all shadow-md"
+            className="h-auto bg-primary text-primary-foreground hover:bg-primary-strong px-6 py-3 rounded-xl font-semibold   transition-all shadow-md"
           >
             Go Back
           </Button>
@@ -575,7 +575,7 @@ export default function IntentCardDetails() {
         <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
+            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground"
             onClick={() => navigate(-1)}
           >
             <ArrowLeft size={16} />
@@ -583,8 +583,8 @@ export default function IntentCardDetails() {
           </Button>
 
           <div className="text-center pt-8">
-            <h1 className="text-white text-2xl font-bold mb-2">Intent Details</h1>
-            <p className="text-white/80 text-sm">{itemType === 'indent' ? indent.indentId : purchaseOrder.purchaseOrderId}</p>
+            <h1 className="text-primary-foreground text-2xl font-bold mb-2">Intent Details</h1>
+            <p className="text-primary-foreground/80 text-sm">{itemType === 'indent' ? indent.indentId : purchaseOrder.purchaseOrderId}</p>
           </div>
         </div>
 
@@ -641,7 +641,7 @@ export default function IntentCardDetails() {
                       type="text"
                       value={formData.requestedBy}
                       disabled
-                      className="h-auto w-full px-3 py-2 bg-ink-3 text-white border-0 rounded-lg text-sm cursor-not-allowed disabled:opacity-75"
+                      className="h-auto w-full px-3 py-2 bg-ink-3 text-primary-foreground border-0 rounded-lg text-sm cursor-not-allowed disabled:opacity-75"
                     />
                   ) : (
                     <p className="font-medium text-ink-1">{purchaseOrder.requestedBy}</p>
@@ -1003,7 +1003,7 @@ export default function IntentCardDetails() {
                       type="button"
                       onClick={() => handleDeleteAttachment(index)}
                       disabled={deletingAttachment === index}
-                      className="absolute top-1 right-1 h-auto w-auto p-1 bg-tone-bad-solid hover:bg-primary-strong text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 h-auto w-auto p-1 bg-tone-bad-solid hover:bg-primary-strong rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X size={14} className="size-3.5" />
                     </Button>
@@ -1075,7 +1075,7 @@ export default function IntentCardDetails() {
               <Button
                 type="button"
                 onClick={handleSaveChanges}
-                className="flex-1 h-auto bg-primary text-white font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:opacity-100 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="flex-1 h-auto bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:opacity-100 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 disabled={submitting}
               >
                 {submitting ? (
@@ -1096,14 +1096,14 @@ export default function IntentCardDetails() {
               <Button
                 type="button"
                 onClick={handleEdit}
-                className="flex-1 h-auto bg-primary text-white font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md"
+                className="flex-1 h-auto bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md"
               >
                 Edit
               </Button>
               <Button
                 type="button"
                 onClick={handleDelete}
-                className="flex-1 h-auto bg-tone-bad-solid text-white font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md"
+                className="flex-1 h-auto bg-tone-bad-solid text-primary-foreground font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md"
               >
                 Delete
               </Button>

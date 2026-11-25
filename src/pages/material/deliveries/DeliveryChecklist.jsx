@@ -168,7 +168,7 @@ export default function DeliveryChecklist() {
     // Toast notification helper
     const showToast = (message, type = 'success') => {
         const toast = document.createElement('div');
-        toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-[9999] transition-opacity ${
+        toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-primary-foreground z-[9999] transition-opacity ${
             type === 'success' ? 'bg-tone-ok-fg' : 'bg-tone-bad-solid'
         }`;
         toast.textContent = message;
@@ -319,15 +319,15 @@ export default function DeliveryChecklist() {
                     <Button
                         variant="ghost"
                         onClick={() => navigate(-1)}
-                        className="mobile-back-button absolute top-6 left-6 text-white hover:bg-primary-strong"
+                        className="mobile-back-button absolute top-6 left-6 text-primary-foreground hover:bg-primary-strong"
                     >
                         <ArrowLeft size={16} />
                         <span className="text-sm font-medium">Back</span>
                     </Button>
 
                     <div className="text-center pt-8">
-                        <h1 className="text-white text-2xl font-bold mb-2">Delivery Checklist</h1>
-                        <p className="text-white/80 text-sm">{delivery.transfer_number}</p>
+                        <h1 className="text-primary-foreground text-2xl font-bold mb-2">Delivery Checklist</h1>
+                        <p className="text-primary-foreground/80 text-sm">{delivery.transfer_number}</p>
                     </div>
                 </div>
 
@@ -401,7 +401,7 @@ export default function DeliveryChecklist() {
                             <h3 className="text-base font-bold text-ink-1">
                                 Delivery Receipts ({delivery.attachments?.length || 0})
                             </h3>
-                            <label className="px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-strong transition-colors cursor-pointer flex items-center gap-2 text-xs font-semibold shadow-sm">
+                            <label className="px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary-strong transition-colors cursor-pointer flex items-center gap-2 text-xs font-semibold shadow-sm">
                                 <Upload size={14} />
                                 {uploadingReceipt ? 'Uploading...' : 'Upload'}
                                 <input
@@ -453,7 +453,7 @@ export default function DeliveryChecklist() {
                                                     aria-label="Delete attachment"
                                                     onClick={() => handleDeleteAttachment(index)}
                                                     disabled={deletingAttachment === index}
-                                                    className="absolute top-2 right-2 p-1.5 bg-tone-bad-solid text-white rounded-full hover:bg-primary-strong transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                                                    className="absolute top-2 right-2 p-1.5 bg-tone-bad-solid text-primary-foreground rounded-full hover:bg-primary-strong transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                                                     title="Delete attachment"
                                                 >
                                                     {deletingAttachment === index ? (
@@ -523,7 +523,7 @@ export default function DeliveryChecklist() {
                                   ? "Already fully received"
                                   : "Fill remaining quantity"
                               }
-                              className="w-6 h-6 mt-1 border-line-input data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-white"
+                              className="w-6 h-6 mt-1 border-line-input data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-primary-foreground"
                             />
                           </div>
 
@@ -600,7 +600,7 @@ export default function DeliveryChecklist() {
                     <Button
                         onClick={handleSubmit}
                         disabled={submitting || Object.keys(validationErrors).length > 0}
-                        className="w-full py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-strong disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors shadow-md"
+                        className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary-strong disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors shadow-md"
                     >
                         {submitting ? "Submitting..." : "Submit Changes"}
                     </Button>

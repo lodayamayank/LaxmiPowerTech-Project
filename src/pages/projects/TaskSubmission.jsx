@@ -505,8 +505,8 @@ const TaskSubmission = () => {
           </div>
 
           <div className="mt-6">
-            <h2 className="text-white text-2xl font-bold">Task Submission</h2>
-            <p className="text-white/80 text-sm mt-1">
+            <h2 className="text-primary-foreground text-2xl font-bold">Task Submission</h2>
+            <p className="text-primary-foreground/80 text-sm mt-1">
               {selectedBranchName || "Submit work progress"}
             </p>
           </div>
@@ -520,7 +520,7 @@ const TaskSubmission = () => {
               {/* Project Selector Dropdown */}
               {availableProjects.length > 1 && (
                 <div className="p-4 bg-primary text-primary-foreground hover:bg-primary-strong rounded-xl shadow-lg">
-                  <Label className="text-white text-xs font-semibold mb-2 block">
+                  <Label className="text-primary-foreground text-xs font-semibold mb-2 block">
                     🏗️ SELECT PROJECT
                   </Label>
                   <Select
@@ -532,7 +532,7 @@ const TaskSubmission = () => {
                       if (project) handleProjectChange(project);
                     }}
                   >
-                    <SelectTrigger className="w-full h-12 rounded-lg border-2 border-white/30 bg-surface/80 backdrop-blur-sm text-white font-semibold focus:ring-0 focus:border-white/50 focus:bg-white/20 [&_svg]:text-white [&_svg]:opacity-80">
+                    <SelectTrigger className="w-full h-12 rounded-lg border-2 border-white/30 bg-surface/80 backdrop-blur-sm text-primary-foreground font-semibold focus:ring-0 focus:border-white/50 focus:bg-white/20 [&_svg]:text-primary-foreground [&_svg]:opacity-80">
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
@@ -543,7 +543,7 @@ const TaskSubmission = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-white/70 text-xs mt-2">
+                  <p className="text-primary-foreground/70 text-xs mt-2">
                     {availableProjects.length} projects available in{" "}
                     {selectedBranchName}
                   </p>
@@ -554,15 +554,15 @@ const TaskSubmission = () => {
               <div className="p-3 bg-primary text-primary-foreground hover:bg-primary-strong rounded-xl shadow-md">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white text-sm font-semibold">
+                    <p className="text-primary-foreground text-sm font-semibold">
                       📍 {projectName}
                     </p>
-                    <p className="text-white/80 text-xs mt-0.5">
+                    <p className="text-primary-foreground/80 text-xs mt-0.5">
                       {selectedBranchName}
                     </p>
                   </div>
                   {availableProjects.length === 1 && (
-                    <Badge className="bg-surface/80 text-white text-xs rounded-full hover:bg-white/20">
+                    <Badge className="bg-surface/80 text-primary-foreground text-xs rounded-full hover:bg-white/20">
                       1 Project
                     </Badge>
                   )}
@@ -597,7 +597,7 @@ const TaskSubmission = () => {
                                 checked === true ? hierarchy.buildings : []
                               );
                             }}
-                            className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 data-[state=checked]:text-white"
+                            className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 data-[state=checked]:text-primary-foreground"
                           />
                           <span className="text-sm font-semibold text-ink-2">
                             All Buildings
@@ -627,7 +627,7 @@ const TaskSubmission = () => {
                                         )
                                   );
                                 }}
-                                className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 data-[state=checked]:text-white"
+                                className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 data-[state=checked]:text-primary-foreground"
                               />
                               <span className="text-sm font-normal text-ink-2">
                                 {building.name}
@@ -712,7 +712,7 @@ const TaskSubmission = () => {
                     }
                     setShowAddTaskModal(true);
                   }}
-                  className="w-full h-auto flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:bg-primary-strong text-white text-base px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+                  className="w-full h-auto flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:bg-primary-strong text-base px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
                 >
                   <Plus size={20} />
                   <span>Add New Task</span>
@@ -728,7 +728,7 @@ const TaskSubmission = () => {
                   <Button
                     type="button"
                     onClick={() => setShowHistory(!showHistory)}
-                    className="h-auto px-4 py-2 bg-primary text-primary-foreground hover:bg-primary-strong text-white text-sm font-medium rounded-lg   transition-all shadow-sm"
+                    className="h-auto px-4 py-2 bg-primary text-primary-foreground hover:bg-primary-strong text-sm font-medium rounded-lg   transition-all shadow-sm"
                   >
                     {showHistory ? "Show Less" : "Show All"}
                   </Button>
@@ -836,9 +836,9 @@ const TaskSubmission = () => {
             if (!open) resetForm();
           }}
         >
-          <DialogContent className="w-[calc(100%-2rem)] max-w-md sm:max-w-md p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col rounded-2xl [&>button]:text-white [&>button]:opacity-100 [&>button]:top-4 [&>button]:right-4 [&>button:hover]:bg-white/20">
+          <DialogContent className="w-[calc(100%-2rem)] max-w-md sm:max-w-md p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col rounded-2xl [&>button]:text-primary-foreground [&>button]:opacity-100 [&>button]:top-4 [&>button]:right-4 [&>button:hover]:bg-white/20">
             <DialogHeader className="shrink-0 bg-primary text-primary-foreground hover:bg-primary-strong px-6 py-4 text-left space-y-0">
-              <DialogTitle className="text-white text-xl font-bold">
+              <DialogTitle className="text-primary-foreground text-xl font-bold">
                 Add New Task
               </DialogTitle>
               <DialogDescription className="sr-only">
@@ -1146,7 +1146,7 @@ const TaskSubmission = () => {
                 <Button
                   type="submit"
                   disabled={isSubmitDisabled}
-                  className="w-full h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-white text-base py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-base py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
@@ -1176,9 +1176,9 @@ const TaskSubmission = () => {
               }
             }}
           >
-            <DialogContent className="w-[calc(100%-2rem)] max-w-2xl sm:max-w-2xl p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col rounded-2xl [&>button]:text-white [&>button]:opacity-100 [&>button]:top-4 [&>button]:right-4 [&>button:hover]:bg-white/20">
+            <DialogContent className="w-[calc(100%-2rem)] max-w-2xl sm:max-w-2xl p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col rounded-2xl [&>button]:text-primary-foreground [&>button]:opacity-100 [&>button]:top-4 [&>button]:right-4 [&>button:hover]:bg-white/20">
               <DialogHeader className="shrink-0 bg-primary text-primary-foreground hover:bg-primary-strong px-6 py-4 text-left space-y-0">
-                <DialogTitle className="text-white text-xl font-bold">
+                <DialogTitle className="text-primary-foreground text-xl font-bold">
                   Task Details
                 </DialogTitle>
                 <DialogDescription className="sr-only">
@@ -1327,7 +1327,7 @@ const TaskSubmission = () => {
                           })
                         }
                         disabled={updatingStatus}
-                        className="flex-1 py-3 h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-white rounded-xl font-semibold   shadow-md"
+                        className="flex-1 py-3 h-auto bg-primary text-primary-foreground hover:bg-primary-strong rounded-xl font-semibold   shadow-md"
                       >
                         ✓ Accept Task
                       </Button>
@@ -1339,7 +1339,7 @@ const TaskSubmission = () => {
                           })
                         }
                         disabled={updatingStatus}
-                        className="flex-1 py-3 h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-white rounded-xl font-semibold   shadow-md"
+                        className="flex-1 py-3 h-auto bg-primary text-primary-foreground hover:bg-primary-strong rounded-xl font-semibold   shadow-md"
                       >
                         ✗ Reject Task
                       </Button>
@@ -1405,8 +1405,8 @@ const TaskSubmission = () => {
                 }}
                 className={
                   confirmAction?.status === "approved"
-                    ? "bg-tone-ok-fg hover:bg-primary-strong text-white"
-                    : "bg-tone-bad-solid hover:bg-primary-strong text-white"
+                    ? "bg-tone-ok-fg hover:bg-primary-strong"
+                    : "bg-tone-bad-solid hover:bg-primary-strong"
                 }
               >
                 {updatingStatus
