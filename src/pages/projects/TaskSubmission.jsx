@@ -7,7 +7,7 @@ import { fetchProjectsCached } from '@/hooks/useProjects';
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "@/api/client";
 import { submitOffline } from "@/pwa/offlineSubmit";
-import Logo from "@/components/common/Logo";
+import MobilePage from "@/layouts/mobile/MobilePage";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -488,32 +488,9 @@ const TaskSubmission = () => {
   const labelClass = "block text-sm font-semibold text-ink-2 mb-2";
 
   return (
-    <div className="min-h-screen bg-tone-highlight-soft">
-      <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
-        {/* Header */}
-        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
-          <div className="flex items-center justify-between mb-4">
-            <Logo width={179} height={64} priority plate={false} className="h-16 w-50 bg-logo-plate box-shadow rounded-2xl" />
-            <Button
-              variant="ghost"
-              onClick={() => navigate(-1)}
-              className="mobile-back-button px-4 py-2"
-            >
-              <ArrowLeft size={14} />
-              <span className="text-sm font-medium">Back</span>
-            </Button>
-          </div>
-
-          <div className="mt-6">
-            <h2 className="text-primary-foreground text-2xl font-bold">Task Submission</h2>
-            <p className="text-primary-foreground/80 text-sm mt-1">
-              {selectedBranchName || "Submit work progress"}
-            </p>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="px-6 py-6 -mt-4">
+    <MobilePage title="Tasks" back onBack={() => navigate(-1)} tabs="manager">
+      <p className="-mb-1 text-small text-ink-3">{selectedBranchName || "Submit work progress"}</p>
+      <div className="flex flex-col gap-3.5">
           {/* Project Selection & Info */}
           {projectName && (
             <div className="mb-4 space-y-3">
@@ -1418,8 +1395,7 @@ const TaskSubmission = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
-    </div>
+    </MobilePage>
   );
 };
 
