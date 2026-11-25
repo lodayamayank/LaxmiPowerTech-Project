@@ -6,6 +6,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import axios from "@/api/client";
 import { getToken } from "@/lib/session";
+import { fetchUsersCached } from "@/hooks/useUsers";
 
 const pad = (n) => String(n).padStart(2, "0");
 const localDay = (v) => {
@@ -55,16 +56,99 @@ export default function useAdminDashboard() {
     }
   }, [role, month, year, startDate, endDate, token, auth]);
 
-  // All dashboard numbers come from one summary route
+  // The dashboard numbers are worked out in the browser from endpoints that already exist (there is no dedicated
+  // summary route): today's live status of everyone, the last 7 days of attendance records, the users with their
+  // assigned branches and the pending-leave count. Each source is optional: if one fails, only its numbers are empty.
   useEffect(() => {
-    if (!token) return;
-    axios
-      .get("/attendance/dashboard-summary", { headers: auth })
-      .then((res) => setSummary(res.data))
-      .catch((err) => {
-        console.error("Failed to fetch dashboard summary", err);
+    if (!token) return undefined;
+    let ignore = false;
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      return d;
+    });
+    Promise.allSettled([
+      axios.get("/attendance/live", { headers: auth }),
+      axios.get("/attendance", { headers: auth, params: { startDate: localDay(days[0]), endDate: localDay(days[6]) } }),
+      axios.get("/leaves/pending-count", { headers: auth }),
+      fetchUsersCached(),
+    ]).then(([liveRes, weekRes, leavesRes, usersRes]) => {
+      if (ignore) return;
+      const live = liveRes.status === "fulfilled" && Array.isArray(liveRes.value.data) ? liveRes.value.data : null;
+      if (!live) {
+        console.error("Failed to fetch live attendance for the dashboard", liveRes.reason);
         setSummary(null);
+        return;
+      }
+      const records = weekRes.status === "fulfilled" ? (Array.isArray(weekRes.value.data) ? weekRes.value.data : weekRes.value.data?.rows || []) : [];
+      const users = usersRes.status === "fulfilled" ? usersRes.value : [];
+
+      const known = live.length;
+      const isLeave = (st) => st === "paidleave" || st === "unpaidleave";
+      const present = live.filter((u) => u.status === "in" || u.status === "out").length;
+      const onLeave = live.filter((u) => isLeave(u.status)).length;
+      const absent = live.filter((u) => u.status === "no_punch").length;
+
+      // Per day: who punched / was on leave / was marked week off, from the records.
+      const byDay = new Map(days.map((d) => [localDay(d), { present: new Set(), leave: new Set(), off: new Set(), ins: new Set(), outs: new Set() }]));
+      records.forEach((r) => {
+        const day = byDay.get(localDay(r.createdAt));
+        const id = r.user?._id;
+        if (!day || !id) return;
+        if (["in", "out", "half", "overtime"].includes(r.punchType)) day.present.add(id);
+        if (r.punchType === "in") day.ins.add(id);
+        if (r.punchType === "out") day.outs.add(id);
+        if (["leave", "paidleave", "unpaidleave"].includes(r.punchType)) day.leave.add(id);
+        if (r.punchType === "weekoff") day.off.add(id);
       });
+      const weekly = days.map((d, i) => {
+        const v = byDay.get(localDay(d));
+        const isToday = i === days.length - 1;
+        const p = isToday ? present : v.present.size;
+        const l = isToday ? onLeave : v.leave.size;
+        return {
+          label: d.toLocaleDateString("en-US", { weekday: "short" }),
+          present: p,
+          late: 0,
+          absent: isToday ? absent : Math.max(0, known - p - l - v.off.size),
+        };
+      });
+      const yday = byDay.get(localDay(days[5]));
+      const incompletePunchOut = [...yday.ins].filter((id) => !yday.outs.has(id)).length;
+
+      // Branch rows: everyone assigned to a branch vs. those of them who are in/out today.
+      const status = new Map(live.map((u) => [String(u._id), u.status]));
+      const perBranch = new Map();
+      users.forEach((u) => {
+        (u.assignedBranches || []).forEach((b) => {
+          const name = b?.name;
+          if (!name) return;
+          const row = perBranch.get(name) || { name, employees: 0, present: 0 };
+          row.employees += 1;
+          const st = status.get(String(u._id));
+          if (st === "in" || st === "out") row.present += 1;
+          perBranch.set(name, row);
+        });
+      });
+      const branches = [...perBranch.values()]
+        .map((b) => ({ ...b, attendance: b.employees ? Math.round((b.present / b.employees) * 1000) / 10 : 0 }))
+        .sort((a, b) => b.employees - a.employees);
+
+      setSummary({
+        totalEmployees: known,
+        present,
+        absent,
+        onLeave,
+        pendingLeaves: leavesRes.status === "fulfilled" ? Number(leavesRes.value.data?.count) || 0 : 0,
+        attention: { incompletePunchOut },
+        yesterday: { present: weekly[5].present, absent: weekly[5].absent },
+        weekly,
+        branches,
+      });
+    });
+    return () => {
+      ignore = true;
+    };
   }, [token, auth]);
 
   useEffect(() => {
@@ -74,7 +158,7 @@ export default function useAdminDashboard() {
     setCurrentPage(1);
   }, [role, month, year, startDate, endDate, searchStaff, itemsPerPage]);
 
-  /* ----- dashboard metrics (from /attendance/dashboard-summary) ----- */
+  /* ----- dashboard metrics (worked out above from the existing endpoints) ----- */
   const stats = useMemo(() => {
     const d = summary || {};
     const y = d.yesterday || {};
@@ -85,21 +169,21 @@ export default function useAdminDashboard() {
       known: d.totalEmployees ?? 0,
       present: d.present ?? 0,
       absent: d.absent ?? 0,
-      late: d.late ?? 0,
+      onLeave: d.onLeave ?? 0,
       pendingLeaves: d.pendingLeaves ?? 0,
       incomplete: d.attention?.incompletePunchOut ?? 0,
       pctPresent: pct(d.present, d.totalEmployees),
       pctAbsent: pct(d.absent, d.totalEmployees),
-      pctLate: pct(d.late, d.present),
+      pctOnLeave: pct(d.onLeave, d.totalEmployees),
       trends: {
         present: trend(d.present, y.present),
         absent: trend(d.absent, y.absent),
-        late: trend(d.late, y.late),
+        onLeave: null,
       },
       days: (d.weekly || []).map((w) => ({
         label: w.label,
         present: Math.max(0, w.present - w.late), // chart stacks on-time + late
-        late: w.late,
+        late: 0,
         absent: w.absent,
       })),
       branches: (d.branches || []).map((b) => ({

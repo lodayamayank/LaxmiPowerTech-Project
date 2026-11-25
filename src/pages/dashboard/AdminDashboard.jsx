@@ -41,7 +41,6 @@ const PUNCH_TYPES = {
 const CHART = [
   ["bg-tone-ok-fg", "Present"],
   ["bg-tone-bad-fg", "Absent"],
-  ["bg-tone-warn-fg", "Late"],
 ];
 
 const greeting = () => {
@@ -58,7 +57,7 @@ const currentUserName = () => {
 };
 
 const WeeklyChart = ({ days }) => {
-  const max = Math.max(1, ...days.map((d) => d.present + d.absent + d.late));
+  const max = Math.max(1, ...days.map((d) => d.present + d.absent));
   const ticks = [1, 0.75, 0.5, 0.25, 0].map((t) => Math.round(max * t));
   return (
     <div>
@@ -70,10 +69,9 @@ const WeeklyChart = ({ days }) => {
         </div>
         <div className="grid h-44 flex-1 grid-cols-7 items-end gap-3 border-b border-line">
           {days.map((d) => (
-            <div key={d.label} className="mx-auto flex h-full w-full max-w-14 flex-col-reverse justify-start" title={`${d.label}: ${d.present} present, ${d.absent} absent, ${d.late} late`}>
+            <div key={d.label} className="mx-auto flex h-full w-full max-w-14 flex-col-reverse justify-start" title={`${d.label}: ${d.present} present, ${d.absent} absent`}>
               <div className="rounded-b-sm bg-tone-ok-fg" style={{ height: `${(d.present / max) * 100}%` }} />
-              <div className="bg-tone-bad-fg" style={{ height: `${(d.absent / max) * 100}%` }} />
-              <div className="rounded-t-sm bg-tone-warn-fg" style={{ height: `${(d.late / max) * 100}%` }} />
+              <div className="rounded-t-sm bg-tone-bad-fg" style={{ height: `${(d.absent / max) * 100}%` }} />
             </div>
           ))}
         </div>
@@ -214,7 +212,7 @@ const AdminDashboard = () => {
           sub={stats.present ? `${stats.pctPresent.toFixed(1)}% attendance${stats.trends.present != null ? ` · ${stats.trends.present >= 0 ? "↑" : "↓"} ${Math.abs(stats.trends.present)}% vs yesterday` : ""}` : "No punches yet today"}
         />
         <StatCard icon={UserX} tone="bad" label="Absent today" value={stats.absent} sub={`${stats.pctAbsent.toFixed(1)}% of employees${stats.trends.absent != null ? ` · ${stats.trends.absent >= 0 ? "↑" : "↓"} ${Math.abs(stats.trends.absent)}%` : ""}`} />
-        <StatCard icon={Clock} tone="warn" label="Late arrivals" value={stats.late} sub={`${stats.pctLate.toFixed(1)}% of present${stats.trends.late != null ? ` · ${stats.trends.late >= 0 ? "↑" : "↓"} ${Math.abs(stats.trends.late)}%` : ""}`} />
+                <StatCard icon={Clock} tone="warn" label="On leave today" value={stats.onLeave} sub={`${stats.pctOnLeave.toFixed(1)}% of employees`} />
         <StatCard icon={CalendarCheck} tone="warn" label="Pending leaves" value={stats.pendingLeaves} sub={extra.reimbursements ? `${extra.reimbursements} reimbursement${extra.reimbursements === 1 ? "" : "s"} also pending` : "Awaiting approval"} />
         <StatCard icon={Package} tone="info" label="Open deliveries" value={extra.deliveries.open} sub="Awaiting GRN" />
       </div>
@@ -261,7 +259,7 @@ const AdminDashboard = () => {
         </SectionCard>
       </div>
 
-      <SectionCard title="Weekly attendance overview" description="Present, absent and late employees over the last 7 days">
+      <SectionCard title="Weekly attendance overview" description="Present and absent employees over the last 7 days">
         <WeeklyChart days={stats.days} />
       </SectionCard>
 
