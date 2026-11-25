@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, CircleCheck, History, Image, LoaderCircle, Plus } from 'lucide-react';
+import { Camera, CircleCheck, History, Image, LoaderCircle, Plus } from 'lucide-react';
 import { ROLES } from '@/lib/constants';
 import { getSelectedBranchName } from '@/lib/branchContext';
 import { getUser } from '@/lib/session';
@@ -813,10 +813,10 @@ const TaskSubmission = () => {
             if (!open) resetForm();
           }}
         >
-          <DialogContent className="w-[calc(100%-2rem)] max-w-md sm:max-w-md p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col rounded-2xl [&>button]:text-primary-foreground [&>button]:opacity-100 [&>button]:top-4 [&>button]:right-4 [&>button:hover]:bg-white/20">
-            <DialogHeader className="shrink-0 bg-primary text-primary-foreground hover:bg-primary-strong px-6 py-4 text-left space-y-0">
-              <DialogTitle className="text-primary-foreground text-xl font-bold">
-                Add New Task
+          <DialogContent className="!top-0 !translate-y-0 h-[100dvh] w-full max-w-md sm:max-w-md p-0 gap-0 overflow-hidden flex flex-col rounded-none border-0">
+            <DialogHeader className="shrink-0 border-b border-line-card bg-surface px-4 py-3.5 pr-12 text-left space-y-0">
+              <DialogTitle className="text-[17px] font-semibold text-ink-1">
+                New task
               </DialogTitle>
               <DialogDescription className="sr-only">
                 Select the work location, upload a photo and submit the task.
@@ -910,7 +910,6 @@ const TaskSubmission = () => {
                     <FieldSelect
                       value={selectedPodium?._id}
                       placeholder="Select Podium"
-                      triggerClassName="bg-tone-warn-soft"
                       items={getPodiums().map((p) => ({
                         value: p._id,
                         label: `${p.name}${
@@ -933,7 +932,6 @@ const TaskSubmission = () => {
                     <FieldSelect
                       value={selectedCommonArea?._id}
                       placeholder="Select Common Area"
-                      triggerClassName="bg-tone-info-soft"
                       items={getCommonAreas().map((a) => ({
                         value: a._id,
                         label: `${a.name}${
@@ -956,7 +954,6 @@ const TaskSubmission = () => {
                     <FieldSelect
                       value={selectedStaircase?._id}
                       placeholder="Select Staircase"
-                      triggerClassName="bg-tone-purple-soft"
                       items={getStaircases().map((s) => ({
                         value: s._id,
                         label: `${s.name}${s.type ? ` - ${s.type}` : ""}`,
@@ -982,7 +979,6 @@ const TaskSubmission = () => {
                     <FieldSelect
                       value={selectedLevel3Activity || NO_ACTIVITY}
                       placeholder="Skip / No Activity"
-                      triggerClassName="bg-tone-info-soft"
                       items={[
                         { value: NO_ACTIVITY, label: "Skip / No Activity" },
                         ...LEVEL_3_ACTIVITIES.map((a) => ({
@@ -1084,15 +1080,30 @@ const TaskSubmission = () => {
                     onChange={handlePhotoChange}
                     className="hidden"
                   />
-                  <Label
-                    htmlFor="photo-upload"
-                    className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-line-input rounded-xl cursor-pointer hover:border-primary transition-colors"
-                  >
-                    <Image className="text-ink-4" />
-                    <span className="text-sm font-normal text-ink-3 truncate">
-                      {photo ? photo.name : "Choose photo"}
-                    </span>
-                  </Label>
+                  <Input
+                    key={`cam-${fileInputKey}`}
+                    id="photo-camera"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handlePhotoChange}
+                    className="hidden"
+                  />
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <Label
+                      htmlFor="photo-camera"
+                      className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[10px] bg-primary text-[15px] font-semibold text-primary-foreground"
+                    >
+                      <Camera className="size-[18px]" /> Take photo
+                    </Label>
+                    <Label
+                      htmlFor="photo-upload"
+                      className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-line-input bg-surface text-[15px] font-semibold text-ink-1"
+                    >
+                      <Image className="size-[18px]" /> From gallery
+                    </Label>
+                  </div>
+                  {photo ? <p className="mt-2 truncate text-small text-ink-3">{photo.name}</p> : null}
                   {photoPreview && (
                     <div className="mt-3">
                       <img loading="lazy" decoding="async"
@@ -1120,10 +1131,12 @@ const TaskSubmission = () => {
                 </div>
 
                 {/* Submit Button */}
+                <div className="sticky bottom-0 -mx-6 -mb-6 border-t border-line-card bg-surface p-4">
                 <Button
                   type="submit"
+                  size="xl"
                   disabled={isSubmitDisabled}
-                  className="w-full h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-base py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full"
                 >
                   {submitting ? (
                     <>
@@ -1133,10 +1146,11 @@ const TaskSubmission = () => {
                   ) : (
                     <>
                       <CircleCheck size={18} />
-                      <span>Submit Task</span>
+                      <span>{photo ? "Submit task" : "Add a photo to submit"}</span>
                     </>
                   )}
                 </Button>
+                </div>
               </form>
             </div>
           </DialogContent>
@@ -1153,9 +1167,9 @@ const TaskSubmission = () => {
               }
             }}
           >
-            <DialogContent className="w-[calc(100%-2rem)] max-w-2xl sm:max-w-2xl p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col rounded-2xl [&>button]:text-primary-foreground [&>button]:opacity-100 [&>button]:top-4 [&>button]:right-4 [&>button:hover]:bg-white/20">
-              <DialogHeader className="shrink-0 bg-primary text-primary-foreground hover:bg-primary-strong px-6 py-4 text-left space-y-0">
-                <DialogTitle className="text-primary-foreground text-xl font-bold">
+            <DialogContent className="!top-0 !translate-y-0 h-[100dvh] w-full max-w-md sm:max-w-md p-0 gap-0 overflow-hidden flex flex-col rounded-none border-0">
+              <DialogHeader className="shrink-0 border-b border-line-card bg-surface px-4 py-3.5 pr-12 text-left space-y-0">
+                <DialogTitle className="text-[17px] font-semibold text-ink-1">
                   Task Details
                 </DialogTitle>
                 <DialogDescription className="sr-only">

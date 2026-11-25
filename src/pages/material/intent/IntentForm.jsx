@@ -3,8 +3,10 @@ import { ROUTES } from '@/lib/routes';
 import { getUser } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
-import { ArrowLeft, X, Upload, ChevronDown } from 'lucide-react';
+import { X, Upload, ChevronDown } from 'lucide-react';
 import { purchaseOrderAPI } from '@/api/material';
+import { toast } from 'sonner';
+import MobilePage from '@/layouts/mobile/MobilePage';
 import { useNavigate } from 'react-router-dom';
 import { getSelectedBranchName } from '@/lib/branchContext';
 import { Textarea } from '@/components/ui/textarea';
@@ -300,19 +302,19 @@ export default function IntentForm() {
     
     // Validation
     if (!userName || !formData.deliverySite) {
-      alert('Please fill in all required fields');
+      toast.error('1 field needs fixing', { description: 'Fill in all the required fields.' });
       return;
     }
     
     if (formData.materials.length === 0) {
-      alert('Please add at least one material');
+      toast.error('Add a material', { description: 'Add at least one material to the intent.' });
       return;
     }
     
     // Validate materials
     for (const material of formData.materials) {
       if (!material.category || !material.quantity) {
-        alert('Please fill in category and quantity for all materials');
+        toast.error('1 field needs fixing', { description: 'Add the category and quantity for every material.' });
         return;
       }
     }
@@ -354,48 +356,36 @@ export default function IntentForm() {
         // Trigger refresh for Upcoming Deliveries
         localStorage.setItem(EVENTS.upcomingDeliveryRefresh, Date.now().toString());
         
-        alert('Intent (PO) created successfully!');
+        toast.success('Intent created', { description: `${formData.materials.length} material${formData.materials.length === 1 ? '' : 's'} · ${formData.deliverySite}` });
         
         // Redirect to Indent tab
         navigate(ROUTES.material.intent);
       }
     } catch (error) {
       // Error creating purchase order
-      alert(error.message || 'Failed to create intent. Please try again.');
+      toast.error('Couldn’t create the intent', { description: error.message || 'Check your connection and try again.' });
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-tone-highlight-soft">
-      {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
-        {/* Header with Gradient */}
-        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
-          <Button
-            variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground"
-            onClick={() => navigate(ROUTES.material.intent)}
-            disabled={submitting}
-          >
-            <ArrowLeft size={16} />
-            <span className="text-sm font-medium">Back</span>
+    <form onSubmit={handleSubmit}>
+      <MobilePage
+        title="New intent"
+        back
+        onBack={() => navigate(ROUTES.material.intent)}
+        tabs="manager"
+        footer={
+          <Button type="submit" size="xl" className="w-full" disabled={submitting}>
+            {submitting ? 'Creating…' : 'Create intent'}
           </Button>
-
-          <div className="text-center pt-8">
-            <h1 className="text-primary-foreground text-2xl font-bold mb-2">Create Intent (PO)</h1>
-            <p className="text-primary-foreground/80 text-sm">Fill in the details below</p>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="px-6 py-6 -mt-4">
-          {/* Form Content Inside Card */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+        }
+      >
+          <div className="flex flex-col gap-3.5">
             {/* Basic Info Section */}
-            <div className="bg-surface-subtle rounded-2xl p-5 border border-line-card shadow-sm">
-              <h3 className="text-tone-highlight-fg font-bold text-sm mb-4">Intent Information</h3>
+            <div className="rounded-[14px] border border-line-card bg-surface p-3.5">
+              <h3 className="mb-3 text-body font-semibold text-ink-1">Intent Information</h3>
 
               <div className="mb-4">
                 <Label className={sectionLabelClass}>
@@ -444,8 +434,8 @@ export default function IntentForm() {
             </div>
 
             {/* Materials Section */}
-            <div className="bg-surface-subtle rounded-2xl p-5 border border-line-card shadow-sm">
-              <h3 className="text-tone-highlight-fg font-bold text-sm mb-4">Materials</h3>
+            <div className="rounded-[14px] border border-line-card bg-surface p-3.5">
+              <h3 className="mb-3 text-body font-semibold text-ink-1">Materials</h3>
               
               <Button
                 type="button"
@@ -672,8 +662,8 @@ export default function IntentForm() {
             </div>
 
             {/* Attachments Section */}
-            <div className="bg-surface-subtle rounded-2xl p-5 border border-line-card shadow-sm">
-              <h3 className="text-tone-highlight-fg font-bold text-sm mb-4">Attachments (Optional)</h3>
+            <div className="rounded-[14px] border border-line-card bg-surface p-3.5">
+              <h3 className="mb-3 text-body font-semibold text-ink-1">Attachments (Optional)</h3>
               
               <div className="mb-4">
                 <label className="flex items-center justify-center w-full px-6 py-6 border-2 border-dashed border-line-input rounded-xl cursor-pointer hover:border-primary hover:bg-tone-highlight-soft transition-all">
@@ -718,48 +708,8 @@ export default function IntentForm() {
               )}
             </div>
 
-            {/* Submit Buttons */}
-            <div className="flex gap-3 mt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate(ROUTES.material.intent)}
-                className="flex-1 h-auto bg-surface border-2 border-line-card text-ink-2 font-semibold py-3.5 rounded-xl hover:bg-surface-muted hover:border-gray-300 transition-all shadow-sm"
-                disabled={submitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="flex-1 h-auto bg-primary text-primary-foreground hover:bg-primary-strong font-semibold py-3.5 rounded-xl   transition-all shadow-md hover:shadow-lg disabled:opacity-100 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transform hover:scale-[1.02]"
-              >
-                {submitting ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="size-5 animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Creating...
-                  </span>
-                ) : (
-                  'Create Intent'
-                )}
-              </Button>
-            </div>
-          </form>
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 pb-6 pt-2">
-          <div className="text-center">
-            <p className="text-xs text-ink-4">
-              Powered by Laxmi Power Tech
-            </p>
           </div>
-        </div>
-      </div>
-    </div>
+      </MobilePage>
+    </form>
   );
 }
