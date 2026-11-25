@@ -4,7 +4,6 @@
 // toast became a sonner toast and the two window.confirm prompts became a ConfirmDialog request.
 import { useState, useEffect } from "react";
 import { showToast } from '@/lib/showToast';
-import { toast } from "sonner";
 import { EVENTS } from '@/lib/events';
 import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
 import { fetchBranchesCached } from '@/hooks/useBranches';
