@@ -28,6 +28,8 @@ const buttonVariants = cva(
         default: "h-control px-3.5",
         sm: "h-control-sm px-2.5 text-small",
         lg: "h-11 px-8",
+        // Mobile primary action (design ".big" button): 52 px, 16 px label.
+        xl: "h-[52px] gap-2.5 rounded-[12px] px-5 text-[16px]",
         icon: "h-control w-control p-0",
       },
     },

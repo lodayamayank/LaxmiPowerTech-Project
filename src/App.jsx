@@ -126,7 +126,7 @@ function App() {
 
   return (
     <>
-      <Toaster position="top-center" richColors closeButton />
+      <Toaster />
       <InstallPWA />
       <OfflineBanner />
       <Suspense fallback={<LoadingFallback />}>
