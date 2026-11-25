@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import useConfirm from '@/hooks/useConfirm';
 import { showToast } from '@/lib/showToast';
 import MobilePage from '@/layouts/mobile/MobilePage';
 import { ROUTES } from '@/lib/routes';
@@ -118,6 +119,7 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
 }
 
 export default function IntentCardDetails() {
+  const [confirm, confirmDialog] = useConfirm();
   const { id } = useParams();
   const navigate = useNavigate();
   
@@ -260,7 +262,7 @@ export default function IntentCardDetails() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this purchase order? This action cannot be undone.')) {
+    if (!(await confirm('Are you sure you want to delete this purchase order? This action cannot be undone.', { title: 'Delete?', confirmLabel: 'Delete', destructive: true }))) {
       return;
     }
 
@@ -353,7 +355,7 @@ export default function IntentCardDetails() {
   };
 
   const handleDeleteAttachment = async (attachmentIndex) => {
-    if (!window.confirm('Are you sure you want to delete this attachment?')) {
+    if (!(await confirm('Are you sure you want to delete this attachment?', { title: 'Delete?', confirmLabel: 'Delete', destructive: true }))) {
       return;
     }
 
@@ -487,6 +489,7 @@ export default function IntentCardDetails() {
   if (loading) {
     return (
       <MobilePage title="Details" back onBack={() => navigate(-1)}>
+{confirmDialog}
 
           {/* Content skeleton */}
           <div className="flex flex-col gap-3.5 space-y-4">
@@ -549,6 +552,7 @@ export default function IntentCardDetails() {
 
   return (
     <MobilePage title="Intent Details" back onBack={() => navigate(-1)}>
+{confirmDialog}
 
         {/* Main Content */}
         <div className="flex flex-col gap-3.5 pb-24">

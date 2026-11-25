@@ -16,6 +16,7 @@ Terminology: **migrated** = a page rebuilt on the design system (tokens + `compo
 - Token + icon converted only (layout of the old design kept): TaskSubmission dialogs, Intent/Transfer/Delivery/GRN lists and detail/form pages, IntentForm, UploadPhoto, MaterialTransferForm.
 - Parked: Hindi home (no i18n), Contact office, profile photo upload, S-Task photo-first layout, S-Intent form layout, camera/face-detection untested in the browser pane.
 - `.mobile-back-button` is now always visible (important utilities in index.css).
+- Material detail and form pages are on the mobile shell; `window.confirm` replaced by `hooks/useConfirm` (ConfirmDialog); legacy DOM toasts use `lib/showToast`.
 - Fixed on the way: Intent / MaterialTransfer / UpcomingDeliveries crashed on render (poll set up before the fetch function existed).
 
 ## 1. Project overview

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import useConfirm from '@/hooks/useConfirm';
 import { toast } from 'sonner';
 import MobilePage from '@/layouts/mobile/MobilePage';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -77,6 +78,7 @@ const normalizeMaterials = (delivery) => {
 };
 
 export default function DeliveryDetails() {
+  const [confirm, confirmDialog] = useConfirm();
   const location = useLocation();
   const navigate = useNavigate();
   const { id: routeDeliveryId } = useParams();
@@ -261,8 +263,9 @@ export default function DeliveryDetails() {
       (total, material) => total + Number(material.receive_now || 0),
       0
     );
-    const confirmed = window.confirm(
-      `Confirm delivery receipt for ${selectedItems.length} material(s), total quantity ${totalReceivedNow}?`
+    const confirmed = await confirm(
+      `Confirm delivery receipt for ${selectedItems.length} material(s), total quantity ${totalReceivedNow}?`,
+      { title: 'Confirm receipt', confirmLabel: 'Confirm' }
     );
     if (!confirmed) return;
 
@@ -353,6 +356,7 @@ export default function DeliveryDetails() {
 
   return (
     <MobilePage title="Delivery Details" back onBack={() => navigate(-1)}>
+{confirmDialog}
 
         <div className="flex flex-col gap-3.5 pb-24">
           <div className="space-y-4">

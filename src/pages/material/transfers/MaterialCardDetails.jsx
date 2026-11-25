@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useConfirm from '@/hooks/useConfirm';
 import { showToast } from '@/lib/showToast';
 import { toast } from 'sonner';
 import MobilePage from '@/layouts/mobile/MobilePage';
@@ -25,6 +26,7 @@ const labelClass = 'text-xs text-ink-3 font-normal leading-normal';
 const readLabelClass = 'text-xs text-ink-3 block mb-1 font-normal leading-normal';
 
 export default function MaterialCardDetails() {
+  const [confirm, confirmDialog] = useConfirm();
   const { id } = useParams();
   const navigate = useNavigate();
   
@@ -256,7 +258,7 @@ export default function MaterialCardDetails() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(`Are you sure you want to delete Site Transfer ${transfer.siteTransferId}? All associated images will also be deleted from the server.`)) {
+    if (!(await confirm(`Are you sure you want to delete Site Transfer ${transfer.siteTransferId}? All associated images will also be deleted from the server.`, { title: 'Delete?', confirmLabel: 'Delete', destructive: true }))) {
       return;
     }
 
@@ -279,7 +281,7 @@ export default function MaterialCardDetails() {
   };
 
   const handleDeleteAttachment = async (attachmentIndex) => {
-    if (!window.confirm('Are you sure you want to delete this attachment? The file will be permanently removed from the server.')) {
+    if (!(await confirm('Are you sure you want to delete this attachment? The file will be permanently removed from the server.', { title: 'Delete?', confirmLabel: 'Delete', destructive: true }))) {
       return;
     }
 
@@ -426,6 +428,7 @@ export default function MaterialCardDetails() {
   if (loading) {
     return (
       <MobilePage title="Details" back onBack={() => navigate(-1)}>
+{confirmDialog}
 
           {/* Content skeleton */}
           <div className="flex flex-col gap-3.5 space-y-4">
@@ -473,6 +476,7 @@ export default function MaterialCardDetails() {
   if (editing) {
     return (
       <MobilePage title="Transfer Details" back onBack={() => navigate(-1)}>
+{confirmDialog}
 
         {/* Main Content */}
         <div className="flex flex-col gap-3.5 pb-24">
@@ -727,6 +731,7 @@ export default function MaterialCardDetails() {
   // Read-Only View - Matching Intent PO Mobile Layout
   return (
     <MobilePage title="Transfer Details" back onBack={() => navigate(-1)}>
+{confirmDialog}
 
         {/* Main Content - EXACTLY matching Intent PO layout */}
         <div className="flex flex-col gap-3.5 pb-24">

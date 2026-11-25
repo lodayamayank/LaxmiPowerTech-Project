@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import useConfirm from '@/hooks/useConfirm';
 import { showToast } from '@/lib/showToast';
 import MobilePage from '@/layouts/mobile/MobilePage';
 import { ArrowLeft } from 'lucide-react';
@@ -13,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 export default function DeliveryChecklist() {
+  const [confirm, confirmDialog] = useConfirm();
     const { id } = useParams();
     const navigate = useNavigate();
     
@@ -147,7 +149,7 @@ export default function DeliveryChecklist() {
 
     // ✅ DELETE ATTACHMENT
     const handleDeleteAttachment = async (attachmentIndex) => {
-        if (!window.confirm('Are you sure you want to delete this attachment?')) {
+        if (!(await confirm('Are you sure you want to delete this attachment?', { title: 'Delete?', confirmLabel: 'Delete', destructive: true }))) {
             return;
         }
         
@@ -301,6 +303,7 @@ export default function DeliveryChecklist() {
 
     return (
         <MobilePage title="Delivery Checklist" back onBack={() => navigate(-1)}>
+{confirmDialog}
 
                 {/* Main Content */}
                 <div className="flex flex-col gap-3.5 pb-24">
