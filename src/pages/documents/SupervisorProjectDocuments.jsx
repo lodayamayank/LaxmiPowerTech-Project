@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import MobilePage from "@/layouts/mobile/MobilePage";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, ChevronRight, Folder, FolderPlus, MoreVertical, Search, Upload, X } from "lucide-react";
+import { ChevronRight, Folder, FolderPlus, MoreVertical, Search, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -41,12 +42,10 @@ import PreviewDialog from "./components/PreviewDialog";
 
 const PAGE_SIZE = 20;
 
-const Shell = ({ children }) => (
-  <div className="min-h-screen bg-page">
-    <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
-      {children}
-    </div>
-  </div>
+const Shell = ({ children, onBack }) => (
+  <MobilePage title="Documents" back onBack={onBack}>
+    {children}
+  </MobilePage>
 );
 
 const SupervisorProjectDocuments = () => {
@@ -347,49 +346,24 @@ const SupervisorProjectDocuments = () => {
     ) : null;
 
   return (
-    <Shell>
-      {/* Header */}
-      <div className="bg-primary px-5 pt-5 pb-7 rounded-b-3xl shadow-lg">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            onClick={handleBack}
-            className="mobile-back-button px-3 py-2"
-          >
-            <ArrowLeft size={14} />
-            <span className="text-sm font-medium">Back</span>
-          </Button>
-          <div className="min-w-0">
-            <h2 className="text-primary-foreground text-xl font-bold leading-tight">
-              Documents
-            </h2>
-            <p className="text-primary-foreground/80 text-xs truncate">
-              {summary?.projectName || branchName || "Project"}
-            </p>
-          </div>
-        </div>
+    <Shell onBack={handleBack}>
+      <p className="-mb-1 truncate text-small text-ink-3">{summary?.projectName || branchName || "Project"}</p>
 
-        {/* Compact stats */}
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {[
-            ["Files", summary?.totalDocuments ?? 0],
-            ["Folders", summary?.totalFolders ?? 0],
-            ["Storage", formatBytes(summary?.totalSize ?? 0)],
-          ].map(([label, value]) => (
-            <div
-              key={label}
-              className="rounded-xl bg-primary-foreground/15 px-2 py-2 text-center"
-            >
-              <p className="text-primary-foreground text-sm font-bold">{value}</p>
-              <p className="text-primary-foreground/80 text-[10px] uppercase tracking-wide">
-                {label}
-              </p>
-            </div>
-          ))}
-        </div>
+      {/* Compact stats */}
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          ["Files", summary?.totalDocuments ?? 0],
+          ["Folders", summary?.totalFolders ?? 0],
+          ["Storage", formatBytes(summary?.totalSize ?? 0)],
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-xl border border-line-card bg-surface px-2 py-2.5 text-center">
+            <p className="text-sm font-semibold text-ink-1">{value}</p>
+            <p className="text-[10px] uppercase tracking-wide text-ink-3">{label}</p>
+          </div>
+        ))}
       </div>
 
-      <div className="px-5 -mt-3 pb-28">
+      <div className="pb-24">
         {/* Search + filter */}
         <div className="bg-surface rounded-2xl shadow-sm border border-line-card p-3 space-y-2">
           <div className="relative">
