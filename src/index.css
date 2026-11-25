@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    color-scheme: light; /* native controls, scrollbars, date pickers follow the theme */
     font-family: 'Inter Variable', 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
       line-height: 1.5;
       font-weight: 400;
@@ -64,6 +65,7 @@
     }
 
   .dark {
+      color-scheme: dark;
       --background: 222.2 84% 4.9%;
       --foreground: 210 40% 98%;
       --card: 222.2 84% 4.9%;
@@ -203,7 +205,7 @@
 
 @layer components {
   .mobile-back-button {
-    @apply inline-flex h-auto items-center gap-2 rounded-full border border-white/70 bg-white px-3 py-1.5 text-sm font-medium text-primary shadow-sm transition-all;
+    @apply inline-flex h-auto items-center gap-2 rounded-full border border-line-card bg-surface px-3 py-1.5 text-sm font-medium text-primary shadow-sm transition-all;
   }
 
   .mobile-back-button:hover {
@@ -223,47 +225,49 @@
 
 @layer utilities {
   /*
-   * A number of legacy pages use light-only Tailwind utilities instead of
-   * semantic theme tokens. Keep those pages readable when the root dark class
-   * is enabled, including the material and attendance screens.
+   * LEGACY DARK-MODE COMPATIBILITY (temporary).
+   * Un-migrated pages (mobile/role pages, ~40 files) still use raw light-only utilities (bg-white, gray text and
+   * borders). These rules keep them readable in dark mode and point at the DESIGN tokens, so they follow the
+   * dark palette from one place. Do not add rules here and do not use these classes in new code; migrate the page
+   * to tokens instead. Delete this whole block when the last page that uses them is migrated
+   * (check with: grep -rE "bg-white|bg-gray-|text-gray-|border-gray-" src).
+   * Known gap: colored raw palette classes (orange/green/blue...), gradients and hover/focus gray variants are not
+   * covered; those pages stay bright in dark mode until migrated.
    */
   .dark .bg-white {
-    background-color: hsl(var(--card)) !important;
+    background-color: hsl(var(--surface)) !important;
   }
 
   .dark .bg-gray-50 {
-    background-color: hsl(var(--muted)) !important;
+    background-color: hsl(var(--surface-subtle)) !important;
   }
 
   .dark .bg-gray-100 {
-    background-color: hsl(var(--secondary)) !important;
+    background-color: hsl(var(--surface-muted)) !important;
   }
 
   .dark .text-gray-900,
-  .dark .text-gray-800,
+  .dark .text-gray-800 {
+    color: hsl(var(--ink-1)) !important;
+  }
+
   .dark .text-gray-700 {
-    color: hsl(var(--foreground)) !important;
+    color: hsl(var(--ink-2)) !important;
   }
 
   .dark .text-gray-600,
   .dark .text-gray-500 {
-    color: hsl(var(--muted-foreground)) !important;
+    color: hsl(var(--ink-3)) !important;
   }
 
   .dark .text-gray-400 {
-    color: hsl(var(--muted-foreground)) !important;
+    color: hsl(var(--ink-4)) !important;
   }
 
   .dark .border-gray-100,
   .dark .border-gray-200,
   .dark .border-gray-300 {
-    border-color: hsl(var(--border)) !important;
-  }
-
-  .dark input,
-  .dark select,
-  .dark textarea {
-    color-scheme: dark;
+    border-color: hsl(var(--line-card)) !important;
   }
 }
 
