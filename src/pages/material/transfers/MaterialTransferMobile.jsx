@@ -113,11 +113,11 @@ export default function MaterialTransferMobile() {
   }
 
   return (
-    <div className="min-h-screen bg-white shadow-md rounded-xl overflow-hidden safe-area-bottom">
+    <div className="min-h-screen bg-surface shadow-md rounded-xl overflow-hidden safe-area-bottom">
       {/* Header */}
       <div className="p-3 border-b">
         <div className="flex items-center justify-between">
-          <h2 className="text-gray-700 text-sm sm:text-base font-semibold">
+          <h2 className="text-ink-2 text-sm sm:text-base font-semibold">
             Material Transfer
           </h2>
 
@@ -125,15 +125,15 @@ export default function MaterialTransferMobile() {
             <Button
               type="button"
               onClick={() => setShowFilter(true)}
-              className="h-auto px-3 py-1 bg-orange-500 hover:bg-orange-500 text-white rounded-full text-xs sm:text-sm btn-shadow active:scale-95 transition-transform"
+              className="h-auto px-3 py-1 bg-primary hover:bg-primary-strong text-white rounded-full text-xs sm:text-sm btn-shadow active:scale-95 transition-transform"
             >
               Filter
             </Button>
 
-            <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-surface-muted flex items-center justify-center">
               {/* avatar placeholder */}
               <svg
-                className="w-4 h-4 text-gray-500"
+                className="w-4 h-4 text-ink-3"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -158,8 +158,8 @@ export default function MaterialTransferMobile() {
             onClick={() => setActiveTab("indent")}
             className={`h-auto px-2 py-1 rounded text-xs sm:text-sm hover:bg-transparent ${
               activeTab === "indent"
-                ? "text-orange-500 hover:text-orange-500 font-semibold border-b-2 border-orange-500"
-                : "text-gray-500 hover:text-gray-500 font-normal"
+                ? "text-tone-highlight-fg hover:text-primary-strong font-semibold border-b-2 border-line-card"
+                : "text-ink-3 hover:text-ink-1 font-normal"
             }`}
           >
             Indent
@@ -170,8 +170,8 @@ export default function MaterialTransferMobile() {
             onClick={() => setActiveTab("material")}
             className={`h-auto px-2 py-1 rounded text-xs sm:text-sm hover:bg-transparent ${
               activeTab === "material"
-                ? "text-orange-500 hover:text-orange-500 font-semibold border-b-2 border-orange-500"
-                : "text-gray-500 hover:text-gray-500 font-normal"
+                ? "text-tone-highlight-fg hover:text-primary-strong font-semibold border-b-2 border-line-card"
+                : "text-ink-3 hover:text-ink-1 font-normal"
             }`}
           >
             Material Transfer
@@ -182,8 +182,8 @@ export default function MaterialTransferMobile() {
             onClick={() => setActiveTab("upcoming")}
             className={`h-auto px-2 py-1 rounded text-xs sm:text-sm hover:bg-transparent ${
               activeTab === "upcoming"
-                ? "text-orange-500 hover:text-orange-500 font-semibold border-b-2 border-orange-500"
-                : "text-gray-500 hover:text-gray-500 font-normal"
+                ? "text-tone-highlight-fg hover:text-primary-strong font-semibold border-b-2 border-line-card"
+                : "text-ink-3 hover:text-ink-1 font-normal"
             }`}
           >
             Upcoming Deliveries
@@ -194,8 +194,8 @@ export default function MaterialTransferMobile() {
             onClick={() => setActiveTab("grn")}
             className={`h-auto px-2 py-1 rounded text-xs sm:text-sm hover:bg-transparent ${
               activeTab === "grn"
-                ? "text-orange-500 hover:text-orange-500 font-semibold border-b-2 border-orange-500"
-                : "text-gray-500 hover:text-gray-500 font-normal"
+                ? "text-tone-highlight-fg hover:text-primary-strong font-semibold border-b-2 border-line-card"
+                : "text-ink-3 hover:text-ink-1 font-normal"
             }`}
           >
             GRN
@@ -215,9 +215,9 @@ export default function MaterialTransferMobile() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search ST ID or site"
-                  className="w-full h-auto px-4 py-2 rounded-full border shadow-none text-sm md:text-sm placeholder-gray-400 focus:ring-2 focus:ring-orange-300 focus-visible:ring-2 focus-visible:ring-orange-300"
+                  className="w-full h-auto px-4 py-2 rounded-full border shadow-none text-sm md:text-sm placeholder-gray-400 focus:ring-2 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-ring"
                 />
-                <div className="absolute right-3 top-2.5 text-gray-400">
+                <div className="absolute right-3 top-2.5 text-ink-4">
                   {/* search icon */}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -242,35 +242,35 @@ export default function MaterialTransferMobile() {
               {filtered.map((m) => (
                 <div
                   key={m.id}
-                  className="p-3 bg-gray-50 rounded-lg border flex items-center justify-between"
+                  className="p-3 bg-surface-subtle rounded-lg border flex items-center justify-between"
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <div className="text-xs text-gray-400">ST ID:</div>
+                      <div className="text-xs text-ink-4">ST ID:</div>
                       <div className="text-sm font-semibold">{m.stId}</div>
                       {m.transferred && (
-                        <div className="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">
+                        <div className="ml-2 text-xs bg-tone-highlight-soft text-tone-highlight-fg px-2 py-0.5 rounded-full">
                           Transferred
                         </div>
                       )}
                     </div>
-                    <div className="mt-1 text-xs text-gray-500">
+                    <div className="mt-1 text-xs text-ink-3">
                       Sending: {m.sending}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-ink-3">
                       Receiving: {m.receiving}
                     </div>
                   </div>
 
                   <div className="text-right text-xs">
-                    <div className="text-gray-400">{m.issued}</div>
-                    <div className="text-gray-400">{m.date}</div>
+                    <div className="text-ink-4">{m.issued}</div>
+                    <div className="text-ink-4">{m.date}</div>
                   </div>
                 </div>
               ))}
 
               {filtered.length === 0 && (
-                <div className="text-center text-gray-400 text-sm py-8">
+                <div className="text-center text-ink-4 text-sm py-8">
                   No transfers found
                 </div>
               )}
@@ -283,22 +283,22 @@ export default function MaterialTransferMobile() {
           <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center">
             <div
               onClick={() => setShowForm(false)}
-              className="absolute inset-0 bg-black/30"
+              className="absolute inset-0 bg-scrim/40"
             />
 
             <div
-              className="relative w-full sm:w-11/12 max-w-md bg-white rounded-t-2xl sm:rounded-lg p-4 shadow-lg overflow-auto"
+              className="relative w-full sm:w-11/12 max-w-md bg-surface rounded-t-2xl sm:rounded-lg p-4 shadow-lg overflow-auto"
               style={{ maxHeight: "92vh" }}
             >
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-gray-800 font-semibold text-sm">
+                <h3 className="text-ink-1 font-semibold text-sm">
                   New Site Transfer
                 </h3>
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => setShowForm(false)}
-                  className="h-auto p-0 text-sm font-normal text-gray-500 hover:text-gray-500 hover:bg-transparent"
+                  className="h-auto p-0 text-sm font-normal text-ink-3 hover:text-ink-1 hover:bg-transparent"
                 >
                   Close
                 </Button>
@@ -307,7 +307,7 @@ export default function MaterialTransferMobile() {
               <div className="space-y-3">
                 <label
                   htmlFor="mt-st-id"
-                  className="block text-xs text-gray-500"
+                  className="block text-xs text-ink-3"
                 >
                   Site Transfer ID
                 </label>
@@ -319,7 +319,7 @@ export default function MaterialTransferMobile() {
                     placeholder="ST-XXXX"
                     className="flex-1 h-auto px-3 py-2 rounded-lg border shadow-none text-sm md:text-sm"
                   />
-                  <div className="px-3 py-2 rounded-lg bg-orange-100 text-orange-600 text-sm flex items-center">
+                  <div className="px-3 py-2 rounded-lg bg-tone-highlight-soft text-tone-highlight-fg text-sm flex items-center">
                     ST
                   </div>
                 </div>
@@ -327,7 +327,7 @@ export default function MaterialTransferMobile() {
                 <div>
                   <label
                     htmlFor="mt-project"
-                    className="block text-xs text-gray-500 mb-1"
+                    className="block text-xs text-ink-3 mb-1"
                   >
                     Transfer To (Project)
                   </label>
@@ -349,7 +349,7 @@ export default function MaterialTransferMobile() {
                 <div>
                   <label
                     htmlFor="mt-checked-by"
-                    className="block text-xs text-gray-500 mb-1"
+                    className="block text-xs text-ink-3 mb-1"
                   >
                     Checked By
                   </label>
@@ -370,21 +370,21 @@ export default function MaterialTransferMobile() {
                 {/* dynamic materials */}
                 <div>
                   <div className="flex items-center justify-between">
-                    <div className="text-xs text-gray-500 mb-1">
+                    <div className="text-xs text-ink-3 mb-1">
                       Material Details
                     </div>
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={addMaterialRow}
-                      className="h-auto p-0 text-xs font-normal text-orange-500 hover:text-orange-500 hover:bg-transparent"
+                      className="h-auto p-0 text-xs font-normal text-tone-highlight-fg hover:text-primary-strong hover:bg-transparent"
                     >
                       + Add
                     </Button>
                   </div>
 
                   {form.materials.length === 0 && (
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-ink-4">
                       No materials added
                     </div>
                   )}
@@ -418,7 +418,7 @@ export default function MaterialTransferMobile() {
                             type="button"
                             variant="ghost"
                             onClick={() => removeMaterialRow(it.id)}
-                            className="h-auto p-0 text-xs font-normal text-red-400 hover:text-red-400 hover:bg-transparent"
+                            className="h-auto p-0 text-xs font-normal text-tone-bad-fg hover:text-primary-strong hover:bg-transparent"
                           >
                             Remove
                           </Button>
@@ -431,7 +431,7 @@ export default function MaterialTransferMobile() {
                 <div>
                   <label
                     htmlFor="mt-remarks"
-                    className="block text-xs text-gray-500 mb-1"
+                    className="block text-xs text-ink-3 mb-1"
                   >
                     Remarks
                   </label>
@@ -447,7 +447,7 @@ export default function MaterialTransferMobile() {
                 </div>
 
                 <div>
-                  <div className="text-xs text-gray-500 mb-1">Attachments</div>
+                  <div className="text-xs text-ink-3 mb-1">Attachments</div>
                   <label className="inline-flex items-center cursor-pointer">
                     <input
                       type="file"
@@ -462,14 +462,14 @@ export default function MaterialTransferMobile() {
                   </label>
 
                   {form.attachments.length > 0 && (
-                    <ul className="mt-2 text-xs text-gray-600 space-y-1">
+                    <ul className="mt-2 text-xs text-ink-3 space-y-1">
                       {form.attachments.map((f, idx) => (
                         <li
                           key={idx}
                           className="flex items-center justify-between"
                         >
                           <span className="truncate max-w-[60%]">{f.name}</span>
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-ink-4">
                             {Math.round(f.size / 1024)} KB
                           </span>
                         </li>
@@ -482,7 +482,7 @@ export default function MaterialTransferMobile() {
                   <Button
                     type="button"
                     onClick={() => setShowForm(false)}
-                    className="flex-1 h-auto px-6 py-3 bg-gray-300 hover:bg-gray-400 text-black font-semibold rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200"
+                    className="flex-1 h-auto px-6 py-3 bg-surface-muted hover:bg-surface-muted text-black font-semibold rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200"
                   >
                     Cancel
                   </Button>
@@ -491,7 +491,7 @@ export default function MaterialTransferMobile() {
                   <Button
                     type="button"
                     onClick={saveForm}
-                    className="flex-1 h-auto px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200"
+                    className="flex-1 h-auto px-6 py-3 bg-primary hover:bg-primary-strong text-white font-semibold rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200"
                   >
                     Done
                   </Button>
@@ -504,14 +504,14 @@ export default function MaterialTransferMobile() {
 
       {/* Footer */}
       <div className="p-3 border-t flex items-center justify-between">
-        <div className="text-sm text-gray-500"></div>
+        <div className="text-sm text-ink-3"></div>
 
         <div className="flex items-center gap-3">
           <Button
             type="button"
             onClick={openNewForm}
             aria-label="New site transfer"
-            className="w-14 h-14 p-0 rounded-full bg-gray-300 hover:bg-gray-300 text-black flex items-center justify-center text-3xl pb-1 font-bold leading-none btn-shadow active:scale-95 transition-transform"
+            className="w-14 h-14 p-0 rounded-full bg-surface-muted hover:bg-surface-muted text-black flex items-center justify-center text-3xl pb-1 font-bold leading-none btn-shadow active:scale-95 transition-transform"
           >
             +
           </Button>
@@ -523,33 +523,33 @@ export default function MaterialTransferMobile() {
         <div className="fixed inset-0 z-40">
           <div
             onClick={() => setShowFilter(false)}
-            className="absolute inset-0 bg-black/30"
+            className="absolute inset-0 bg-scrim/40"
           />
           <div
-            className="absolute right-0 top-0 bottom-0 w-full sm:w-80 bg-white shadow-lg p-4 overflow-auto rounded-t-2xl sm:rounded-none"
+            className="absolute right-0 top-0 bottom-0 w-full sm:w-80 bg-surface shadow-lg p-4 overflow-auto rounded-t-2xl sm:rounded-none"
             style={{ maxHeight: "92vh" }}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-gray-800 font-semibold text-sm">Filters</h3>
+              <h3 className="text-ink-1 font-semibold text-sm">Filters</h3>
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setShowFilter(false)}
-                className="h-auto p-0 text-sm font-normal text-orange-500 hover:text-orange-500 hover:bg-transparent"
+                className="h-auto p-0 text-sm font-normal text-tone-highlight-fg hover:text-primary-strong hover:bg-transparent"
               >
                 CLEAR
               </Button>
             </div>
 
-            <div className="mt-4 space-y-4 text-sm text-gray-700">
+            <div className="mt-4 space-y-4 text-sm text-ink-2">
               <div>
-                <div className="font-medium text-xs text-gray-500">Sort By</div>
+                <div className="font-medium text-xs text-ink-3">Sort By</div>
                 <div className="mt-2 space-y-2">
                   <label className="flex items-center gap-2">
                     <input
                       type="radio"
                       name="sort"
-                      className="accent-orange-500"
+                      className="accent-primary"
                     />
                     <span>Latest</span>
                   </label>
@@ -557,7 +557,7 @@ export default function MaterialTransferMobile() {
                     <input
                       type="radio"
                       name="sort"
-                      className="accent-orange-500"
+                      className="accent-primary"
                     />
                     <span>Oldest</span>
                   </label>
@@ -565,7 +565,7 @@ export default function MaterialTransferMobile() {
               </div>
 
               <div>
-                <div className="font-medium text-xs text-gray-500">
+                <div className="font-medium text-xs text-ink-3">
                   Category
                 </div>
                 <div className="mt-2">
@@ -593,7 +593,7 @@ export default function MaterialTransferMobile() {
               </div>
 
               <div>
-                <div className="font-medium text-xs text-gray-500">Status</div>
+                <div className="font-medium text-xs text-ink-3">Status</div>
                 <div className="mt-2">
                   <label
                     htmlFor="status-pending"
@@ -624,14 +624,14 @@ export default function MaterialTransferMobile() {
                 type="button"
                 variant="outline"
                 onClick={() => setShowFilter(false)}
-                className="flex-1 h-auto px-3 py-2 rounded-xl border bg-white text-sm font-normal text-gray-700 hover:bg-white hover:text-gray-700"
+                className="flex-1 h-auto px-3 py-2 rounded-xl border bg-surface text-sm font-normal text-ink-2 hover:bg-white hover:text-ink-1"
               >
                 Close
               </Button>
               <Button
                 type="button"
                 onClick={() => setShowFilter(false)}
-                className="flex-1 h-auto px-3 py-2 rounded-xl bg-orange-500 hover:bg-orange-500 text-white text-sm font-normal"
+                className="flex-1 h-auto px-3 py-2 rounded-xl bg-primary hover:bg-primary-strong text-white text-sm font-normal"
               >
                 Apply
               </Button>

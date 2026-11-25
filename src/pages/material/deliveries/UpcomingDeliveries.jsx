@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { ArrowLeft } from 'lucide-react';
 import { isFieldRole } from '@/lib/roles';
 import { ROUTES } from '@/lib/routes';
 import { getUser } from '@/lib/session';
@@ -8,7 +9,6 @@ import { fetchBranchesCached } from '@/hooks/useBranches';
 import { useNavigate } from "react-router-dom";
 import { upcomingDeliveryAPI } from "@/api/material";
 import { Search, Filter, Package, Plus } from "lucide-react";
-import { FaArrowLeft } from 'react-icons/fa';
 import { getSelectedBranchId, getSelectedBranchName } from "@/lib/branchContext";
 // NOTE: import paths assume the standard shadcn "@/" alias. Adjust if this project uses relative paths.
 import { Button } from "@/components/ui/button";
@@ -231,13 +231,13 @@ export default function UpcomingDeliveries({ isTabView = false }) {
 
     const getStatusBadge = (status) => {
         const statusColors = {
-            'Pending': 'bg-gray-100 text-gray-700',
-            'Approved': 'bg-blue-100 text-blue-600',
-            'Partial': 'bg-orange-100 text-orange-600',
-            'Transferred': 'bg-green-100 text-green-600',
-            'Cancelled': 'bg-red-100 text-red-600'
+            'Pending': 'bg-surface-muted text-ink-2',
+            'Approved': 'bg-tone-info-soft text-tone-info-fg',
+            'Partial': 'bg-tone-highlight-soft text-tone-highlight-fg',
+            'Transferred': 'bg-tone-ok-soft text-tone-ok-fg',
+            'Cancelled': 'bg-tone-bad-soft text-tone-bad-fg'
         };
-        return statusColors[status] || 'bg-gray-100 text-gray-700';
+        return statusColors[status] || 'bg-surface-muted text-ink-2';
     };
 
     const formatDate = (dateString) => {
@@ -296,7 +296,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                     <Button
                         type="button"
                         onClick={() => setShowFilters(!showFilters)}
-                        className="w-full h-auto flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+                        className="w-full h-auto flex items-center justify-between px-3 py-2.5 bg-primary text-primary-foreground hover:bg-primary-strong text-white rounded-lg shadow-md hover:shadow-lg transition-all"
                     >
                         <span className="font-semibold flex items-center gap-2 text-sm">
                             <Filter size={16} />
@@ -310,61 +310,61 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                 
                 {/* ✅ Additional Filters Panel */}
                 {showFilters && (
-                    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm space-y-2.5">
+                    <div className="bg-surface border border-line-card rounded-lg p-3 shadow-sm space-y-2.5">
                         {/* Site Filter */}
                         <div>
-                            <Label htmlFor="upcoming-deliveries-site" className="block text-xs font-semibold text-gray-700 mb-1">Site</Label>
+                            <Label htmlFor="upcoming-deliveries-site" className="block text-xs font-semibold text-ink-2 mb-1">Site</Label>
                             <select
                                 id="upcoming-deliveries-site"
                                 value={filterSite}
                                 onChange={(e) => setFilterSite(e.target.value)}
-                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800"
+                                className="w-full border border-line-input rounded-md px-2.5 py-2 text-sm text-ink-1 font-medium focus:ring-2 focus-visible:ring-ring focus-visible:border-primary bg-surface"
                             >
-                                <option value="" className="text-gray-500">All Sites</option>
+                                <option value="" className="text-ink-3">All Sites</option>
                                 {sites.map(site => (
-                                    <option key={site} value={site} className="text-gray-900">{site}</option>
+                                    <option key={site} value={site} className="text-ink-1">{site}</option>
                                 ))}
                             </select>
                         </div>
                         
                         {/* Status Filter */}
                         <div>
-                            <Label htmlFor="upcoming-deliveries-status" className="block text-xs font-semibold text-gray-700 mb-1">Status</Label>
+                            <Label htmlFor="upcoming-deliveries-status" className="block text-xs font-semibold text-ink-2 mb-1">Status</Label>
                             <select
                                 id="upcoming-deliveries-status"
                                 value={filterStatus}
                                 onChange={(e) => setFilterStatus(e.target.value)}
-                                className="w-full border border-gray-300 rounded-md px-2.5 py-2 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
+                                className="w-full border border-line-input rounded-md px-2.5 py-2 text-sm text-ink-1 font-medium focus:ring-2 focus-visible:ring-ring focus-visible:border-primary bg-surface"
                             >
-                                <option value="" className="text-gray-500">All Status</option>
-                                <option value="pending" className="text-gray-900">Pending</option>
-                                <option value="approved" className="text-gray-900">Approved</option>
-                                <option value="partial" className="text-gray-900">Partial</option>
-                                <option value="transferred" className="text-gray-900">Transferred</option>
-                                <option value="cancelled" className="text-gray-900">Cancelled</option>
+                                <option value="" className="text-ink-3">All Status</option>
+                                <option value="pending" className="text-ink-1">Pending</option>
+                                <option value="approved" className="text-ink-1">Approved</option>
+                                <option value="partial" className="text-ink-1">Partial</option>
+                                <option value="transferred" className="text-ink-1">Transferred</option>
+                                <option value="cancelled" className="text-ink-1">Cancelled</option>
                             </select>
                         </div>
                         
                         {/* Date Range */}
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <Label htmlFor="upcoming-deliveries-date-from" className="block text-xs font-semibold text-gray-700 mb-1">From</Label>
+                                <Label htmlFor="upcoming-deliveries-date-from" className="block text-xs font-semibold text-ink-2 mb-1">From</Label>
                                 <Input
                                     id="upcoming-deliveries-date-from"
                                     type="date"
                                     value={filterDateFrom}
                                     onChange={(e) => setFilterDateFrom(e.target.value)}
-                                    className="w-full h-auto border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-xs md:text-xs text-gray-900 dark:text-gray-100 font-medium shadow-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-orange-500 bg-white dark:bg-gray-800"
+                                    className="w-full h-auto border-line-input rounded-md px-2.5 py-2 text-xs md:text-xs text-ink-1 font-medium shadow-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-primary bg-surface"
                                 />
                             </div>
                             <div>
-                                <Label htmlFor="upcoming-deliveries-date-to" className="block text-xs font-semibold text-gray-700 mb-1">To</Label>
+                                <Label htmlFor="upcoming-deliveries-date-to" className="block text-xs font-semibold text-ink-2 mb-1">To</Label>
                                 <Input
                                     id="upcoming-deliveries-date-to"
                                     type="date"
                                     value={filterDateTo}
                                     onChange={(e) => setFilterDateTo(e.target.value)}
-                                    className="w-full h-auto border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-xs md:text-xs text-gray-900 dark:text-gray-100 font-medium shadow-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-orange-500 bg-white dark:bg-gray-800"
+                                    className="w-full h-auto border-line-input rounded-md px-2.5 py-2 text-xs md:text-xs text-ink-1 font-medium shadow-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-primary bg-surface"
                                 />
                             </div>
                         </div>
@@ -379,7 +379,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                                 setFilterDateFrom('');
                                 setFilterDateTo('');
                             }}
-                            className="w-full h-auto px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-700 text-xs font-semibold rounded-md transition-colors"
+                            className="w-full h-auto px-3 py-2 bg-surface-muted hover:bg-surface-muted text-ink-2 hover:text-ink-1 text-xs font-semibold rounded-md transition-colors"
                         >
                             Clear Filters
                         </Button>
@@ -392,7 +392,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                         aria-label="Delivery type"
                         value={typeFilter}
                         onChange={(e) => setTypeFilter(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                        className="w-full px-4 py-2 border border-line-input rounded-lg focus:outline-none focus:ring-2 focus-visible:ring-ring bg-surface text-ink-1 font-medium"
                         style={{
                             backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23f97316' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
                             backgroundPosition: 'right 1rem center',
@@ -401,9 +401,9 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                             paddingRight: '2.5rem'
                         }}
                     >
-                        <option value="ALL" className="text-gray-900 bg-white">All Deliveries</option>
-                        <option value="ST" className="text-gray-900 bg-white">Site Transfers (ST)</option>
-                        <option value="PO" className="text-gray-900 bg-white">Purchase Orders (PO)</option>
+                        <option value="ALL" className="text-ink-1 bg-surface">All Deliveries</option>
+                        <option value="ST" className="text-ink-1 bg-surface">Site Transfers (ST)</option>
+                        <option value="PO" className="text-ink-1 bg-surface">Purchase Orders (PO)</option>
                     </select>
                 </div>
                 
@@ -415,36 +415,36 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                         aria-label="Search deliveries"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full h-auto px-4 py-2 pl-10 text-base md:text-base border-gray-300 dark:border-gray-600 rounded-lg shadow-none focus-visible:ring-2 focus-visible:ring-orange-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-muted-foreground"
+                        className="w-full h-auto px-4 py-2 pl-10 text-base md:text-base border-line-input rounded-lg shadow-none focus-visible:ring-2 focus-visible:ring-ring bg-surface text-ink-1 placeholder:text-muted-foreground"
                     />
-                    <Search size={18} className="absolute left-3 top-3 text-gray-400 pointer-events-none" />
+                    <Search size={18} className="absolute left-3 top-3 text-ink-4 pointer-events-none" />
                 </div>
             </div>
 
             {loading ? (
                 <div className="flex flex-col justify-center items-center py-20">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mb-4"></div>
-                    <p className="text-gray-600 text-sm">Loading deliveries...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-line-card mb-4"></div>
+                    <p className="text-ink-3 text-sm">Loading deliveries...</p>
                 </div>
             ) : error ? (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-600 text-sm">{error}</p>
+                <div className="p-4 bg-tone-bad-soft border border-tone-bad-border rounded-lg">
+                    <p className="text-tone-bad-fg text-sm">{error}</p>
                     <Button
                         type="button"
                         variant="ghost"
                         onClick={fetchDeliveries}
-                        className="mt-2 h-auto p-0 text-sm font-normal text-red-600 hover:text-red-700 hover:bg-transparent underline"
+                        className="mt-2 h-auto p-0 text-sm font-normal text-tone-bad-fg hover:text-primary-strong hover:bg-transparent underline"
                     >
                         Try Again
                     </Button>
                 </div>
             ) : filteredDeliveries.length === 0 ? (
                 <div className="text-center py-16">
-                    <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-                        <Package size={32} className="text-blue-500" />
+                    <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-tone-info-soft flex items-center justify-center">
+                        <Package size={32} className="text-tone-info-fg" />
                     </div>
-                    <p className="text-gray-700 font-semibold text-base mb-1">No Upcoming Deliveries</p>
-                    <p className="text-gray-500 text-sm">
+                    <p className="text-ink-2 font-semibold text-base mb-1">No Upcoming Deliveries</p>
+                    <p className="text-ink-3 text-sm">
                         {search ? "No deliveries found matching your search" : "Approved deliveries will appear here"}
                     </p>
                 </div>
@@ -454,7 +454,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                         <Card
                             key={delivery._id}
                             onClick={() => handleClick(delivery)}
-                            className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
+                            className="bg-surface-subtle rounded-2xl border border-line-card shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
                         >
                             <CardContent className="p-5">
                                 {/* Header */}
@@ -462,23 +462,23 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                                     <div className="flex items-center gap-3">
                                         <div className={`w-16 h-16 rounded-lg bg-gradient-to-br border-2 flex items-center justify-center flex-shrink-0 ${
                                             delivery.type === 'PO' 
-                                                ? 'from-blue-100 to-blue-200 border-blue-300' 
-                                                : 'from-purple-100 to-purple-200 border-purple-300'
+                                                ? '  border-line-card' 
+                                                : '  border-line-card'
                                         }`}>
-                                            <Package size={28} className={delivery.type === 'PO' ? 'text-blue-600' : 'text-purple-600'} />
+                                            <Package size={28} className={delivery.type === 'PO' ? 'text-tone-info-fg' : 'text-tone-purple-fg'} />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-900 text-base">
+                                            <h3 className="font-bold text-ink-1 text-base">
                                                 {delivery.transfer_number || delivery.st_id}
                                             </h3>
-                                            <p className="text-xs text-gray-900 font-medium mt-1">
+                                            <p className="text-xs text-ink-1 font-medium mt-1">
                                                 {formatDate(delivery.createdAt)}
                                             </p>
-                                            <p className="text-xs text-gray-500 mt-0.5">
+                                            <p className="text-xs text-ink-3 mt-0.5">
                                                 Intent Request Date
                                             </p>
                                             <p className={`text-xs font-medium mt-1 ${
-                                                delivery.type === 'PO' ? 'text-blue-600' : 'text-purple-600'
+                                                delivery.type === 'PO' ? 'text-tone-info-fg' : 'text-tone-purple-fg'
                                             }`}>
                                                 {delivery.type === 'PO' ? '📋 Purchase Order' : '🚚 Site Transfer'}
                                             </p>
@@ -492,28 +492,28 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                                 {/* Details */}
                                 <div className="space-y-2.5 text-sm">
                                     <div className="flex justify-between items-center">
-                                        <span className="text-gray-600 font-medium">Delivery ID</span>
-                                        <span className="font-semibold text-gray-900">{delivery.transfer_number || delivery.st_id}</span>
+                                        <span className="text-ink-3 font-medium">Delivery ID</span>
+                                        <span className="font-semibold text-ink-1">{delivery.transfer_number || delivery.st_id}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <span className="text-gray-600 font-medium">From</span>
-                                        <span className="font-semibold text-gray-900">{delivery.from || 'N/A'}</span>
+                                        <span className="text-ink-3 font-medium">From</span>
+                                        <span className="font-semibold text-ink-1">{delivery.from || 'N/A'}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <span className="text-gray-600 font-medium">To</span>
-                                        <span className="font-semibold text-gray-900">{delivery.to || 'N/A'}</span>
+                                        <span className="text-ink-3 font-medium">To</span>
+                                        <span className="font-semibold text-ink-1">{delivery.to || 'N/A'}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <span className="text-gray-600 font-medium">Requested By</span>
-                                        <span className="font-semibold text-gray-900">{delivery.requested_by || delivery.createdBy || 'N/A'}</span>
+                                        <span className="text-ink-3 font-medium">Requested By</span>
+                                        <span className="font-semibold text-ink-1">{delivery.requested_by || delivery.createdBy || 'N/A'}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <span className="text-gray-600 font-medium">Intent Request Date</span>
-                                        <span className="font-semibold text-gray-900">{formatDate(delivery.createdAt)}</span>
+                                        <span className="text-ink-3 font-medium">Intent Request Date</span>
+                                        <span className="font-semibold text-ink-1">{formatDate(delivery.createdAt)}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <span className="text-gray-600 font-medium">Materials</span>
-                                        <span className="font-semibold text-blue-600">{delivery.items?.length || 0} items</span>
+                                        <span className="text-ink-3 font-medium">Materials</span>
+                                        <span className="font-semibold text-tone-info-fg">{delivery.items?.length || 0} items</span>
                                     </div>
                                 </div>
                             </CardContent>
@@ -531,18 +531,18 @@ export default function UpcomingDeliveries({ isTabView = false }) {
 
     // Standalone mode with full page layout
     return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+        <div className="min-h-screen bg-tone-highlight-soft">
             {/* Container with consistent mobile width */}
-            <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
+            <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
                 {/* Header with Gradient */}
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
+                <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
                     <Button
                         type="button"
                         variant="ghost"
                         className="absolute top-6 left-6 h-auto text-white hover:text-white flex items-center gap-2 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all"
                         onClick={() => navigate(-1)}
                     >
-                        <FaArrowLeft size={16} />
+                        <ArrowLeft size={16} />
                         <span className="text-sm font-medium">Back</span>
                     </Button>
 
@@ -560,7 +560,7 @@ export default function UpcomingDeliveries({ isTabView = false }) {
                 {/* Footer */}
                 <div className="px-6 pb-6 pt-2">
                     <div className="text-center">
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-ink-4">
                             Powered by Laxmi Power Tech
                         </p>
                     </div>

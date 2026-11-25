@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { ArrowLeft } from 'lucide-react';
 import { isFieldRole } from '@/lib/roles';
 import { ROUTES } from '@/lib/routes';
 import { getUser } from '@/lib/session';
@@ -8,7 +9,6 @@ import { fetchBranchesCached } from '@/hooks/useBranches';
 import { useNavigate } from "react-router-dom";
 import { siteTransferAPI } from "@/api/material";
 import { Filter, Plus, Truck } from "lucide-react";
-import { FaArrowLeft } from 'react-icons/fa';
 import { getSelectedBranchId, getSelectedBranchName } from "@/lib/branchContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -231,15 +231,15 @@ export default function MaterialTransfer({ isTabView = false }) {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'transferred':
-        return 'bg-green-100 text-green-600';
+        return 'bg-tone-ok-soft text-tone-ok-fg';
       case 'approved':
-        return 'bg-orange-100 text-orange-600';
+        return 'bg-tone-highlight-soft text-tone-highlight-fg';
       case 'pending':
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-surface-muted text-ink-2';
       case 'cancelled':
-        return 'bg-red-100 text-red-600';
+        return 'bg-tone-bad-soft text-tone-bad-fg';
       default:
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-surface-muted text-ink-3';
     }
   };
 
@@ -270,7 +270,7 @@ export default function MaterialTransfer({ isTabView = false }) {
         <Button
           type="button"
           onClick={() => setShowFilters(!showFilters)}
-          className="h-auto w-full flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+          className="h-auto w-full flex items-center justify-between px-3 py-2.5 bg-primary text-primary-foreground hover:bg-primary-strong text-white hover:text-white rounded-lg shadow-md hover:shadow-lg transition-all"
         >
           <span className="font-semibold flex items-center gap-2 text-sm">
             <Filter size={16} />
@@ -284,60 +284,60 @@ export default function MaterialTransfer({ isTabView = false }) {
       
       {/* ✅ Filters Panel */}
       {showFilters && (
-        <div className="mb-3 bg-white border border-gray-200 rounded-lg p-3 shadow-sm space-y-2.5">
+        <div className="mb-3 bg-surface border border-line-card rounded-lg p-3 shadow-sm space-y-2.5">
           {/* Site Filter */}
           <div>
-            <Label htmlFor="transfer-filter-site" className="mb-1 block text-xs font-semibold leading-4 text-gray-700">Site</Label>
+            <Label htmlFor="transfer-filter-site" className="mb-1 block text-xs font-semibold leading-4 text-ink-2">Site</Label>
             <select
               id="transfer-filter-site"
               value={filterSite}
               onChange={(e) => setFilterSite(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-2.5 py-2 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
+              className="w-full border border-line-input rounded-md px-2.5 py-2 text-sm text-ink-1 font-medium focus:ring-2 focus-visible:ring-ring focus-visible:border-primary bg-surface"
             >
-              <option value="" className="text-gray-500">All Sites</option>
+              <option value="" className="text-ink-3">All Sites</option>
               {sites.map(site => (
-                <option key={site} value={site} className="text-gray-900">{site}</option>
+                <option key={site} value={site} className="text-ink-1">{site}</option>
               ))}
             </select>
           </div>
           
           {/* Status Filter */}
           <div>
-            <Label htmlFor="transfer-filter-status" className="mb-1 block text-xs font-semibold leading-4 text-gray-700">Status</Label>
+            <Label htmlFor="transfer-filter-status" className="mb-1 block text-xs font-semibold leading-4 text-ink-2">Status</Label>
             <select
               id="transfer-filter-status"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-2.5 py-2 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
+              className="w-full border border-line-input rounded-md px-2.5 py-2 text-sm text-ink-1 font-medium focus:ring-2 focus-visible:ring-ring focus-visible:border-primary bg-surface"
             >
-              <option value="" className="text-gray-500">All Status</option>
-              <option value="pending" className="text-gray-900">Pending</option>
-              <option value="approved" className="text-gray-900">Approved</option>
-              <option value="cancelled" className="text-gray-900">Cancelled</option>
+              <option value="" className="text-ink-3">All Status</option>
+              <option value="pending" className="text-ink-1">Pending</option>
+              <option value="approved" className="text-ink-1">Approved</option>
+              <option value="cancelled" className="text-ink-1">Cancelled</option>
             </select>
           </div>
           
           {/* Date Range */}
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label htmlFor="transfer-filter-from" className="mb-1 block text-xs font-semibold leading-4 text-gray-700">From</Label>
+              <Label htmlFor="transfer-filter-from" className="mb-1 block text-xs font-semibold leading-4 text-ink-2">From</Label>
               <Input
                 id="transfer-filter-from"
                 type="date"
                 value={filterDateFrom}
                 onChange={(e) => setFilterDateFrom(e.target.value)}
-                className="h-auto w-full rounded-md border-gray-300 bg-white px-2.5 py-2 text-xs md:text-xs font-medium text-gray-900 focus-visible:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-0"
+                className="h-auto w-full rounded-md border-line-input bg-surface px-2.5 py-2 text-xs md:text-xs font-medium text-ink-1 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
                 style={{ colorScheme: 'light' }}
               />
             </div>
             <div>
-              <Label htmlFor="transfer-filter-to" className="mb-1 block text-xs font-semibold leading-4 text-gray-700">To</Label>
+              <Label htmlFor="transfer-filter-to" className="mb-1 block text-xs font-semibold leading-4 text-ink-2">To</Label>
               <Input
                 id="transfer-filter-to"
                 type="date"
                 value={filterDateTo}
                 onChange={(e) => setFilterDateTo(e.target.value)}
-                className="h-auto w-full rounded-md border-gray-300 bg-white px-2.5 py-2 text-xs md:text-xs font-medium text-gray-900 focus-visible:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-0"
+                className="h-auto w-full rounded-md border-line-input bg-surface px-2.5 py-2 text-xs md:text-xs font-medium text-ink-1 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
                 style={{ colorScheme: 'light' }}
               />
             </div>
@@ -352,7 +352,7 @@ export default function MaterialTransfer({ isTabView = false }) {
               setFilterDateFrom('');
               setFilterDateTo('');
             }}
-            className="h-auto w-full px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-700 text-xs font-semibold rounded-md transition-colors"
+            className="h-auto w-full px-3 py-2 bg-surface-muted hover:bg-surface-muted text-ink-2 hover:text-ink-1 text-xs font-semibold rounded-md transition-colors"
           >
             Clear Filters
           </Button>
@@ -362,7 +362,7 @@ export default function MaterialTransfer({ isTabView = false }) {
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((item) => (
-            <Card key={item} className="rounded-2xl border-gray-100 shadow-sm">
+            <Card key={item} className="rounded-2xl border-line-card shadow-sm">
               <CardContent className="space-y-4 p-5">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -386,11 +386,11 @@ export default function MaterialTransfer({ isTabView = false }) {
         </div>
       ) : transfers.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
-            <Truck size={32} className="text-orange-500" />
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-tone-highlight-soft flex items-center justify-center">
+            <Truck size={32} className="text-tone-highlight-fg" />
           </div>
-          <p className="text-gray-700 font-semibold text-base mb-1">No Site Transfers</p>
-          <p className="text-gray-500 text-sm">Click the + button to create your first transfer</p>
+          <p className="text-ink-2 font-semibold text-base mb-1">No Site Transfers</p>
+          <p className="text-ink-3 text-sm">Click the + button to create your first transfer</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -398,23 +398,23 @@ export default function MaterialTransfer({ isTabView = false }) {
             <Card
               key={transfer._id}
               onClick={() => navigate(ROUTES.material.transferDetail(transfer._id))}
-              className="bg-gradient-to-r from-gray-50 to-white rounded-2xl border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
+              className="bg-surface-subtle rounded-2xl border-line-card shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
             >
               <CardContent className="p-5">
                 {/* Header */}
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-purple-100 to-purple-200 border-2 border-purple-300 flex items-center justify-center flex-shrink-0">
-                      <Truck size={28} className="text-purple-600" />
+                    <div className="w-16 h-16 rounded-lg bg-tone-purple-soft border-2 border-line-card flex items-center justify-center flex-shrink-0">
+                      <Truck size={28} className="text-tone-purple-fg" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-900 text-base">
+                      <h3 className="font-bold text-ink-1 text-base">
                         {transfer.siteTransferId}
                       </h3>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-ink-3 mt-1">
                         {formatDate(transfer.createdAt)}
                       </p>
-                      <p className="text-xs text-purple-600 font-medium mt-0.5">
+                      <p className="text-xs text-tone-purple-fg font-medium mt-0.5">
                         🚚 Site Transfer
                       </p>
                     </div>
@@ -427,24 +427,24 @@ export default function MaterialTransfer({ isTabView = false }) {
                 {/* Details */}
                 <div className="space-y-2.5 text-sm">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600 font-medium">ST ID</span>
-                    <span className="font-semibold text-gray-900">{transfer.siteTransferId}</span>
+                    <span className="text-ink-3 font-medium">ST ID</span>
+                    <span className="font-semibold text-ink-1">{transfer.siteTransferId}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600 font-medium">From Site</span>
-                    <span className="font-semibold text-gray-900">{transfer.fromSite}</span>
+                    <span className="text-ink-3 font-medium">From Site</span>
+                    <span className="font-semibold text-ink-1">{transfer.fromSite}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600 font-medium">To Site</span>
-                    <span className="font-semibold text-gray-900">{transfer.toSite}</span>
+                    <span className="text-ink-3 font-medium">To Site</span>
+                    <span className="font-semibold text-ink-1">{transfer.toSite}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600 font-medium">Requested By</span>
-                    <span className="font-semibold text-gray-900">{transfer.requestedBy}</span>
+                    <span className="text-ink-3 font-medium">Requested By</span>
+                    <span className="font-semibold text-ink-1">{transfer.requestedBy}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600 font-medium">Materials</span>
-                    <span className="font-semibold text-blue-600">{transfer.materials?.length || 0} items</span>
+                    <span className="text-ink-3 font-medium">Materials</span>
+                    <span className="font-semibold text-tone-info-fg">{transfer.materials?.length || 0} items</span>
                   </div>
                 </div>
               </CardContent>
@@ -461,11 +461,11 @@ export default function MaterialTransfer({ isTabView = false }) {
             variant="outline"
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
-            className="h-auto px-4 py-2 bg-white border-gray-200 rounded-xl font-medium text-sm text-gray-700 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-all shadow-sm"
+            className="h-auto px-4 py-2 bg-surface border-line-card rounded-xl font-medium text-sm text-ink-2 hover:text-ink-1 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-muted transition-all shadow-sm"
           >
             Previous
           </Button>
-          <span className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-sm shadow-sm">
+          <span className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary-strong text-white rounded-xl font-semibold text-sm shadow-sm">
             {currentPage} / {totalPages}
           </span>
           <Button
@@ -473,7 +473,7 @@ export default function MaterialTransfer({ isTabView = false }) {
             variant="outline"
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
             disabled={currentPage === totalPages}
-            className="h-auto px-4 py-2 bg-white border-gray-200 rounded-xl font-medium text-sm text-gray-700 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-all shadow-sm"
+            className="h-auto px-4 py-2 bg-surface border-line-card rounded-xl font-medium text-sm text-ink-2 hover:text-ink-1 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-muted transition-all shadow-sm"
           >
             Next
           </Button>
@@ -492,7 +492,7 @@ export default function MaterialTransfer({ isTabView = false }) {
         <Button
           type="button"
           onClick={handleCreateTransfer}
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 w-16 h-16 p-0 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 flex items-center justify-center z-50 transition-all duration-300 [&_svg]:size-7"
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 w-16 h-16 p-0 bg-primary text-primary-foreground hover:bg-primary-strong text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 flex items-center justify-center z-50 transition-all duration-300 [&_svg]:size-7"
         >
           <Plus size={28} strokeWidth={2.5} />
         </Button>
@@ -502,18 +502,18 @@ export default function MaterialTransfer({ isTabView = false }) {
 
   // Standalone mode with full page layout
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
+    <div className="min-h-screen bg-tone-highlight-soft">
       {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
+      <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
         {/* Header with Gradient */}
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
+        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             type="button"
             variant="ghost"
             className="mobile-back-button absolute top-6 left-6 h-auto hover:bg-transparent"
             onClick={() => navigate(-1)}
           >
-            <FaArrowLeft size={16} />
+            <ArrowLeft size={16} />
             <span className="text-sm font-medium">Back</span>
           </Button>
 
@@ -531,7 +531,7 @@ export default function MaterialTransfer({ isTabView = false }) {
         {/* Footer */}
         <div className="px-6 pb-6 pt-2">
           <div className="text-center">
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-ink-4">
               Powered by Laxmi Power Tech
             </p>
           </div>
@@ -542,7 +542,7 @@ export default function MaterialTransfer({ isTabView = false }) {
       <Button
         type="button"
         onClick={handleCreateTransfer}
-        className="fixed bottom-8 left-1/2 -translate-x-1/2 w-16 h-16 p-0 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 flex items-center justify-center z-50 transition-all duration-300 [&_svg]:size-7"
+        className="fixed bottom-8 left-1/2 -translate-x-1/2 w-16 h-16 p-0 bg-primary text-primary-foreground hover:bg-primary-strong text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 flex items-center justify-center z-50 transition-all duration-300 [&_svg]:size-7"
       >
         <Plus size={28} strokeWidth={2.5} />
       </Button>

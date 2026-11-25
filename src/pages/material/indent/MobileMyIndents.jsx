@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 
 const StatusPill = ({ value }) => {
   const map = {
-    pending: "bg-yellow-100 text-yellow-700",
-    approved: "bg-blue-100 text-blue-700",
-    rejected: "bg-red-100 text-red-700",
-    issued: "bg-green-100 text-green-700",
+    pending: "bg-tone-warn-soft text-tone-warn-fg",
+    approved: "bg-tone-info-soft text-tone-info-fg",
+    rejected: "bg-tone-bad-soft text-tone-bad-fg",
+    issued: "bg-tone-ok-soft text-tone-ok-fg",
   };
-  return <span className={`px-2 py-1 rounded-full text-xs font-medium ${map[value] || "bg-gray-100 text-gray-700"}`}>{value}</span>;
+  return <span className={`px-2 py-1 rounded-full text-xs font-medium ${map[value] || "bg-surface-muted text-ink-2"}`}>{value}</span>;
 };
 
 export default function MobileMyIndents() {
@@ -53,20 +53,20 @@ export default function MobileMyIndents() {
 
       <div className="space-y-2">
         {loading ? (
-          <div className="text-sm text-gray-500">Loading…</div>
+          <div className="text-sm text-ink-3">Loading…</div>
         ) : list.length === 0 ? (
-          <div className="text-sm text-gray-500">No indents yet</div>
+          <div className="text-sm text-ink-3">No indents yet</div>
         ) : list.map((it) => (
           <button
             key={it._id}
             onClick={() => { setActive(it); setOpen(true); }}
-            className="w-full text-left bg-white rounded-xl border px-4 py-3"
+            className="w-full text-left bg-surface rounded-xl border px-4 py-3"
           >
             <div className="flex items-center justify-between">
               <div className="font-medium">{it.project?.name || "Project"}</div>
               <StatusPill value={it.status} />
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-ink-3">
               {dayjs(it.requestedAt || it.createdAt).format("DD MMM YYYY • HH:mm")}
             </div>
             <div className="text-sm mt-1 line-clamp-1">{it.purpose || "—"}</div>
@@ -77,29 +77,29 @@ export default function MobileMyIndents() {
       {/* Detail modal */}
       {open && active && (
         <div className="fixed inset-0 z-40">
-          <div className="absolute inset-0 bg-black/30" onClick={() => setOpen(false)} />
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4">
+          <div className="absolute inset-0 bg-scrim/40" onClick={() => setOpen(false)} />
+          <div className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-2xl p-4">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold">Indent Detail</h3>
               <Button
                 type="button"
                 variant="ghost"
                 aria-label="Close"
-                className="h-auto w-auto p-0 font-normal text-gray-500 hover:bg-transparent hover:text-gray-500"
+                className="h-auto w-auto p-0 font-normal text-ink-3 hover:bg-transparent hover:text-ink-1"
                 onClick={() => setOpen(false)}
               >
                 ✕
               </Button>
             </div>
             <div className="text-sm space-y-1">
-              <div><span className="text-gray-500">Project:</span> {active.project?.name || "—"}</div>
-              <div><span className="text-gray-500">Branch:</span> {active.branch?.name || "—"}</div>
-              <div><span className="text-gray-500">Status:</span> <StatusPill value={active.status} /></div>
-              <div><span className="text-gray-500">Purpose:</span> {active.purpose || "—"}</div>
+              <div><span className="text-ink-3">Project:</span> {active.project?.name || "—"}</div>
+              <div><span className="text-ink-3">Branch:</span> {active.branch?.name || "—"}</div>
+              <div><span className="text-ink-3">Status:</span> <StatusPill value={active.status} /></div>
+              <div><span className="text-ink-3">Purpose:</span> {active.purpose || "—"}</div>
               <div className="grid grid-cols-2 gap-2">
-                <div><span className="text-gray-500">Requested:</span> {active.requestedAt ? dayjs(active.requestedAt).format("DD MMM, HH:mm") : "—"}</div>
-                <div><span className="text-gray-500">Approved:</span> {active.approvedAt ? dayjs(active.approvedAt).format("DD MMM, HH:mm") : "—"}</div>
-                <div><span className="text-gray-500">Issued:</span> {active.issuedAt ? dayjs(active.issuedAt).format("DD MMM, HH:mm") : "—"}</div>
+                <div><span className="text-ink-3">Requested:</span> {active.requestedAt ? dayjs(active.requestedAt).format("DD MMM, HH:mm") : "—"}</div>
+                <div><span className="text-ink-3">Approved:</span> {active.approvedAt ? dayjs(active.approvedAt).format("DD MMM, HH:mm") : "—"}</div>
+                <div><span className="text-ink-3">Issued:</span> {active.issuedAt ? dayjs(active.issuedAt).format("DD MMM, HH:mm") : "—"}</div>
               </div>
             </div>
             <div className="mt-3">
@@ -112,7 +112,7 @@ export default function MobileMyIndents() {
                   </div>
                 ))}
                 {(!active.items || active.items.length === 0) && (
-                  <div className="px-3 py-2 text-gray-500 text-sm">No items</div>
+                  <div className="px-3 py-2 text-ink-3 text-sm">No items</div>
                 )}
               </div>
             </div>

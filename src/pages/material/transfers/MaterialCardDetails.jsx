@@ -17,9 +17,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Class overrides so shadcn primitives keep the page's existing look
-const cardClass = 'bg-white rounded-lg border py-0 gap-0 shadow-none';
-const labelClass = 'text-xs text-gray-600 font-normal leading-normal';
-const readLabelClass = 'text-xs text-gray-500 block mb-1 font-normal leading-normal';
+const cardClass = 'bg-surface rounded-lg border py-0 gap-0 shadow-none';
+const labelClass = 'text-xs text-ink-3 font-normal leading-normal';
+const readLabelClass = 'text-xs text-ink-3 block mb-1 font-normal leading-normal';
 
 export default function MaterialCardDetails() {
   const { id } = useParams();
@@ -43,7 +43,7 @@ export default function MaterialCardDetails() {
   const showToast = useCallback((message, type = 'success') => {
     const toast = document.createElement('div');
     toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-[9999] ${
-      type === 'success' ? 'bg-green-500' : 'bg-red-500'
+      type === 'success' ? 'bg-tone-ok-fg' : 'bg-tone-bad-solid'
     }`;
     toast.textContent = message;
     document.body.appendChild(toast);
@@ -150,15 +150,15 @@ export default function MaterialCardDetails() {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'transferred':
-        return 'bg-green-100 text-green-700';
+        return 'bg-tone-ok-soft text-tone-ok-fg';
       case 'approved':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-tone-info-soft text-tone-info-fg';
       case 'pending':
-        return 'bg-orange-100 text-orange-700';
+        return 'bg-tone-highlight-soft text-tone-highlight-fg';
       case 'cancelled':
-        return 'bg-red-100 text-red-700';
+        return 'bg-tone-bad-soft text-tone-bad-fg';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-surface-muted text-ink-2';
     }
   };
 
@@ -434,13 +434,13 @@ export default function MaterialCardDetails() {
   // ✅ LOADING SCREEN - MATCHING INTENT PO STYLE (WHITE/LIGHT BACKGROUND)
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-        <div className="max-w-md mx-auto bg-white shadow-xl min-h-screen">
+      <div className="min-h-screen bg-tone-highlight-soft">
+        <div className="max-w-md mx-auto bg-surface shadow-xl min-h-screen">
           {/* Header skeleton */}
-          <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
+          <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
             <div className="flex flex-col items-center pt-8 space-y-2">
-              <Skeleton className="h-7 w-44 bg-white/30" />
-              <Skeleton className="h-4 w-28 bg-white/30" />
+              <Skeleton className="h-7 w-44 bg-surface/80" />
+              <Skeleton className="h-4 w-28 bg-surface/80" />
             </div>
           </div>
 
@@ -469,16 +469,16 @@ export default function MaterialCardDetails() {
   // ✅ ERROR SCREEN - MATCHING INTENT PO STYLE
   if (!transfer) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex flex-col items-center justify-center px-4">
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 text-center max-w-md">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-            <X size={32} className="text-red-600" />
+      <div className="min-h-screen bg-tone-highlight-soft flex flex-col items-center justify-center px-4">
+        <div className="bg-surface rounded-xl shadow-lg border border-line-card p-8 text-center max-w-md">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-tone-bad-soft flex items-center justify-center">
+            <X size={32} className="text-tone-bad-fg" />
           </div>
-          <h2 className="text-lg font-bold text-gray-900 mb-2">Transfer Not Found</h2>
-          <p className="text-gray-600 mb-6 text-sm">The material transfer you're looking for doesn't exist or has been deleted.</p>
+          <h2 className="text-lg font-bold text-ink-1 mb-2">Transfer Not Found</h2>
+          <p className="text-ink-3 mb-6 text-sm">The material transfer you're looking for doesn't exist or has been deleted.</p>
           <Button
             onClick={() => navigate(-1)}
-            className="h-auto px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
+            className="h-auto px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-strong transition-colors font-medium"
           >
             Go Back
           </Button>
@@ -490,10 +490,10 @@ export default function MaterialCardDetails() {
   // Edit Mode View
   if (editing) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      <div className="max-w-md mx-auto bg-white shadow-xl">
+      <div className="min-h-screen bg-tone-highlight-soft">
+      <div className="max-w-md mx-auto bg-surface shadow-xl">
         {/* Header - Matching Intent PO */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
+        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
             className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
@@ -516,13 +516,13 @@ export default function MaterialCardDetails() {
           {/* Basic Information Section - Matching Intent PO Layout */}
           <Card className={cardClass}>
             <CardContent className="p-4 space-y-3">
-            <h2 className="font-semibold text-gray-900">Basic Information</h2>
+            <h2 className="font-semibold text-ink-1">Basic Information</h2>
 
             <div className="grid grid-cols-2 gap-3">
               {/* ST-ID - Read Only */}
               <div>
                 <Label className={labelClass}>ST-ID</Label>
-                <p className="font-medium text-gray-900">{transfer.siteTransferId}</p>
+                <p className="font-medium text-ink-1">{transfer.siteTransferId}</p>
               </div>
 
               {/* Status - Read Only */}
@@ -544,7 +544,7 @@ export default function MaterialCardDetails() {
                 <select
                   value={formData.fromSite}
                   onChange={(e) => setFormData({ ...formData, fromSite: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-800 text-white border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 bg-ink-3 text-white border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus-visible:ring-ring"
                   disabled={submitting}
                 >
                   <option value="">Select Site</option>
@@ -563,14 +563,14 @@ export default function MaterialCardDetails() {
                   type="text"
                   value={formData.requestedBy}
                   disabled
-                  className="h-auto w-full px-3 py-2 bg-gray-800 dark:bg-gray-800 text-white border-0 rounded-lg text-sm cursor-not-allowed shadow-none disabled:opacity-75"
+                  className="h-auto w-full px-3 py-2 bg-ink-3 text-white border-0 rounded-lg text-sm cursor-not-allowed shadow-none disabled:opacity-75"
                 />
               </div>
 
               {/* Request Date - Read Only - Full Width */}
               <div className="col-span-2">
                 <Label className={labelClass}>Request Date</Label>
-                <p className="font-medium text-gray-900">{formatDate(transfer.createdAt)}</p>
+                <p className="font-medium text-ink-1">{formatDate(transfer.createdAt)}</p>
               </div>
             </div>
 
@@ -582,7 +582,7 @@ export default function MaterialCardDetails() {
                 onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
                 placeholder="Add remarks..."
                 rows={2}
-                className="w-full px-3 py-2 bg-gray-800 text-white border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-400"
+                className="w-full px-3 py-2 bg-ink-3 text-white border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus-visible:ring-ring placeholder-gray-400"
                 disabled={submitting}
               />
             </div>
@@ -593,12 +593,12 @@ export default function MaterialCardDetails() {
             <Card className={`${cardClass} mb-4`}>
               <CardContent className="p-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-gray-800">Materials</h3>
+                <h3 className="text-sm font-semibold text-ink-1">Materials</h3>
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={addMaterialRow}
-                  className="h-auto p-0 hover:bg-transparent text-orange-600 text-sm font-medium hover:text-orange-700 flex items-center gap-1"
+                  className="h-auto p-0 hover:bg-transparent text-tone-highlight-fg text-sm font-medium hover:text-primary-strong flex items-center gap-1"
                   disabled={submitting}
                 >
                   <Plus size={16} />
@@ -629,7 +629,7 @@ export default function MaterialCardDetails() {
             {/* Attachments Section */}
             <Card className={`${cardClass} mb-4`}>
               <CardContent className="p-4">
-              <h3 className="text-sm font-semibold text-gray-800 mb-4">Attachments</h3>
+              <h3 className="text-sm font-semibold text-ink-1 mb-4">Attachments</h3>
               
               {/* Existing Attachments */}
               {transfer.attachments && transfer.attachments.length > 0 && (
@@ -643,7 +643,7 @@ export default function MaterialCardDetails() {
                     const isImage = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
                     
                     return (
-                      <div key={index} className="relative border border-gray-300 rounded-lg overflow-hidden bg-white">
+                      <div key={index} className="relative border border-line-input rounded-lg overflow-hidden bg-surface">
                         {isImage ? (
                           <img loading="lazy" decoding="async" 
                             src={fileURL} 
@@ -654,7 +654,7 @@ export default function MaterialCardDetails() {
                             }}
                           />
                         ) : (
-                          <div className="w-full h-32 flex items-center justify-center bg-gray-100">
+                          <div className="w-full h-32 flex items-center justify-center bg-surface-muted">
                             <span className="text-4xl">📎</span>
                           </div>
                         )}
@@ -663,7 +663,7 @@ export default function MaterialCardDetails() {
                           type="button"
                           onClick={() => handleDeleteAttachment(index)}
                           disabled={deletingAttachment === index}
-                          className="absolute top-2 right-2 h-auto w-auto p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                          className="absolute top-2 right-2 h-auto w-auto p-1.5 bg-tone-bad-solid text-white rounded-full hover:bg-primary-strong transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                           title="Delete attachment"
                         >
                           {deletingAttachment === index ? (
@@ -673,8 +673,8 @@ export default function MaterialCardDetails() {
                           )}
                         </Button>
                         
-                        <div className="p-2 bg-white border-t border-gray-200">
-                          <p className="text-xs text-gray-600 truncate">{fileName}</p>
+                        <div className="p-2 bg-surface border-t border-line-card">
+                          <p className="text-xs text-ink-3 truncate">{fileName}</p>
                         </div>
                       </div>
                     );
@@ -692,22 +692,22 @@ export default function MaterialCardDetails() {
                     className="hidden"
                     disabled={submitting}
                   />
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-orange-500 transition-colors">
-                    <Upload size={24} className="mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-600">Click to upload files</p>
+                  <div className="border-2 border-dashed border-line-input rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors">
+                    <Upload size={24} className="mx-auto mb-2 text-ink-4" />
+                    <p className="text-sm text-ink-3">Click to upload files</p>
                   </div>
                 </label>
 
                 {newAttachments.length > 0 && (
                   <div className="mt-3 space-y-2">
                     {newAttachments.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
-                        <span className="text-sm text-gray-700 truncate flex-1">{file.name}</span>
+                      <div key={index} className="flex items-center justify-between bg-surface-subtle p-2 rounded-lg">
+                        <span className="text-sm text-ink-2 truncate flex-1">{file.name}</span>
                         <Button
                           type="button"
                           variant="ghost"
                           onClick={() => removeNewAttachment(index)}
-                          className="ml-2 h-auto w-auto p-1 text-red-500 hover:text-red-500 hover:bg-red-50 rounded"
+                          className="ml-2 h-auto w-auto p-1 text-tone-bad-fg hover:text-primary-strong hover:bg-tone-bad-soft rounded"
                           disabled={submitting}
                         >
                           <X size={16} />
@@ -723,13 +723,13 @@ export default function MaterialCardDetails() {
           </div>
           
           {/* Fixed Bottom Buttons */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-50">
+          <div className="fixed bottom-0 left-0 right-0 bg-surface border-t shadow-lg p-4 z-50">
             <div className="max-w-md mx-auto flex gap-3">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleCancelEdit}
-                className="flex-1 h-auto py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                className="flex-1 h-auto py-3 border border-line-input rounded-lg hover:bg-surface-muted transition-colors text-sm font-medium"
                 disabled={submitting}
               >
                 Cancel
@@ -737,7 +737,7 @@ export default function MaterialCardDetails() {
               <Button
                 type="button"
                 onClick={handleSaveChanges}
-                className="flex-1 h-auto py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium disabled:opacity-100 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="flex-1 h-auto py-3 bg-primary text-white rounded-lg hover:bg-primary-strong transition-colors text-sm font-medium disabled:opacity-100 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 disabled={submitting}
               >
                 {submitting ? (
@@ -762,11 +762,11 @@ export default function MaterialCardDetails() {
 
   // Read-Only View - Matching Intent PO Mobile Layout
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
+    <div className="min-h-screen bg-tone-highlight-soft">
       {/* Container with consistent mobile width - EXACTLY like Intent Details */}
-      <div className="max-w-md mx-auto bg-white shadow-xl">
+      <div className="max-w-md mx-auto bg-surface shadow-xl">
         {/* Header with Gradient - EXACTLY matching Intent PO */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
+        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
             className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
@@ -787,11 +787,11 @@ export default function MaterialCardDetails() {
           {/* Basic Information Card - Matching Intent Details */}
           <Card className={`${cardClass} mb-4`}>
             <CardContent className="p-4 space-y-3">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">Basic Information</h3>
+            <h3 className="text-sm font-semibold text-ink-1 mb-3">Basic Information</h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className={labelClass}>ST-ID</Label>
-                <p className="font-medium text-gray-900">{transfer.siteTransferId}</p>
+                <p className="font-medium text-ink-1">{transfer.siteTransferId}</p>
               </div>
               <div>
                 <Label className={labelClass}>Status</Label>
@@ -804,19 +804,19 @@ export default function MaterialCardDetails() {
               </div>
               <div>
                 <Label className={labelClass}>From Site</Label>
-                <p className="font-medium text-gray-900">{transfer.fromSite}</p>
+                <p className="font-medium text-ink-1">{transfer.fromSite}</p>
               </div>
               <div>
                 <Label className={labelClass}>To Site</Label>
-                <p className="font-medium text-gray-900">{transfer.toSite}</p>
+                <p className="font-medium text-ink-1">{transfer.toSite}</p>
               </div>
               <div>
                 <Label className={labelClass}>Requested By</Label>
-                <p className="font-medium text-gray-900">{transfer.requestedBy}</p>
+                <p className="font-medium text-ink-1">{transfer.requestedBy}</p>
               </div>
               <div>
                 <Label className={labelClass}>Request Date</Label>
-                <p className="font-medium text-gray-900">{formatDate(transfer.createdAt)}</p>
+                <p className="font-medium text-ink-1">{formatDate(transfer.createdAt)}</p>
               </div>
             </div>
             </CardContent>
@@ -824,7 +824,7 @@ export default function MaterialCardDetails() {
 
           {/* Materials Section - Detailed Display Matching Snapshot */}
           <div className="mb-4">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">Materials</h3>
+            <h3 className="text-sm font-semibold text-ink-1 mb-3">Materials</h3>
             <div className="space-y-3">
               {transfer.materials?.map((material, index) => {
                 // Parse itemName to extract subcategories
@@ -835,9 +835,9 @@ export default function MaterialCardDetails() {
                 const subCategory2 = parts[3] || '';
                 
                 return (
-                  <div key={index} className="bg-white rounded-lg border border-gray-200 p-4">
+                  <div key={index} className="bg-surface rounded-lg border border-line-card p-4">
                     <div className="mb-3">
-                      <h3 className="text-sm font-semibold text-gray-900">Material #{index + 1}</h3>
+                      <h3 className="text-sm font-semibold text-ink-1">Material #{index + 1}</h3>
                     </div>
                     
                     <div className="space-y-3">
@@ -845,11 +845,11 @@ export default function MaterialCardDetails() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className={readLabelClass}>Category</Label>
-                          <p className="text-sm font-medium text-gray-900">{category || '-'}</p>
+                          <p className="text-sm font-medium text-ink-1">{category || '-'}</p>
                         </div>
                         <div>
                           <Label className={readLabelClass}>Sub Category</Label>
-                          <p className="text-sm font-medium text-gray-900">{subCategory || '-'}</p>
+                          <p className="text-sm font-medium text-ink-1">{subCategory || '-'}</p>
                         </div>
                       </div>
                       
@@ -858,11 +858,11 @@ export default function MaterialCardDetails() {
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <Label className={readLabelClass}>Sub Category 1</Label>
-                            <p className="text-sm font-medium text-gray-900">{subCategory1 || '-'}</p>
+                            <p className="text-sm font-medium text-ink-1">{subCategory1 || '-'}</p>
                           </div>
                           <div>
                             <Label className={readLabelClass}>Sub Category 2</Label>
-                            <p className="text-sm font-medium text-gray-900">{subCategory2 || '-'}</p>
+                            <p className="text-sm font-medium text-ink-1">{subCategory2 || '-'}</p>
                           </div>
                         </div>
                       )}
@@ -871,11 +871,11 @@ export default function MaterialCardDetails() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className={readLabelClass}>Quantity</Label>
-                          <p className="text-sm font-medium text-gray-900">{material.quantity || '-'}</p>
+                          <p className="text-sm font-medium text-ink-1">{material.quantity || '-'}</p>
                         </div>
                         <div>
                           <Label className={readLabelClass}>Remarks</Label>
-                          <p className="text-sm text-gray-700">{material.remarks || '-'}</p>
+                          <p className="text-sm text-ink-2">{material.remarks || '-'}</p>
                         </div>
                       </div>
                     </div>
@@ -888,7 +888,7 @@ export default function MaterialCardDetails() {
           {/* Attachments Section - Matching Intent Details */}
           {transfer.attachments && transfer.attachments.length > 0 && (
             <div className="mb-4">
-              <h3 className="text-sm font-semibold text-gray-800 mb-3">
+              <h3 className="text-sm font-semibold text-ink-1 mb-3">
                 Attachments ({transfer.attachments.length})
               </h3>
               
@@ -904,7 +904,7 @@ export default function MaterialCardDetails() {
                   return (
                     <div 
                       key={index} 
-                      className="relative border border-gray-300 rounded-lg overflow-hidden bg-white cursor-pointer hover:shadow-md transition-shadow"
+                      className="relative border border-line-input rounded-lg overflow-hidden bg-surface cursor-pointer hover:shadow-md transition-shadow"
                       onClick={() => window.open(fileURL, '_blank')}
                     >
                       {isImage ? (
@@ -917,14 +917,14 @@ export default function MaterialCardDetails() {
                           }}
                         />
                       ) : (
-                        <div className="w-full h-32 flex items-center justify-center bg-gray-100">
+                        <div className="w-full h-32 flex items-center justify-center bg-surface-muted">
                           <span className="text-4xl">📎</span>
                         </div>
                       )}
                       
                       {/* File Name */}
-                      <div className="p-2 bg-white border-t border-gray-200">
-                        <p className="text-xs text-gray-600 truncate">{fileName}</p>
+                      <div className="p-2 bg-surface border-t border-line-card">
+                        <p className="text-xs text-ink-3 truncate">{fileName}</p>
                       </div>
                     </div>
                   );
@@ -935,19 +935,19 @@ export default function MaterialCardDetails() {
         </div>
 
         {/* Fixed Bottom Buttons - Only Edit and Delete (No Back Button) */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-50">
+        <div className="fixed bottom-0 left-0 right-0 bg-surface border-t shadow-lg p-4 z-50">
           <div className="max-w-md mx-auto flex gap-3">
             <Button
               type="button"
               onClick={handleEdit}
-              className="flex-1 h-auto py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
+              className="flex-1 h-auto py-3 bg-primary text-white rounded-lg hover:bg-primary-strong transition-colors text-sm font-medium"
             >
               Edit
             </Button>
             <Button
               type="button"
               onClick={handleDelete}
-              className="flex-1 h-auto py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
+              className="flex-1 h-auto py-3 bg-tone-bad-solid text-white rounded-lg hover:bg-primary-strong transition-colors text-sm font-medium"
             >
               Delete
             </Button>

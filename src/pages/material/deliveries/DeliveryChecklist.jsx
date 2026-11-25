@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
+import { ArrowLeft } from 'lucide-react';
 import { FILE_BASE_URL } from '@/api/client';
 import { EVENTS } from '@/lib/events';
 import { useParams, useNavigate } from "react-router-dom";
 import { upcomingDeliveryAPI } from "@/api/material";
 import { AlertCircle, CheckCircle, Upload, Trash2, Image as ImageIcon } from "lucide-react";
-import { FaArrowLeft } from 'react-icons/fa';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -169,7 +169,7 @@ export default function DeliveryChecklist() {
     const showToast = (message, type = 'success') => {
         const toast = document.createElement('div');
         toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-[9999] transition-opacity ${
-            type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            type === 'success' ? 'bg-tone-ok-fg' : 'bg-tone-bad-solid'
         }`;
         toast.textContent = message;
         document.body.appendChild(toast);
@@ -272,11 +272,11 @@ export default function DeliveryChecklist() {
 
     const getStatusBadge = (status) => {
         const statusColors = {
-            'Pending': 'bg-gray-100 text-gray-700',
-            'Partial': 'bg-orange-100 text-orange-600',
-            'Transferred': 'bg-green-100 text-green-600'
+            'Pending': 'bg-surface-muted text-ink-2',
+            'Partial': 'bg-tone-highlight-soft text-tone-highlight-fg',
+            'Transferred': 'bg-tone-ok-soft text-tone-ok-fg'
         };
-        const colorClass = statusColors[status] || 'bg-gray-100 text-gray-700';
+        const colorClass = statusColors[status] || 'bg-surface-muted text-ink-2';
         return (
             <Badge className={`text-xs px-2 py-1 rounded-full font-medium ${colorClass}`}>
                 {status}
@@ -287,8 +287,8 @@ export default function DeliveryChecklist() {
     if (loading) {
         return (
             <div className="flex flex-col justify-center items-center h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mb-4"></div>
-                <p className="text-gray-600 text-sm">Loading delivery details...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-line-card mb-4"></div>
+                <p className="text-ink-3 text-sm">Loading delivery details...</p>
             </div>
         );
     }
@@ -296,12 +296,12 @@ export default function DeliveryChecklist() {
     if (error || !delivery) {
         return (
             <div className="p-4">
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-600 text-sm">{error || "Delivery not found"}</p>
+                <div className="p-4 bg-tone-bad-soft border border-tone-bad-border rounded-lg">
+                    <p className="text-tone-bad-fg text-sm">{error || "Delivery not found"}</p>
                     <Button
                         variant="link"
                         onClick={() => navigate(-1)}
-                        className="mt-2 p-0 h-auto text-sm text-red-600 hover:text-red-700 underline"
+                        className="mt-2 p-0 h-auto text-sm text-tone-bad-fg hover:text-primary-strong underline"
                     >
                         Go Back
                     </Button>
@@ -311,17 +311,17 @@ export default function DeliveryChecklist() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
+        <div className="min-h-screen bg-tone-highlight-soft">
             {/* Container with consistent mobile width */}
-            <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
+            <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
                 {/* Header with Gradient */}
-                <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
+                <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
                     <Button
                         variant="ghost"
                         onClick={() => navigate(-1)}
-                        className="mobile-back-button absolute top-6 left-6 text-white hover:bg-orange-600"
+                        className="mobile-back-button absolute top-6 left-6 text-white hover:bg-primary-strong"
                     >
-                        <FaArrowLeft size={16} />
+                        <ArrowLeft size={16} />
                         <span className="text-sm font-medium">Back</span>
                     </Button>
 
@@ -334,63 +334,63 @@ export default function DeliveryChecklist() {
                 {/* Main Content */}
                 <div className="px-6 py-6 -mt-4 pb-24">
                     {/* Info Card - Fixed Colors */}
-                    <div className="bg-white rounded-xl shadow-md border-2 border-gray-200 p-4 space-y-3 mb-4">
+                    <div className="bg-surface rounded-xl shadow-md border-2 border-line-card p-4 space-y-3 mb-4">
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="col-span-2 bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
-                                <label className="text-xs font-semibold text-gray-600 block mb-1">
+                            <div className="col-span-2 bg-surface-subtle rounded-lg p-2 border border-line-card">
+                                <label className="text-xs font-semibold text-ink-3 block mb-1">
                                     {delivery.type === 'PO' ? 'PO ID' : 'ST-ID'}
                                 </label>
-                                <p className="font-bold text-gray-900 text-sm">{delivery.transfer_number || delivery.st_id}</p>
+                                <p className="font-bold text-ink-1 text-sm">{delivery.transfer_number || delivery.st_id}</p>
                             </div>
-                            <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
-                                <label className="text-xs font-semibold text-gray-600 block mb-1">Status</label>
+                            <div className="bg-surface-subtle rounded-lg p-2 border border-line-card">
+                                <label className="text-xs font-semibold text-ink-3 block mb-1">Status</label>
                                 {getStatusBadge(delivery.status)}
                             </div>
-                            <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
-                                <label className="text-xs font-semibold text-gray-600 block mb-1">Type</label>
-                                <p className="font-bold text-gray-900">{delivery.type || 'ST'}</p>
+                            <div className="bg-surface-subtle rounded-lg p-2 border border-line-card">
+                                <label className="text-xs font-semibold text-ink-3 block mb-1">Type</label>
+                                <p className="font-bold text-ink-1">{delivery.type || 'ST'}</p>
                             </div>
-                            <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
-                                <label className="text-xs font-semibold text-gray-600 block mb-1">From</label>
-                                <p className="font-bold text-gray-900 text-xs">{delivery.from || 'N/A'}</p>
+                            <div className="bg-surface-subtle rounded-lg p-2 border border-line-card">
+                                <label className="text-xs font-semibold text-ink-3 block mb-1">From</label>
+                                <p className="font-bold text-ink-1 text-xs">{delivery.from || 'N/A'}</p>
                             </div>
-                            <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
-                                <label className="text-xs font-semibold text-gray-600 block mb-1">To</label>
-                                <p className="font-bold text-gray-900 text-xs">{delivery.to || 'N/A'}</p>
+                            <div className="bg-surface-subtle rounded-lg p-2 border border-line-card">
+                                <label className="text-xs font-semibold text-ink-3 block mb-1">To</label>
+                                <p className="font-bold text-ink-1 text-xs">{delivery.to || 'N/A'}</p>
                             </div>
-                            <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
-                                <label className="text-xs font-semibold text-gray-600 block mb-1">Requested By</label>
-                                <p className="font-bold text-gray-900 text-xs">{delivery.requested_by || delivery.createdBy || 'N/A'}</p>
+                            <div className="bg-surface-subtle rounded-lg p-2 border border-line-card">
+                                <label className="text-xs font-semibold text-ink-3 block mb-1">Requested By</label>
+                                <p className="font-bold text-ink-1 text-xs">{delivery.requested_by || delivery.createdBy || 'N/A'}</p>
                             </div>
-                            <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-2 border border-gray-200">
-                                <label className="text-xs font-semibold text-gray-600 block mb-1">Date</label>
-                                <p className="font-bold text-gray-900 text-xs">{formatDate(delivery.date)}</p>
+                            <div className="bg-surface-subtle rounded-lg p-2 border border-line-card">
+                                <label className="text-xs font-semibold text-ink-3 block mb-1">Date</label>
+                                <p className="font-bold text-ink-1 text-xs">{formatDate(delivery.date)}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* All Transferred Banner */}
                     {allTransferred && (
-                        <div className="p-3 bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300 rounded-xl flex items-center gap-2 mb-4 shadow-sm">
-                            <CheckCircle className="text-green-600" size={20} />
-                            <span className="text-sm text-green-800 font-bold">All items transferred</span>
+                        <div className="p-3 bg-tone-ok-soft border-2 border-tone-ok-border rounded-xl flex items-center gap-2 mb-4 shadow-sm">
+                            <CheckCircle className="text-tone-ok-fg" size={20} />
+                            <span className="text-sm text-tone-ok-fg font-bold">All items transferred</span>
                         </div>
                     )}
 
                     {/* Summary - Fixed Colors */}
-                    <div className="p-4 bg-gradient-to-br from-orange-50 to-white border-2 border-orange-200 rounded-xl mb-4 shadow-md">
+                    <div className="p-4 bg-tone-highlight-soft border-2 border-line-card rounded-xl mb-4 shadow-md">
                         <div className="grid grid-cols-3 gap-3 text-sm">
-                            <div className="text-center bg-white rounded-lg p-2 border border-gray-200">
-                                <span className="block text-xs font-semibold text-gray-600 mb-1">Submitted</span>
-                                <span className="block font-bold text-lg text-gray-900">{totalSubmitted}</span>
+                            <div className="text-center bg-surface rounded-lg p-2 border border-line-card">
+                                <span className="block text-xs font-semibold text-ink-3 mb-1">Submitted</span>
+                                <span className="block font-bold text-lg text-ink-1">{totalSubmitted}</span>
                             </div>
-                            <div className="text-center bg-white rounded-lg p-2 border border-green-200">
-                                <span className="block text-xs font-semibold text-gray-600 mb-1">Received</span>
-                                <span className="block font-bold text-lg text-green-600">{totalReceived}</span>
+                            <div className="text-center bg-surface rounded-lg p-2 border border-tone-ok-border">
+                                <span className="block text-xs font-semibold text-ink-3 mb-1">Received</span>
+                                <span className="block font-bold text-lg text-tone-ok-fg">{totalReceived}</span>
                             </div>
-                            <div className="text-center bg-white rounded-lg p-2 border border-orange-200">
-                                <span className="block text-xs font-semibold text-gray-600 mb-1">Missing</span>
-                                <span className="block font-bold text-lg text-orange-600">{missing}</span>
+                            <div className="text-center bg-surface rounded-lg p-2 border border-line-card">
+                                <span className="block text-xs font-semibold text-ink-3 mb-1">Missing</span>
+                                <span className="block font-bold text-lg text-tone-highlight-fg">{missing}</span>
                             </div>
                         </div>
                     </div>
@@ -398,10 +398,10 @@ export default function DeliveryChecklist() {
                     {/* ✅ ATTACHMENTS SECTION - Delivery Receipt Images */}
                     <div className="mb-4">
                         <div className="flex justify-between items-center mb-3">
-                            <h3 className="text-base font-bold text-gray-900">
+                            <h3 className="text-base font-bold text-ink-1">
                                 Delivery Receipts ({delivery.attachments?.length || 0})
                             </h3>
-                            <label className="px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors cursor-pointer flex items-center gap-2 text-xs font-semibold shadow-sm">
+                            <label className="px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-strong transition-colors cursor-pointer flex items-center gap-2 text-xs font-semibold shadow-sm">
                                 <Upload size={14} />
                                 {uploadingReceipt ? 'Uploading...' : 'Upload'}
                                 <input
@@ -427,7 +427,7 @@ export default function DeliveryChecklist() {
                                     const isImage = attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i);
                                     
                                     return (
-                                        <div key={index} className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                                        <div key={index} className="border-2 border-line-card rounded-lg overflow-hidden bg-surface shadow-sm">
                                             <div className="relative">
                                                 {/* Image Thumbnail */}
                                                 {isImage ? (
@@ -441,7 +441,7 @@ export default function DeliveryChecklist() {
                                                         }}
                                                     />
                                                 ) : (
-                                                    <div className="w-full h-32 flex items-center justify-center bg-gray-100">
+                                                    <div className="w-full h-32 flex items-center justify-center bg-surface-muted">
                                                         <span className="text-4xl">📎</span>
                                                     </div>
                                                 )}
@@ -453,7 +453,7 @@ export default function DeliveryChecklist() {
                                                     aria-label="Delete attachment"
                                                     onClick={() => handleDeleteAttachment(index)}
                                                     disabled={deletingAttachment === index}
-                                                    className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                                                    className="absolute top-2 right-2 p-1.5 bg-tone-bad-solid text-white rounded-full hover:bg-primary-strong transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                                                     title="Delete attachment"
                                                 >
                                                     {deletingAttachment === index ? (
@@ -465,9 +465,9 @@ export default function DeliveryChecklist() {
                                             </div>
                                             
                                             {/* File Info */}
-                                            <div className="p-2 bg-white border-t border-gray-200">
-                                                <p className="text-xs font-medium text-gray-900 truncate">{fileName}</p>
-                                                <p className="text-xs text-gray-500 mt-0.5">
+                                            <div className="p-2 bg-surface border-t border-line-card">
+                                                <p className="text-xs font-medium text-ink-1 truncate">{fileName}</p>
+                                                <p className="text-xs text-ink-3 mt-0.5">
                                                     {isImage ? 'Image' : 'File'} • #{index + 1}
                                                 </p>
                                             </div>
@@ -476,10 +476,10 @@ export default function DeliveryChecklist() {
                                 })}
                             </div>
                         ) : (
-                            <div className="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                                <ImageIcon size={32} className="mx-auto text-gray-400 mb-2" />
-                                <p className="text-gray-500 text-xs font-semibold">No receipt images</p>
-                                <p className="text-gray-400 text-xs mt-1">Upload delivery proof here</p>
+                            <div className="text-center py-6 bg-surface-subtle rounded-lg border-2 border-dashed border-line-input">
+                                <ImageIcon size={32} className="mx-auto text-ink-4 mb-2" />
+                                <p className="text-ink-3 text-xs font-semibold">No receipt images</p>
+                                <p className="text-ink-4 text-xs mt-1">Upload delivery proof here</p>
                             </div>
                         )}
                     </div>
@@ -497,16 +497,16 @@ export default function DeliveryChecklist() {
                     return (
                       <div
                         key={item.itemId || item._id}
-                        className="bg-white rounded-xl border-2 border-gray-200 p-4 shadow-md"
+                        className="bg-surface rounded-xl border-2 border-line-card p-4 shadow-md"
                       >
                         <div className="space-y-3">
                           {/* Item Info */}
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <div className="text-sm font-bold text-gray-900">
+                              <div className="text-sm font-bold text-ink-1">
                                 {getItemDisplayName(item)}
                               </div>
-                              <div className="text-xs text-gray-600 mt-1 font-medium">
+                              <div className="text-xs text-ink-3 mt-1 font-medium">
                                 Remaining: {formatQuantity(remainingQty)}{" "}
                                 {item.uom || item.unit || ""}
                               </div>
@@ -523,30 +523,30 @@ export default function DeliveryChecklist() {
                                   ? "Already fully received"
                                   : "Fill remaining quantity"
                               }
-                              className="w-6 h-6 mt-1 border-gray-400 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-white"
+                              className="w-6 h-6 mt-1 border-line-input data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-white"
                             />
                           </div>
 
                           {/* Quantities */}
                           <div className="grid grid-cols-2 gap-3">
                             <div>
-                              <label className="text-xs font-semibold text-gray-600 block mb-1.5">
+                              <label className="text-xs font-semibold text-ink-3 block mb-1.5">
                                 Requested
                               </label>
-                              <div className="px-3 py-2.5 bg-gradient-to-r from-gray-100 to-gray-50 rounded-lg text-sm font-bold text-gray-900 border border-gray-300">
+                              <div className="px-3 py-2.5 bg-surface-subtle rounded-lg text-sm font-bold text-ink-1 border border-line-input">
                                 {formatQuantity(requestedQty)}
                               </div>
                             </div>
                             <div>
-                              <label className="text-xs font-semibold text-gray-600 block mb-1.5">
+                              <label className="text-xs font-semibold text-ink-3 block mb-1.5">
                                 Previously Received
                               </label>
-                              <div className="px-3 py-2.5 bg-gradient-to-r from-green-50 to-white rounded-lg text-sm font-bold text-green-700 border border-green-200">
+                              <div className="px-3 py-2.5 bg-tone-ok-soft rounded-lg text-sm font-bold text-tone-ok-fg border border-tone-ok-border">
                                 {formatQuantity(previouslyReceivedQty)}
                               </div>
                             </div>
                             <div className="col-span-2">
-                              <label className="text-xs font-semibold text-gray-600 block mb-1.5">
+                              <label className="text-xs font-semibold text-ink-3 block mb-1.5">
                                 Received Now
                               </label>
                               <Input
@@ -563,15 +563,15 @@ export default function DeliveryChecklist() {
                                     ? "Already complete"
                                     : `Max ${formatQuantity(remainingQty)}`
                                 }
-                                className={`w-full px-3 py-2.5 border-2 rounded-lg text-sm font-bold bg-white ${
+                                className={`w-full px-3 py-2.5 border-2 rounded-lg text-sm font-bold bg-surface ${
                                   validationErrors[index]
-                                    ? "border-red-500 focus:ring-red-500 text-red-900"
-                                    : "border-gray-300 focus:ring-orange-500 text-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
+                                    ? "border-tone-bad-border focus-visible:ring-ring text-tone-bad-fg"
+                                    : "border-line-input focus-visible:ring-ring text-ink-1 disabled:bg-gray-100 disabled:text-gray-500"
                                 } focus:ring-2 focus:outline-none`}
                                 style={{ colorScheme: "light" }}
                               />
                             </div>
-                            <div className="col-span-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100 text-xs font-semibold text-blue-700">
+                            <div className="col-span-2 px-3 py-2 bg-tone-info-soft rounded-lg border border-line-card text-xs font-semibold text-tone-info-fg">
                               After submit total received:{" "}
                               {formatQuantity(projectedReceivedQty)} /{" "}
                               {formatQuantity(requestedQty)}
@@ -580,7 +580,7 @@ export default function DeliveryChecklist() {
 
                           {/* Validation Error */}
                           {validationErrors[index] && (
-                            <div className="flex items-center gap-2 text-red-700 text-xs bg-red-50 border border-red-200 rounded-lg p-2">
+                            <div className="flex items-center gap-2 text-tone-bad-fg text-xs bg-tone-bad-soft border border-tone-bad-border rounded-lg p-2">
                               <AlertCircle size={14} />
                               <span className="font-semibold">
                                 {validationErrors[index]}
@@ -595,12 +595,12 @@ export default function DeliveryChecklist() {
                 </div>
 
                 {/* Fixed Bottom Button */}
-                <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-50">
+                <div className="fixed bottom-0 left-0 right-0 bg-surface border-t shadow-lg p-4 z-50">
                     <div className="max-w-md mx-auto">
                     <Button
                         onClick={handleSubmit}
                         disabled={submitting || Object.keys(validationErrors).length > 0}
-                        className="w-full py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors shadow-md"
+                        className="w-full py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-strong disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors shadow-md"
                     >
                         {submitting ? "Submitting..." : "Submit Changes"}
                     </Button>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { ArrowLeft } from 'lucide-react';
 import { isFieldRole } from '@/lib/roles';
 import { ROUTES } from '@/lib/routes';
 import { getUser } from '@/lib/session';
@@ -6,7 +7,6 @@ import { fetchBranchesCached } from '@/hooks/useBranches';
 import { useNavigate } from "react-router-dom";
 import { upcomingDeliveryAPI } from "@/api/material";
 import { Package, Calendar, MapPin, FileText, User, TrendingUp, Eye, Filter, Search } from "lucide-react";
-import { FaArrowLeft } from 'react-icons/fa';
 import { getSelectedBranchId, getSelectedBranchName } from "@/lib/branchContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -193,9 +193,9 @@ export default function GRN({ isTabView = false }) {
             placeholder="Search by GRN ID, site, or name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-10 w-full rounded-lg pl-10 pr-4 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus-visible:ring-2 focus-visible:ring-green-500"
+            className="h-10 w-full rounded-lg pl-10 pr-4 border-line-input bg-surface text-ink-1 focus-visible:ring-2 focus-visible:ring-ring"
           />
-          <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-4" />
         </div>
         
         {/* Filters Toggle Button */}
@@ -203,7 +203,7 @@ export default function GRN({ isTabView = false }) {
           <Button
             type="button"
             onClick={() => setShowFilters(!showFilters)}
-            className="w-full h-auto flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white hover:text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+            className="w-full h-auto flex items-center justify-between px-3 py-2.5 bg-primary text-primary-foreground hover:bg-primary-strong text-white hover:text-white rounded-lg shadow-md hover:shadow-lg transition-all"
           >
             <span className="font-semibold flex items-center gap-2 text-sm">
               <Filter size={16} />
@@ -217,18 +217,18 @@ export default function GRN({ isTabView = false }) {
         
         {/* Filters Panel */}
         {showFilters && (
-          <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm space-y-2.5">
+          <div className="bg-surface border border-line-card rounded-lg p-3 shadow-sm space-y-2.5">
             {/* Site Filter */}
             <div>
-              <Label className="block text-xs font-semibold text-gray-700 mb-1">Site</Label>
+              <Label className="block text-xs font-semibold text-ink-2 mb-1">Site</Label>
               <select
                 value={filterSite}
                 onChange={(e) => setFilterSite(e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-sm text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-800"
+                className="w-full border border-line-input rounded-md px-2.5 py-2 text-sm text-ink-1 font-medium focus:ring-2 focus-visible:ring-ring focus-visible:border-primary bg-surface"
               >
-                <option value="" className="text-gray-500">All Sites</option>
+                <option value="" className="text-ink-3">All Sites</option>
                 {sites.map(site => (
-                  <option key={site} value={site} className="text-gray-900">{site}</option>
+                  <option key={site} value={site} className="text-ink-1">{site}</option>
                 ))}
               </select>
             </div>
@@ -236,21 +236,21 @@ export default function GRN({ isTabView = false }) {
             {/* Date Range */}
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="block text-xs font-semibold text-gray-700 mb-1">From Date</Label>
+                <Label className="block text-xs font-semibold text-ink-2 mb-1">From Date</Label>
                 <input
                   type="date"
                   value={filterDateFrom}
                   onChange={(e) => setFilterDateFrom(e.target.value)}
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-xs text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-800"
+                  className="w-full border border-line-input rounded-md px-2.5 py-2 text-xs text-ink-1 font-medium focus:ring-2 focus-visible:ring-ring focus-visible:border-primary bg-surface"
                 />
               </div>
               <div>
-                <Label className="block text-xs font-semibold text-gray-700 mb-1">To Date</Label>
+                <Label className="block text-xs font-semibold text-ink-2 mb-1">To Date</Label>
                 <input
                   type="date"
                   value={filterDateTo}
                   onChange={(e) => setFilterDateTo(e.target.value)}
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-xs text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-800"
+                  className="w-full border border-line-input rounded-md px-2.5 py-2 text-xs text-ink-1 font-medium focus:ring-2 focus-visible:ring-ring focus-visible:border-primary bg-surface"
                 />
               </div>
             </div>
@@ -265,7 +265,7 @@ export default function GRN({ isTabView = false }) {
                 setFilterDateTo('');
                 setSearch('');
               }}
-              className="w-full h-auto px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-md transition-colors"
+              className="w-full h-auto px-3 py-2 bg-surface-muted hover:bg-surface-muted text-ink-2 text-xs font-semibold rounded-md transition-colors"
             >
               Clear All Filters
             </Button>
@@ -276,7 +276,7 @@ export default function GRN({ isTabView = false }) {
       {loading ? (
         <div className="space-y-4">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="rounded-2xl border border-gray-100 dark:border-gray-700 p-5 space-y-4">
+            <div key={i} className="rounded-2xl border border-line-card p-5 space-y-4">
               <div className="flex items-center gap-3">
                 <Skeleton className="h-16 w-16 rounded-lg" />
                 <div className="flex-1 space-y-2">
@@ -295,11 +295,11 @@ export default function GRN({ isTabView = false }) {
         </div>
       ) : deliveries.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
-            <Package size={32} className="text-green-500" />
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-tone-ok-soft flex items-center justify-center">
+            <Package size={32} className="text-tone-ok-fg" />
           </div>
-          <p className="text-gray-700 font-semibold text-base mb-1">No GRN Records</p>
-          <p className="text-gray-500 text-sm">
+          <p className="text-ink-2 font-semibold text-base mb-1">No GRN Records</p>
+          <p className="text-ink-3 text-sm">
             {search || filterSite || filterDateFrom || filterDateTo 
               ? "No records found matching your filters" 
               : "Completed deliveries will appear here"}
@@ -311,30 +311,30 @@ export default function GRN({ isTabView = false }) {
             <div
               key={delivery._id}
               onClick={() => handleViewDetails(delivery)}
-              className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
+              className="bg-surface-subtle rounded-2xl border border-line-card p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
             >
               {/* Header */}
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-green-100 to-green-200 border-2 border-green-300 flex items-center justify-center flex-shrink-0">
-                    <Package size={28} className="text-green-600" />
+                  <div className="w-16 h-16 rounded-lg bg-tone-ok-soft border-2 border-tone-ok-border flex items-center justify-center flex-shrink-0">
+                    <Package size={28} className="text-tone-ok-fg" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900 text-base">
+                    <h3 className="font-bold text-ink-1 text-base">
                       {delivery.transfer_number || delivery.st_id}
                     </h3>
-                    <p className="text-xs text-gray-900 font-medium mt-1">
+                    <p className="text-xs text-ink-1 font-medium mt-1">
                       {formatDate(delivery.createdAt)}
                     </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-ink-3 mt-0.5">
                       Intent Request Date
                     </p>
-                    <p className="text-xs text-green-600 font-medium mt-0.5">
+                    <p className="text-xs text-tone-ok-fg font-medium mt-0.5">
                       {delivery.type === 'PO' ? '📋 Vendor-wise PO' : '🚚 Site Transfer'}
                     </p>
                   </div>
                 </div>
-                <Badge className="text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm bg-green-100 text-green-600 hover:bg-green-100 border-transparent">
+                <Badge className="text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm bg-tone-ok-soft text-tone-ok-fg hover:bg-tone-ok-soft border-transparent">
                   ✅ Completed
                 </Badge>
               </div>
@@ -342,28 +342,28 @@ export default function GRN({ isTabView = false }) {
               {/* Details */}
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-medium">GRN ID</span>
-                  <span className="font-semibold text-gray-900">{delivery.transfer_number || delivery.st_id}</span>
+                  <span className="text-ink-3 font-medium">GRN ID</span>
+                  <span className="font-semibold text-ink-1">{delivery.transfer_number || delivery.st_id}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-medium">From</span>
-                  <span className="font-semibold text-gray-900">{delivery.from || 'N/A'}</span>
+                  <span className="text-ink-3 font-medium">From</span>
+                  <span className="font-semibold text-ink-1">{delivery.from || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-medium">To</span>
-                  <span className="font-semibold text-gray-900">{delivery.to || 'N/A'}</span>
+                  <span className="text-ink-3 font-medium">To</span>
+                  <span className="font-semibold text-ink-1">{delivery.to || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-medium">Intent Request Date</span>
-                  <span className="font-semibold text-gray-900">{formatDate(delivery.createdAt)}</span>
+                  <span className="text-ink-3 font-medium">Intent Request Date</span>
+                  <span className="font-semibold text-ink-1">{formatDate(delivery.createdAt)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-medium">Delivery Date</span>
-                  <span className="font-semibold text-green-600">{formatDate(delivery.updatedAt)}</span>
+                  <span className="text-ink-3 font-medium">Delivery Date</span>
+                  <span className="font-semibold text-tone-ok-fg">{formatDate(delivery.updatedAt)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-medium">Materials</span>
-                  <span className="font-semibold text-blue-600">{delivery.items?.length || 0} items</span>
+                  <span className="text-ink-3 font-medium">Materials</span>
+                  <span className="font-semibold text-tone-info-fg">{delivery.items?.length || 0} items</span>
                 </div>
               </div>
             </div>
@@ -380,16 +380,16 @@ export default function GRN({ isTabView = false }) {
 
   // Standalone mode with full page layout
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-tone-highlight-soft">
       {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
+      <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
         {/* Header with Gradient */}
-        <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
+        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <button
             className="mobile-back-button absolute top-6 left-6"
             onClick={() => navigate(-1)}
           >
-            <FaArrowLeft size={16} />
+            <ArrowLeft size={16} />
             <span className="text-sm font-medium">Back</span>
           </button>
 
@@ -407,7 +407,7 @@ export default function GRN({ isTabView = false }) {
         {/* Footer */}
         <div className="px-6 pb-6 pt-2">
           <div className="text-center">
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-ink-4">
               Powered by Laxmi Power Tech
             </p>
           </div>

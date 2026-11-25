@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { isFieldRole } from '@/lib/roles';
 import { ROUTES } from '@/lib/routes';
 import { getUser } from '@/lib/session';
@@ -8,7 +9,6 @@ import { fetchBranchesCached } from '@/hooks/useBranches';
 import { useNavigate } from 'react-router-dom';
 import { indentAPI, purchaseOrderAPI } from '@/api/material';
 import { Plus, Image as ImageIcon, Filter } from 'lucide-react';
-import { FaArrowLeft } from 'react-icons/fa';
 import AddIntentPopup from '@/pages/material/intent/components/AddIntentPopup';
 import axios from '@/api/client';
 import { getSelectedBranchId, getSelectedBranchName } from '@/lib/branchContext';
@@ -268,15 +268,15 @@ export default function Intent({ isTabView = false }) {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'transferred':
-        return 'bg-green-100 text-green-600';
+        return 'bg-tone-ok-soft text-tone-ok-fg';
       case 'approved':
-        return 'bg-orange-100 text-orange-600';
+        return 'bg-tone-highlight-soft text-tone-highlight-fg';
       case 'pending':
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-surface-muted text-ink-2';
       case 'cancelled':
-        return 'bg-red-100 text-red-600';
+        return 'bg-tone-bad-soft text-tone-bad-fg';
       default:
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-surface-muted text-ink-3';
     }
   };
 
@@ -303,7 +303,7 @@ export default function Intent({ isTabView = false }) {
         <Button
           type="button"
           onClick={() => setShowFilters(!showFilters)}
-          className="w-full h-auto flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+          className="w-full h-auto flex items-center justify-between px-3 py-2.5 bg-primary text-primary-foreground hover:bg-primary-strong text-white hover:text-white rounded-lg shadow-md hover:shadow-lg transition-all"
         >
           <span className="font-semibold flex items-center gap-2 text-sm">
             <Filter size={16} />
@@ -315,10 +315,10 @@ export default function Intent({ isTabView = false }) {
 
       {/* ✅ Filters Panel */}
       {showFilters && (
-        <div className="mb-3 bg-white border border-gray-200 rounded-lg p-3 shadow-sm space-y-2.5">
+        <div className="mb-3 bg-surface border border-line-card rounded-lg p-3 shadow-sm space-y-2.5">
           {/* Site Filter */}
           <div>
-            <Label className="block text-xs font-semibold text-gray-700 mb-1">
+            <Label className="block text-xs font-semibold text-ink-2 mb-1">
               Site
             </Label>
             <select
@@ -327,13 +327,13 @@ export default function Intent({ isTabView = false }) {
                 setFilterSite(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full border border-gray-300 rounded-md px-2.5 py-2 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
+              className="w-full border border-line-input rounded-md px-2.5 py-2 text-sm text-ink-1 font-medium focus:ring-2 focus-visible:ring-ring focus-visible:border-primary bg-surface"
             >
-              <option value="" className="text-gray-500">
+              <option value="" className="text-ink-3">
                 All Sites
               </option>
               {sites.map((site) => (
-                <option key={site} value={site} className="text-gray-900">
+                <option key={site} value={site} className="text-ink-1">
                   {site}
                 </option>
               ))}
@@ -342,7 +342,7 @@ export default function Intent({ isTabView = false }) {
 
           {/* Status Filter */}
           <div>
-            <Label className="block text-xs font-semibold text-gray-700 mb-1">
+            <Label className="block text-xs font-semibold text-ink-2 mb-1">
               Status
             </Label>
             <select
@@ -351,15 +351,15 @@ export default function Intent({ isTabView = false }) {
                 setFilterStatus(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full border border-gray-300 rounded-md px-2.5 py-2 text-sm text-gray-900 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
+              className="w-full border border-line-input rounded-md px-2.5 py-2 text-sm text-ink-1 font-medium focus:ring-2 focus-visible:ring-ring focus-visible:border-primary bg-surface"
             >
-              <option value="" className="text-gray-500">
+              <option value="" className="text-ink-3">
                 All Status
               </option>
-              <option value="pending" className="text-gray-900">
+              <option value="pending" className="text-ink-1">
                 Pending
               </option>
-              <option value="cancelled" className="text-gray-900">
+              <option value="cancelled" className="text-ink-1">
                 Cancelled
               </option>
             </select>
@@ -368,7 +368,7 @@ export default function Intent({ isTabView = false }) {
           {/* Date Range */}
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label className="block text-xs font-semibold text-gray-700 mb-1">
+              <Label className="block text-xs font-semibold text-ink-2 mb-1">
                 From
               </Label>
               <input
@@ -378,11 +378,11 @@ export default function Intent({ isTabView = false }) {
                   setFilterDateFrom(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-xs text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800"
+                className="w-full border border-line-input rounded-md px-2.5 py-2 text-xs text-ink-1 font-medium focus:ring-2 focus-visible:ring-ring focus-visible:border-primary bg-surface"
               />
             </div>
             <div>
-              <Label className="block text-xs font-semibold text-gray-700 mb-1">
+              <Label className="block text-xs font-semibold text-ink-2 mb-1">
                 To
               </Label>
               <input
@@ -392,7 +392,7 @@ export default function Intent({ isTabView = false }) {
                   setFilterDateTo(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-2.5 py-2 text-xs text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-800"
+                className="w-full border border-line-input rounded-md px-2.5 py-2 text-xs text-ink-1 font-medium focus:ring-2 focus-visible:ring-ring focus-visible:border-primary bg-surface"
               />
             </div>
           </div>
@@ -408,7 +408,7 @@ export default function Intent({ isTabView = false }) {
               setFilterDateTo("");
               setCurrentPage(1);
             }}
-            className="w-full h-auto px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-md transition-colors"
+            className="w-full h-auto px-3 py-2 bg-surface-muted hover:bg-surface-muted text-ink-2 text-xs font-semibold rounded-md transition-colors"
           >
             Clear Filters
           </Button>
@@ -420,7 +420,7 @@ export default function Intent({ isTabView = false }) {
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="rounded-2xl border border-gray-100 dark:border-gray-700 p-5 space-y-4"
+              className="rounded-2xl border border-line-card p-5 space-y-4"
             >
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
@@ -443,13 +443,13 @@ export default function Intent({ isTabView = false }) {
         </div>
       ) : indents.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
-            <Plus size={32} className="text-orange-500" />
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-tone-highlight-soft flex items-center justify-center">
+            <Plus size={32} className="text-tone-highlight-fg" />
           </div>
-          <p className="text-gray-700 font-semibold text-base mb-1">
+          <p className="text-ink-2 font-semibold text-base mb-1">
             No Intent Requests
           </p>
-          <p className="text-gray-500 text-sm">
+          <p className="text-ink-3 text-sm">
             Click the + button to upload your first intent
           </p>
         </div>
@@ -462,13 +462,13 @@ export default function Intent({ isTabView = false }) {
                 // Navigate to intent detail page
                 navigate(ROUTES.material.intentDetail(indent._id));
               }}
-              className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
+              className="bg-surface-subtle rounded-2xl border border-line-card p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
             >
               {/* Header with Image Thumbnail */}
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
                   {indent.hasImage && indent.imageUrl ? (
-                    <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-orange-200 flex-shrink-0">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-line-card flex-shrink-0">
                       <img loading="lazy" decoding="async"
                         src={resolveFileUrl(indent.imageUrl)}
                         alt="Intent"
@@ -476,14 +476,14 @@ export default function Intent({ isTabView = false }) {
                         onError={(e) => {
                           e.target.style.display = "none";
                           e.target.parentElement.innerHTML =
-                            '<div class="w-full h-full bg-orange-100 flex items-center justify-center"><svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>';
+                            '<div class="w-full h-full bg-tone-highlight-soft flex items-center justify-center"><svg class="w-8 h-8 text-tone-highlight-fg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>';
                         }}
                       />
                     </div>
                   ) : (
-                    <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 border-2 border-blue-300 flex items-center justify-center flex-shrink-0">
+                    <div className="w-16 h-16 rounded-lg bg-tone-info-soft border-2 border-line-card flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-8 h-8 text-blue-600"
+                        className="w-8 h-8 text-tone-info-fg"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -498,16 +498,16 @@ export default function Intent({ isTabView = false }) {
                     </div>
                   )}
                   <div>
-                    <h3 className="font-bold text-gray-900 text-base">
+                    <h3 className="font-bold text-ink-1 text-base">
                       {indent.displayId ||
                         indent.indentId ||
                         indent.purchaseOrderId ||
                         "N/A"}
                     </h3>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-ink-3 mt-1">
                       {formatDate(indent.createdAt)}
                     </p>
-                    <p className="text-xs text-blue-600 font-medium mt-0.5">
+                    <p className="text-xs text-tone-info-fg font-medium mt-0.5">
                       {indent.type === "indent"
                         ? "📷 Photo Upload"
                         : "📝 Manual Entry"}
@@ -527,35 +527,35 @@ export default function Intent({ isTabView = false }) {
               {/* Details */}
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-medium">PO ID</span>
-                  <span className="font-semibold text-gray-900">
+                  <span className="text-ink-3 font-medium">PO ID</span>
+                  <span className="font-semibold text-ink-1">
                     {indent.displayId ||
                       indent.indentId ||
                       indent.purchaseOrderId}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-medium">
+                  <span className="text-ink-3 font-medium">
                     Requested By
                   </span>
-                  <span className="font-semibold text-gray-900">
+                  <span className="font-semibold text-ink-1">
                     {indent.requestedBy?.name || indent.requestedBy || "N/A"}
                   </span>
                 </div>
                 {indent.deliverySite && (
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600 font-medium">
+                    <span className="text-ink-3 font-medium">
                       Delivery Site
                     </span>
-                    <span className="font-semibold text-gray-900">
+                    <span className="font-semibold text-ink-1">
                       {indent.deliverySite}
                     </span>
                   </div>
                 )}
                 {indent.materials && indent.materials.length > 0 && (
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600 font-medium">Materials</span>
-                    <span className="font-semibold text-blue-600">
+                    <span className="text-ink-3 font-medium">Materials</span>
+                    <span className="font-semibold text-tone-info-fg">
                       {indent.materials.length} items
                     </span>
                   </div>
@@ -588,7 +588,7 @@ export default function Intent({ isTabView = false }) {
         <Button
           type="button"
           onClick={() => setShowPopup(true)}
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 w-16 h-16 p-0 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 flex items-center justify-center z-50 transition-all duration-300"
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 w-16 h-16 p-0 bg-primary text-primary-foreground hover:bg-primary-strong text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 flex items-center justify-center z-50 transition-all duration-300"
         >
           <Plus size={28} strokeWidth={2.5} className="size-7" />
         </Button>
@@ -609,17 +609,17 @@ export default function Intent({ isTabView = false }) {
 
   // Standalone mode with full page layout
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-tone-highlight-soft">
       {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
+      <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
         {/* Header with Gradient */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
+        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
             className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
             onClick={() => navigate(-1)}
           >
-            <FaArrowLeft size={16} />
+            <ArrowLeft size={16} />
             <span className="text-sm font-medium">Back</span>
           </Button>
 
@@ -637,7 +637,7 @@ export default function Intent({ isTabView = false }) {
         {/* Footer */}
         <div className="px-6 pb-6 pt-2">
           <div className="text-center">
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-ink-4">
               Powered by Laxmi Power Tech
             </p>
           </div>
@@ -648,7 +648,7 @@ export default function Intent({ isTabView = false }) {
       <Button
         type="button"
         onClick={() => setShowPopup(true)}
-        className="fixed bottom-8 left-1/2 -translate-x-1/2 w-16 h-16 p-0 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 flex items-center justify-center z-50 transition-all duration-300"
+        className="fixed bottom-8 left-1/2 -translate-x-1/2 w-16 h-16 p-0 bg-primary text-primary-foreground hover:bg-primary-strong text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 flex items-center justify-center z-50 transition-all duration-300"
       >
         <Plus size={28} strokeWidth={2.5} className="size-7" />
       </Button>

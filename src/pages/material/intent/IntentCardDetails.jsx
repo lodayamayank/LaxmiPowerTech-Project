@@ -5,7 +5,6 @@ import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
 import { fetchBranchesCached } from '@/hooks/useBranches';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit2, Save, X, Trash2, Upload, ChevronDown } from 'lucide-react';
-import { FaArrowLeft } from 'react-icons/fa';
 import { purchaseOrderAPI, indentAPI } from '@/api/material';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -23,10 +22,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import MaterialLineItem from '@/pages/material/components/MaterialLineItem';
 
 // Class overrides so shadcn primitives keep the page's existing look
-const cardClass = 'bg-white rounded-lg border py-0 gap-0 shadow-none';
-const labelClass = 'text-xs text-gray-600 font-normal leading-normal';
-const fieldLabelClass = 'text-xs text-gray-700 block mb-1.5 font-normal leading-normal';
-const readLabelClass = 'text-xs text-gray-500 block mb-1 font-normal leading-normal';
+const cardClass = 'bg-surface rounded-lg border py-0 gap-0 shadow-none';
+const labelClass = 'text-xs text-ink-3 font-normal leading-normal';
+const fieldLabelClass = 'text-xs text-ink-2 block mb-1.5 font-normal leading-normal';
+const readLabelClass = 'text-xs text-ink-3 block mb-1 font-normal leading-normal';
 
 // Searchable Dropdown Component
 function SearchableDropdown({ value, onChange, options, placeholder, disabled }) {
@@ -81,24 +80,24 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
           onClick={handleInputClick}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 pr-8 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className="w-full bg-surface border border-line-input rounded-md px-3 py-2.5 pr-8 text-sm text-ink-1 placeholder-gray-400 focus:outline-none focus:border-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
           autoComplete="off"
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-          <ChevronDown size={16} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown size={16} className={`text-ink-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </div>
       </div>
 
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-surface border border-line-input rounded-md shadow-lg max-h-60 overflow-y-auto">
           {filteredOptions.length > 0 ? (
             <ul className="py-1">
               {filteredOptions.map((option, index) => (
                 <li
                   key={index}
                   onClick={() => handleSelect(option)}
-                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-orange-50 transition-colors ${
-                    option === value ? 'bg-orange-100 text-orange-700 font-medium' : 'text-gray-900'
+                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-tone-highlight-soft transition-colors ${
+                    option === value ? 'bg-tone-highlight-soft text-tone-highlight-fg font-medium' : 'text-ink-1'
                   }`}
                 >
                   {option}
@@ -106,7 +105,7 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
               ))}
             </ul>
           ) : (
-            <div className="px-3 py-2 text-sm text-gray-500 text-center">
+            <div className="px-3 py-2 text-sm text-ink-3 text-center">
               No results found
             </div>
           )}
@@ -284,7 +283,7 @@ export default function IntentCardDetails() {
   const showToast = (message, type = 'success') => {
     const toast = document.createElement('div');
     toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-[9999] transition-opacity ${
-      type === 'success' ? 'bg-green-500' : 'bg-red-500'
+      type === 'success' ? 'bg-tone-ok-fg' : 'bg-tone-bad-solid'
     }`;
     toast.textContent = message;
     document.body.appendChild(toast);
@@ -498,13 +497,13 @@ export default function IntentCardDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-        <div className="max-w-md mx-auto bg-white shadow-xl min-h-screen">
+      <div className="min-h-screen bg-tone-highlight-soft">
+        <div className="max-w-md mx-auto bg-surface shadow-xl min-h-screen">
           {/* Header skeleton */}
-          <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
+          <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
             <div className="flex flex-col items-center pt-8 space-y-2">
-              <Skeleton className="h-7 w-40 bg-white/30" />
-              <Skeleton className="h-4 w-28 bg-white/30" />
+              <Skeleton className="h-7 w-40 bg-surface/80" />
+              <Skeleton className="h-4 w-28 bg-surface/80" />
             </div>
           </div>
 
@@ -533,16 +532,16 @@ export default function IntentCardDetails() {
 
   if (!purchaseOrder && !indent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-tone-highlight-soft flex items-center justify-center">
         <div className="text-center px-6">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
-            <X size={32} className="text-red-500" />
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-tone-bad-soft flex items-center justify-center">
+            <X size={32} className="text-tone-bad-fg" />
           </div>
-          <p className="text-gray-900 font-semibold text-lg mb-2">Intent Not Found</p>
-          <p className="text-gray-600 text-sm mb-6">The requested intent could not be found</p>
+          <p className="text-ink-1 font-semibold text-lg mb-2">Intent Not Found</p>
+          <p className="text-ink-3 text-sm mb-6">The requested intent could not be found</p>
           <Button
             onClick={() => navigate(-1)} 
-            className="h-auto bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-orange-600 hover:to-orange-700 transition-all shadow-md"
+            className="h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-white px-6 py-3 rounded-xl font-semibold   transition-all shadow-md"
           >
             Go Back
           </Button>
@@ -556,30 +555,30 @@ export default function IntentCardDetails() {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'transferred':
-        return 'bg-green-100 text-green-600';
+        return 'bg-tone-ok-soft text-tone-ok-fg';
       case 'approved':
-        return 'bg-orange-100 text-orange-600';
+        return 'bg-tone-highlight-soft text-tone-highlight-fg';
       case 'pending':
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-surface-muted text-ink-2';
       case 'cancelled':
-        return 'bg-red-100 text-red-600';
+        return 'bg-tone-bad-soft text-tone-bad-fg';
       default:
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-surface-muted text-ink-3';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
+    <div className="min-h-screen bg-tone-highlight-soft">
       {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto bg-white shadow-xl">
+      <div className="max-w-md mx-auto bg-surface shadow-xl">
         {/* Header with Gradient */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
+        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
             className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
             onClick={() => navigate(-1)}
           >
-            <FaArrowLeft size={16} />
+            <ArrowLeft size={16} />
             <span className="text-sm font-medium">Back</span>
           </Button>
 
@@ -595,12 +594,12 @@ export default function IntentCardDetails() {
         {/* Basic Info Card */}
         <Card className={cardClass}>
           <CardContent className="p-4 space-y-3">
-          <h2 className="font-semibold text-gray-900">Basic Information</h2>
+          <h2 className="font-semibold text-ink-1">Basic Information</h2>
           
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className={labelClass}>PO-ID</Label>
-              <p className="font-medium text-gray-900">{itemType === 'indent' ? indent.indentId : purchaseOrder.purchaseOrderId}</p>
+              <p className="font-medium text-ink-1">{itemType === 'indent' ? indent.indentId : purchaseOrder.purchaseOrderId}</p>
             </div>
             
             <div>
@@ -631,7 +630,7 @@ export default function IntentCardDetails() {
                       ))}
                     </select>
                   ) : (
-                    <p className="font-medium text-gray-900">{purchaseOrder.deliverySite}</p>
+                    <p className="font-medium text-ink-1">{purchaseOrder.deliverySite}</p>
                   )}
                 </div>
 
@@ -642,10 +641,10 @@ export default function IntentCardDetails() {
                       type="text"
                       value={formData.requestedBy}
                       disabled
-                      className="h-auto w-full px-3 py-2 bg-gray-800 dark:bg-gray-800 text-white border-0 rounded-lg text-sm cursor-not-allowed disabled:opacity-75"
+                      className="h-auto w-full px-3 py-2 bg-ink-3 text-white border-0 rounded-lg text-sm cursor-not-allowed disabled:opacity-75"
                     />
                   ) : (
-                    <p className="font-medium text-gray-900">{purchaseOrder.requestedBy}</p>
+                    <p className="font-medium text-ink-1">{purchaseOrder.requestedBy}</p>
                   )}
                 </div>
               </>
@@ -655,18 +654,18 @@ export default function IntentCardDetails() {
               <>
                 <div>
                   <Label className={labelClass}>Project</Label>
-                  <p className="font-medium text-gray-900">{indent.project || 'N/A'}</p>
+                  <p className="font-medium text-ink-1">{indent.project || 'N/A'}</p>
                 </div>
                 <div>
                   <Label className={labelClass}>Branch</Label>
-                  <p className="font-medium text-gray-900">{indent.branch || 'N/A'}</p>
+                  <p className="font-medium text-ink-1">{indent.branch || 'N/A'}</p>
                 </div>
               </>
             )}
 
             <div className="col-span-2">
               <Label className={labelClass}>Request Date</Label>
-              <p className="font-medium text-gray-900">
+              <p className="font-medium text-ink-1">
                 {new Date(currentItem.createdAt || currentItem.requestDate).toLocaleDateString('en-IN', {
                   year: 'numeric',
                   month: 'long',
@@ -690,7 +689,7 @@ export default function IntentCardDetails() {
                 placeholder="Add remarks..."
               />
             ) : (
-              <p className="text-sm text-gray-700">{itemType === 'indent' ? (indent.adminRemarks || '-') : (purchaseOrder.remarks || '-')}</p>
+              <p className="text-sm text-ink-2">{itemType === 'indent' ? (indent.adminRemarks || '-') : (purchaseOrder.remarks || '-')}</p>
             )}
           </div>
           </CardContent>
@@ -700,7 +699,7 @@ export default function IntentCardDetails() {
         {itemType === 'indent' && indent.imageUrl && (
           <Card className={cardClass}>
             <CardContent className="p-4">
-            <h2 className="font-semibold text-gray-900 mb-3">Uploaded Image</h2>
+            <h2 className="font-semibold text-ink-1 mb-3">Uploaded Image</h2>
             <div className="border rounded-lg overflow-hidden">
               <img loading="lazy" decoding="async"
                 src={indent.imageUrl}
@@ -722,13 +721,13 @@ export default function IntentCardDetails() {
         <Card className={cardClass}>
           <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-gray-900">Materials</h2>
+            <h2 className="font-semibold text-ink-1">Materials</h2>
             {editing && (
               <Button
                 type="button"
                 variant="ghost"
                 onClick={addMaterialRow}
-                className="h-auto p-0 text-sm text-orange-600 hover:text-orange-700 hover:bg-transparent font-medium"
+                className="h-auto p-0 text-sm text-tone-highlight-fg hover:text-primary-strong hover:bg-transparent font-medium"
               >
                 + Add Material
               </Button>
@@ -754,7 +753,7 @@ export default function IntentCardDetails() {
                           if (!value) setEditingMaterialId(null);
                         }}
                       >
-                        <AccordionItem value={String(material.id)} className="rounded-lg border border-gray-200 bg-white">
+                        <AccordionItem value={String(material.id)} className="rounded-lg border border-line-card bg-surface">
                           <AccordionTrigger className="px-4 py-3 text-left hover:no-underline">
                             Material #{idx + 1}
                           </AccordionTrigger>
@@ -764,9 +763,9 @@ export default function IntentCardDetails() {
                             type="button"
                             variant="ghost"
                             onClick={() => removeMaterialRow(material.id)}
-                            className="h-auto w-auto p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                            className="h-auto w-auto p-1.5 hover:bg-tone-bad-soft rounded-lg transition-colors"
                           >
-                            <X size={18} className="size-[18px] text-red-600" />
+                            <X size={18} className="size-[18px] text-tone-bad-fg" />
                           </Button>
                         </div>
                         
@@ -826,7 +825,7 @@ export default function IntentCardDetails() {
                               value={material.quantity || ''}
                               onChange={(e) => updateMaterial(material.id, { quantity: e.target.value })}
                               placeholder="Enter qty"
-                              className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 shadow-none focus-visible:ring-0 focus-visible:border-gray-400"
+                              className="h-auto w-full bg-surface border border-line-input rounded-md px-3 py-2.5 text-sm text-ink-1 placeholder-gray-400 shadow-none focus-visible:ring-0 focus-visible:border-gray-400"
                             />
                           </div>
                           
@@ -836,7 +835,7 @@ export default function IntentCardDetails() {
                               type="button"
                               variant="ghost"
                               onClick={() => setEditingMaterialId(null)}
-                              className="h-auto p-0 hover:bg-transparent text-orange-600 hover:text-orange-700 font-medium text-sm flex items-center gap-1 transition-colors"
+                              className="h-auto p-0 hover:bg-transparent text-tone-highlight-fg hover:text-primary-strong font-medium text-sm flex items-center gap-1 transition-colors"
                             >
                               <span>✓</span>
                               <span>Done editing</span>
@@ -858,9 +857,9 @@ export default function IntentCardDetails() {
                       value=""
                       onValueChange={(value) => setEditingMaterialId(value ? material.id : null)}
                     >
-                    <AccordionItem value={String(material.id)} className="rounded-lg border border-gray-200 bg-white p-4">
+                    <AccordionItem value={String(material.id)} className="rounded-lg border border-line-card bg-surface p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <AccordionTrigger className="flex-1 p-0 text-left text-sm font-semibold text-gray-900 hover:no-underline">
+                        <AccordionTrigger className="flex-1 p-0 text-left text-sm font-semibold text-ink-1 hover:no-underline">
                           Material #{idx + 1}
                         </AccordionTrigger>
                         <div className="flex items-center gap-2">
@@ -868,17 +867,17 @@ export default function IntentCardDetails() {
                             type="button"
                             variant="ghost"
                             onClick={() => setEditingMaterialId(material.id)}
-                            className="h-auto w-auto p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="h-auto w-auto p-1.5 hover:bg-surface-muted rounded-lg transition-colors"
                           >
-                            <Edit2 size={16} className="text-gray-700" />
+                            <Edit2 size={16} className="text-ink-2" />
                           </Button>
                           <Button
                             type="button"
                             variant="ghost"
                             onClick={() => removeMaterialRow(material.id)}
-                            className="h-auto w-auto p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                            className="h-auto w-auto p-1.5 hover:bg-tone-bad-soft rounded-lg transition-colors"
                           >
-                            <X size={16} className="text-red-600" />
+                            <X size={16} className="text-tone-bad-fg" />
                           </Button>
                         </div>
                       </div>
@@ -886,29 +885,29 @@ export default function IntentCardDetails() {
                       <div className="space-y-2">
                         <div className="grid grid-cols-2 gap-3 text-xs">
                           <div>
-                            <span className="text-gray-500">Category:</span>
-                            <p className="text-gray-900 font-medium">{material.category || '—'}</p>
+                            <span className="text-ink-3">Category:</span>
+                            <p className="text-ink-1 font-medium">{material.category || '—'}</p>
                           </div>
                           <div>
-                            <span className="text-gray-500">Sub Category:</span>
-                            <p className="text-gray-900 font-medium">{material.subCategory || '—'}</p>
+                            <span className="text-ink-3">Sub Category:</span>
+                            <p className="text-ink-1 font-medium">{material.subCategory || '—'}</p>
                           </div>
                         </div>
                         {(material.subCategory1 || material.subCategory2) && (
                           <div className="grid grid-cols-2 gap-3 text-xs">
                             <div>
-                              <span className="text-gray-500">Sub Category 1:</span>
-                              <p className="text-gray-900 font-medium">{material.subCategory1 || '—'}</p>
+                              <span className="text-ink-3">Sub Category 1:</span>
+                              <p className="text-ink-1 font-medium">{material.subCategory1 || '—'}</p>
                             </div>
                             <div>
-                              <span className="text-gray-500">Sub Category 2:</span>
-                              <p className="text-gray-900 font-medium">{material.subCategory2 || '—'}</p>
+                              <span className="text-ink-3">Sub Category 2:</span>
+                              <p className="text-ink-1 font-medium">{material.subCategory2 || '—'}</p>
                             </div>
                           </div>
                         )}
                         <div className="text-xs">
-                          <span className="text-gray-500">Quantity:</span>
-                          <p className="text-gray-900 font-medium">{material.quantity || '—'}</p>
+                          <span className="text-ink-3">Quantity:</span>
+                          <p className="text-ink-1 font-medium">{material.quantity || '—'}</p>
                         </div>
                       </div>
                       <AccordionContent className="p-0" />
@@ -919,9 +918,9 @@ export default function IntentCardDetails() {
               ) : (
                 // Read-only mode - detailed display matching snapshot
                 formData.materials.map((material, idx) => (
-                  <div key={material.id} className="bg-white rounded-lg border border-gray-200 p-4">
+                  <div key={material.id} className="bg-surface rounded-lg border border-line-card p-4">
                     <div className="mb-3">
-                      <h3 className="text-sm font-semibold text-gray-900">Material #{idx + 1}</h3>
+                      <h3 className="text-sm font-semibold text-ink-1">Material #{idx + 1}</h3>
                     </div>
                     
                     <div className="space-y-3">
@@ -929,11 +928,11 @@ export default function IntentCardDetails() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className={readLabelClass}>Category</Label>
-                          <p className="text-sm font-medium text-gray-900">{material.category || '-'}</p>
+                          <p className="text-sm font-medium text-ink-1">{material.category || '-'}</p>
                         </div>
                         <div>
                           <Label className={readLabelClass}>Sub Category</Label>
-                          <p className="text-sm font-medium text-gray-900">{material.subCategory || '-'}</p>
+                          <p className="text-sm font-medium text-ink-1">{material.subCategory || '-'}</p>
                         </div>
                       </div>
                       
@@ -942,11 +941,11 @@ export default function IntentCardDetails() {
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <Label className={readLabelClass}>Sub Category 1</Label>
-                            <p className="text-sm font-medium text-gray-900">{material.subCategory1 || '-'}</p>
+                            <p className="text-sm font-medium text-ink-1">{material.subCategory1 || '-'}</p>
                           </div>
                           <div>
                             <Label className={readLabelClass}>Sub Category 2</Label>
-                            <p className="text-sm font-medium text-gray-900">{material.subCategory2 || '-'}</p>
+                            <p className="text-sm font-medium text-ink-1">{material.subCategory2 || '-'}</p>
                           </div>
                         </div>
                       )}
@@ -955,11 +954,11 @@ export default function IntentCardDetails() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className={readLabelClass}>Quantity</Label>
-                          <p className="text-sm font-medium text-gray-900">{material.quantity || '-'}</p>
+                          <p className="text-sm font-medium text-ink-1">{material.quantity || '-'}</p>
                         </div>
                         <div>
                           <Label className={readLabelClass}>Remarks</Label>
-                          <p className="text-sm text-gray-700">{material.remarks || '-'}</p>
+                          <p className="text-sm text-ink-2">{material.remarks || '-'}</p>
                         </div>
                       </div>
                     </div>
@@ -967,7 +966,7 @@ export default function IntentCardDetails() {
                 ))
               )
             ) : (
-              <p className="text-sm text-gray-500 text-center py-4">No materials added</p>
+              <p className="text-sm text-ink-3 text-center py-4">No materials added</p>
             )}
           </div>
           </CardContent>
@@ -978,7 +977,7 @@ export default function IntentCardDetails() {
         {itemType === 'purchaseOrder' && (
         <Card className={cardClass}>
           <CardContent className="p-4">
-          <h2 className="font-semibold text-gray-900 mb-3">Attachments</h2>
+          <h2 className="font-semibold text-ink-1 mb-3">Attachments</h2>
           
           {/* Existing Attachments */}
           {purchaseOrder.attachments && purchaseOrder.attachments.length > 0 ? (
@@ -1004,7 +1003,7 @@ export default function IntentCardDetails() {
                       type="button"
                       onClick={() => handleDeleteAttachment(index)}
                       disabled={deletingAttachment === index}
-                      className="absolute top-1 right-1 h-auto w-auto p-1 bg-red-500 hover:bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 h-auto w-auto p-1 bg-tone-bad-solid hover:bg-primary-strong text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X size={14} className="size-3.5" />
                     </Button>
@@ -1014,22 +1013,22 @@ export default function IntentCardDetails() {
               })}
             </div>
           ) : (
-            <p className="text-sm text-gray-500 mb-3">No attachments</p>
+            <p className="text-sm text-ink-3 mb-3">No attachments</p>
           )}
 
           {/* New Attachments (during edit) */}
           {editing && newAttachments.length > 0 && (
             <div className="mb-3">
-              <p className="text-xs text-gray-600 mb-2">New Attachments:</p>
+              <p className="text-xs text-ink-3 mb-2">New Attachments:</p>
               <div className="space-y-1">
                 {newAttachments.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
+                  <div key={index} className="flex items-center justify-between text-sm bg-surface-subtle p-2 rounded">
                     <span className="truncate">{file.name}</span>
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={() => removeNewAttachment(index)}
-                      className="h-auto w-auto p-0 hover:bg-transparent text-red-600 hover:text-red-700"
+                      className="h-auto w-auto p-0 hover:bg-transparent text-tone-bad-fg hover:text-primary-strong"
                     >
                       <X size={16} />
                     </Button>
@@ -1041,7 +1040,7 @@ export default function IntentCardDetails() {
 
           {/* Upload Button */}
           {editing && (
-            <label className="flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50">
+            <label className="flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg cursor-pointer hover:bg-surface-muted">
               <Upload size={18} />
               <span className="text-sm">Upload Images</span>
               <input
@@ -1060,7 +1059,7 @@ export default function IntentCardDetails() {
         </div>
 
       {/* Fixed Action Buttons at Bottom - Mobile Snapshot Style */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-line-card shadow-lg z-50">
         <div className="max-w-[390px] mx-auto px-4 py-3">
           {editing ? (
             <div className="flex gap-3">
@@ -1068,7 +1067,7 @@ export default function IntentCardDetails() {
                 type="button"
                 variant="secondary"
                 onClick={handleCancelEdit}
-                className="flex-1 h-auto bg-gray-200 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-300 transition-colors"
+                className="flex-1 h-auto bg-surface-muted text-ink-2 font-semibold py-3 rounded-lg hover:bg-surface-muted transition-colors"
                 disabled={submitting}
               >
                 Cancel
@@ -1076,7 +1075,7 @@ export default function IntentCardDetails() {
               <Button
                 type="button"
                 onClick={handleSaveChanges}
-                className="flex-1 h-auto bg-orange-500 text-white font-semibold py-3 rounded-lg hover:bg-orange-600 transition-colors shadow-md disabled:opacity-100 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="flex-1 h-auto bg-primary text-white font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:opacity-100 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 disabled={submitting}
               >
                 {submitting ? (
@@ -1097,14 +1096,14 @@ export default function IntentCardDetails() {
               <Button
                 type="button"
                 onClick={handleEdit}
-                className="flex-1 h-auto bg-orange-500 text-white font-semibold py-3 rounded-lg hover:bg-orange-600 transition-colors shadow-md"
+                className="flex-1 h-auto bg-primary text-white font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md"
               >
                 Edit
               </Button>
               <Button
                 type="button"
                 onClick={handleDelete}
-                className="flex-1 h-auto bg-red-500 text-white font-semibold py-3 rounded-lg hover:bg-red-600 transition-colors shadow-md"
+                className="flex-1 h-auto bg-tone-bad-solid text-white font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md"
               >
                 Delete
               </Button>

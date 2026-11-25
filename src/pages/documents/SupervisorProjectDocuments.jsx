@@ -354,7 +354,7 @@ const SupervisorProjectDocuments = () => {
           <Button
             variant="ghost"
             onClick={handleBack}
-            className="mobile-back-button px-3 py-2 !bg-surface hover:!bg-primary-soft"
+            className="mobile-back-button px-3 py-2"
           >
             <ArrowLeft size={14} />
             <span className="text-sm font-medium">Back</span>

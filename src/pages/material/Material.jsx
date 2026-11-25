@@ -1,10 +1,10 @@
 import React from "react";
+import { Folder } from 'lucide-react';
 import { isFieldRole } from '@/lib/roles';
 import { ROUTES } from '@/lib/routes';
 import { getUser } from '@/lib/session';
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, FileText, Truck, Package, ClipboardCheck } from "lucide-react";
-import { MdFolder } from "react-icons/md";
 import Intent from "@/pages/material/intent/Intent";
 import MaterialTransfer from "@/pages/material/transfers/MaterialTransfer";
 import UpcomingDeliveries from "@/pages/material/deliveries/UpcomingDeliveries";
@@ -56,11 +56,11 @@ export default function Material({ activeTab }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <div className="min-h-screen bg-surface-subtle">
       {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-2xl">
+      <div className="max-w-md mx-auto min-h-screen bg-surface shadow-2xl">
         {/* Modern Header */}
-        <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 px-4 pt-4 pb-3 shadow-lg">
+        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-4 pt-4 pb-3 shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <Button
               variant="ghost"
@@ -78,8 +78,8 @@ export default function Material({ activeTab }) {
             <h1 className="text-white text-xl font-bold">Material Management</h1>
             {selectedBranchName && isFieldRole(user.role) && (
               <div className="mt-2 flex items-center justify-center gap-2">
-                <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1.5">
-                  <MdFolder className="text-white" size={14} />
+                <div className="bg-surface/80 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1.5">
+                  <Folder className="text-white" size={14} />
                   <span className="text-white text-xs font-medium">{selectedBranchName}</span>
                 </div>
               </div>
@@ -88,7 +88,7 @@ export default function Material({ activeTab }) {
         </div>
 
         {/* Professional Tab Navigation */}
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+        <div className="bg-surface border-b border-line-card sticky top-0 z-10 shadow-sm">
           <div className="flex overflow-x-auto scrollbar-hide">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -101,18 +101,18 @@ export default function Material({ activeTab }) {
                   onClick={() => navigate(tab.path, { state: { branchId } })}
                   className={`flex-1 min-w-[90px] h-auto rounded-none whitespace-normal px-3 py-3 flex flex-col items-center gap-1.5 transition-all relative ${
                     isActive
-                      ? 'text-orange-600 bg-orange-50 hover:text-orange-600 hover:bg-orange-50'
-                      : 'text-gray-600 hover:text-orange-500 hover:bg-gray-50'
+                      ? 'text-tone-highlight-fg bg-tone-highlight-soft hover:text-primary-strong hover:bg-tone-highlight-soft'
+                      : 'text-ink-3 hover:text-primary-strong hover:bg-surface-muted'
                   }`}
                 >
                   <Icon size={20} className={`size-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
                   <span className={`text-[10px] font-semibold leading-tight text-center ${
-                    isActive ? 'text-orange-600' : 'text-gray-600'
+                    isActive ? 'text-tone-highlight-fg' : 'text-ink-3'
                   }`}>
                     {tab.name}
                   </span>
                   {isActive && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-600"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"></div>
                   )}
                 </Button>
               );
@@ -121,14 +121,14 @@ export default function Material({ activeTab }) {
         </div>
 
         {/* Content Area */}
-        <div className="bg-gray-50 min-h-[calc(100vh-180px)]">
+        <div className="bg-surface-subtle min-h-[calc(100vh-180px)]">
           {renderContent()}
         </div>
 
         {/* Footer */}
-        <div className="bg-white border-t border-gray-200 py-3">
+        <div className="bg-surface border-t border-line-card py-3">
           <div className="text-center">
-            <p className="text-xs text-gray-500 font-medium">
+            <p className="text-xs text-ink-3 font-medium">
               Powered by Laxmi Power Tech
             </p>
           </div>

@@ -6,7 +6,6 @@ import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
 import { ArrowLeft, X, Upload, ChevronDown } from 'lucide-react';
 import { purchaseOrderAPI } from '@/api/material';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft } from 'react-icons/fa';
 import { getSelectedBranchName } from '@/lib/branchContext';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -20,8 +19,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 // Class overrides so shadcn primitives keep the page's existing look
-const sectionLabelClass = 'text-gray-700 text-sm font-medium mb-2 block leading-normal';
-const fieldLabelClass = 'text-gray-700 text-xs mb-1.5 block font-normal leading-normal';
+const sectionLabelClass = 'text-ink-2 text-sm font-medium mb-2 block leading-normal';
+const fieldLabelClass = 'text-ink-2 text-xs mb-1.5 block font-normal leading-normal';
 
 // Searchable Dropdown Component
 function SearchableDropdown({ value, onChange, options, placeholder, disabled }) {
@@ -76,24 +75,24 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
           onClick={handleInputClick}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 pr-8 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className="w-full bg-surface border border-line-input rounded-md px-3 py-2.5 pr-8 text-sm text-ink-1 placeholder-gray-400 focus:outline-none focus:border-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
           autoComplete="off"
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-          <ChevronDown size={16} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown size={16} className={`text-ink-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </div>
       </div>
 
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-[300px] overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-surface border border-line-input rounded-md shadow-lg max-h-[300px] overflow-y-auto">
           {filteredOptions.length > 0 ? (
             <ul className="py-1">
               {filteredOptions.map((option, index) => (
                 <li
                   key={index}
                   onClick={() => handleSelect(option)}
-                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-orange-50 transition-colors ${
-                    option === value ? 'bg-orange-100 text-orange-700 font-medium' : 'text-gray-900'
+                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-tone-highlight-soft transition-colors ${
+                    option === value ? 'bg-tone-highlight-soft text-tone-highlight-fg font-medium' : 'text-ink-1'
                   }`}
                 >
                   {option}
@@ -101,7 +100,7 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
               ))}
             </ul>
           ) : (
-            <div className="px-3 py-2 text-sm text-gray-500 text-center">
+            <div className="px-3 py-2 text-sm text-ink-3 text-center">
               No results found
             </div>
           )}
@@ -369,18 +368,18 @@ export default function IntentForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
+    <div className="min-h-screen bg-tone-highlight-soft">
       {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
+      <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
         {/* Header with Gradient */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
+        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
             className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
             onClick={() => navigate(ROUTES.material.intent)}
             disabled={submitting}
           >
-            <FaArrowLeft size={16} />
+            <ArrowLeft size={16} />
             <span className="text-sm font-medium">Back</span>
           </Button>
 
@@ -395,17 +394,17 @@ export default function IntentForm() {
           {/* Form Content Inside Card */}
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Basic Info Section */}
-            <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-              <h3 className="text-orange-600 font-bold text-sm mb-4">Intent Information</h3>
+            <div className="bg-surface-subtle rounded-2xl p-5 border border-line-card shadow-sm">
+              <h3 className="text-tone-highlight-fg font-bold text-sm mb-4">Intent Information</h3>
 
               <div className="mb-4">
                 <Label className={sectionLabelClass}>
-                  Requested By <span className="text-red-500">*</span>
+                  Requested By <span className="text-tone-bad-fg">*</span>
                 </Label>
                 <Input
                   type="text"
                   value={userName}
-                  className="h-auto w-full bg-gray-100 dark:bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 shadow-none focus-visible:ring-0 cursor-not-allowed font-medium disabled:opacity-100"
+                  className="h-auto w-full bg-surface-muted border border-line-card rounded-xl px-4 py-3 text-sm text-ink-2 shadow-none focus-visible:ring-0 cursor-not-allowed font-medium disabled:opacity-100"
                   placeholder="Enter your name"
                   required
                   readOnly
@@ -415,17 +414,17 @@ export default function IntentForm() {
 
               <div className="mb-4">
                 <Label className={sectionLabelClass}>
-                  Delivery Site <span className="text-red-500">*</span>
+                  Delivery Site <span className="text-tone-bad-fg">*</span>
                 </Label>
                 <Input
                   type="text"
                   value={formData.deliverySite}
-                  className="h-auto w-full bg-gray-100 dark:bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 shadow-none focus-visible:ring-0 cursor-not-allowed font-medium disabled:opacity-100"
+                  className="h-auto w-full bg-surface-muted border border-line-card rounded-xl px-4 py-3 text-sm text-ink-2 shadow-none focus-visible:ring-0 cursor-not-allowed font-medium disabled:opacity-100"
                   readOnly
                   disabled
                 />
                 {!formData.deliverySite && (
-                  <p className="text-xs text-red-500 mt-1">No project selected. Please go back and select a project first.</p>
+                  <p className="text-xs text-tone-bad-fg mt-1">No project selected. Please go back and select a project first.</p>
                 )}
               </div>
 
@@ -436,7 +435,7 @@ export default function IntentForm() {
                 <Textarea
                   value={formData.remarks}
                   onChange={(e) => setFormData(prev => ({ ...prev, remarks: e.target.value }))}
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 resize-none"
+                  className="w-full bg-surface border border-line-card rounded-xl px-4 py-3 text-sm text-ink-1 focus:outline-none focus-visible:border-primary focus:ring-2 focus-visible:ring-ring resize-none"
                   placeholder="Add any additional notes..."
                   rows={3}
                   disabled={submitting}
@@ -445,20 +444,20 @@ export default function IntentForm() {
             </div>
 
             {/* Materials Section */}
-            <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-              <h3 className="text-orange-600 font-bold text-sm mb-4">Materials</h3>
+            <div className="bg-surface-subtle rounded-2xl p-5 border border-line-card shadow-sm">
+              <h3 className="text-tone-highlight-fg font-bold text-sm mb-4">Materials</h3>
               
               <Button
                 type="button"
                 onClick={addMaterialRow}
-                className="w-full h-auto mb-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-sm hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg transform hover:scale-[1.02]"
+                className="w-full h-auto mb-4 py-3 bg-primary text-primary-foreground hover:bg-primary-strong text-white rounded-xl font-semibold text-sm   transition-all shadow-md hover:shadow-lg transform hover:scale-[1.02]"
                 disabled={submitting}
               >
                 + Add Material
               </Button>
 
               {formData.materials.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">
+                <p className="text-sm text-ink-3 text-center py-4">
                   No materials added yet
                 </p>
               ) : (
@@ -477,31 +476,31 @@ export default function IntentForm() {
                           value=""
                           onValueChange={(value) => setEditingMaterialId(value ? material.id : null)}
                         >
-                          <AccordionItem value={String(material.id)} className="rounded-md border border-gray-300 bg-white">
+                          <AccordionItem value={String(material.id)} className="rounded-md border border-line-input bg-surface">
                             <div className="flex items-center justify-between">
                               <AccordionTrigger className="flex-1 p-3 text-left hover:no-underline">
                                 <div>
-                                  <p className="text-xs text-gray-700 font-medium mb-2">Material #{index + 1}</p>
+                                  <p className="text-xs text-ink-2 font-medium mb-2">Material #{index + 1}</p>
                                   <div className="grid grid-cols-2 gap-2 text-xs">
                                     <div>
-                                      <span className="text-gray-500">Category:</span>
-                                      <p className="text-gray-900 font-medium truncate">{material.category}</p>
+                                      <span className="text-ink-3">Category:</span>
+                                      <p className="text-ink-1 font-medium truncate">{material.category}</p>
                                     </div>
                                     <div>
-                                      <span className="text-gray-500">Sub Category:</span>
-                                      <p className="text-gray-900 font-medium truncate">{material.subCategory}</p>
+                                      <span className="text-ink-3">Sub Category:</span>
+                                      <p className="text-ink-1 font-medium truncate">{material.subCategory}</p>
                                     </div>
                                     <div>
-                                      <span className="text-gray-500">Sub Category 1:</span>
-                                      <p className="text-gray-900 font-medium truncate">{material.subCategory1}</p>
+                                      <span className="text-ink-3">Sub Category 1:</span>
+                                      <p className="text-ink-1 font-medium truncate">{material.subCategory1}</p>
                                     </div>
                                     <div>
-                                      <span className="text-gray-500">Sub Category 2:</span>
-                                      <p className="text-gray-900 font-medium truncate">{material.subCategory2}</p>
+                                      <span className="text-ink-3">Sub Category 2:</span>
+                                      <p className="text-ink-1 font-medium truncate">{material.subCategory2}</p>
                                     </div>
                                     <div>
-                                      <span className="text-gray-500">Quantity:</span>
-                                      <p className="text-gray-900 font-medium">{material.quantity}</p>
+                                      <span className="text-ink-3">Quantity:</span>
+                                      <p className="text-ink-1 font-medium">{material.quantity}</p>
                                     </div>
                                   </div>
                                 </div>
@@ -511,19 +510,19 @@ export default function IntentForm() {
                                   type="button"
                                   variant="ghost"
                                   onClick={() => setEditingMaterialId(material.id)}
-                                  className="h-auto w-auto p-1.5 hover:bg-gray-100 rounded transition-colors"
+                                  className="h-auto w-auto p-1.5 hover:bg-surface-muted rounded transition-colors"
                                   disabled={submitting}
                                 >
-                                  <X size={16} className="text-gray-600" />
+                                  <X size={16} className="text-ink-3" />
                                 </Button>
                                 <Button
                                   type="button"
                                   variant="ghost"
                                   onClick={() => removeMaterialRow(material.id)}
-                                  className="h-auto w-auto p-1.5 hover:bg-gray-100 rounded transition-colors"
+                                  className="h-auto w-auto p-1.5 hover:bg-surface-muted rounded transition-colors"
                                   disabled={submitting}
                                 >
-                                  <X size={16} className="text-red-500" />
+                                  <X size={16} className="text-tone-bad-fg" />
                                 </Button>
                               </div>
                             </div>
@@ -549,12 +548,12 @@ export default function IntentForm() {
                             Material #{index + 1}
                           </AccordionTrigger>
                           <AccordionContent className="p-0">
-                      <div className="bg-gray-50 border border-gray-300 rounded-md p-4 relative">
+                      <div className="bg-surface-subtle border border-line-input rounded-md p-4 relative">
                         <Button
                           type="button"
                           variant="ghost"
                           onClick={() => removeMaterialRow(material.id)}
-                          className="absolute top-3 right-3 h-auto w-auto p-0 text-red-500 hover:text-red-700 hover:bg-transparent z-10"
+                          className="absolute top-3 right-3 h-auto w-auto p-0 text-tone-bad-fg hover:text-primary-strong hover:bg-transparent z-10"
                           disabled={submitting}
                         >
                           <X size={16} />
@@ -564,7 +563,7 @@ export default function IntentForm() {
                         <div className="grid grid-cols-2 gap-3 mb-3">
                           <div>
                             <Label className={fieldLabelClass}>
-                              Category <span className="text-red-500">*</span>
+                              Category <span className="text-tone-bad-fg">*</span>
                             </Label>
                             <SearchableDropdown
                               value={material.category}
@@ -577,7 +576,7 @@ export default function IntentForm() {
 
                           <div>
                             <Label className={fieldLabelClass}>
-                              Sub Category <span className="text-red-500">*</span>
+                              Sub Category <span className="text-tone-bad-fg">*</span>
                             </Label>
                             <SearchableDropdown
                               value={material.subCategory}
@@ -622,13 +621,13 @@ export default function IntentForm() {
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <Label className={fieldLabelClass}>
-                              Quantity <span className="text-red-500">*</span>
+                              Quantity <span className="text-tone-bad-fg">*</span>
                             </Label>
                             <Input
                               type="number"
                               value={material.quantity}
                               onChange={(e) => updateMaterial(material.id, 'quantity', e.target.value)}
-                              className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 shadow-none focus-visible:ring-0 focus-visible:border-gray-400"
+                              className="h-auto w-full bg-surface border border-line-input rounded-md px-3 py-2.5 text-sm text-ink-2 shadow-none focus-visible:ring-0 focus-visible:border-gray-400"
                               placeholder="Enter qty"
                               min="1"
                               required
@@ -644,7 +643,7 @@ export default function IntentForm() {
                               type="text"
                               value={material.remarks}
                               onChange={(e) => updateMaterial(material.id, 'remarks', e.target.value)}
-                              className="h-auto w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 shadow-none focus-visible:ring-0 focus-visible:border-gray-400"
+                              className="h-auto w-full bg-surface border border-line-input rounded-md px-3 py-2.5 text-sm text-ink-2 shadow-none focus-visible:ring-0 focus-visible:border-gray-400"
                               placeholder="Optional notes"
                               disabled={submitting}
                             />
@@ -657,7 +656,7 @@ export default function IntentForm() {
                             type="button"
                             variant="ghost"
                             onClick={() => setEditingMaterialId(null)}
-                            className="mt-3 w-full h-auto p-0 hover:bg-transparent text-xs text-orange-500 font-medium hover:text-orange-600 transition-colors"
+                            className="mt-3 w-full h-auto p-0 hover:bg-transparent text-xs text-tone-highlight-fg font-medium hover:text-primary-strong transition-colors"
                           >
                             ✓ Done editing
                           </Button>
@@ -673,17 +672,17 @@ export default function IntentForm() {
             </div>
 
             {/* Attachments Section */}
-            <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-              <h3 className="text-orange-600 font-bold text-sm mb-4">Attachments (Optional)</h3>
+            <div className="bg-surface-subtle rounded-2xl p-5 border border-line-card shadow-sm">
+              <h3 className="text-tone-highlight-fg font-bold text-sm mb-4">Attachments (Optional)</h3>
               
               <div className="mb-4">
-                <label className="flex items-center justify-center w-full px-6 py-6 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition-all">
+                <label className="flex items-center justify-center w-full px-6 py-6 border-2 border-dashed border-line-input rounded-xl cursor-pointer hover:border-primary hover:bg-tone-highlight-soft transition-all">
                   <div className="flex flex-col items-center">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center mb-2">
-                      <Upload size={20} className="text-orange-500" />
+                    <div className="w-12 h-12 rounded-full bg-tone-highlight-soft flex items-center justify-center mb-2">
+                      <Upload size={20} className="text-tone-highlight-fg" />
                     </div>
-                    <span className="text-sm font-medium text-gray-700">Click to upload images</span>
-                    <span className="text-xs text-gray-500 mt-1">PNG, JPG up to 10MB</span>
+                    <span className="text-sm font-medium text-ink-2">Click to upload images</span>
+                    <span className="text-xs text-ink-3 mt-1">PNG, JPG up to 10MB</span>
                   </div>
                   <input
                     type="file"
@@ -703,12 +702,12 @@ export default function IntentForm() {
                       <img loading="lazy" decoding="async"
                         src={preview}
                         alt={`Preview ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-xl border-2 border-gray-200 shadow-sm"
+                        className="w-full h-24 object-cover rounded-xl border-2 border-line-card shadow-sm"
                       />
                       <Button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute -top-2 -right-2 h-auto w-auto p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg transition-all transform hover:scale-110"
+                        className="absolute -top-2 -right-2 h-auto w-auto p-1.5 bg-tone-bad-solid text-white rounded-full hover:bg-primary-strong shadow-lg transition-all transform hover:scale-110"
                         disabled={submitting}
                       >
                         <X size={14} className="size-3.5" />
@@ -725,7 +724,7 @@ export default function IntentForm() {
                 type="button"
                 variant="outline"
                 onClick={() => navigate(ROUTES.material.intent)}
-                className="flex-1 h-auto bg-white border-2 border-gray-200 text-gray-700 font-semibold py-3.5 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+                className="flex-1 h-auto bg-surface border-2 border-line-card text-ink-2 font-semibold py-3.5 rounded-xl hover:bg-surface-muted hover:border-gray-300 transition-all shadow-sm"
                 disabled={submitting}
               >
                 Cancel
@@ -734,7 +733,7 @@ export default function IntentForm() {
                 type="submit"
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="flex-1 h-auto bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold py-3.5 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg disabled:opacity-100 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transform hover:scale-[1.02]"
+                className="flex-1 h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-white font-semibold py-3.5 rounded-xl   transition-all shadow-md hover:shadow-lg disabled:opacity-100 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transform hover:scale-[1.02]"
               >
                 {submitting ? (
                   <span className="flex items-center justify-center gap-2">
@@ -755,7 +754,7 @@ export default function IntentForm() {
         {/* Footer */}
         <div className="px-6 pb-6 pt-2">
           <div className="text-center">
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-ink-4">
               Powered by Laxmi Power Tech
             </p>
           </div>

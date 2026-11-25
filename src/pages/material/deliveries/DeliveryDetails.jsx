@@ -336,22 +336,22 @@ export default function DeliveryDetails() {
 
   if (loading || !delivery) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-tone-highlight-soft flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading delivery details...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-line-card mx-auto mb-4"></div>
+          <p className="text-ink-3">Loading delivery details...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      <div className="max-w-md mx-auto bg-white shadow-xl">
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
+    <div className="min-h-screen bg-tone-highlight-soft">
+      <div className="max-w-md mx-auto bg-surface shadow-xl">
+        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
-            className="mobile-back-button absolute top-6 left-6 h-auto rounded-full border border-white/70 bg-white px-3 py-1.5 text-sm font-medium text-orange-600 shadow-sm hover:bg-orange-50 hover:text-orange-700"
+            className="mobile-back-button absolute top-6 left-6 h-auto rounded-full border border-white/70 bg-surface px-3 py-1.5 text-sm font-medium text-tone-highlight-fg shadow-sm hover:bg-tone-highlight-soft hover:text-primary-strong"
             onClick={() => navigate(-1)}
           >
             <ArrowLeft size={16} />
@@ -371,12 +371,12 @@ export default function DeliveryDetails() {
         <div className="px-6 py-6 -mt-4 pb-24">
           <div className="space-y-4">
             {validationError && (
-              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div className="bg-tone-bad-soft border-2 border-tone-bad-border rounded-lg p-4 flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-tone-bad-solid flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-white font-bold text-sm">!</span>
                 </div>
                 <div className="flex-1">
-                  <p className="text-red-700 text-sm font-medium">
+                  <p className="text-tone-bad-fg text-sm font-medium">
                     {validationError}
                   </p>
                 </div>
@@ -385,53 +385,53 @@ export default function DeliveryDetails() {
                   size="icon"
                   aria-label="Dismiss validation error"
                   onClick={() => setValidationError("")}
-                  className="text-red-400 hover:text-red-600 transition-colors"
+                  className="text-tone-bad-fg hover:text-primary-strong transition-colors"
                 >
                   <X size={18} />
                 </Button>
               </div>
             )}
 
-            <div className="bg-white rounded-lg border p-4">
-              <h2 className="font-semibold text-gray-900 mb-3">
+            <div className="bg-surface rounded-lg border p-4">
+              <h2 className="font-semibold text-ink-1 mb-3">
                 Delivery Information
               </h2>
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between items-center gap-3">
-                  <span className="text-gray-600 font-medium">Delivery ID</span>
-                  <span className="font-semibold text-gray-900 text-right">
+                  <span className="text-ink-3 font-medium">Delivery ID</span>
+                  <span className="font-semibold text-ink-1 text-right">
                     {delivery.transfer_number || deliveryId}
                   </span>
                 </div>
                 <div className="flex justify-between items-center gap-3">
-                  <span className="text-gray-600 font-medium">Type</span>
+                  <span className="text-ink-3 font-medium">Type</span>
                   <Badge
                     className={`border-0 text-xs px-3 py-1 rounded-full font-semibold ${
                       deliveryType === "PO"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-purple-100 text-purple-700"
+                        ? "bg-tone-info-soft text-tone-info-fg"
+                        : "bg-tone-purple-soft text-tone-purple-fg"
                     }`}
                   >
                     {deliveryType === "PO" ? "Purchase Order" : "Site Transfer"}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center gap-3">
-                  <span className="text-gray-600 font-medium">From</span>
-                  <span className="font-semibold text-gray-900 text-right">
+                  <span className="text-ink-3 font-medium">From</span>
+                  <span className="font-semibold text-ink-1 text-right">
                     {delivery.from || delivery.vendor_name || "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between items-center gap-3">
-                  <span className="text-gray-600 font-medium">To</span>
-                  <span className="font-semibold text-gray-900 text-right">
+                  <span className="text-ink-3 font-medium">To</span>
+                  <span className="font-semibold text-ink-1 text-right">
                     {delivery.to || delivery.delivery_site || "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between items-center gap-3">
-                  <span className="text-gray-600 font-medium">
+                  <span className="text-ink-3 font-medium">
                     Intent Request Date
                   </span>
-                  <span className="font-semibold text-gray-900 text-right">
+                  <span className="font-semibold text-ink-1 text-right">
                     {new Date(
                       delivery.createdAt || delivery.date
                     ).toLocaleDateString("en-IN", {
@@ -444,16 +444,16 @@ export default function DeliveryDetails() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center gap-3">
-                  <span className="text-gray-600 font-medium">Status</span>
+                  <span className="text-ink-3 font-medium">Status</span>
                   <Badge
                     className={`border-0 text-xs px-3 py-1 rounded-full font-semibold ${
                       delivery.status === "Transferred"
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-tone-ok-soft text-tone-ok-fg"
                         : delivery.status === "Partial"
-                        ? "bg-yellow-100 text-yellow-700"
+                        ? "bg-tone-warn-soft text-tone-warn-fg"
                         : delivery.status === "Pending"
-                        ? "bg-orange-100 text-orange-700"
-                        : "bg-gray-100 text-gray-700"
+                        ? "bg-tone-highlight-soft text-tone-highlight-fg"
+                        : "bg-surface-muted text-ink-2"
                     }`}
                   >
                     {delivery.status || "Pending"}
@@ -462,8 +462,8 @@ export default function DeliveryDetails() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border p-4">
-              <h2 className="font-semibold text-gray-900 mb-3">
+            <div className="bg-surface rounded-lg border p-4">
+              <h2 className="font-semibold text-ink-1 mb-3">
                 Materials ({materials.length})
               </h2>
 
@@ -489,25 +489,25 @@ export default function DeliveryDetails() {
                   return (
                     <div
                       key={itemId || index}
-                      className="bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                      className="bg-surface-subtle rounded-lg border border-line-card p-4 hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start gap-2 mb-2">
-                            <span className="text-xs font-bold text-gray-500 mt-1">
+                            <span className="text-xs font-bold text-ink-3 mt-1">
                               #{index + 1}
                             </span>
-                            <p className="text-sm font-bold text-gray-900 leading-snug">
+                            <p className="text-sm font-bold text-ink-1 leading-snug">
                               {getMaterialName(material)}
                             </p>
                           </div>
 
                           {category && (
                             <div className="flex items-center gap-2 mt-2">
-                              <span className="text-xs text-gray-500 font-medium">
+                              <span className="text-xs text-ink-3 font-medium">
                                 Category:
                               </span>
-                              <span className="text-xs text-gray-900 font-semibold bg-blue-50 px-2 py-0.5 rounded">
+                              <span className="text-xs text-ink-1 font-semibold bg-tone-info-soft px-2 py-0.5 rounded">
                                 {category}
                               </span>
                             </div>
@@ -521,47 +521,47 @@ export default function DeliveryDetails() {
                               handleCheckbox(itemId, checked === true)
                             }
                             aria-label="Receive full remaining quantity"
-                            className="w-7 h-7 rounded-lg border-2 border-gray-300 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-white [&_svg]:h-5 [&_svg]:w-5"
+                            className="w-7 h-7 rounded-lg border-2 border-line-input data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 data-[state=checked]:text-white [&_svg]:h-5 [&_svg]:w-5"
                           />
                         )}
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-200">
+                      <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-line-card">
                         <div>
-                          <label className="text-xs text-gray-500 font-medium block mb-1">
+                          <label className="text-xs text-ink-3 font-medium block mb-1">
                             Requested
                           </label>
-                          <p className="text-sm font-bold text-orange-600">
+                          <p className="text-sm font-bold text-tone-highlight-fg">
                             {requestedQty} {unit}
                           </p>
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500 font-medium block mb-1">
+                          <label className="text-xs text-ink-3 font-medium block mb-1">
                             Previously Received
                           </label>
-                          <p className="text-sm font-bold text-green-600">
+                          <p className="text-sm font-bold text-tone-ok-fg">
                             {alreadyReceivedQty} {unit}
                           </p>
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500 font-medium block mb-1">
+                          <label className="text-xs text-ink-3 font-medium block mb-1">
                             Remaining
                           </label>
-                          <p className="text-sm font-bold text-gray-900">
+                          <p className="text-sm font-bold text-ink-1">
                             {remainingQty} {unit}
                           </p>
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500 font-medium block mb-1">
+                          <label className="text-xs text-ink-3 font-medium block mb-1">
                             Status
                           </label>
                           <Badge
                             className={`border-0 text-xs px-2 py-1 rounded-full font-semibold ${
                               itemComplete
-                                ? "bg-green-100 text-green-700"
+                                ? "bg-tone-ok-soft text-tone-ok-fg"
                                 : alreadyReceivedQty > 0
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-orange-100 text-orange-700"
+                                ? "bg-tone-warn-soft text-tone-warn-fg"
+                                : "bg-tone-highlight-soft text-tone-highlight-fg"
                             }`}
                           >
                             {itemComplete
@@ -574,8 +574,8 @@ export default function DeliveryDetails() {
                       </div>
 
                       {isEditMode && !itemComplete && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <label className="text-xs text-gray-600 font-semibold block mb-1">
+                        <div className="mt-3 pt-3 border-t border-line-card">
+                          <label className="text-xs text-ink-3 font-semibold block mb-1">
                             Received Now
                           </label>
                           <Input
@@ -589,9 +589,9 @@ export default function DeliveryDetails() {
                               handleReceiveNowChange(itemId, event.target.value)
                             }
                             placeholder={`Max ${remainingQty} ${unit}`}
-                            className="h-auto w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100 disabled:text-gray-600"
+                            className="h-auto w-full border border-line-input rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus-visible:ring-ring disabled:bg-gray-100 disabled:text-gray-600"
                           />
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-ink-3 mt-1">
                             Pending after this delivery:{" "}
                             <span className="font-semibold">
                               {pendingAfterQty} {unit}
@@ -606,12 +606,12 @@ export default function DeliveryDetails() {
             </div>
 
             {isEditMode && (
-              <div className="bg-white rounded-lg border-2 border-orange-200 p-4">
+              <div className="bg-surface rounded-lg border-2 border-line-card p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <h2 className="font-semibold text-gray-900">
+                  <h2 className="font-semibold text-ink-1">
                     Delivery Proof - Challan Upload
                   </h2>
-                  <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-bold text-tone-bad-fg bg-tone-bad-soft px-2 py-0.5 rounded-full">
                     * REQUIRED
                   </span>
                 </div>
@@ -621,7 +621,7 @@ export default function DeliveryDetails() {
                     {imagePreview.map((preview, index) => (
                       <div
                         key={preview}
-                        className="relative border border-gray-300 rounded-lg overflow-hidden"
+                        className="relative border border-line-input rounded-lg overflow-hidden"
                       >
                         <img loading="lazy" decoding="async"
                           src={preview}
@@ -633,12 +633,12 @@ export default function DeliveryDetails() {
                           size="icon"
                           aria-label="Remove delivery proof image"
                           onClick={() => removeImage(index)}
-                          className="absolute top-2 right-2 h-8 w-8 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                          className="absolute top-2 right-2 h-8 w-8 p-1 bg-tone-bad-solid text-white rounded-full hover:bg-primary-strong transition-colors"
                         >
                           <X size={14} />
                         </Button>
-                        <div className="p-2 bg-white border-t border-gray-200">
-                          <p className="text-xs text-gray-600 truncate">
+                        <div className="p-2 bg-surface border-t border-line-card">
+                          <p className="text-xs text-ink-3 truncate">
                             {deliveryImages[index]?.name}
                           </p>
                         </div>
@@ -647,9 +647,9 @@ export default function DeliveryDetails() {
                   </div>
                 )}
 
-                <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-orange-300 rounded-lg cursor-pointer hover:border-orange-500 hover:bg-orange-50 transition-colors bg-orange-50/30">
-                  <Upload size={20} className="text-orange-600" />
-                  <span className="text-sm text-gray-900 font-semibold">
+                <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-line-card rounded-lg cursor-pointer hover:border-primary hover:bg-tone-highlight-soft transition-colors bg-tone-highlight-soft/30">
+                  <Upload size={20} className="text-tone-highlight-fg" />
+                  <span className="text-sm text-ink-1 font-semibold">
                     Upload Delivery Proof (Challan, etc.) *
                   </span>
                   <input
@@ -660,7 +660,7 @@ export default function DeliveryDetails() {
                     className="hidden"
                   />
                 </label>
-                <p className="text-xs text-red-600 font-medium mt-2">
+                <p className="text-xs text-tone-bad-fg font-medium mt-2">
                   * Required: Upload images of delivery challan or proof
                 </p>
               </div>
@@ -668,14 +668,14 @@ export default function DeliveryDetails() {
           </div>
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+        <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-line-card shadow-lg z-50">
           <div className="max-w-[390px] mx-auto px-4 py-3">
             {!isEditMode ? (
               <div className="flex gap-3">
                 <Button
                   variant="ghost"
                   onClick={() => navigate(-1)}
-                  className="h-auto flex-1 bg-gray-200 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="h-auto flex-1 bg-surface-muted text-ink-2 font-semibold py-3 rounded-lg hover:bg-surface-muted transition-colors"
                 >
                   Cancel
                 </Button>
@@ -683,7 +683,7 @@ export default function DeliveryDetails() {
                   variant="ghost"
                   onClick={() => setIsEditMode(true)}
                   disabled={delivery.status === "Transferred"}
-                  className="h-auto flex-1 bg-orange-500 text-white font-semibold py-3 rounded-lg hover:bg-orange-600 transition-colors shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="h-auto flex-1 bg-primary text-white font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   Edit
                 </Button>
@@ -700,7 +700,7 @@ export default function DeliveryDetails() {
                     setValidationError("");
                   }}
                   disabled={submitting}
-                  className="h-auto flex-1 bg-gray-200 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-60"
+                  className="h-auto flex-1 bg-surface-muted text-ink-2 font-semibold py-3 rounded-lg hover:bg-surface-muted transition-colors disabled:opacity-60"
                 >
                   Cancel
                 </Button>
@@ -708,7 +708,7 @@ export default function DeliveryDetails() {
                   variant="ghost"
                   onClick={handleSubmit}
                   disabled={submitting}
-                  className="h-auto flex-1 bg-orange-500 text-white font-semibold py-3 rounded-lg hover:bg-orange-600 transition-colors shadow-md disabled:bg-orange-300 disabled:cursor-wait"
+                  className="h-auto flex-1 bg-primary text-white font-semibold py-3 rounded-lg hover:bg-primary-strong transition-colors shadow-md disabled:bg-orange-300 disabled:cursor-wait"
                 >
                   {submitting ? "Submitting..." : "Submit"}
                 </Button>

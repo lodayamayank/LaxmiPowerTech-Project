@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
+import { ArrowLeft, Camera, CircleCheck } from 'lucide-react';
 import { ROUTES } from '@/lib/routes';
 import { getUser } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import { useNavigate } from "react-router-dom";
-import { FaArrowLeft, FaCamera, FaCheckCircle, FaImages } from "react-icons/fa";
+import { FaImages } from 'react-icons/fa';
 import { Upload, X } from "lucide-react";
 import { submitOffline } from "@/pwa/offlineSubmit";
 import { toast } from 'sonner';
@@ -169,18 +170,18 @@ export default function UploadPhoto() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
+    <div className="min-h-screen bg-tone-highlight-soft">
       {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
+      <div className="max-w-md mx-auto min-h-screen bg-surface shadow-xl">
         {/* Header with Gradient */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
+        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             type="button"
             variant="ghost"
             className="mobile-back-button absolute top-6 left-6 h-auto"
             onClick={() => navigate(ROUTES.material.intent)}
           >
-            <FaArrowLeft size={16} />
+            <ArrowLeft size={16} />
             <span className="text-sm font-medium">Back</span>
           </Button>
 
@@ -194,37 +195,37 @@ export default function UploadPhoto() {
         <div className="px-6 py-6 -mt-4">
           {/* Intent ID Input */}
           <div className="mb-6">
-            <Label htmlFor="upload-photo-intent-id" className="block text-base text-gray-700 font-semibold leading-normal mb-2">Intent ID (Auto-generated)</Label>
+            <Label htmlFor="upload-photo-intent-id" className="block text-base text-ink-2 font-semibold leading-normal mb-2">Intent ID (Auto-generated)</Label>
             <Input
               id="upload-photo-intent-id"
               type="text"
               value={indentId}
               readOnly
-              className="w-full h-auto border-gray-300 rounded-xl px-4 py-3 text-base md:text-base bg-gray-50 text-gray-700 font-mono font-semibold cursor-not-allowed shadow-none"
+              className="w-full h-auto border-line-input rounded-xl px-4 py-3 text-base md:text-base bg-surface-subtle text-ink-2 font-mono font-semibold cursor-not-allowed shadow-none"
             />
-            <p className="text-xs text-gray-500 mt-1">This ID is automatically generated and cannot be edited</p>
+            <p className="text-xs text-ink-3 mt-1">This ID is automatically generated and cannot be edited</p>
           </div>
 
           {/* Project / Site (Auto-filled) */}
           <div className="mb-6">
-            <Label htmlFor="upload-photo-site" className="block text-base text-gray-700 font-semibold leading-normal mb-2">Site <span className="text-red-500">*</span></Label>
+            <Label htmlFor="upload-photo-site" className="block text-base text-ink-2 font-semibold leading-normal mb-2">Site <span className="text-tone-bad-fg">*</span></Label>
             <Input
               id="upload-photo-site"
               type="text"
               value={project}
-              className="w-full h-auto border-gray-200 rounded-xl px-4 py-3 text-base md:text-base bg-gray-100 text-gray-700 font-medium cursor-not-allowed disabled:opacity-100 shadow-none"
+              className="w-full h-auto border-line-card rounded-xl px-4 py-3 text-base md:text-base bg-surface-muted text-ink-2 font-medium cursor-not-allowed disabled:opacity-100 shadow-none"
               readOnly
               disabled
             />
             {!project && (
-              <p className="text-xs text-red-500 mt-1">No project selected. Please go back and select a project first.</p>
+              <p className="text-xs text-tone-bad-fg mt-1">No project selected. Please go back and select a project first.</p>
             )}
           </div>
 
           {/* Upload Section */}
           <div className="mb-6">
             {/* No htmlFor: two hidden inputs, and a label click must not open the camera/gallery */}
-            <Label className="block text-base text-gray-700 font-semibold leading-normal mb-3">Material List Photo</Label>
+            <Label className="block text-base text-ink-2 font-semibold leading-normal mb-3">Material List Photo</Label>
             
             {!imagePreview ? (
               <div className="space-y-3">
@@ -249,9 +250,9 @@ export default function UploadPhoto() {
                 <Button
                   type="button"
                   onClick={() => cameraInputRef.current?.click()}
-                  className="w-full h-auto flex items-center justify-center gap-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] [&_svg]:size-6"
+                  className="w-full h-auto flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:bg-primary-strong text-white py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] [&_svg]:size-6"
                 >
-                  <FaCamera size={24} />
+                  <Camera size={24} />
                   <span className="text-lg font-bold">Take Photo</span>
                 </Button>
 
@@ -259,16 +260,16 @@ export default function UploadPhoto() {
                 <Button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-auto flex items-center justify-center gap-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] [&_svg]:size-6"
+                  className="w-full h-auto flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:bg-primary-strong text-white py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] [&_svg]:size-6"
                 >
                   <FaImages size={24} />
                   <span className="text-lg font-bold">Choose from Gallery</span>
                 </Button>
 
-                <p className="text-center text-gray-400 text-xs">JPG, PNG or JPEG (Max 10MB) • Auto-compressed</p>
+                <p className="text-center text-ink-4 text-xs">JPG, PNG or JPEG (Max 10MB) • Auto-compressed</p>
               </div>
             ) : (
-              <div className="relative rounded-2xl overflow-hidden border-2 border-gray-200 shadow-md">
+              <div className="relative rounded-2xl overflow-hidden border-2 border-line-card shadow-md">
                 <img loading="lazy" decoding="async"
                   src={imagePreview}
                   alt="Preview"
@@ -279,11 +280,11 @@ export default function UploadPhoto() {
                   size="icon"
                   aria-label="Remove image"
                   onClick={handleRemoveImage}
-                  className="absolute top-3 right-3 h-auto w-auto bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all shadow-lg [&_svg]:size-5"
+                  className="absolute top-3 right-3 h-auto w-auto bg-tone-bad-solid text-white p-2 rounded-full hover:bg-primary-strong transition-all shadow-lg [&_svg]:size-5"
                 >
                   <X size={20} />
                 </Button>
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                <div className="absolute bottom-0 left-0 right-0 bg-surface-subtle p-4">
                   <p className="text-white text-sm font-medium">{selectedImage?.name}</p>
                 </div>
               </div>
@@ -295,7 +296,7 @@ export default function UploadPhoto() {
             type="button"
             onClick={handleSubmit}
             disabled={uploading || !indentId || !project || !selectedImage}
-            className="w-full h-auto bg-gradient-to-r from-orange-500 to-orange-600 text-white text-base font-semibold py-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:pointer-events-auto disabled:cursor-not-allowed flex items-center justify-center gap-2 [&_svg]:size-5"
+            className="w-full h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-white text-base font-semibold py-4 rounded-xl   transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:pointer-events-auto disabled:cursor-not-allowed flex items-center justify-center gap-2 [&_svg]:size-5"
           >
             {uploading ? (
               <>
@@ -317,7 +318,7 @@ export default function UploadPhoto() {
         {/* Footer */}
         <div className="px-6 pb-6 pt-2">
           <div className="text-center">
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-ink-4">
               Powered by Laxmi Power Tech
             </p>
           </div>

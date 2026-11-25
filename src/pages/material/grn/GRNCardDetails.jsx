@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { ROUTES } from '@/lib/routes';
 import { useParams, useNavigate } from 'react-router-dom';
 import { X, Package, Calendar, MapPin, User, FileText, CheckCircle } from 'lucide-react';
-import { FaArrowLeft } from 'react-icons/fa';
 import { upcomingDeliveryAPI } from '@/api/material';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -48,7 +48,7 @@ export default function GRNCardDetails() {
   const showToast = (message, type = 'success') => {
     const toast = document.createElement('div');
     toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-[9999] transition-opacity ${
-      type === 'success' ? 'bg-green-500' : 'bg-red-500'
+      type === 'success' ? 'bg-tone-ok-fg' : 'bg-tone-bad-solid'
     }`;
     toast.textContent = message;
     document.body.appendChild(toast);
@@ -73,32 +73,32 @@ export default function GRNCardDetails() {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'transferred':
-        return 'bg-green-100 text-green-600';
+        return 'bg-tone-ok-soft text-tone-ok-fg';
       case 'partial':
-        return 'bg-orange-100 text-orange-600';
+        return 'bg-tone-highlight-soft text-tone-highlight-fg';
       case 'pending':
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-surface-muted text-ink-2';
       default:
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-surface-muted text-ink-3';
     }
   };
 
   // Shared class overrides so shadcn Card/Label/Badge keep the original look
-  const cardClass = 'bg-white rounded-lg border py-0 gap-0 shadow-none';
+  const cardClass = 'bg-surface rounded-lg border py-0 gap-0 shadow-none';
   const cardContentClass = 'p-4';
-  const labelClass = 'text-xs text-gray-600 font-normal leading-normal';
+  const labelClass = 'text-xs text-ink-3 font-normal leading-normal';
   const pillClass = 'px-2 py-1 text-xs rounded-full border-transparent';
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-        <div className="max-w-md mx-auto bg-white shadow-xl min-h-screen">
+      <div className="min-h-screen bg-tone-highlight-soft">
+        <div className="max-w-md mx-auto bg-surface shadow-xl min-h-screen">
           {/* Header skeleton */}
-          <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
+          <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg">
             <div className="flex flex-col items-center pt-8 space-y-2">
-              <Skeleton className="h-7 w-40 bg-white/30" />
-              <Skeleton className="h-4 w-28 bg-white/30" />
-              <Skeleton className="h-3 w-24 bg-white/30" />
+              <Skeleton className="h-7 w-40 bg-surface/80" />
+              <Skeleton className="h-4 w-28 bg-surface/80" />
+              <Skeleton className="h-3 w-24 bg-surface/80" />
             </div>
           </div>
 
@@ -132,16 +132,16 @@ export default function GRNCardDetails() {
 
   if (!delivery) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-tone-highlight-soft flex items-center justify-center">
         <div className="text-center px-6">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
-            <X size={32} className="text-red-500" />
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-tone-bad-soft flex items-center justify-center">
+            <X size={32} className="text-tone-bad-fg" />
           </div>
-          <p className="text-gray-900 font-semibold text-lg mb-2">GRN Not Found</p>
-          <p className="text-gray-600 text-sm mb-6">The requested GRN record could not be found</p>
+          <p className="text-ink-1 font-semibold text-lg mb-2">GRN Not Found</p>
+          <p className="text-ink-3 text-sm mb-6">The requested GRN record could not be found</p>
           <Button
             onClick={() => navigate(-1)} 
-            className="h-auto bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-orange-600 hover:to-orange-700 transition-all shadow-md"
+            className="h-auto bg-primary text-primary-foreground hover:bg-primary-strong text-white px-6 py-3 rounded-xl font-semibold   transition-all shadow-md"
           >
             Go Back
           </Button>
@@ -151,17 +151,17 @@ export default function GRNCardDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
+    <div className="min-h-screen bg-tone-highlight-soft">
       {/* Container with consistent mobile width */}
-      <div className="max-w-md mx-auto bg-white shadow-xl min-h-screen">
+      <div className="max-w-md mx-auto bg-surface shadow-xl min-h-screen">
         {/* Header with Gradient */}
-        <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
+        <div className="bg-primary text-primary-foreground hover:bg-primary-strong px-6 pt-6 pb-8 rounded-b-3xl shadow-lg relative">
           <Button
             variant="ghost"
             className="mobile-back-button absolute top-6 left-6 h-auto px-2 py-1 text-white hover:bg-white/20 hover:text-white"
             onClick={() => navigate(-1)}
           >
-            <FaArrowLeft size={16} />
+            <ArrowLeft size={16} />
             <span className="text-sm font-medium">Back</span>
           </Button>
 
@@ -184,8 +184,8 @@ export default function GRNCardDetails() {
             <Card className={cardClass}>
               <CardContent className={`${cardContentClass} space-y-3`}>
                 <div className="flex items-center gap-2 mb-3">
-                  <Package size={18} className="text-green-600" />
-                  <h2 className="font-semibold text-gray-900">GRN Summary</h2>
+                  <Package size={18} className="text-tone-ok-fg" />
+                  <h2 className="font-semibold text-ink-1">GRN Summary</h2>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-3">
@@ -193,7 +193,7 @@ export default function GRNCardDetails() {
                     <Label className={labelClass}>
                       {delivery.type === 'PO' ? 'Vendor-wise PO ID' : 'ST ID'}
                     </Label>
-                    <p className="font-bold text-gray-900 text-lg">{delivery.transfer_number || delivery.st_id}</p>
+                    <p className="font-bold text-ink-1 text-lg">{delivery.transfer_number || delivery.st_id}</p>
                   </div>
                   
                   <div>
@@ -211,7 +211,7 @@ export default function GRNCardDetails() {
                       <Badge
                         variant="outline"
                         className={`inline-block ${pillClass} font-medium ${
-                          delivery.type === 'PO' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'
+                          delivery.type === 'PO' ? 'bg-tone-info-soft text-tone-info-fg' : 'bg-tone-purple-soft text-tone-purple-fg'
                         }`}
                       >
                         {delivery.type === 'PO' ? '📋 PO' : '🚚 ST'}
@@ -221,19 +221,19 @@ export default function GRNCardDetails() {
 
                   <div>
                     <Label className={labelClass}>Total Items</Label>
-                    <p className="font-medium text-gray-900">{delivery.items?.length || 0}</p>
+                    <p className="font-medium text-ink-1">{delivery.items?.length || 0}</p>
                   </div>
 
                   <div className="col-span-2">
                     <Label className={labelClass}>Intent Request Date & Time</Label>
-                    <p className="font-medium text-gray-900 text-sm">
+                    <p className="font-medium text-ink-1 text-sm">
                       {formatDate(delivery.createdAt)}
                     </p>
                   </div>
                   
                   <div className="col-span-2">
                     <Label className={labelClass}>Delivery Date & Time (Challan Upload)</Label>
-                    <p className="font-medium text-green-600 text-sm">
+                    <p className="font-medium text-tone-ok-fg text-sm">
                       {formatDate(delivery.updatedAt)}
                     </p>
                   </div>
@@ -245,25 +245,25 @@ export default function GRNCardDetails() {
             <Card className={cardClass}>
               <CardContent className={`${cardContentClass} space-y-3`}>
                 <div className="flex items-center gap-2 mb-3">
-                  <MapPin size={18} className="text-blue-600" />
-                  <h2 className="font-semibold text-gray-900">Transfer Details</h2>
+                  <MapPin size={18} className="text-tone-info-fg" />
+                  <h2 className="font-semibold text-ink-1">Transfer Details</h2>
                 </div>
                 
                 <div className="space-y-3">
                   <div>
                     <Label className={labelClass}>From Location</Label>
-                    <p className="font-medium text-gray-900">📍 {delivery.from || 'N/A'}</p>
+                    <p className="font-medium text-ink-1">📍 {delivery.from || 'N/A'}</p>
                   </div>
 
                   <div>
                     <Label className={labelClass}>To Location</Label>
-                    <p className="font-medium text-gray-900">📍 {delivery.to || 'N/A'}</p>
+                    <p className="font-medium text-ink-1">📍 {delivery.to || 'N/A'}</p>
                   </div>
 
                   {delivery.createdBy && (
                     <div>
                       <Label className={labelClass}>Requested By</Label>
-                      <p className="font-medium text-gray-900">👤 {delivery.createdBy}</p>
+                      <p className="font-medium text-ink-1">👤 {delivery.createdBy}</p>
                     </div>
                   )}
                 </div>
@@ -274,8 +274,8 @@ export default function GRNCardDetails() {
             <Card className={cardClass}>
               <CardContent className={cardContentClass}>
                 <div className="flex items-center gap-2 mb-3">
-                  <Package size={18} className="text-green-600" />
-                  <h2 className="font-semibold text-gray-900">Materials Received</h2>
+                  <Package size={18} className="text-tone-ok-fg" />
+                  <h2 className="font-semibold text-ink-1">Materials Received</h2>
                 </div>
 
                 <div className="space-y-3">
@@ -287,14 +287,14 @@ export default function GRNCardDetails() {
                       const isFullyReceived = receivedQty >= orderedQty;
                       
                       return (
-                        <div key={idx} className="bg-gray-50 rounded-lg p-3 space-y-2">
+                        <div key={idx} className="bg-surface-subtle rounded-lg p-3 space-y-2">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <p className="font-medium text-gray-900 text-sm">
+                              <p className="font-medium text-ink-1 text-sm">
                                 {item.category || item.name || 'N/A'}
                               </p>
                               {(item.sub_category || item.sub_category1) && (
-                                <p className="text-xs text-gray-600 mt-0.5">
+                                <p className="text-xs text-ink-3 mt-0.5">
                                   {[item.sub_category, item.sub_category1, item.sub_category2]
                                     .filter(Boolean)
                                     .join(' - ')}
@@ -305,8 +305,8 @@ export default function GRNCardDetails() {
                               variant="outline"
                               className={`${pillClass} font-medium ml-2 ${
                                 isFullyReceived 
-                                  ? 'bg-green-100 text-green-600' 
-                                  : 'bg-orange-100 text-orange-600'
+                                  ? 'bg-tone-ok-soft text-tone-ok-fg' 
+                                  : 'bg-tone-highlight-soft text-tone-highlight-fg'
                               }`}
                             >
                               {isFullyReceived ? '✓ Complete' : 'Partial'}
@@ -315,23 +315,23 @@ export default function GRNCardDetails() {
 
                           <div className="grid grid-cols-3 gap-2 text-xs">
                             <div>
-                              <span className="text-gray-500">Ordered</span>
-                              <p className="font-bold text-blue-600">{orderedQty}</p>
+                              <span className="text-ink-3">Ordered</span>
+                              <p className="font-bold text-tone-info-fg">{orderedQty}</p>
                             </div>
                             <div>
-                              <span className="text-gray-500">Received</span>
-                              <p className="font-bold text-green-600">✓ {receivedQty}</p>
+                              <span className="text-ink-3">Received</span>
+                              <p className="font-bold text-tone-ok-fg">✓ {receivedQty}</p>
                             </div>
                             <div>
-                              <span className="text-gray-500">Pending</span>
-                              <p className="font-bold text-orange-600">{pendingQty}</p>
+                              <span className="text-ink-3">Pending</span>
+                              <p className="font-bold text-tone-highlight-fg">{pendingQty}</p>
                             </div>
                           </div>
                         </div>
                       );
                     })
                   ) : (
-                    <p className="text-center text-gray-500 text-sm py-4">No materials found</p>
+                    <p className="text-center text-ink-3 text-sm py-4">No materials found</p>
                   )}
                 </div>
               </CardContent>
@@ -342,8 +342,8 @@ export default function GRNCardDetails() {
               <Card className={cardClass}>
                 <CardContent className={cardContentClass}>
                   <div className="flex items-center gap-2 mb-3">
-                    <FileText size={18} className="text-orange-600" />
-                    <h2 className="font-semibold text-gray-900">Challan ({delivery.attachments.length})</h2>
+                    <FileText size={18} className="text-tone-highlight-fg" />
+                    <h2 className="font-semibold text-ink-1">Challan ({delivery.attachments.length})</h2>
                   </div>
 
                   <div className="space-y-3">
@@ -353,11 +353,11 @@ export default function GRNCardDetails() {
                       const isImage = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(attachmentUrl);
                       
                       return (
-                        <div key={index} className="border rounded-lg overflow-hidden bg-white shadow-sm">
+                        <div key={index} className="border rounded-lg overflow-hidden bg-surface shadow-sm">
                           {/* Image Thumbnail - Clickable */}
                           {isImage ? (
                             <div 
-                              className="relative bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity"
+                              className="relative bg-surface-muted cursor-pointer hover:opacity-90 transition-opacity"
                               onClick={() => {
                                 setSelectedImage(attachmentUrl);
                                 setShowImageModal(true);
@@ -369,29 +369,29 @@ export default function GRNCardDetails() {
                                 className="w-full h-48 object-contain"
                               />
                               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-20 transition-all">
-                                <div className="bg-white rounded-full p-2 opacity-0 hover:opacity-100 transition-opacity">
-                                  <FileText size={24} className="text-orange-600" />
+                                <div className="bg-surface rounded-full p-2 opacity-0 hover:opacity-100 transition-opacity">
+                                  <FileText size={24} className="text-tone-highlight-fg" />
                                 </div>
                               </div>
                             </div>
                           ) : (
-                            <div className="flex items-center justify-center h-48 bg-gray-100">
-                              <FileText size={48} className="text-gray-400" />
+                            <div className="flex items-center justify-center h-48 bg-surface-muted">
+                              <FileText size={48} className="text-ink-4" />
                             </div>
                           )}
                           
                           {/* File Info */}
-                          <div className="p-3 bg-white border-t">
+                          <div className="p-3 bg-surface border-t">
                             <div className="flex items-center gap-2 mb-2">
-                              <FileText size={16} className="text-orange-500 flex-shrink-0" />
-                              <span className="text-sm text-gray-700 truncate flex-1">{fileName}</span>
+                              <FileText size={16} className="text-tone-highlight-fg flex-shrink-0" />
+                              <span className="text-sm text-ink-2 truncate flex-1">{fileName}</span>
                             </div>
                             <Button
                               onClick={() => {
                                 setSelectedImage(attachmentUrl);
                                 setShowImageModal(true);
                               }}
-                              className="w-full h-auto px-3 py-2 bg-orange-500 text-white text-xs font-medium rounded hover:bg-orange-600 transition-colors flex items-center justify-center gap-1"
+                              className="w-full h-auto px-3 py-2 bg-primary text-white text-xs font-medium rounded hover:bg-primary-strong transition-colors flex items-center justify-center gap-1"
                             >
                               <FileText size={14} />
                               View Full Size
@@ -406,28 +406,28 @@ export default function GRNCardDetails() {
             )}
 
             {/* GRN Summary Stats */}
-            <Card className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-100 py-0 gap-0 shadow-none">
+            <Card className="bg-tone-ok-soft rounded-lg border border-tone-ok-border py-0 gap-0 shadow-none">
               <CardContent className={cardContentClass}>
                 <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle size={18} className="text-green-600" />
-                  <h3 className="font-semibold text-gray-900">Delivery Summary</h3>
+                  <CheckCircle size={18} className="text-tone-ok-fg" />
+                  <h3 className="font-semibold text-ink-1">Delivery Summary</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <p className="text-gray-600">Total Materials</p>
-                    <p className="font-bold text-gray-900">{delivery.items?.length || 0}</p>
+                    <p className="text-ink-3">Total Materials</p>
+                    <p className="font-bold text-ink-1">{delivery.items?.length || 0}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Status</p>
-                    <p className="font-bold text-green-600">✅ Transferred</p>
+                    <p className="text-ink-3">Status</p>
+                    <p className="font-bold text-tone-ok-fg">✅ Transferred</p>
                   </div>
                   <div className="col-span-2">
-                    <p className="text-gray-600">Intent Request Date</p>
-                    <p className="font-medium text-gray-900">{formatDate(delivery.createdAt)}</p>
+                    <p className="text-ink-3">Intent Request Date</p>
+                    <p className="font-medium text-ink-1">{formatDate(delivery.createdAt)}</p>
                   </div>
                   <div className="col-span-2">
-                    <p className="text-gray-600">Delivery Date (Challan Upload)</p>
-                    <p className="font-medium text-green-600">{formatDate(delivery.updatedAt)}</p>
+                    <p className="text-ink-3">Delivery Date (Challan Upload)</p>
+                    <p className="font-medium text-tone-ok-fg">{formatDate(delivery.updatedAt)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -439,14 +439,14 @@ export default function GRNCardDetails() {
       {/* Full-Size Image Modal */}
       {showImageModal && selectedImage && (
         <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+          className="fixed inset-0 bg-scrim/40 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
           onClick={() => setShowImageModal(false)}
         >
           <div className="relative max-w-4xl w-full">
             {/* Close Button */}
             <button
               onClick={() => setShowImageModal(false)}
-              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+              className="absolute -top-12 right-0 text-white hover:text-ink-1 transition-colors"
             >
               <X size={32} />
             </button>
@@ -464,7 +464,7 @@ export default function GRNCardDetails() {
               <a
                 href={selectedImage}
                 download
-                className="px-6 py-3 bg-orange-500 text-white font-medium rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
+                className="px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-strong transition-colors flex items-center gap-2"
                 onClick={(e) => e.stopPropagation()}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
