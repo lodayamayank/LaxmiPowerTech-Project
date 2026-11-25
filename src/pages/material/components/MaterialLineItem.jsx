@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Edit2, ChevronDown } from 'lucide-react';
+import { X, Edit2, ChevronDown, Check } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -254,7 +254,7 @@ export default function MaterialLineItem({
                 onClick={onDoneEditing}
                 className="h-auto gap-1 p-0 text-sm font-medium text-primary hover:bg-transparent hover:text-primary-strong"
               >
-                <span>✓</span>
+                <Check className="size-3.5" aria-hidden="true" />
                 <span>Done editing</span>
               </Button>
             </div>

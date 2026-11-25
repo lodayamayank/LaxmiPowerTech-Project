@@ -223,27 +223,6 @@
   }
 }
 
-@layer components {
-  .mobile-back-button {
-    @apply inline-flex h-auto items-center gap-2 rounded-full border border-line-card !bg-surface px-3 py-1.5 text-sm font-medium !text-primary shadow-sm transition-all;
-  }
-
-  .mobile-back-button:hover {
-    @apply !bg-primary-soft !text-primary-strong shadow-md;
-  }
-
-  .mobile-back-button svg,
-  .mobile-back-button span {
-    color: hsl(var(--primary));
-  }
-
-  .mobile-back-button:hover svg,
-  .mobile-back-button:hover span {
-    color: hsl(var(--primary-strong));
-  }
-}
-
-
 a {
   font-weight: 500;
   color: hsl(var(--primary));

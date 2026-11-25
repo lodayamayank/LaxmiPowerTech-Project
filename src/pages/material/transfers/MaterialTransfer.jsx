@@ -394,8 +394,8 @@ export default function MaterialTransfer() {
                 {/* Header */}
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-16 h-16 rounded-lg bg-tone-purple-soft border-2 border-line-card flex items-center justify-center flex-shrink-0">
-                      <Truck size={28} className="text-tone-purple-fg" />
+                    <div className="size-11 rounded-lg bg-tone-purple-soft border border-line-card flex items-center justify-center flex-shrink-0">
+                      <Truck size={20} className="text-tone-purple-fg" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-ink-1 text-base">
@@ -405,7 +405,7 @@ export default function MaterialTransfer() {
                         {formatDate(transfer.createdAt)}
                       </p>
                       <p className="text-xs text-tone-purple-fg font-medium mt-0.5">
-                        🚚 Site Transfer
+                        Site Transfer
                       </p>
                     </div>
                   </div>

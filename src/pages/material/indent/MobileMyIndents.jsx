@@ -1,23 +1,34 @@
-// src/pages/mobile/MobileMyIndents.jsx
+// src/pages/material/indent/MobileMyIndents.jsx  (route: /material/my-indents, mobile)
+// The signed-in user's indents with a status filter and a detail sheet. The request (GET /indents/mine) and the
+// fields shown are unchanged; the screen uses the mobile frame, design chips, cards and badges.
 import { useEffect, useState } from "react";
 import axios from "@/api/client";
 import dayjs from "dayjs";
-import { Button } from '@/components/ui/button';
+import { FileText } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { ChoiceChips } from "@/components/common/ChoiceChips";
+import { EmptyState } from "@/components/common/EmptyState";
+import { PageLoader } from "@/components/common/PageLoader";
+import MobileCard from "@/layouts/mobile/MobileCard";
+import MobilePage from "@/layouts/mobile/MobilePage";
 
-const StatusPill = ({ value }) => {
-  const map = {
-    pending: "bg-tone-warn-soft text-tone-warn-fg",
-    approved: "bg-tone-info-soft text-tone-info-fg",
-    rejected: "bg-tone-bad-soft text-tone-bad-fg",
-    issued: "bg-tone-ok-soft text-tone-ok-fg",
-  };
-  return <span className={`px-2 py-1 rounded-full text-xs font-medium ${map[value] || "bg-surface-muted text-ink-2"}`}>{value}</span>;
-};
+const TONE = { pending: "warn", approved: "info", rejected: "bad", issued: "ok" };
+const label = (v) => (v ? v.charAt(0).toUpperCase() + v.slice(1) : "—");
+const StatusPill = ({ value }) => <Badge variant={TONE[value] || "neutral"}>{label(value)}</Badge>;
+const when = (v) => (v ? dayjs(v).format("DD MMM, HH:mm") : "—");
+
+const FILTERS = [
+  { value: "", label: "All" },
+  { value: "pending", label: "Pending" },
+  { value: "approved", label: "Approved" },
+  { value: "issued", label: "Issued" },
+  { value: "rejected", label: "Rejected" },
+];
 
 export default function MobileMyIndents() {
   const [status, setStatus] = useState("");
   const [list, setList] = useState([]);
-  const [open, setOpen] = useState(false);
   const [active, setActive] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -30,95 +41,72 @@ export default function MobileMyIndents() {
       setLoading(false);
     }
   };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the listed values change (the callbacks are recreated every render)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only when the status filter changes
   useEffect(() => { fetchMine(); }, [status]);
 
   return (
-    <div className="max-w-xl mx-auto p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h1 className="text-lg font-semibold">My Indents</h1>
-        <select
-          aria-label="Filter by status"
-          className="border rounded px-2 py-2"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="">All</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="issued">Issued</option>
-          <option value="rejected">Rejected</option>
-        </select>
-      </div>
+    <MobilePage title="My indents" back>
+      <ChoiceChips aria-label="Filter by status" value={status} onChange={setStatus} options={FILTERS} />
 
-      <div className="space-y-2">
-        {loading ? (
-          <div className="text-sm text-ink-3">Loading…</div>
-        ) : list.length === 0 ? (
-          <div className="text-sm text-ink-3">No indents yet</div>
-        ) : list.map((it) => (
+      {loading ? (
+        <PageLoader label="Loading indents" className="min-h-[240px] bg-transparent" />
+      ) : list.length === 0 ? (
+        <MobileCard>
+          <EmptyState icon={FileText} title="No indents yet" description="Indents you raise will appear here." />
+        </MobileCard>
+      ) : (
+        list.map((it) => (
           <button
             key={it._id}
-            onClick={() => { setActive(it); setOpen(true); }}
-            className="w-full text-left bg-surface rounded-xl border px-4 py-3"
+            type="button"
+            onClick={() => setActive(it)}
+            className="w-full rounded-[14px] border border-line-card bg-surface px-4 py-3 text-left"
           >
-            <div className="flex items-center justify-between">
-              <div className="font-medium">{it.project?.name || "Project"}</div>
+            <div className="flex items-center justify-between gap-2">
+              <div className="truncate text-[14.5px] font-semibold text-ink-1">{it.project?.name || "Project"}</div>
               <StatusPill value={it.status} />
             </div>
-            <div className="text-xs text-ink-3">
-              {dayjs(it.requestedAt || it.createdAt).format("DD MMM YYYY • HH:mm")}
-            </div>
-            <div className="text-sm mt-1 line-clamp-1">{it.purpose || "—"}</div>
+            <div className="mt-0.5 text-small text-ink-3">{dayjs(it.requestedAt || it.createdAt).format("DD MMM YYYY · HH:mm")}</div>
+            <div className="mt-1 line-clamp-1 text-body text-ink-2">{it.purpose || "—"}</div>
           </button>
-        ))}
-      </div>
-
-      {/* Detail modal */}
-      {open && active && (
-        <div className="fixed inset-0 z-40">
-          <div className="absolute inset-0 bg-scrim/40" onClick={() => setOpen(false)} />
-          <div className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-2xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold">Indent Detail</h3>
-              <Button
-                type="button"
-                variant="ghost"
-                aria-label="Close"
-                className="h-auto w-auto p-0 font-normal text-ink-3 hover:bg-transparent hover:text-ink-1"
-                onClick={() => setOpen(false)}
-              >
-                ✕
-              </Button>
-            </div>
-            <div className="text-sm space-y-1">
-              <div><span className="text-ink-3">Project:</span> {active.project?.name || "—"}</div>
-              <div><span className="text-ink-3">Branch:</span> {active.branch?.name || "—"}</div>
-              <div><span className="text-ink-3">Status:</span> <StatusPill value={active.status} /></div>
-              <div><span className="text-ink-3">Purpose:</span> {active.purpose || "—"}</div>
-              <div className="grid grid-cols-2 gap-2">
-                <div><span className="text-ink-3">Requested:</span> {active.requestedAt ? dayjs(active.requestedAt).format("DD MMM, HH:mm") : "—"}</div>
-                <div><span className="text-ink-3">Approved:</span> {active.approvedAt ? dayjs(active.approvedAt).format("DD MMM, HH:mm") : "—"}</div>
-                <div><span className="text-ink-3">Issued:</span> {active.issuedAt ? dayjs(active.issuedAt).format("DD MMM, HH:mm") : "—"}</div>
-              </div>
-            </div>
-            <div className="mt-3">
-              <h4 className="font-medium mb-1">Items</h4>
-              <div className="border rounded-lg divide-y">
-                {(active.items || []).map((x, i) => (
-                  <div className="px-3 py-2 text-sm flex justify-between" key={i}>
-                    <div className="font-medium">{x.name}</div>
-                    <div>{x.quantity} {x.unit}</div>
-                  </div>
-                ))}
-                {(!active.items || active.items.length === 0) && (
-                  <div className="px-3 py-2 text-ink-3 text-sm">No items</div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        ))
       )}
-    </div>
+
+      <Sheet open={Boolean(active)} onOpenChange={(open) => !open && setActive(null)}>
+        <SheetContent side="bottom" className="mx-auto max-h-[85dvh] max-w-md overflow-y-auto rounded-t-[20px]">
+          {active ? (
+            <>
+              <SheetHeader className="text-left">
+                <SheetTitle>Indent details</SheetTitle>
+                <SheetDescription className="sr-only">Project, status, dates and items of this indent.</SheetDescription>
+              </SheetHeader>
+              <div className="mt-3 flex flex-col gap-2 text-body">
+                <div><span className="text-ink-3">Project:</span> {active.project?.name || "—"}</div>
+                <div><span className="text-ink-3">Branch:</span> {active.branch?.name || "—"}</div>
+                <div className="flex items-center gap-2"><span className="text-ink-3">Status:</span> <StatusPill value={active.status} /></div>
+                <div><span className="text-ink-3">Purpose:</span> {active.purpose || "—"}</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div><span className="text-ink-3">Requested:</span> {when(active.requestedAt)}</div>
+                  <div><span className="text-ink-3">Approved:</span> {when(active.approvedAt)}</div>
+                  <div><span className="text-ink-3">Issued:</span> {when(active.issuedAt)}</div>
+                </div>
+              </div>
+              <div className="mt-4">
+                <h4 className="mb-1.5 text-[14.5px] font-semibold text-ink-1">Items</h4>
+                <div className="divide-y divide-line rounded-[12px] border border-line-card">
+                  {(active.items || []).map((x, i) => (
+                    <div className="flex justify-between gap-3 px-3 py-2 text-body" key={i}>
+                      <div className="font-medium text-ink-1">{x.name}</div>
+                      <div className="text-ink-2">{x.quantity} {x.unit}</div>
+                    </div>
+                  ))}
+                  {(!active.items || active.items.length === 0) && <div className="px-3 py-2 text-body text-ink-3">No items</div>}
+                </div>
+              </div>
+            </>
+          ) : null}
+        </SheetContent>
+      </Sheet>
+    </MobilePage>
   );
 }

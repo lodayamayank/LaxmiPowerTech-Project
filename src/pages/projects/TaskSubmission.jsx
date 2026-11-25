@@ -423,7 +423,7 @@ const TaskSubmission = () => {
       });
 
       if (result.offline) {
-        toast.info("📴 Offline – task saved and will sync when you reconnect.");
+        toast.info("Offline – task saved and will sync when you reconnect.");
       } else {
         toast.success("Task submitted successfully!");
       }
@@ -498,9 +498,9 @@ const TaskSubmission = () => {
             <div className="mb-4 space-y-3">
               {/* Project Selector Dropdown */}
               {availableProjects.length > 1 && (
-                <div className="p-4 bg-primary text-primary-foreground hover:bg-primary-strong rounded-xl">
-                  <Label className="text-primary-foreground text-xs font-semibold mb-2 block">
-                    🏗️ SELECT PROJECT
+                <div className="rounded-[14px] border border-line-card bg-surface p-4">
+                  <Label className="mb-2 block text-small font-semibold text-ink-2">
+                    Select project
                   </Label>
                   <Select
                     value={selectedProject?._id || ""}
@@ -511,7 +511,7 @@ const TaskSubmission = () => {
                       if (project) handleProjectChange(project);
                     }}
                   >
-                    <SelectTrigger className="w-full h-12 rounded-lg border-2 border-line-card bg-surface/80 backdrop-blur-sm text-primary-foreground font-semibold focus:ring-0 focus:border-line-card focus:bg-surface/20 [&_svg]:text-primary-foreground [&_svg]:opacity-80">
+                    <SelectTrigger className="h-12 w-full">
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
@@ -522,7 +522,7 @@ const TaskSubmission = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-primary-foreground/70 text-xs mt-2">
+                  <p className="mt-2 text-small text-ink-3">
                     {availableProjects.length} projects available in{" "}
                     {selectedBranchName}
                   </p>
@@ -530,18 +530,18 @@ const TaskSubmission = () => {
               )}
 
               {/* Current Project Info Badge */}
-              <div className="p-3 bg-primary text-primary-foreground hover:bg-primary-strong rounded-xl">
+              <div className="rounded-[14px] border border-line-card bg-surface p-3.5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-primary-foreground text-sm font-semibold">
-                      📍 {projectName}
+                    <p className="text-[14.5px] font-semibold text-ink-1">
+                      {projectName}
                     </p>
-                    <p className="text-primary-foreground/80 text-xs mt-0.5">
+                    <p className="mt-0.5 text-small text-ink-3">
                       {selectedBranchName}
                     </p>
                   </div>
                   {availableProjects.length === 1 && (
-                    <Badge className="bg-surface/80 text-primary-foreground text-xs rounded-full hover:bg-surface-muted">
+                    <Badge variant="neutral">
                       1 Project
                     </Badge>
                   )}
@@ -553,7 +553,7 @@ const TaskSubmission = () => {
                 <Card className="gap-0 py-0 rounded-xl border-2 border-line-card">
                   <CardContent className="p-4">
                     <Label className="text-sm font-semibold text-ink-2 mb-2 block">
-                      🏢 Select Buildings to View:
+                      Select buildings to view
                     </Label>
                     <ScrollArea
                       className={
@@ -691,7 +691,8 @@ const TaskSubmission = () => {
                     }
                     setShowAddTaskModal(true);
                   }}
-                  className="w-full h-auto flex items-center justify-center gap-3 bg-primary text-primary-foreground hover:bg-primary-strong text-base px-6 py-4 rounded-xl transition-all duration-300 font-semibold"
+                  size="xl"
+                  className="w-full"
                 >
                   <Plus size={20} />
                   <span>Add New Task</span>
@@ -764,7 +765,7 @@ const TaskSubmission = () => {
                                 </Badge>
                               </div>
                               <div className="text-xs text-ink-3 mt-1.5 flex items-center gap-1">
-                                <span className="font-medium">📍</span>
+                                <span className="font-medium"></span>
                                 <span>{task.floor.name}</span>
                                 <span className="text-ink-4">•</span>
                                 <span>{task.flat.name}</span>
@@ -774,7 +775,7 @@ const TaskSubmission = () => {
                                 </span>
                               </div>
                               <div className="text-xs text-ink-4 mt-2 flex items-center gap-1">
-                                <span>🕐</span>
+                                <span></span>
                                 <span>
                                   {new Date(task.createdAt).toLocaleDateString(
                                     "en-US",
@@ -1322,7 +1323,7 @@ const TaskSubmission = () => {
                         disabled={updatingStatus}
                         className="flex-1 py-3 h-auto bg-primary text-primary-foreground hover:bg-primary-strong rounded-xl font-semibold  "
                       >
-                        ✓ Accept Task
+                        Accept Task
                       </Button>
                       <Button
                         onClick={() =>
@@ -1334,7 +1335,7 @@ const TaskSubmission = () => {
                         disabled={updatingStatus}
                         className="flex-1 py-3 h-auto bg-primary text-primary-foreground hover:bg-primary-strong rounded-xl font-semibold  "
                       >
-                        ✗ Reject Task
+                        Reject Task
                       </Button>
                     </div>
                   )}

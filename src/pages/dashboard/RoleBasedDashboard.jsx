@@ -1,5 +1,7 @@
 // RoleBasedDashboard.jsx - Add error handling
 import React, { Suspense } from 'react';
+import { TriangleAlert } from 'lucide-react';
+import { EmptyState } from '@/components/common/EmptyState';
 import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import { Button } from '@/components/ui/button';
 import { PageLoader } from '@/components/common/PageLoader';
@@ -61,37 +63,37 @@ const RoleBasedDashboard = () => {
       );
     }
     
-    console.warn('⚠️ Unknown role:', role);
-    
+    console.warn('Unknown role:', role);
+
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-tone-bad-fg mb-4">❌ Unknown Role</h1>
-          <p className="text-ink-3 mb-4">Role: {role || 'undefined'}</p>
-          <Button
-            onClick={() => navigate(ROUTES.login)}
-          >
-            Go to Login
-          </Button>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-page">
+        <EmptyState
+          icon={TriangleAlert}
+          title="We can’t open your dashboard"
+          description="Your account has no role this app recognises. Sign in again, or ask an administrator to check your account."
+          action={<Button onClick={() => navigate(ROUTES.login)}>Go to login</Button>}
+        />
       </div>
     );
   } catch (err) {
     console.error('Error in RoleBasedDashboard:', err);
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-tone-bad-fg mb-4">⚠️ Error Loading Dashboard</h1>
-          <p className="text-ink-3 mb-4">{err.message}</p>
-          <Button
-            onClick={() => {
-              clearSession({ all: true });
-              navigate(ROUTES.login);
-            }}
-          >
-            Clear Storage & Login Again
-          </Button>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-page">
+        <EmptyState
+          icon={TriangleAlert}
+          title="The dashboard couldn’t be loaded"
+          description="Your saved sign-in details look damaged. Signing in again usually fixes this."
+          action={
+            <Button
+              onClick={() => {
+                clearSession({ all: true });
+                navigate(ROUTES.login);
+              }}
+            >
+              Sign in again
+            </Button>
+          }
+        />
       </div>
     );
   }

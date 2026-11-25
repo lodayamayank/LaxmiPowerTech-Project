@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileText } from 'lucide-react';
 import { isFieldRole } from '@/lib/roles';
 import { ROUTES } from '@/lib/routes';
 import { getUser } from '@/lib/session';
@@ -456,7 +456,7 @@ export default function Intent() {
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
                   {indent.hasImage && indent.imageUrl ? (
-                    <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-line-card flex-shrink-0">
+                    <div className="size-11 rounded-lg overflow-hidden border border-line-card flex-shrink-0">
                       <img loading="lazy" decoding="async"
                         src={resolveFileUrl(indent.imageUrl)}
                         alt="Intent"
@@ -469,20 +469,8 @@ export default function Intent() {
                       />
                     </div>
                   ) : (
-                    <div className="w-16 h-16 rounded-lg bg-tone-info-soft border-2 border-line-card flex items-center justify-center flex-shrink-0">
-                      <svg
-                        className="w-8 h-8 text-tone-info-fg"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
+                    <div className="size-11 rounded-lg bg-tone-info-soft border border-line-card flex items-center justify-center flex-shrink-0">
+                      <FileText className="size-5 text-tone-info-fg" aria-hidden="true" />
                     </div>
                   )}
                   <div>
@@ -497,8 +485,8 @@ export default function Intent() {
                     </p>
                     <p className="text-xs text-tone-info-fg font-medium mt-0.5">
                       {indent.type === "indent"
-                        ? "📷 Photo Upload"
-                        : "📝 Manual Entry"}
+                        ? "Photo Upload"
+                        : "Manual Entry"}
                     </p>
                   </div>
                 </div>

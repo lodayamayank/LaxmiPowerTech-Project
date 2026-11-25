@@ -6,7 +6,7 @@ import { getUser } from '@/lib/session';
 import { EVENTS } from '@/lib/events';
 import { fetchBranchesCached } from '@/hooks/useBranches';
 import { fetchMaterialCatalogCached } from '@/hooks/useMaterialCatalog';
-import { ArrowLeft, X, Upload, ChevronDown } from 'lucide-react';
+import { ArrowLeft, X, Upload, ChevronDown, LoaderCircle } from 'lucide-react';
 import { siteTransferAPI, upcomingDeliveryAPI } from '@/api/material';
 import { useNavigate } from 'react-router-dom';
 import { getSelectedBranchName } from '@/lib/branchContext';
@@ -117,7 +117,7 @@ function SearchableDropdown({ value, onChange, options, placeholder, disabled })
                 onClick={() => handleSelect(searchTerm.trim())}
                 className="px-3 py-2 text-sm cursor-pointer hover:bg-tone-ok-soft transition-colors text-tone-ok-fg font-medium"
               >
-                ✓ Use "{searchTerm.trim()}" (custom value)
+                Use "{searchTerm.trim()}" (custom value)
               </div>
             </div>
           ) : (
@@ -535,8 +535,8 @@ export default function MaterialTransferForm() {
           {/* Form Content */}
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Transfer Information Section */}
-            <div className="bg-surface-subtle rounded-[14px] p-5 border border-line-card">
-              <h3 className="text-tone-highlight-fg font-semibold text-sm mb-4">Transfer Information</h3>
+            <div className="bg-surface rounded-[14px] p-3.5 border border-line-card">
+              <h3 className="text-body font-semibold text-ink-1 mb-3">Transfer Information</h3>
 
               <div className="mb-4">
                 <label className="text-ink-2 text-sm font-medium mb-2 block">
@@ -611,14 +611,14 @@ export default function MaterialTransferForm() {
             </div>
 
             {/* Materials Section */}
-            <div className="bg-surface-subtle rounded-[14px] p-5 border border-line-card">
-              <h3 className="text-tone-highlight-fg font-semibold text-sm mb-4">Materials</h3>
+            <div className="bg-surface rounded-[14px] p-3.5 border border-line-card">
+              <h3 className="text-body font-semibold text-ink-1 mb-3">Materials</h3>
               
               {/* Warning if From Site not selected */}
               {!formData.fromSite && (
                 <div className="mb-4 p-3 bg-tone-warn-soft border border-line-card rounded-lg">
                   <p className="text-xs text-tone-warn-fg font-medium">
-                    ⚠️ Please select "From Site" first to load available materials from GRN
+                    Please select "From Site" first to load available materials from GRN
                   </p>
                 </div>
               )}
@@ -844,7 +844,7 @@ export default function MaterialTransferForm() {
                             onClick={() => setEditingMaterialId(null)}
                             className="mt-3 w-full text-xs text-tone-highlight-fg font-medium hover:text-primary-strong transition-colors"
                           >
-                            ✓ Done editing
+                            Done editing
                           </button>
                         )}
                       </div>
@@ -858,8 +858,8 @@ export default function MaterialTransferForm() {
             </div>
 
             {/* Attachments Section */}
-            <div className="bg-surface-subtle rounded-[14px] p-5 border border-line-card">
-              <h3 className="text-tone-highlight-fg font-semibold text-sm mb-4">Attachments (Optional)</h3>
+            <div className="bg-surface rounded-[14px] p-3.5 border border-line-card">
+              <h3 className="text-body font-semibold text-ink-1 mb-3">Attachments (Optional)</h3>
               
               <div className="mb-4">
                 <label className="flex items-center justify-center w-full px-6 py-6 border-2 border-dashed border-line-input rounded-xl cursor-pointer hover:border-primary hover:bg-tone-highlight-soft transition-all">
@@ -927,10 +927,7 @@ export default function MaterialTransferForm() {
               >
                 {submitting ? (
                   <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
+                    <LoaderCircle className="size-5 animate-spin" aria-hidden="true" />
                     Creating...
                   </span>
                 ) : (

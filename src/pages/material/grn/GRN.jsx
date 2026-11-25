@@ -302,8 +302,8 @@ export default function GRN() {
               {/* Header */}
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-16 h-16 rounded-lg bg-tone-ok-soft border-2 border-tone-ok-border flex items-center justify-center flex-shrink-0">
-                    <Package size={28} className="text-tone-ok-fg" />
+                  <div className="size-11 rounded-lg bg-tone-ok-soft border border-tone-ok-border flex items-center justify-center flex-shrink-0">
+                    <Package size={20} className="text-tone-ok-fg" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-ink-1 text-base">
@@ -316,12 +316,12 @@ export default function GRN() {
                       Intent Request Date
                     </p>
                     <p className="text-xs text-tone-ok-fg font-medium mt-0.5">
-                      {delivery.type === 'PO' ? '📋 Vendor-wise PO' : '🚚 Site Transfer'}
+                      {delivery.type === 'PO' ? 'Vendor-wise PO' : 'Site Transfer'}
                     </p>
                   </div>
                 </div>
                 <Badge className="text-xs px-3 py-1.5 rounded-full font-semibold bg-tone-ok-soft text-tone-ok-fg hover:bg-tone-ok-soft border-transparent">
-                  ✅ Completed
+                  Completed
                 </Badge>
               </div>
 

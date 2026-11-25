@@ -145,7 +145,7 @@ export default function GRNCardDetails() {
                     <Label className={labelClass}>Status</Label>
                     <div>
                       <Badge variant="outline" className={`inline-block ${pillClass} font-normal ${getStatusColor(delivery.status)}`}>
-                        ✅ {delivery.status}
+                        {delivery.status}
                       </Badge>
                     </div>
                   </div>
@@ -159,7 +159,7 @@ export default function GRNCardDetails() {
                           delivery.type === 'PO' ? 'bg-tone-info-soft text-tone-info-fg' : 'bg-tone-purple-soft text-tone-purple-fg'
                         }`}
                       >
-                        {delivery.type === 'PO' ? '📋 PO' : '🚚 ST'}
+                        {delivery.type === 'PO' ? 'PO' : 'ST'}
                       </Badge>
                     </div>
                   </div>
@@ -197,18 +197,18 @@ export default function GRNCardDetails() {
                 <div className="space-y-3">
                   <div>
                     <Label className={labelClass}>From Location</Label>
-                    <p className="font-medium text-ink-1">📍 {delivery.from || 'N/A'}</p>
+                    <p className="font-medium text-ink-1">{delivery.from || 'N/A'}</p>
                   </div>
 
                   <div>
                     <Label className={labelClass}>To Location</Label>
-                    <p className="font-medium text-ink-1">📍 {delivery.to || 'N/A'}</p>
+                    <p className="font-medium text-ink-1">{delivery.to || 'N/A'}</p>
                   </div>
 
                   {delivery.createdBy && (
                     <div>
                       <Label className={labelClass}>Requested By</Label>
-                      <p className="font-medium text-ink-1">👤 {delivery.createdBy}</p>
+                      <p className="font-medium text-ink-1">{delivery.createdBy}</p>
                     </div>
                   )}
                 </div>
@@ -254,7 +254,7 @@ export default function GRNCardDetails() {
                                   : 'bg-tone-highlight-soft text-tone-highlight-fg'
                               }`}
                             >
-                              {isFullyReceived ? '✓ Complete' : 'Partial'}
+                              {isFullyReceived ? 'Complete' : 'Partial'}
                             </Badge>
                           </div>
 
@@ -265,7 +265,7 @@ export default function GRNCardDetails() {
                             </div>
                             <div>
                               <span className="text-ink-3">Received</span>
-                              <p className="font-semibold text-tone-ok-fg">✓ {receivedQty}</p>
+                              <p className="font-semibold text-tone-ok-fg">{receivedQty}</p>
                             </div>
                             <div>
                               <span className="text-ink-3">Pending</span>
@@ -364,7 +364,7 @@ export default function GRNCardDetails() {
                   </div>
                   <div>
                     <p className="text-ink-3">Status</p>
-                    <p className="font-semibold text-tone-ok-fg">✅ Transferred</p>
+                    <p className="font-semibold text-tone-ok-fg">Transferred</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-ink-3">Intent Request Date</p>

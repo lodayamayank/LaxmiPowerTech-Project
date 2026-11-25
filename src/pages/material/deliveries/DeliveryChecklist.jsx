@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import useConfirm from '@/hooks/useConfirm';
 import { showToast } from '@/lib/showToast';
 import MobilePage from '@/layouts/mobile/MobilePage';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Paperclip } from 'lucide-react';
 import { FILE_BASE_URL } from '@/api/client';
 import { EVENTS } from '@/lib/events';
 import { useParams, useNavigate } from "react-router-dom";
@@ -417,7 +417,7 @@ export default function DeliveryChecklist() {
                                                     />
                                                 ) : (
                                                     <div className="w-full h-32 flex items-center justify-center bg-surface-muted">
-                                                        <span className="text-4xl">📎</span>
+                                                        <Paperclip className="size-10 text-ink-4" aria-hidden="true" />
                                                     </div>
                                                 )}
                                                 

@@ -644,7 +644,7 @@ export default function IntentForm() {
                             onClick={() => setEditingMaterialId(null)}
                             className="mt-3 w-full h-auto p-0 hover:bg-transparent text-xs text-tone-highlight-fg font-medium hover:text-primary-strong transition-colors"
                           >
-                            ✓ Done editing
+                            Done editing
                           </Button>
                         )}
                       </div>

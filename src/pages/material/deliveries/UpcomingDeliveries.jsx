@@ -467,7 +467,7 @@ export default function UpcomingDeliveries() {
                                             <p className={`text-xs font-medium mt-1 ${
                                                 delivery.type === 'PO' ? 'text-tone-info-fg' : 'text-tone-purple-fg'
                                             }`}>
-                                                {delivery.type === 'PO' ? '📋 Purchase Order' : '🚚 Site Transfer'}
+                                                {delivery.type === 'PO' ? 'Purchase Order' : 'Site Transfer'}
                                             </p>
                                         </div>
                                     </div>
