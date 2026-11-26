@@ -30,7 +30,7 @@ const dayKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,
 const sameDay = (a, b) => a.toDateString() === b.toDateString();
 
 const SupervisorDashboard = () => {
-  const user = getUser();
+ const user = useMemo(() => getUser(), []);
   const navigate = useNavigate();
   const token = getToken();
   const { pendingCount, failedCount } = useNetworkStatus();
@@ -44,6 +44,7 @@ const SupervisorDashboard = () => {
   const [projectStats, setProjectStats] = useState({}); // branchId -> { labour, marked }
 
   const branches = useMemo(() => (user?.assignedBranches || []).filter((b) => b?._id), [user]);
+  const branchKey = branches.map((b) => b._id).join(",");
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 30000);
@@ -118,18 +119,31 @@ const SupervisorDashboard = () => {
     const load = async () => {
       if (!branches.length) return;
       try {
-        const labours = await fetchUsersCached({ role: 'labour' });
+        const labours = await fetchUsersCached({ role: "labour" });
         const entries = await Promise.all(
           branches.map(async (b) => {
             const ids = new Set(
               (labours || [])
-                .filter((u) => Array.isArray(u.assignedBranches) && u.assignedBranches.some((x) => (typeof x === 'object' ? x._id : x) === b._id))
+                .filter(
+                  (u) =>
+                    Array.isArray(u.assignedBranches) &&
+                    u.assignedBranches.some(
+                      (x) => (typeof x === "object" ? x._id : x) === b._id,
+                    ),
+                )
                 .map((u) => u._id),
             );
             let marked = 0;
             try {
-              const att = await axios.get('/attendance/by-date', { params: { branch: b._id, date: dayKey(new Date()) }, headers: { Authorization: `Bearer ${token}` } });
-              marked = new Set((att.data || []).filter((r) => ids.has(r.user?._id || r.user)).map((r) => r.user?._id || r.user)).size;
+              const att = await axios.get("/attendance/by-date", {
+                params: { branch: b._id, date: dayKey(new Date()) },
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              marked = new Set(
+                (att.data || [])
+                  .filter((r) => ids.has(r.user?._id || r.user))
+                  .map((r) => r.user?._id || r.user),
+              ).size;
             } catch {
               /* counts are optional */
             }
@@ -138,14 +152,15 @@ const SupervisorDashboard = () => {
         );
         if (!ignore) setProjectStats(Object.fromEntries(entries));
       } catch (err) {
-        console.error('Failed to load project counts', err);
+        console.error("Failed to load project counts", err);
       }
     };
     load();
     return () => {
       ignore = true;
     };
-  }, [branches, token]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branchKey, token]);
 
   const todayIn = useMemo(
     () =>

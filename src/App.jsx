@@ -4,6 +4,7 @@ import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import { getUser } from '@/lib/session';
 import { useEffect, Suspense } from 'react';
 import { migrateLegacyOfflinePunches } from '@/pwa/syncAttendance';
+import { warmFaceModelAssets } from "@/services/faceLandmarker"; 
 import { toast } from 'sonner';
 import useNotifier from '@/pwa/useNotifier';
 import syncEngine from '@/pwa/syncEngine';
@@ -115,17 +116,13 @@ function RouteBoundary({ children }) {
 
 function App() {
   const user = getUser();
+  const { pathname } = useLocation(); 
   useNotifier();
 
   useEffect(() => {
-    // The sync engine owns the 'online' listener for the whole app – screens
-    // must not register their own, or reconnecting fires concurrent syncs of
+    // The sync engine owns the 'online' listener for the whole app – screens must not register their own, or reconnecting fires concurrent syncs of
     // the same queue.
     syncEngine.init();
-
-    // Clear out the two localStorage queues written by the previous offline
-    // implementation. They cannot be replayed (their selfies did not survive
-    // JSON serialisation), so tell the user rather than failing silently.
     migrateLegacyOfflinePunches()
       .then(({ unrecoverable }) => {
         if (unrecoverable > 0) {
@@ -137,6 +134,16 @@ function App() {
       })
       .catch((err) => console.error('Legacy offline punch migration failed:', err));
   }, []);
+   useEffect(() => {
+     if (!getUser()) return; // don't download ~6 MB on the login screen
+     const run = () => warmFaceModelAssets();
+     if ("requestIdleCallback" in window) {
+       const id = requestIdleCallback(run);
+       return () => cancelIdleCallback(id);
+     }
+     const t = setTimeout(run, 1500);
+     return () => clearTimeout(t);
+   }, [pathname]); 
 
   return (
     <>
