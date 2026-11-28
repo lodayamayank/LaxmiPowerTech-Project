@@ -4,7 +4,6 @@ import { Download, MapPin, RefreshCw, UserX, UserCheck, UserMinus, Users } from 
 import usePolling from "@/hooks/usePolling";
 import { useBranches } from "@/hooks/useBranches";
 import axios from "@/api/client";
-import { formatIST } from "@/lib/date";
 import { getRoleTone } from "@/lib/status";
 import DashboardLayout from "@/layouts/desktop/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +31,7 @@ const ROLE_OPTIONS = [
 ];
 
 // API status value -> label the page shows (tones live in lib/status.js).
-const STATUS_LABELS = { in: "Punched In", out: "Punched Out", no_punch: "No Punch In" };
+const STATUS_LABELS = { in: "Punched In", out: "Punched Out", paidleave:"Paid Leave", unpaidleave: "Unpaid Leave", no_punch:"No Punch In", };
 
 const formatTime = (date) =>
   date ? date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }) : "-";
@@ -62,16 +61,16 @@ const PersonCard = memo(function PersonCard({ user }) {
             </Badge>
           ) : null}
         </div>
-        {user.location ? (
+        {user.branch ? (
           <div className="mt-1 flex min-w-0 items-center gap-1 text-caption-lg text-ink-3">
             <MapPin className="size-3 shrink-0" />
-            <span className="truncate">{user.location}</span>
+            <span className="truncate">{user.branch}</span>
           </div>
         ) : null}
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1">
         <StatusBadge status={STATUS_LABELS[user.status] || STATUS_LABELS.no_punch} />
-        {hasTime ? <span className="text-caption-lg text-ink-3">{user.punchTime || "-"}</span> : null}
+        {hasTime ? (<span className="text-caption-lg text-ink-3">{user.punchTime || "-"}{user.status === "out" ? ` → ${user.punchOutTime || "-"}` : ""}</span> ) : null}
       </div>
     </div>
   );
@@ -146,53 +145,57 @@ const AdminLiveAttendance = () => {
           acc[user.status] = (acc[user.status] || 0) + 1;
           return acc;
         },
-        { in: 0, out: 0, no_punch: 0 },
+        { in: 0, out: 0, paidleave: 0, unpaidleave: 0, no_punch: 0 },
       ),
     [staffData],
   );
 
   // Export attendance data to CSV
-  const downloadCSV = () => {
-    const csvHeader = "Name,Status,Punch In Time,Punch Out Time,Role,Branch,Location";
+const downloadCSV = () => {
+  const csvHeader =
+    "Name,Status,Punch In Time,Punch Out Time,Overtime Hours,Role,Branch";
 
-    const csvRows = filteredData.map((user) =>
-      [
-        user.name || "-",
-        user.status || "-",
-        formatIST(user.punchInTime) || "-",
-        formatIST(user.punchOutTime) || "-",
-        user.role || "-",
-        user.branch || "-",
-        user.location || "-",
-      ]
-        .map((value) => `"${String(value).replace(/"/g, '""')}"`)
-        .join(","),
-    );
+  const csvRows = filteredData.map((user) =>
+    [
+      user.name || "-",
+      STATUS_LABELS[user.status] || "-",
+      user.punchInTime || "-",
+      user.punchOutTime || "-",
+      user.overtimeHours ?? "-",
+      user.role || "-",
+      user.branch || "-",
+    ]
+      .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+      .join(","),
+  );
+    const totalOT = filteredData.reduce((sum, u) => sum + (u.overtimeHours || 0), 0);
+  const totalRow = `"Total","","","","${totalOT.toFixed(2)}","",""`;
+  const csvContent = [csvHeader, ...csvRows, totalRow].join("\n");
 
-    const csvContent = [csvHeader, ...csvRows].join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 
-    const blob = new Blob([csvContent], {
-      type: "text/csv;charset=utf-8;",
-    });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
 
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.download = `live_attendance_${
+    new Date().toISOString().split("T")[0]
+  }.csv`;
 
-    link.href = url;
-    link.download = `live_attendance_${new Date().toISOString().split("T")[0]}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
-  };
+  URL.revokeObjectURL(url);
+};
 
   const statusOptions = [
     { value: "all", label: "All", count: staffData.length },
     { value: "in", label: "Punched in", count: statusCounts.in || 0 },
     { value: "out", label: "Punched out", count: statusCounts.out || 0 },
     { value: "no_punch", label: "Not in", count: statusCounts.no_punch || 0 },
+    { value: "paidleave", label: "Paid leave", count: statusCounts.paidleave || 0 },
+    { value: "unpaidleave", label: "Unpaid leave", count: statusCounts.unpaidleave || 0 }, 
   ];
 
   const hasFilters = Boolean(searchQuery || filters.role || filters.branch || statusFilter !== "all");
